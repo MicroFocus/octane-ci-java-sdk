@@ -1,8 +1,8 @@
-package com.hp.nga.dto.projects;
+package com.hp.nga.integrations.dto.projects;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.hp.nga.dto.parameters.ParameterConfig;
+import com.hp.nga.integrations.dto.parameters.ParameterConfig;
 
 /**
  * Created by gullery on 06/01/2016.

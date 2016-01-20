@@ -1,4 +1,4 @@
-package com.hp.nga.dto.builds;
+package com.hp.nga.integrations.dto.builds;
 
 import java.util.ArrayList;
 import java.util.List;

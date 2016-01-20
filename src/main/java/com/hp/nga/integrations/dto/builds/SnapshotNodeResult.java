@@ -1,4 +1,4 @@
-package com.hp.nga.dto.builds;
+package com.hp.nga.integrations.dto.builds;
 
 /**
  * Created with IntelliJ IDEA.

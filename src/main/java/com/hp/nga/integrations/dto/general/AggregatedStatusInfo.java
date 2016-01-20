@@ -1,4 +1,4 @@
-package com.hp.nga.dto.general;
+package com.hp.nga.integrations.dto.general;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

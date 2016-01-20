@@ -1,4 +1,4 @@
-package com.hp.nga.dto.parameters;
+package com.hp.nga.integrations.dto.parameters;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;

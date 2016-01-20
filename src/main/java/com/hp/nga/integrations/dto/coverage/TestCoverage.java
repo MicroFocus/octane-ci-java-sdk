@@ -1,4 +1,4 @@
-package com.hp.nga.dto.coverage;
+package com.hp.nga.integrations.dto.coverage;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
