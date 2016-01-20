@@ -1,8 +1,8 @@
-package com.hp.nga.bridge;
+package com.hp.nga.integrations.bridge;
 
-import com.hp.nga.configuration.ServerConfiguration;
-import com.hp.nga.api.PluginInfoServiceProvider;
-import com.hp.nga.serialization.SerializationService;
+import com.hp.nga.integrations.configuration.ServerConfiguration;
+import com.hp.nga.integrations.api.CIDataProvider;
+import com.hp.nga.integrations.serialization.SerializationService;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +17,7 @@ import java.util.logging.Logger;
 
 public class BridgeClient {
 	private static final Logger logger = Logger.getLogger(BridgeClient.class.getName());
-	private static final String serverInstanceId = PluginInfoServiceProvider.getInstance().getInstanceId();
+	private static final String serverInstanceId = CIDataProvider.getInstance().getServerInfo().getInstanceId();
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -46,7 +46,7 @@ public class BridgeClient {
 						logger.info("BRIDGE: connecting to '" + config.getUrl() +
 								"' (SP: " + config.getSharedSpace() +
 								"; instance ID: " + serverInstanceId +
-								"; own URL: " + PluginInfoServiceProvider.getInstance().getOwnUrl());
+								"; own URL: " + CIDataProvider.getInstance().getServerInfo().getUrl());
 //						MqmRestClient restClient = restClientFactory.create(config.getUrl(), config.getSharedSpace(), config.getUsername(), config.getPassword());
 //						tasksJSON = restClient.getAbridgedTasks(serverInstanceId, new PluginActions.ServerInfo().getUrl());
 						logger.info("BRIDGE: back from '" + config.getUrl() + "' (SP: " + config.getSharedSpace() + ") with " + (tasksJSON == null || tasksJSON.isEmpty() ? "no tasks" : "some tasks"));

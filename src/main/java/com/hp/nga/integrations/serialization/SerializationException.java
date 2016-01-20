@@ -1,4 +1,4 @@
-package com.hp.nga.serialization;
+package com.hp.nga.integrations.serialization;
 
 /**
  * Created by gullery on 30/12/2015.

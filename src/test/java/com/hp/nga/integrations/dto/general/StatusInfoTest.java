@@ -1,6 +1,6 @@
-package com.hp.nga.dto.general;
+package com.hp.nga.integrations.dto.general;
 
-import com.hp.nga.serialization.SerializationService;
+import com.hp.nga.integrations.serialization.SerializationService;
 import org.junit.Test;
 
 import java.util.UUID;

@@ -1,6 +1,6 @@
-package com.hp.nga.bridge;
+package com.hp.nga.integrations.bridge;
 
-import com.hp.nga.configuration.ServerConfiguration;
+import com.hp.nga.integrations.configuration.ServerConfiguration;
 
 import java.util.logging.Logger;
 

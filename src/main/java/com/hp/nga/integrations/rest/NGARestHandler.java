@@ -1,4 +1,4 @@
-package com.hp.nga.rest;
+package com.hp.nga.integrations.rest;
 
 /**
  * Created by gullery on 07/01/2016.

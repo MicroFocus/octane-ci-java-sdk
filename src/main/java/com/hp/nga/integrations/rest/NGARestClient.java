@@ -1,4 +1,4 @@
-package com.hp.nga.rest;
+package com.hp.nga.integrations.rest;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
