@@ -14,10 +14,16 @@
     <properties>
         <httpcore.version>4.4.4</httpcore.version>
         <httpclient.version>4.5.1</httpclient.version>
-        <jackson.version>2.6.4</jackson.version>
     </properties>
 
     <dependencies>
+
+        <!-- INTERNAL -->
+        <dependency>
+            <artifactId>integrations-dto</artifactId>
+            <groupId>${project.groupId}</groupId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!-- EXTERNAL -->
         <dependency>
@@ -29,11 +35,6 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>${httpclient.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
 
         <!-- TESTING -->
