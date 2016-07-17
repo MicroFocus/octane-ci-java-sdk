@@ -2,12 +2,12 @@ package com.hp.nga.integrations.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.nga.integrations.dto.DTOFactory;
-import com.hp.nga.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.nga.integrations.dto.configuration.NGAConfiguration;
-import com.hp.nga.integrations.dto.connectivity.NGAHttpMethod;
-import com.hp.nga.integrations.dto.connectivity.NGARequest;
-import com.hp.nga.integrations.dto.connectivity.NGAResponse;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.nga.integrations.SDKManager;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -67,8 +67,8 @@ import java.util.Set;
  * REST Client default implementation
  */
 
-final class NGARestClient {
-	private static final Logger logger = LogManager.getLogger(NGARestClient.class);
+final class OctaneRestClient {
+	private static final Logger logger = LogManager.getLogger(OctaneRestClient.class);
 	private static final Set<Integer> AUTHENTICATION_ERROR_CODES;
 	private static final String CLIENT_TYPE_HEADER = "HPECLIENTTYPE";
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
@@ -92,7 +92,7 @@ final class NGARestClient {
 		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
 	}
 
-	NGARestClient(SDKManager sdk, CIProxyConfiguration proxyConfiguration) {
+	OctaneRestClient(SDKManager sdk, CIProxyConfiguration proxyConfiguration) {
 		this.sdk = sdk;
 
 		SSLContext sslContext = SSLContexts.createSystemDefault();
@@ -132,20 +132,20 @@ final class NGARestClient {
 		httpClient = clientBuilder.build();
 	}
 
-	NGAResponse execute(NGARequest request) throws IOException {
-		return executeRequest(request, sdk.getCIPluginServices().getNGAConfiguration());
+	OctaneResponse execute(OctaneRequest request) throws IOException {
+		return executeRequest(request, sdk.getCIPluginServices().getOctaneConfiguration());
 	}
 
-	NGAResponse execute(NGARequest request, NGAConfiguration configuration) throws IOException {
+	OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
 		return executeRequest(request, configuration);
 	}
 
-	private NGAResponse executeRequest(NGARequest request, NGAConfiguration configuration) throws IOException {
-		NGAResponse result;
+	private OctaneResponse executeRequest(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
+		OctaneResponse result;
 		HttpClientContext context;
 		HttpUriRequest uriRequest;
 		HttpResponse httpResponse = null;
-		NGAResponse loginResponse;
+		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
 			logger.warn("initial login");
 			loginResponse = login(configuration);
@@ -186,41 +186,41 @@ final class NGARestClient {
 		return result;
 	}
 
-	private HttpUriRequest createHttpRequest(NGARequest ngaRequest) {
+	private HttpUriRequest createHttpRequest(OctaneRequest octaneRequest) {
 		RequestBuilder requestBuilder;
 
 		//  create base request by METHOD
-		if (ngaRequest.getMethod().equals(NGAHttpMethod.GET)) {
+		if (octaneRequest.getMethod().equals(HttpMethod.GET)) {
 			requestBuilder = RequestBuilder
-					.get(ngaRequest.getUrl());
-		} else if (ngaRequest.getMethod().equals(NGAHttpMethod.DELETE)) {
+					.get(octaneRequest.getUrl());
+		} else if (octaneRequest.getMethod().equals(HttpMethod.DELETE)) {
 			requestBuilder = RequestBuilder
-					.delete(ngaRequest.getUrl());
-		} else if (ngaRequest.getMethod().equals(NGAHttpMethod.POST)) {
+					.delete(octaneRequest.getUrl());
+		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
 			try {
 				requestBuilder = RequestBuilder
-						.post(ngaRequest.getUrl())
-						.setEntity(new StringEntity(ngaRequest.getBody()));
+						.post(octaneRequest.getUrl())
+						.setEntity(new StringEntity(octaneRequest.getBody()));
 			} catch (UnsupportedEncodingException uee) {
 				logger.error("failed to create POST entity", uee);
 				throw new RuntimeException("failed to create POST entity", uee);
 			}
-		} else if (ngaRequest.getMethod().equals(NGAHttpMethod.PUT)) {
+		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
 			try {
 				requestBuilder = RequestBuilder
-						.put(ngaRequest.getUrl())
-						.setEntity(new StringEntity(ngaRequest.getBody()));
+						.put(octaneRequest.getUrl())
+						.setEntity(new StringEntity(octaneRequest.getBody()));
 			} catch (UnsupportedEncodingException uee) {
 				logger.error("failed to create PUT entity", uee);
 				throw new RuntimeException("failed to create PUT entity", uee);
 			}
 		} else {
-			throw new RuntimeException("HTTP method " + ngaRequest.getMethod() + " not supported");
+			throw new RuntimeException("HTTP method " + octaneRequest.getMethod() + " not supported");
 		}
 
 		//  set custom headers
-		if (ngaRequest.getHeaders() != null) {
-			for (Map.Entry<String, String> e : ngaRequest.getHeaders().entrySet()) {
+		if (octaneRequest.getHeaders() != null) {
+			for (Map.Entry<String, String> e : octaneRequest.getHeaders().entrySet()) {
 				requestBuilder.setHeader(e.getKey(), e.getValue());
 			}
 		}
@@ -241,20 +241,20 @@ final class NGARestClient {
 		return context;
 	}
 
-	private NGAResponse createNGAResponse(HttpResponse response) throws IOException {
-		NGAResponse ngaResponse = DTOFactory.getInstance().newDTO(NGAResponse.class)
+	private OctaneResponse createNGAResponse(HttpResponse response) throws IOException {
+		OctaneResponse octaneResponse = DTOFactory.getInstance().newDTO(OctaneResponse.class)
 				.setStatus(response.getStatusLine().getStatusCode());
 		if (response.getEntity() != null) {
-			ngaResponse.setBody(readResponseBody(response.getEntity().getContent()));
+			octaneResponse.setBody(readResponseBody(response.getEntity().getContent()));
 		}
 		if (response.getAllHeaders() != null && response.getAllHeaders().length > 0) {
 			Map<String, String> mapHeaders = new HashMap<String, String>();
 			for (Header header : response.getAllHeaders()) {
 				mapHeaders.put(header.getName(), header.getValue());
 			}
-			ngaResponse.setHeaders(mapHeaders);
+			octaneResponse.setHeaders(mapHeaders);
 		}
-		return ngaResponse;
+		return octaneResponse;
 	}
 
 	private String readResponseBody(InputStream is) throws IOException {
@@ -267,7 +267,7 @@ final class NGARestClient {
 		return baos.toString(StandardCharsets.UTF_8.toString());
 	}
 
-	private NGAResponse login(NGAConfiguration config) throws IOException {
+	private OctaneResponse login(OctaneConfiguration config) throws IOException {
 		HttpResponse response = null;
 
 		try {
@@ -293,7 +293,7 @@ final class NGARestClient {
 		}
 	}
 
-	private HttpUriRequest buildLoginRequest(NGAConfiguration config) throws IOException {
+	private HttpUriRequest buildLoginRequest(OctaneConfiguration config) throws IOException {
 		try {
 			LoginApiBody loginApiBody = new LoginApiBody(config.getApiKey(), config.getSecret());
 			StringEntity loginApiJson = new StringEntity(new ObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
