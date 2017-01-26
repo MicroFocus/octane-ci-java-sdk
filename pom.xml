@@ -1,0 +1,69 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<properties>
+		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
+		<enable.snapshots>true</enable.snapshots>
+	</properties>
+
+
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>ci-plugins-common</artifactId>
+	<groupId>com.hpe.alm.octane.plugins</groupId>
+	<packaging>pom</packaging>
+	<version>1.0-SNAPSHOT</version>
+
+	<modules>
+		<module>integrations-dto</module>
+		<module>integrations-sdk</module>
+	</modules>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.12</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>3.1</version>
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+	<repositories>
+		<repository>
+			<id>java.net</id>
+			<url>https://maven.java.net/content/repositories/public/</url>
+		</repository>
+		<repository>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/groups/mqm-public</url>
+			<snapshots>
+				<enabled>${enable.snapshots}</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mqm-public</id>
+			<url>${baseNexusURL}/content/groups/mqm-public</url>
+			<snapshots>
+				<enabled>${enable.snapshots}</enabled>
+			</snapshots>
+		</pluginRepository>
+	</pluginRepositories>
+</project>
