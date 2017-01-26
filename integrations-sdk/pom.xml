@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<parent>
+		<artifactId>indi-integrations-root</artifactId>
+		<groupId>com.hp.mqm</groupId>
+		<version>12.53.20-SNAPSHOT</version>
+	</parent>
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>integrations-sdk</artifactId>
+
+	<properties>
+		<httpcore.version>4.4.4</httpcore.version>
+		<httpclient.version>4.5.1</httpclient.version>
+		<jackson.version>2.6.4</jackson.version>
+		<log4j.version>2.6.2</log4j.version>
+	</properties>
+
+	<dependencies>
+
+		<!-- INTERNAL -->
+		<dependency>
+			<artifactId>integrations-dto</artifactId>
+			<groupId>${project.groupId}</groupId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- EXTERNAL -->
+		<dependency>
+			<artifactId>httpcore</artifactId>
+			<groupId>org.apache.httpcomponents</groupId>
+			<version>${httpcore.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>httpclient</artifactId>
+			<groupId>org.apache.httpcomponents</groupId>
+			<version>${httpclient.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>log4j-api</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>log4j-core</artifactId>
+			<groupId>org.apache.logging.log4j</groupId>
+			<version>${log4j.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>commons-logging</artifactId>
+			<groupId>commons-logging</groupId>
+			<version>1.2</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- TESTING -->
+		<dependency>
+			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>easymock</artifactId>
+			<groupId>org.easymock</groupId>
+			<scope>test</scope>
+		</dependency>
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.4.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+						<configuration>
+							<minimizeJar>true</minimizeJar>
+							<createDependencyReducedPom>false</createDependencyReducedPom>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-jar-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<executions>
+					<execution>
+						<id>test-jar</id>
+						<goals>
+							<goal>test-jar</goal>
+						</goals>
+						<configuration>
+							<includes>
+								<include>
+									com/hp/octane/integrations/exported/tests/**
+								</include>
+							</includes>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>sdk.properties</include>
+					<include>log4j2.xml</include>
+				</includes>
+			</resource>
+		</resources>
+	</build>
+
+	<profiles>
+		<profile>
+			<id>uber-jar</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-shade-plugin</artifactId>
+						<version>2.4.3</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>shade</goal>
+								</goals>
+								<configuration>
+									<minimizeJar>true</minimizeJar>
+									<createDependencyReducedPom>false</createDependencyReducedPom>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
+</project>
