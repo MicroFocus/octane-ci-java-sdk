@@ -11,7 +11,7 @@
 	<artifactId>ci-plugins-common</artifactId>
 	<groupId>com.hpe.alm.octane.plugins</groupId>
 	<packaging>pom</packaging>
-	<version>1.0-SNAPSHOT</version>
+	<version>1.0</version>
 
 	<modules>
 		<module>integrations-dto</module>
