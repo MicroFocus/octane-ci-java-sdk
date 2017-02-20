@@ -19,8 +19,6 @@ package com.hp.octane.integrations.dto.general;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 03/01/2016.
- * <p>
  * CI Provider summary data container descriptor
  */
 

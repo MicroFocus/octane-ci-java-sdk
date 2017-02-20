@@ -26,8 +26,6 @@ import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * General purposes DTOs definitions, mostly configuration related ones
  */
 

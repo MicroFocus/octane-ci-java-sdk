@@ -41,9 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * Created by gullery on 05/08/2015.
- * <p/>
- * Bridge Service meant to provide an abridged connectivity functionality
+ * Bridge Service meant to provide an abridged connection functionality
  */
 
 public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {

@@ -37,10 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 31/08/14
- * Time: 14:07
+ * EventsService implementation
  */
 
 public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {

@@ -25,9 +25,7 @@ import com.hp.octane.integrations.dto.tests.TestRunError;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 /**
- * Created by gullery on 10/02/2016.
- *
- * Octane oriented tests results DTOs definitions provider
+ * Octane oriented test result DTOs definitions provider
  */
 
 public final class DTOTestsProvider extends DTOInternalProviderBase {

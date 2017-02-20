@@ -24,8 +24,6 @@ import com.hp.octane.integrations.dto.tests.TestCase;
 import com.hp.octane.integrations.dto.tests.TestSuite;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * JUnit report related DTOs definitions provider
  */
 

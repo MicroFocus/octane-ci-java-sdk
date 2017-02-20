@@ -23,7 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import java.util.Map;
 
 /**
- * Created by gullery on 07/01/2016.
+ * OctaneRequest implementation
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

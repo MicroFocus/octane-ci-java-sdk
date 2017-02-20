@@ -19,8 +19,6 @@ package com.hp.octane.integrations.dto.parameters;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 19/02/2015.
- * <p/>
  * CI Parameter data object descriptor
  */
 

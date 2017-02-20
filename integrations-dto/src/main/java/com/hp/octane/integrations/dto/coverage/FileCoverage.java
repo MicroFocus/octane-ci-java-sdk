@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.coverage;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 03/01/2016.
+ * FileCoverage DTO
  */
 
 public interface FileCoverage extends DTOBase {

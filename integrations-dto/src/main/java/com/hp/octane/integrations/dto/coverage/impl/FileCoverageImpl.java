@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.coverage.FileCoverage;
 import com.hp.octane.integrations.dto.coverage.LineCoverage;
 
 /**
- * Created by gullery on 03/01/2016.
+ * FileCoverage DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

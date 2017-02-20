@@ -23,9 +23,7 @@ import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 
 /**
- * Created by gullery on 10/02/2016.
- *
- * Configurations DTOs definitions provider
+ * Configuration DTOs definitions provider
  */
 
 public final class DTOConfigsProvider extends DTOInternalProviderBase {

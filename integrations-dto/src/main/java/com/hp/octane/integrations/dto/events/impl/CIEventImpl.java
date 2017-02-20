@@ -28,8 +28,6 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import java.util.List;
 
 /**
- * User: gullery
- * <p/>
  * Base implementation of CI Event object
  */
 

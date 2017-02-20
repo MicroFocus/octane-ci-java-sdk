@@ -22,8 +22,6 @@ import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
 
 /**
- * Created by gullery on 19/02/2015.
- * <p/>
  * Default implementation of CI Parameter DTO
  */
 

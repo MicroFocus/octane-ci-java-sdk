@@ -25,8 +25,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * Connectivity related DTOs definitions provider
  */
 

@@ -24,11 +24,7 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 12/10/14
- * Time: 22:33
- * To change this template use File | Settings | File Templates.
+ * SCMData DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.coverage;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 30/12/2015.
+ * BuildCoverage DTO
  */
 
 public interface BuildCoverage extends DTOBase {

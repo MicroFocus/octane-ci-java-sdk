@@ -20,10 +20,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Created by gadiel on 10/10/2016.
+ * PhaseType enum
  */
-
-
 
 public enum PhaseType {
     POST("post"),

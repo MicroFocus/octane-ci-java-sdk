@@ -20,7 +20,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.scm.SCMChange;
 
 /**
- * Created by gullery on 08/12/2015.
  * SCM Change descriptor
  */
 

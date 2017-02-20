@@ -27,7 +27,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Created by gullery on 06/03/2016.
+ * Testing Tests DTOs
  */
 
 public class TestsDTOsTest {

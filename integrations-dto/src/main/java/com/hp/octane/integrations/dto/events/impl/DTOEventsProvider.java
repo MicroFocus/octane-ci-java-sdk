@@ -23,8 +23,6 @@ import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * Events related DTOs definitions provider
  */
 

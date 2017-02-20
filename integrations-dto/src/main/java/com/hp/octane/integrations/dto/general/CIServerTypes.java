@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Created by gullery on 03/01/2016.
+ * CIServerTypes enum
  */
 
 public enum CIServerTypes {

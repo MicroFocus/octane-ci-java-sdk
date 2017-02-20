@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 /**
- * Created by gullery on 03/01/2016.
+ * CIServerInfo DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

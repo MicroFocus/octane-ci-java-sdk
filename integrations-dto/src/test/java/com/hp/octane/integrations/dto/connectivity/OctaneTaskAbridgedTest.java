@@ -28,7 +28,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Created by gullery on 12/02/2016.
+ * OctaneTaskAbridged test
  */
 
 public class OctaneTaskAbridgedTest {

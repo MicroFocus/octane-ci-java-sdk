@@ -25,8 +25,6 @@ import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * SCM related DTOs definitions provider
  */
 

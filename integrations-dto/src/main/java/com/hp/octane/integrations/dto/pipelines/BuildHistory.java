@@ -22,11 +22,7 @@ import com.hp.octane.integrations.dto.scm.SCMData;
 import java.util.Set;
 
 /**
- * Created with IntelliJ IDEA.
- * User: sadea
- * Date: 29/07/15
- * Time: 14:53
- * To change this template use File | Settings | File Templates.
+ * BuildHistory DTO
  */
 
 @Deprecated

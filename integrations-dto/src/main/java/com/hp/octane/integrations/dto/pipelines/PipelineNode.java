@@ -21,14 +21,10 @@ import com.hp.octane.integrations.dto.parameters.CIParameter;
 
 import java.util.List;
 
-/**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 03/01/15
- * Time: 10:49
- * To change this template use File | Settings | File Templates.
- */
 
+/**
+ * Pipeline node interface
+ */
 public interface PipelineNode extends DTOBase {
 
 	String getJobCiId();

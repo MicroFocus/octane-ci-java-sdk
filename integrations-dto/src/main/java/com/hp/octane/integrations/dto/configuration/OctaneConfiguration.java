@@ -19,8 +19,6 @@ package com.hp.octane.integrations.dto.configuration;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 08/01/2016.
- * <p/>
  * Octane Server configuration descriptor
  */
 

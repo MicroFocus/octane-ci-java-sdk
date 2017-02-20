@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.tests;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by lev on 31/05/2016.
+ * Property DTO
  */
 
 public interface Property extends DTOBase {

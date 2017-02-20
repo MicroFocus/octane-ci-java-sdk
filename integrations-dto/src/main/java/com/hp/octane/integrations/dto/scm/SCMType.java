@@ -20,11 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 13/10/14
- * Time: 09:46
- * To change this template use File | Settings | File Templates.
+ * SCMType enum
  */
 
 public enum SCMType {

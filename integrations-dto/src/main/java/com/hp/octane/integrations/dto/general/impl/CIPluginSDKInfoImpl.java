@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 
 /**
- * Created by gullery on 03/01/2016.
+ * CIPluginSDKInfo DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

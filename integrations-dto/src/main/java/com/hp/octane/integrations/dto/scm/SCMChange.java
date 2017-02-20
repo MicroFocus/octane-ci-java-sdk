@@ -19,7 +19,6 @@ package com.hp.octane.integrations.dto.scm;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 08/12/2015.
  * SCM Change descriptor
  */
 

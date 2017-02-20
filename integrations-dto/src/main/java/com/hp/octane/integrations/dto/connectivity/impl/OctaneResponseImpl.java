@@ -22,7 +22,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import java.util.Map;
 
 /**
- * Created by gullery on 07/01/2016.
+ * OctaneResponse DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

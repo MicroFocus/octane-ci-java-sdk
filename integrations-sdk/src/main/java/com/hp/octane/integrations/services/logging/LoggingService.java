@@ -24,8 +24,6 @@ import org.apache.logging.log4j.core.LoggerContext;
 import java.io.File;
 
 /**
- * Created by gullery on 14/02/2016.
- * <p/>
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
  */
 

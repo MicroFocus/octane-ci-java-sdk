@@ -21,7 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hp.octane.integrations.dto.coverage.LineCoverage;
 
 /**
- * Created by gullery on 03/01/2016.
+ * LineCoverage DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

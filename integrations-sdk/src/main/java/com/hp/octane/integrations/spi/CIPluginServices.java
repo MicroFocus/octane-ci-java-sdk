@@ -29,8 +29,6 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import java.io.File;
 
 /**
- * Created by gullery on 20/01/2016.
- * <p/>
  * Composite API of all the endpoints to be implemented by a hosting CI Plugin for Octane use cases
  */
 
