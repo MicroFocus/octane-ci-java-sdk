@@ -19,7 +19,7 @@ package com.hp.octane.integrations.exported.tests;
 import org.junit.Test;
 
 /**
- * Created by gullery on 26/09/2016.
+ * SPI Provisioning tests.
  */
 
 public class SPIProvisioningTest {

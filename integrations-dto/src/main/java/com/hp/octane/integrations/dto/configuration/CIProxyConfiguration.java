@@ -19,8 +19,6 @@ package com.hp.octane.integrations.dto.configuration;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 11/02/2016.
- * <p>
  * Proxy configuration descriptor
  */
 

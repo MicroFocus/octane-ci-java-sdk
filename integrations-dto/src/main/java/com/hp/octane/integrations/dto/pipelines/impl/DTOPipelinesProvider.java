@@ -24,9 +24,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 
 /**
- * Created by gullery on 10/02/2016.
- *
- * Pipelines structure related DTOs definitions provider
+ * Pipeline structure related DTOs definitions provider
  */
 
 public final class DTOPipelinesProvider extends DTOInternalProviderBase {

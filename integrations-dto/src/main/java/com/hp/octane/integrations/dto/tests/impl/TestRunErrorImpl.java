@@ -25,7 +25,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlValue;
 
 /**
- * Created by gullery on 11/08/2016.
+ * TestRunError DTO implementation.
  */
 
 @XmlRootElement(name = "error")

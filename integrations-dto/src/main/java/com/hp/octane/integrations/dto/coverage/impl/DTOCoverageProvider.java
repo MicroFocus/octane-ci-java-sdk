@@ -25,8 +25,6 @@ import com.hp.octane.integrations.dto.coverage.LineCoverage;
 import com.hp.octane.integrations.dto.coverage.TestCoverage;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * Coverage related DTOs definitions provider
  */
 

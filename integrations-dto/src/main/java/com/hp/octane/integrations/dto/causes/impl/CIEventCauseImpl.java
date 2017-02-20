@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by gullery on 16/02/2016.
+ * CIEventCause DTO implementation
  */
 
 class CIEventCauseImpl implements CIEventCause {

@@ -39,8 +39,6 @@ import java.net.URL;
 import java.util.List;
 
 /**
- * Created by gullery on 09/03/2016.
- * <p/>
  * Base implementation of Configuration Service API
  */
 

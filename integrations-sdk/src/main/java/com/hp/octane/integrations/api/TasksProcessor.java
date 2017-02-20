@@ -20,9 +20,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 
 /**
- * Created by gullery on 17/08/2015.
- * <p/>
- * Tasks Processor handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation.
+ * Tasks Processor handles ALM Octane tasks, both coming from abridged logic as well as plugin's REST call delegation.
  * Generally Tasks Processor assumed to be implemented as a singleton, and in any case it should be fully thread safe.
  */
 

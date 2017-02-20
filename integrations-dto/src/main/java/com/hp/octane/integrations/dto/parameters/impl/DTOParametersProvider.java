@@ -22,8 +22,6 @@ import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * Job/Build parameters DTOs definitions provider
  */
 

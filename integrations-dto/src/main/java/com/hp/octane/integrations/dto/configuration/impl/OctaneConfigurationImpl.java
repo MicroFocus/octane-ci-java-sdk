@@ -22,8 +22,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Created by gullery on 08/01/2016.
- * <p/>
  * Octane Server configuration descriptor
  */
 

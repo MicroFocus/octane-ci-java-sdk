@@ -80,8 +80,6 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by gullery on 14/01/2016.
- * <p/>
  * REST Client default implementation
  */
 

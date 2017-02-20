@@ -22,7 +22,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import java.util.Map;
 
 /**
- * Created by gullery on 08/01/2016.
+ * OctaneResultAbridged implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.tests;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Created by gullery on 11/08/2016.
+ * TestRunError DTO
  */
 
 public interface TestRunError extends DTOBase {

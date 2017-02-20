@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 
 /**
- * Created by gullery on 06/01/2016.
+ * CIJobsList DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

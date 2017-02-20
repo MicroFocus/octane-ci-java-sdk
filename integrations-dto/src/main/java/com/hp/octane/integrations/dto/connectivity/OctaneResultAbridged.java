@@ -21,9 +21,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import java.util.Map;
 
 /**
- * Created by gullery on 08/01/2016.
- * <p>
- * Result container descriptor, as to be used in abridged tasking in NGA
+ * Result container descriptor, as to be used in abridged tasking in ALM Octane
  */
 
 public interface OctaneResultAbridged extends DTOBase {

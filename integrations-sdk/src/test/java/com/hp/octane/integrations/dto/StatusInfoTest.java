@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 /**
- * Created by gullery on 03/01/2016.
+ * Status Info tests.
  */
 
 public class StatusInfoTest {

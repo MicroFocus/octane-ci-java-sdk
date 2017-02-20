@@ -21,9 +21,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import java.util.Map;
 
 /**
- * Created by gullery on 07/01/2016.
- * <p>
- * REST Response descriptor (normalized to NGA usages)
+ * REST Response descriptor (normalized to ALM Octane usages)
  */
 
 public interface OctaneResponse extends DTOBase {

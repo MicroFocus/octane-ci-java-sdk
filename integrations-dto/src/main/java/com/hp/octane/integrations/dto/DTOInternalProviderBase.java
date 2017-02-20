@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by gullery on 08/02/2016.
- * <p/>
  * API definition of an internal DTO factories
  */
 

@@ -41,9 +41,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * Created by gullery on 17/08/2015.
- * <p/>
- * Tasks routing service handles NGA tasks, both coming from abridged logic as well as plugin's REST call delegation
+ * Tasks routing service handles ALM Octane tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
 public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implements TasksProcessor {

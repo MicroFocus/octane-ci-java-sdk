@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by gullery on 11/02/2016.
- * <p/>
  * DTO Factory is a single entry point of DTOs management
  */
 

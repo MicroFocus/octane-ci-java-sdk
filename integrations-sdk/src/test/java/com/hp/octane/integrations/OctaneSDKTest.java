@@ -31,7 +31,7 @@ import org.junit.Test;
 import java.io.File;
 
 /**
- * Created by gullery on 18/07/2016.
+ * Octane SDK tests
  */
 
 public class OctaneSDKTest {

@@ -20,11 +20,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 25/08/14
- * Time: 13:07
- * To change this template use File | Settings | File Templates.
+ * CIBuildStatus enum
  */
 
 public enum CIBuildStatus {

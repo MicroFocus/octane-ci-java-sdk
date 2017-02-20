@@ -29,9 +29,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
- * Created by gullery on 08/02/2016.
- *
- * Basic tests to verify every DTO is registered and available for serialization
+ * Basic tests to verify if every DTO is registered and available for serialization
  */
 
 public class DTOFactoryTest {

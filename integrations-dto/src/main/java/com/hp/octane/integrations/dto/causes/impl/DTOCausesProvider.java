@@ -22,8 +22,6 @@ import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 
 /**
- * Created by gullery on 10/02/2016.
- *
  * CI Events causes DTO definitions provider
  */
 

@@ -27,7 +27,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- * Created by gullery on 06/03/2016.
+ * TestRun DTO implementation.
  */
 
 @XmlRootElement(name = "test_run")

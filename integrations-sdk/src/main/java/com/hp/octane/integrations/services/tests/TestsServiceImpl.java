@@ -34,8 +34,6 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * Created by gullery on 09/03/2016.
- * <p/>
  * Default implementation of tests service
  */
 

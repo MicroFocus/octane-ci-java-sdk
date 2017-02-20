@@ -21,11 +21,7 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 13/10/14
- * Time: 09:46
- * To change this template use File | Settings | File Templates.
+ * SCMRepository DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

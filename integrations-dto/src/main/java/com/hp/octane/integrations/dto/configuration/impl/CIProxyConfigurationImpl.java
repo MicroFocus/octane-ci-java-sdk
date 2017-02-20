@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.configuration.impl;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
 /**
- * Created by gullery on 11/02/2016.
+ * CIProxyConfiguration implementaion
  */
 
 class CIProxyConfigurationImpl implements CIProxyConfiguration {

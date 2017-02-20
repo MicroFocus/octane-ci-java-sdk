@@ -22,9 +22,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * Created by gullery on 08/01/2016.
- * <p>
- * Task container descriptor, as to be used in abridged tasking in NGA
+ * Task container descriptor, as to be used in abridged tasking in ALM Octane
  */
 
 public interface OctaneTaskAbridged extends DTOBase, Serializable {

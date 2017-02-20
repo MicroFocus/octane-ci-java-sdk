@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.coverage.BuildCoverage;
 import com.hp.octane.integrations.dto.coverage.TestCoverage;
 
 /**
- * Created by gullery on 30/12/2015.
+ * BuildCoverage DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)

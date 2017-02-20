@@ -21,11 +21,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 13/10/14
- * Time: 09:51
- * To change this template use File | Settings | File Templates.
+ * SCMCommit DTO
  */
 
 public interface SCMCommit extends DTOBase {

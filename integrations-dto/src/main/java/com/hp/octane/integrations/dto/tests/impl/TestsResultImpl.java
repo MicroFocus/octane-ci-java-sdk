@@ -28,7 +28,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 /**
- * Created by gullery on 06/03/2016.
+ * TestResult DTO implementation
  */
 
 @XmlRootElement(name = "test_result")

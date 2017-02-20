@@ -21,11 +21,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import java.util.List;
 
 /**
- * Created with IntelliJ IDEA.
- * User: gullery
- * Date: 20/10/14
- * Time: 17:01
- * To change this template use File | Settings | File Templates.
+ * CIEventCause DTO
  */
 
 public interface CIEventCause extends DTOBase {

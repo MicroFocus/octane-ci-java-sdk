@@ -25,8 +25,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * Created by gullery on 14/01/2016.
- * <p/>
  * REST Service - default implementation
  */
 
