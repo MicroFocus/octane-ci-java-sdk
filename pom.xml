@@ -114,28 +114,4 @@
 			</plugins>
 		</pluginManagement>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>quick</id>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>mqm-snapshots</id>
-					<name>Snapshot repository</name>
-					<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
-				</snapshotRepository>
-			</distributionManagement>
-		</profile>
-		<profile>
-			<id>bintray-release</id>
-			<distributionManagement>
-				<repository>
-					<id>bintray-adm-maven</id>
-					<name>adm-maven</name>
-					<url>https://api.bintray.com/maven/adm/maven/octane-ci-plugins-common/</url>
-				</repository>
-			</distributionManagement>
-		</profile>
-	</profiles>
-
 </project>
