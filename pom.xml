@@ -1,22 +1,37 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-	<properties>
-		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
-		<enable.snapshots>true</enable.snapshots>
-	</properties>
-
-
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>ci-plugins-common</artifactId>
 	<groupId>com.hpe.alm.octane.plugins</groupId>
-	<packaging>pom</packaging>
+	<artifactId>ci-plugins-common</artifactId>
 	<version>1.0</version>
+	<packaging>pom</packaging>
+
+	<name>HPE ALM Octane Common libraries for ci plugins</name>
+	<description>HPE ALM Octane common libraries for developing ci plugins for Octane</description>
+	<url></url>
+	<organization></organization>
+	<licenses></licenses>
+	<developers>
+
+	</developers>
+
+	<scm>
+		<connection>scm:git:ssh://github.com/hpsa/octane-ci-plugins-common.git</connection>
+		<developerConnection>scm:git:ssh://github.com/hpsa/octane-ci-plugins-common.git</developerConnection>
+		<url>https://github.com/hpsa/octane-ci-plugins-common</url>
+		<tag>HEAD</tag>
+	</scm>
 
 	<modules>
 		<module>integrations-dto</module>
 		<module>integrations-sdk</module>
 	</modules>
+
+	<properties>
+		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
+		<enable.snapshots>true</enable.snapshots>
+	</properties>
 
 	<dependencyManagement>
 		<dependencies>
@@ -28,35 +43,28 @@
 		</dependencies>
 	</dependencyManagement>
 
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<groupId>org.apache.maven.plugins</groupId>
-					<version>3.1</version>
-					<configuration>
-						<source>1.7</source>
-						<target>1.7</target>
-					</configuration>
-				</plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.10.4</version>
-                </plugin>
-            </plugins>
-		</pluginManagement>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <configuration>
-                    <excludePackageNames>*.impl;com.hp.octane.integrations.services</excludePackageNames>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+	<profiles>
+		<profile>
+			<id>quick</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>mqm-snapshots</id>
+					<name>Snapshot repository</name>
+					<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>bintray-release</id>
+			<distributionManagement>
+				<repository>
+					<id>bintray-adm-maven</id>
+					<name>adm-maven</name>
+					<url>https://api.bintray.com/maven/adm/maven/octane-ci-plugins-common/</url>
+				</repository>
+			</distributionManagement>
+		</profile>
+	</profiles>
 
 	<repositories>
 		<repository>
@@ -70,7 +78,17 @@
 				<enabled>${enable.snapshots}</enabled>
 			</snapshots>
 		</repository>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>bintray-adm-maven</id>
+			<name>bintray</name>
+			<url>http://dl.bintray.com/adm/maven</url>
+		</repository>
 	</repositories>
+
+
 	<pluginRepositories>
 		<pluginRepository>
 			<id>mqm-public</id>
@@ -80,4 +98,20 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
+
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-compiler-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>3.1</version>
+					<configuration>
+						<source>1.7</source>
+						<target>1.7</target>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
 </project>
