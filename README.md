@@ -3,13 +3,13 @@
 <br>
 ## Introduction
 
-A Java SDK that should be used by CI plugin to connect and communicate with ALM Octane. See the [Javadoc](./readme.md#creating-javadoc) for more information of CI Plugin SDK API.
+A Java SDK that should be used by CI plugin to connect and communicate with ALM Octane. See the [Javadoc](#creating-javadoc) for more information of CI Plugin SDK API.
 
 This project has two sub-projects:
 
-**integrations-dto** which contains definition and building factory of all DTO objects used in communication with ALM Octane.
+- **integrations-dto** which contains definition and building factory of all DTO objects used in communication with ALM Octane.
 
-**integrations-sdk** which is the main source of the CI Plugin SDK
+- **integrations-sdk** which is the main source of the CI Plugin SDK
 
 <br>
 The easiest way to compile the project is to use [maven](https://maven.apache.org/) and run the command:
@@ -39,7 +39,7 @@ The ```init()``` method expects an object that implements ```CIPluginServices```
 <br>
 ## DTO
 
-Data transfer object (DTO), is a design pattern used to transfer data between software application subsystems. We use DTO objects to communicate data to ALM Octane.
+[Data transfer object](https://en.wikipedia.org/wiki/Data_transfer_object) (DTO), is a design pattern used to transfer data between software application subsystems. We use DTO objects to communicate data to ALM Octane.
 
 Any DTO in the system should be created using ```DTOFactory```.
 ```
@@ -118,4 +118,4 @@ TestsResult getTestsResult(String jobId, String buildNumber)
 >_Provides tests result report for the specific build. ```TestResult``` DTO should contain a list of all test runs (```TestRun```) that were executed in the job cpecified by the ```jobId```._
 
 <br>
-Each ```TestRun``` object represents a single test that ran in a specific CI build. It contains all the information of this specific test, run result status (```TestRunResult``` _enum_) and error information in case the test failed. Also a url to the test report page can be provided via ```setExternalReportUrl()``` method.
+Each ```TestRun``` object represents a single test that ran in a specific CI build. It contains all the information of this specific test, run result status (```TestRunResult``` enum) and error information in case the test failed. Also a url to the test report page can be provided via ```setExternalReportUrl()``` method.
