@@ -3,57 +3,58 @@
 <br>
 ## Introduction
 
-A Java SDK that should be used by CI plugin to connect and communicate with ALM Octane. See the [Javadoc](#creating-javadoc) for more information of CI Plugin SDK API.
+A Java SDK that should be used by the CI plugin to connect and communicate with ALM Octane. See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK API.
 
-This project has two sub-projects:
+This Java SDK project has two sub-projects:
 
-- **integrations-dto** which contains definition and building factory of all DTO objects used in communication with ALM Octane.
+- **integrations-dto**, which contains the definition and building factory of all DTO objects used for communication with ALM Octane.
 
-- **integrations-sdk** which is the main source of the CI Plugin SDK
+- **integrations-sdk**, which is the main source of the CI Plugin SDK.
 
 <br>
-The easiest way to compile the project is to use [maven](https://maven.apache.org/) and run the command:
+## Compiling the Project
+
+The easiest way to compile the project is to use [Maven](https://maven.apache.org/) and run the following command from the root directory:
 ```
 mvn clean install
 ```
-from the root directory.
 
 <br>
 ## Creating JavaDoc
 
-In order to create javadoc run the following [maven](https://maven.apache.org/) command from the project root directory:
+To create Javadoc, run the following [Maven](https://maven.apache.org/) command from the project root directory:
 ```
 mvn javadoc:aggregate
 ```
-This will create a javadoc site in the ```/target/site/apidocs/index.html```
+This creates a javadoc site in the ```/target/site/apidocs/index.html```
 
 <br>
-## Initialization
+## Initializing
 
-To start using CI Plugin SDK, we need to initialize OctaneSDK instance. This class provides main entry point of interaction between SDK and it&#39;s services, and interaction between concrete CI plugin and it&#39;s services.
+To start using the CI Plugin SDK, first initialize an OctaneSDK instance. This class provides the main entry point of interaction between the SDK and its services, and interaction between the concrete CI plugin and its services.
 ```java
 OctaneSDK.init(new MyPluginServices(), true);
 ```
-The ```init()``` method expects an object that implements ```CIPluginServices``` interface. This object is actually a composite API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
+The ```init()``` method expects an object that implements the ```CIPluginServices``` interface. This object is actually a composite API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 
 <br>
-## DTO
+## Communicating with ALM Octane using Data Transfer Objects (DTO)
 
-[Data transfer object](https://en.wikipedia.org/wiki/Data_transfer_object) (DTO), is a design pattern used to transfer data between software application subsystems. We use DTO objects to communicate data to ALM Octane.
+[Data transfer object](https://en.wikipedia.org/wiki/Data_transfer_object) (DTO) is a design pattern used to transfer data between software application subsystems. We use DTO objects to communicate data to ALM Octane.
 
-Any DTO in the system should be created using ```DTOFactory```.
+Any DTO in the system should be created using ```DTOFactory```:
 ```
 T dto = DTOFactory.getInstance().newDTO(Class<T> targetType);
 ```
 
 <br>
-## CI events
+## Updating ALM Octane with CI Events
 
-Upon CI event, CI plugin needs to update ALM Octane via ```EventsService``` object. The steps are:
+Upon a CI event, the CI plugin must update ALM Octane using the ```EventsService``` object. The steps are:
 
-1. Get CI event.
-2. Create CIEvent DTO using the info from CI event and CI environment.
-3. Provide this DTO to the publishEvent method of EventsService.
+1. Get the CI event.
+2. Create the ```CIEvent``` DTO using the info from the CI event and the CI environment.
+3. Provide this DTO to the ```publishEvent``` method of ```EventsService```.
 
 ```java
 CIEvent ciEvent = dtoFactoryInstance.newDTO(CIEvent.class)
@@ -70,52 +71,52 @@ OctaneSDK.getInstance().getEventsService().publishEvent(ciEvent);
 ```
 
 <br>
-## SCM data
+## Submitting Source Control Management (SCM) Data
 
-SCM data - data provided by Source Control Management tool about changes in source code reflected in a specific CI build. SCM data should be submitted to ALM Octane as part of the ```CIEvent``` DTO.
+SCM data are provided by the Source Control Management tool about changes in source code reflected in a specific CI build. SCM data should be submitted to ALM Octane as part of the ```CIEvent``` DTO.
 ```
 ciEvent.setScmData(scmData);
 ```
 
 <br>
-## Pipeline structure
+## ALM Octane Pipeline Structure
 
-ALM Octane pipelines represent the flow of the CI server jobs and steps. Pipeline provides a clear, multi-level, analytic view of specific CI process, CI runs and their status to track and monitor product quality and progress.
+ALM Octane pipelines represent the flow of the CI server jobs and steps. Pipeline provides a clear, multi-level, analytic view of specific CI process, CI runs and their status so you can track product quality and progress.
 
-ALM Octane pipeline supports hierarchical structure of pipeline nodes. Any ```PipelineNode``` can contain list of internal phases and list of post build phases. Each ```PipelinePhase``` in turn contains a list of child pipeline nodes.
+ALM Octane pipeline supports a hierarchical structure of pipeline nodes. Any ```PipelineNode``` can contain a list of internal phases and list of post-build phases. Each ```PipelinePhase``` in turn contains a list of child pipeline nodes.
 
-Pipeline nodes in internal phases represent CI nodes that complete their execution before post build phases start to execute. Each internal phase should contain nodes that are running in parallel.
+Pipeline nodes in internal phases represent CI nodes that complete their execution before post-build phases start to execute. Each internal phase should contain nodes that are running in parallel.
 
 This structure is used for correct pipeline representation in ALM Octane. This way in ALM Octane, it is possible to see the flow of steps in the CI server, including which steps run in sequence and which steps run as parts of other steps.
 
 <br>
-## CI build
+## Providing CI Build Information
 
-ALM Octane server may ask for a specific build information of some pipeline. Two ```CIPluginServices``` methods need to be implemented for this matter:
+The ALM Octane server may ask for a specific build information of some pipeline. To provide the information, implement two ```CIPluginServices``` methods:
 
 ```java
 SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree)
 ```
->_Provides Snapshot of the specified CI Build of the specified CI Job._
+>_This provides a snapshot of the specified CI build of the specified CI job._
 
 <br>
 ```java
 SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree)
 ```
->_Provides Snapshot of the latest CI Build of the specified CI Job_
+>_This provides a snapshot of the latest CI build of the specified CI job._
 
 <br>
-The main DTOs for CI build snapshots are ```SnapshotNode``` and ```SnapshotPhase```, that provide the same hierarchical structure described in the Pipeline structure section. This way ALM Octane user can also see the build number, the last run date, the run status, and the duration of the run.
+The main DTOs for CI build snapshots are ```SnapshotNode``` and ```SnapshotPhase```. These provide the same hierarchical structure described in the [Pipeline Structure](#alm-octane-pipeline-structure) section and allow the ALM Octane user to see the build number, the last run date, the run status, and the duration of the run.
 
 <br>
-## Test results
+## Providing Test Results
 
-Test results for specific build are provided by ```CIPluginServices.getTestsResult``` method.
+Test results for a specific build are provided by ```CIPluginServices.getTestsResult``` method.
 
 ```java
 TestsResult getTestsResult(String jobId, String buildNumber)
 ```
->_Provides tests result report for the specific build. ```TestResult``` DTO should contain a list of all test runs (```TestRun```) that were executed in the job cpecified by the ```jobId```._
+>_This provides test result report for the specific build. The ```TestResult``` DTO should contain a list of all test runs (```TestRun```) that were executed in the job specified by the ```jobId```._
 
 <br>
-Each ```TestRun``` object represents a single test that ran in a specific CI build. It contains all the information of this specific test, run result status (```TestRunResult``` enum) and error information in case the test failed. Also a url to the test report page can be provided via ```setExternalReportUrl()``` method.
+Each ```TestRun``` object represents a single test that ran in a specific CI build. It contains all the information of this specific test, the run result status (```TestRunResult``` enum) and error information if the test failed. Also a url to the test report page can be provided with the ```setExternalReportUrl()``` method.
