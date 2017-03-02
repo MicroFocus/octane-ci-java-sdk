@@ -10,11 +10,46 @@
 	<name>HPE ALM Octane Common libraries for ci plugins</name>
 	<description>HPE ALM Octane common libraries for developing ci plugins for Octane</description>
 	<url></url>
-	<organization></organization>
-	<licenses></licenses>
-	<developers>
+	<organization>
+		<name>HPE</name>
+	</organization>
 
+	<licenses>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>m-seldin</id>
+			<name>Michael Seldin</name>
+			<email>michael.seldin@hpe.com</email>
+			<roles>
+				<role>Global owner and maintainer</role>
+			</roles>
+			<organization>HPE</organization>
+		</developer>
+		<developer>
+			<id>mgustus</id>
+			<name>Michael Gustus</name>
+			<email>michael.gustus@hpe.com</email>
+			<organization>HPE</organization>
+		</developer>
+		<developer>
+			<id>lazara3</id>
+			<name>Ayellet Lazar</name>
+			<email>ayellet.lazar@hpe.com</email>
+			<organization>HPE</organization>
+		</developer>
 	</developers>
+
+	<modules>
+		<module>integrations-dto</module>
+		<module>integrations-sdk</module>
+	</modules>
 
 	<scm>
 		<connection>scm:git:ssh://github.com/hpsa/octane-ci-plugins-common.git</connection>
@@ -22,11 +57,8 @@
 		<url>https://github.com/hpsa/octane-ci-plugins-common</url>
 		<tag>HEAD</tag>
 	</scm>
-
-	<modules>
-		<module>integrations-dto</module>
-		<module>integrations-sdk</module>
-	</modules>
+	<issueManagement></issueManagement>
+	<ciManagement></ciManagement>
 
 	<properties>
 		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
@@ -43,28 +75,6 @@
 		</dependencies>
 	</dependencyManagement>
 
-	<profiles>
-		<profile>
-			<id>snapshot</id>
-			<distributionManagement>
-				<snapshotRepository>
-					<id>mqm-snapshots</id>
-					<name>Snapshot repository</name>
-					<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
-				</snapshotRepository>
-			</distributionManagement>
-		</profile>
-		<profile>
-			<id>bintray-release</id>
-			<distributionManagement>
-				<repository>
-					<id>bintray-adm-maven</id>
-					<name>adm-maven</name>
-					<url>https://api.bintray.com/maven/adm/maven/octane-ci-plugins-common/</url>
-				</repository>
-			</distributionManagement>
-		</profile>
-	</profiles>
 
 	<repositories>
 		<repository>
@@ -129,4 +139,27 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>snapshot</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>mqm-snapshots</id>
+					<name>Snapshot repository</name>
+					<url>${baseNexusURL}/content/repositories/mqm-snapshots</url>
+				</snapshotRepository>
+			</distributionManagement>
+		</profile>
+		<profile>
+			<id>bintray-release</id>
+			<distributionManagement>
+				<repository>
+					<id>bintray-adm-maven</id>
+					<name>adm-maven</name>
+					<url>https://api.bintray.com/maven/adm/maven/octane-ci-plugins-common/</url>
+				</repository>
+			</distributionManagement>
+		</profile>
+	</profiles>
 </project>
