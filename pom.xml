@@ -61,12 +61,9 @@
 	<ciManagement></ciManagement>
 
 	<properties>
-		<baseNexusURL>http://mydtbld0051.hpeswlab.net:8081/nexus</baseNexusURL>
-		<enable.snapshots>true</enable.snapshots>
 		<maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
 		<maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
-
 	</properties>
 
 	<dependencyManagement>
