@@ -27,24 +27,24 @@ public interface ConfigurationService {
 	/**
 	 * Builds configuration object from raw data, usually supplied from UI or storage
 	 *
-	 * @param rawUrl
-	 * @param apiKey
-	 * @param secret
-	 * @return
+	 * @param rawUrl Octane server url
+	 * @param apiKey API Key
+	 * @param secret API Secret
+	 * @return OctaneConfiguration
 	 */
 	OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
 
 	/**
-	 * Tests connectivity to the NGA server with the supplied configuration
+	 * Tests connectivity to the Octane server with the supplied configuration
 	 *
-	 * @param configuration
-	 * @return
+	 * @param configuration Octane configuration
+	 * @return OctaneResponse
 	 * @throws IOException in case of connection failure
 	 */
 	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
 
 	/**
-	 * Notify SDK notification on NGA configuration change
+	 * Notify SDK upon Octane configuration change
 	 */
 	void notifyChange();
 }

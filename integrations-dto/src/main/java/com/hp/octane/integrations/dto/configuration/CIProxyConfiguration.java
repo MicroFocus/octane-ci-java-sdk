@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.configuration;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Proxy configuration descriptor
+ * Proxy configuration DTO
  */
 
 public interface CIProxyConfiguration extends DTOBase {

@@ -27,10 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 public interface TasksProcessor {
 
 	/**
-	 * Initiates execution of NGA logic oriented task
-	 *
-	 * @param task
-	 * @return
+	 * Initiates execution of Octane logic oriented task
 	 */
 	OctaneResultAbridged execute(OctaneTaskAbridged task);
 }

@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import java.util.List;
 
 /**
- * TestsResult DTO.
+ * TestsResult DTO
  */
 
 public interface TestsResult extends DTOBase {

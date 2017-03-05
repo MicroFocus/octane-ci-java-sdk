@@ -21,9 +21,9 @@ import com.hp.octane.integrations.dto.events.CIEvent;
 public interface EventsService {
 
 	/**
-	 * Publishes CI Event to the NGA server
+	 * Publishes CI Event to the Octane server
 	 *
-	 * @param event
+	 * @param event CI event that will be published
 	 */
 	void publishEvent(CIEvent event);
 }

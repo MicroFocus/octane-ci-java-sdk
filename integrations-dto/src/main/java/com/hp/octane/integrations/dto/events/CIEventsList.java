@@ -22,7 +22,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import java.util.List;
 
 /**
- * CI Events list data object descriptor
+ * CI Events list DTO
  */
 
 public interface CIEventsList extends DTOBase {

@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.scm;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * SCM Change descriptor
+ * SCM Change DTO
  */
 
 public interface SCMChange extends DTOBase {

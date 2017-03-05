@@ -24,21 +24,15 @@ import java.io.IOException;
 public interface TestsService {
 
 	/**
-	 * Publishes CI Event to the NGA server
-	 * Tests result pushed to NGA in a synchronous manner, use this method with caution
-	 * Returns the NGAResponse.
-	 * throws IOException
-	 *
-	 * @param testsResult
+	 * Publishes CI Event to the Octane server.
+	 * Tests result is pushed to Octane server in a synchronous manner.
 	 */
 	OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException;
 
 	/**
-	 * Enqueue push tests result by submitting build reference for future tests retrieval
-	 * This is the preferred way to push tests results to NGA, since provides facilities of queue, non-main thread execution and retry
-	 *
-	 * @param jobId
-	 * @param buildNumber
+	 * Enqueue push tests result by submitting build reference for future tests retrieval.
+	 * This is the preferred way to push tests results to Octane. This method provides facilities of queue,
+     * non-main thread execution and retry.
 	 */
 	void enqueuePushTestsResult(String jobId, String buildNumber);
 }

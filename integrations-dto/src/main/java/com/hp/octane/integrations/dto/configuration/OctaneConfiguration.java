@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.configuration;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Octane Server configuration descriptor
+ * Octane Server configuration DTO
  */
 
 public interface OctaneConfiguration extends DTOBase {

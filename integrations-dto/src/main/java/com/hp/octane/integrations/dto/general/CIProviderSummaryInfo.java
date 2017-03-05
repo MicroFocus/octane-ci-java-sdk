@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.general;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * CI Provider summary data container descriptor
+ * CI Provider summary data container DTO
  */
 
 public interface CIProviderSummaryInfo extends DTOBase {

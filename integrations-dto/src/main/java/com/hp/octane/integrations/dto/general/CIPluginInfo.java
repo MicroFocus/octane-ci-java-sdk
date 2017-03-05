@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.general;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Plugin info descriptor
+ * Plugin info DTO
  */
 
 public interface CIPluginInfo extends DTOBase {
