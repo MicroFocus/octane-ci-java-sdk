@@ -25,7 +25,7 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import java.util.List;
 
 /**
- * CI Event data object descriptor
+ * CI Event DTO
  */
 
 public interface CIEvent extends DTOBase {

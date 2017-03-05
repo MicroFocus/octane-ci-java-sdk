@@ -20,7 +20,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 
 /**
- * CI Jobs list container descriptor
+ * CI Jobs list container DTO
  */
 
 public interface CIJobsList extends DTOBase {

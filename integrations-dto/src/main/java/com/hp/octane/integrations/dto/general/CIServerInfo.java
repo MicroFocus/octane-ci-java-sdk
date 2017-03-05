@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.general;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * CI Server info descriptor
+ * CI Server info DTO
  */
 
 public interface CIServerInfo extends DTOBase {

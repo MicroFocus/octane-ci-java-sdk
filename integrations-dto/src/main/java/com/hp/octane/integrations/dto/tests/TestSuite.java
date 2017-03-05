@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import java.util.List;
 
 /**
- * Created by lev on 31/05/2016.
+ * Test Suite DTO
  */
 
 public interface TestSuite extends DTOBase {

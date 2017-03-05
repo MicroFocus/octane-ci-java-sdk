@@ -26,7 +26,7 @@ To create Javadoc, run the following [Maven](https://maven.apache.org/) command 
 ```
 mvn javadoc:aggregate
 ```
-This creates a javadoc site in the ```/target/site/apidocs/index.html```
+>_This creates a javadoc site in the ```/target/site/apidocs/index.html```_
 
 <br>
 ## Initializing
@@ -57,7 +57,7 @@ Upon a CI event, the CI plugin must update ALM Octane using the ```EventsService
 3. Provide this DTO to the ```publishEvent``` method of ```EventsService```.
 
 ```java
-CIEvent ciEvent = dtoFactoryInstance.newDTO(CIEvent.class)
+CIEvent ciEvent = DTOFactory.getInstance().newDTO(CIEvent.class)
       .setEventType(eventType)
       .setCauses(causes)
       .setProject(project)

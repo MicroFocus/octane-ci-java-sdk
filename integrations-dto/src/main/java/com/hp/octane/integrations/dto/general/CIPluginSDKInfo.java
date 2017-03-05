@@ -19,7 +19,8 @@ package com.hp.octane.integrations.dto.general;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * Plugin's SDK info descriptor; this is to be used by SDK itself to provide it's own data
+ * Plugin's SDK info DTO.
+ * This is used by SDK itself to provide it's own data.
  */
 
 public interface CIPluginSDKInfo extends DTOBase {

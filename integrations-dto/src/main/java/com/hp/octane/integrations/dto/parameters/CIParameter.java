@@ -19,7 +19,7 @@ package com.hp.octane.integrations.dto.parameters;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * CI Parameter data object descriptor
+ * CI Parameter DTO
  */
 
 public interface CIParameter extends DTOBase {

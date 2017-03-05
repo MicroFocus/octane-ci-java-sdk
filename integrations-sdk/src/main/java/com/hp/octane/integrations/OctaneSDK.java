@@ -54,6 +54,13 @@ public final class OctaneSDK {
 	//  TODO: remove the boolean once migrated JP
 	private static boolean initBridge;
 
+    /**
+     * To start using the CI Plugin SDK, first initialize an OctaneSDK instance.
+     *
+     * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
+     *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
+     * @param initBridge Flag whether to create live connection to Octane server.
+     */
 	synchronized public static void init(CIPluginServices ciPluginServices, boolean initBridge) {
 		if (instance == null) {
 			if (ciPluginServices == null) {

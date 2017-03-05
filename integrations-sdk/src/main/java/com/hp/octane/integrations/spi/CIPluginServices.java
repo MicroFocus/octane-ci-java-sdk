@@ -29,7 +29,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import java.io.File;
 
 /**
- * Composite API of all the endpoints to be implemented by a hosting CI Plugin for Octane use cases
+ * Composite API of all the endpoints to be implemented by a hosting CI Plugin for Octane use cases.
  */
 
 public interface CIPluginServices {
@@ -49,7 +49,7 @@ public interface CIPluginServices {
 	CIPluginInfo getPluginInfo();
 
 	/**
-	 * Provider the folder that the plugin is allowed to write to (logs, temporary stuff etc)
+	 * Provides the folder that the plugin is allowed to write to (logs, temporary stuff etc)
 	 *
 	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
 	 */
@@ -63,9 +63,9 @@ public interface CIPluginServices {
 	File getPredictiveOctanePath();
 
 	/**
-	 * Provides NGA Server configuration (managed by plugin implementation)
+	 * Provides Octane Server configuration (managed by plugin implementation)
 	 *
-	 * @return NGAConfiguration object; if no configuration available the implementation should return NULL
+	 * @return OctaneConfiguration object; if no configuration available the implementation should return NULL
 	 */
 	OctaneConfiguration getOctaneConfiguration();
 
@@ -97,9 +97,9 @@ public interface CIPluginServices {
 	 * Executes the Pipeline, running the root job
 	 *
 	 * @param ciJobId      Job CI ID to execute
-	 * @param originalBody request body, expected to be JSON kind and hold parameters (see TODO below)
+	 * @param originalBody request body, expected to be JSON that holds parameters
 	 */
-	void runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace the body thing with parsed parameters/DTO
+	void runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace with parsed parameters/DTO
 
 	/**
 	 * Provides Snapshot of the latest CI Build of the specified CI Job

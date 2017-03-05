@@ -23,7 +23,7 @@ import java.util.List;
 
 
 /**
- * Pipeline node interface
+ * Pipeline node DTO
  */
 public interface PipelineNode extends DTOBase {
 
