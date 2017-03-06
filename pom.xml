@@ -108,12 +108,6 @@
 	</build>
 
 	<distributionManagement>
-		<snapshotRepository>
-			<id>snapshot-repository</id>
-			<name>Maven2 Snapshot Repository</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-			<uniqueVersion>false</uniqueVersion>
-		</snapshotRepository>
 		<repository>
 			<id>release-repository</id>
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2</url>
@@ -205,6 +199,17 @@
 					</plugin>
 				</plugins>
 			</build>
+		</profile>
+		<profile>
+			<id>snapshot</id>
+			<distributionManagement>
+				<snapshotRepository>
+					<id>snapshot-repository</id>
+					<name>Maven2 Snapshot Repository</name>
+					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<uniqueVersion>false</uniqueVersion>
+				</snapshotRepository>
+			</distributionManagement>
 		</profile>
 	</profiles>
 </project>
