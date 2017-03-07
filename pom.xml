@@ -9,7 +9,7 @@
 
 	<name>HPE ALM Octane Common libraries for ci plugins</name>
 	<description>HPE ALM Octane common libraries for developing ci plugins for Octane</description>
-	<url></url>
+	<url>https://github.com/HPSoftware/octane-ci-java-sdk/</url>
 	<organization>
 		<name>HPE</name>
 	</organization>
