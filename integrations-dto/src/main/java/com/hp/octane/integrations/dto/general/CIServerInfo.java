@@ -38,6 +38,9 @@ public interface CIServerInfo extends DTOBase {
 
 	String getInstanceId();
 
+    /**
+     * Set unique id of the CI server instance.
+     */
 	CIServerInfo setInstanceId(String instanceId);
 
 	Long getInstanceIdFrom();
