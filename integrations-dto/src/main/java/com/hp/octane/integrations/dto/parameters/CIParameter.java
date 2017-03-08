@@ -38,6 +38,9 @@ public interface CIParameter extends DTOBase {
 
 	Object[] getChoices();
 
+    /**
+     * Set a list of values that this parameter can receive.
+     */
 	CIParameter setChoices(Object[] choices);
 
 	Object getDefaultValue();

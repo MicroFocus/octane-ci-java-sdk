@@ -29,6 +29,25 @@ mvn javadoc:aggregate
 >_This creates a javadoc site in the ```/target/site/apidocs/index.html```_
 
 <br>
+## Include in Your Project
+
+Add the following dependency to the pom.xml to use this SDK in your project:
+```
+<dependency>
+    <artifactId>integrations-sdk</artifactId>
+    <groupId>com.hpe.adm.octane.plugins</groupId>
+    <version>1.0</version>
+</dependency>
+```
+
+<br>
+## Usage Examples
+
+The following CI plugins already use **CI Plugin SDK for ALM Octane** to connect and communicate with ALM Octane:  
+[Octane Bamboo Plugin](https://github.com/HPSoftware/octane-bamboo-plugin)  
+[Octane TeamCity Plugin](https://github.com/HPSoftware/octane-teamcity-plugin)
+
+<br>
 ## Initializing
 
 To start using the CI Plugin SDK, first initialize an OctaneSDK instance. This class provides the main entry point of interaction between the SDK and its services, and interaction between the concrete CI plugin and its services.
