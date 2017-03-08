@@ -54,6 +54,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContexts;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.http.Header;
@@ -185,6 +186,7 @@ final class RestClientImpl implements RestClient {
 			throw ioe;
 		} finally {
 			if (httpResponse != null) {
+				EntityUtils.consumeQuietly(httpResponse.getEntity());
 				HttpClientUtils.closeQuietly(httpResponse);
 			}
 		}
@@ -299,6 +301,7 @@ final class RestClientImpl implements RestClient {
 	}
 
 	private OctaneResponse login(OctaneConfiguration config) throws IOException {
+		OctaneResponse result;
 		HttpResponse response = null;
 
 		try {
@@ -312,13 +315,18 @@ final class RestClientImpl implements RestClient {
 					}
 				}
 			}
-			return createNGAResponse(response);
+			result = createNGAResponse(response);
 		} catch (IOException ioe) {
 			logger.error("failed to login to " + config, ioe);
 			throw ioe;
 		} finally {
-			HttpClientUtils.closeQuietly(response);
+			if (response != null) {
+				EntityUtils.consumeQuietly(response.getEntity());
+				HttpClientUtils.closeQuietly(response);
+			}
 		}
+
+		return result;
 	}
 
 	private HttpUriRequest buildLoginRequest(OctaneConfiguration config) throws IOException {
