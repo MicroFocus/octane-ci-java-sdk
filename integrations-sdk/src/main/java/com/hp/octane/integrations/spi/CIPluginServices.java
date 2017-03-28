@@ -17,13 +17,15 @@
 package com.hp.octane.integrations.spi;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
+import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
@@ -138,4 +140,8 @@ public interface CIPluginServices {
 	 * @return TestsResult data; NULL if no tests result available
 	 */
 	TestsResult getTestsResult(String jobId, String buildNumber);
+
+	void runTestDiscovery(DiscoveryInfo discoveryInfo);
+
+	void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo);
 }

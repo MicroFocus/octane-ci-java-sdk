@@ -21,6 +21,8 @@ import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
@@ -54,6 +56,9 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
     private static final String HISTORY = "history";
     private static final String BUILDS = "builds";
     private static final String LATEST = "latest";
+    private static final String EXECUTOR = "executor";
+    private static final String INIT = "init";
+    private static final String SUITE_RUN = "suite_run";
 
     private final CIPluginServices pluginServices;
 
@@ -87,22 +92,40 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
         try {
             if (path.length == 1 && STATUS.equals(path[0])) {
                 executeStatusRequest(result);
-            } else if (path.length == 1 && path[0].startsWith(JOBS)) {
-                executeJobsListRequest(result, !path[0].contains("parameters=false"));
-            } else if (path.length == 2 && JOBS.equals(path[0])) {
-                executePipelineRequest(result, path[1]);
-            } else if (path.length == 3 && JOBS.equals(path[0]) && RUN.equals(path[2])) {
-                executePipelineRunRequest(result, path[1], task.getBody());
-            } else if (path.length == 4 && JOBS.equals(path[0]) && BUILDS.equals(path[2])) {
-                //TODO: in the future should take the last parameter from the request
-                boolean subTree = false;
-                if (LATEST.equals(path[3])) {
-                    executeLatestSnapshotRequest(result, path[1], subTree);
-                } else {
-                    executeSnapshotByNumberRequest(result, path[1], path[3], subTree);
+            } else if (path[0].startsWith(JOBS)) {
+                if (path.length == 1) {
+                    executeJobsListRequest(result, !path[0].contains("parameters=false"));
+                } else if (path.length == 2) {
+                    executePipelineRequest(result, path[1]);
+                } else if (path.length == 3 && RUN.equals(path[2])) {
+                    executePipelineRunRequest(result, path[1], task.getBody());
+                } else if (path.length == 4 && BUILDS.equals(path[2])) {
+                    //TODO: in the future should take the last parameter from the request
+                    boolean subTree = false;
+                    if (LATEST.equals(path[3])) {
+                        executeLatestSnapshotRequest(result, path[1], subTree);
+                    } else {
+                        executeSnapshotByNumberRequest(result, path[1], path[3], subTree);
+                    }
+                } else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
+                    executeHistoryRequest(result, path[1], task.getBody());
+                } else{
+                    result.setStatus(404);
                 }
-            } else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
-                executeHistoryRequest(result, path[1], task.getBody());
+
+            } else if (EXECUTOR.equalsIgnoreCase(path[0]) && path.length == 2) {
+                if(INIT.equalsIgnoreCase(path[1])){
+                    DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+                    pluginServices.runTestDiscovery(discoveryInfo);
+                    result.setStatus(200);
+                }else if (SUITE_RUN.equalsIgnoreCase(path[1])){
+                    TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
+                    pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
+                    result.setStatus(200);
+                }else{
+                    result.setStatus(404);
+                }
+
             } else {
                 result.setStatus(404);
             }
