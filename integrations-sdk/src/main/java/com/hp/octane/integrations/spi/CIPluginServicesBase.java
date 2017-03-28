@@ -61,14 +61,9 @@ public class CIPluginServicesBase implements CIPluginServices {
         return null;
     }
 
-    /**
-     * Empty implementation
-     * @param ciJobId      Job CI ID to execute
-     * @param originalBody request body, expected to be JSON that holds parameters
-     */
     @Override
     public void runPipeline(String ciJobId, String originalBody) {
-
+        //do nothing
     }
 
     @Override
@@ -91,22 +86,14 @@ public class CIPluginServicesBase implements CIPluginServices {
         return null;
     }
 
-    /***
-     * Empty implementation
-     * @param discoveryInfo
-     */
     @Override
     public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-
+        //do nothing
     }
 
-    /***
-     * Empty implementation
-     * @param testSuiteExecutionInfo
-     */
     @Override
     public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
-
+        //do nothing
     }
 
 }
