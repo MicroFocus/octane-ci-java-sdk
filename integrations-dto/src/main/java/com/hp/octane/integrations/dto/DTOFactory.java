@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.configuration.impl.DTOConfigsProvider;
 import com.hp.octane.integrations.dto.connectivity.impl.DTOConnectivityProvider;
 import com.hp.octane.integrations.dto.coverage.impl.DTOCoverageProvider;
 import com.hp.octane.integrations.dto.events.impl.DTOEventsProvider;
+import com.hp.octane.integrations.dto.executor.impl.DTOExecutorsProvider;
 import com.hp.octane.integrations.dto.general.impl.DTOGeneralProvider;
 import com.hp.octane.integrations.dto.parameters.impl.DTOParametersProvider;
 import com.hp.octane.integrations.dto.pipelines.impl.DTOPipelinesProvider;
@@ -227,6 +228,7 @@ public final class DTOFactory {
 			providers.add(new DTOSCMProvider(this));
 			providers.add(new DTOSnapshotsProvider(this));
 			providers.add(new DTOTestsProvider(this));
+			providers.add(new DTOExecutorsProvider(this));
 			providers.add(new DTOJUnitTestsProvider(this));
 
 			//  register providers' data within the Factory
