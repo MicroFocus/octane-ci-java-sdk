@@ -28,4 +28,8 @@ public interface DiscoveryInfo extends DTOBase {
     TestingToolType getTestingToolType();
 
     DiscoveryInfo setTestingToolType(TestingToolType testingToolType);
+
+    String getScmRepositoryId();
+
+    void setScmRepositoryId(String scmRepositoryId);
 }
