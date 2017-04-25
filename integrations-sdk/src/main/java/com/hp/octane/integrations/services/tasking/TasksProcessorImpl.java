@@ -22,6 +22,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
@@ -59,6 +60,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
     private static final String EXECUTOR = "executor";
     private static final String INIT = "init";
     private static final String SUITE_RUN = "suite_run";
+    private static final String TEST_CONN = "test_conn";
 
     private final CIPluginServices pluginServices;
 
@@ -122,6 +124,9 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
                     TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
                     pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
                     result.setStatus(200);
+                }else if (TEST_CONN.equalsIgnoreCase(path[1])) {
+                    TestConnectivityInfo testConnectivityInfo =  dtoFactory.dtoFromJson(task.getBody(),TestConnectivityInfo.class);
+                    result.setStatus(pluginServices.checkRepositoryConnectivity(testConnectivityInfo) ? 200 : 404);
                 }else{
                     result.setStatus(404);
                 }

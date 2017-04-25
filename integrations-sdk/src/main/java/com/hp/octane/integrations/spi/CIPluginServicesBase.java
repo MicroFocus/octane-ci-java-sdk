@@ -3,6 +3,7 @@ package com.hp.octane.integrations.spi;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
@@ -94,6 +95,12 @@ public class CIPluginServicesBase implements CIPluginServices {
     @Override
     public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
         //do nothing
+    }
+
+    @Override
+    public boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+        //do nothing
+        return false;
     }
 
 }
