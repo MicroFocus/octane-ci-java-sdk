@@ -105,12 +105,12 @@ public class CIPluginServicesBase implements CIPluginServices {
 
     @Override
     public void deleteSuite(String id) {
-
+        //do nothing
     }
 
     @Override
     public void deleteExecutor(String id) {
-
+        //do nothing
     }
 
 }

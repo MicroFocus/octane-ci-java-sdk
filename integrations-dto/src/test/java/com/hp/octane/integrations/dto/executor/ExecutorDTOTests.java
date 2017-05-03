@@ -58,7 +58,6 @@ public class ExecutorDTOTests {
 
         TestSuiteExecutionInfo testSuiteInfo = dtoFactory.newDTO(TestSuiteExecutionInfo.class);
         testSuiteInfo
-                .setExecutorId("123")
                 .setTestingToolType(TestingToolType.UFT)
                 .setWorkspaceId("789")
                 .setScmRepository(scm)
