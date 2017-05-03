@@ -103,4 +103,14 @@ public class CIPluginServicesBase implements CIPluginServices {
         return false;
     }
 
+    @Override
+    public void deleteSuite(String id) {
+
+    }
+
+    @Override
+    public void deleteExecutor(String id) {
+
+    }
+
 }

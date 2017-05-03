@@ -19,10 +19,6 @@ public interface TestSuiteExecutionInfo extends DTOBase {
 
     TestSuiteExecutionInfo setScmRepository(SCMRepository scmRepository);
 
-    String getExecutorId();
-
-    TestSuiteExecutionInfo setExecutorId(String executorId);
-
     String getWorkspaceId();
 
     TestSuiteExecutionInfo setWorkspaceId(String workspaceId);
@@ -34,4 +30,12 @@ public interface TestSuiteExecutionInfo extends DTOBase {
     TestingToolType getTestingToolType();
 
     TestSuiteExecutionInfo setTestingToolType(TestingToolType testingToolType);
+
+    String getSuiteRunId();
+
+    void setSuiteRunId(String suiteRunId);
+
+    String getScmRepositoryCredentialsId();
+
+    void setScmRepositoryCredentialsId(String scmRepositoryCredentialsId);
 }

@@ -147,4 +147,8 @@ public interface CIPluginServices {
 	void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo);
 
 	boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo);
+
+	void deleteSuite(String id);
+
+	void deleteExecutor(String id);
 }

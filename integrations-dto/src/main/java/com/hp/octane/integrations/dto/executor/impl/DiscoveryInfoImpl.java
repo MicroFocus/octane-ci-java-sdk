@@ -11,6 +11,7 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     private String executorId;
     private String workspaceId;
     private String scmRepositoryId;
+    private String scmRepositoryCredentialsId;
     private SCMRepository scmRepository;
     private boolean forceFullDiscovery;
     private TestingToolType testingToolType;
@@ -77,5 +78,13 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     @Override
     public void setScmRepositoryId(String scmRepositoryId) {
         this.scmRepositoryId = scmRepositoryId;
+    }
+
+    public String getScmRepositoryCredentialsId() {
+        return scmRepositoryCredentialsId;
+    }
+
+    public void setScmRepositoryCredentialsId(String scmRepositoryCredentialsId) {
+        this.scmRepositoryCredentialsId = scmRepositoryCredentialsId;
     }
 }
