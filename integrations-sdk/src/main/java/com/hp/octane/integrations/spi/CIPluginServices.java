@@ -19,6 +19,7 @@ package com.hp.octane.integrations.spi;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
@@ -149,4 +150,6 @@ public interface CIPluginServices {
 	boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo);
 
 	void deleteExecutor(String id);
+
+    CredentialsInfo upsertCredentials(CredentialsInfo credentialsInfo);
 }

@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
@@ -62,6 +63,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
     private static final String INIT = "init";
     private static final String SUITE_RUN = "suite_run";
     private static final String TEST_CONN = "test_conn";
+    private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 
     private final CIPluginServices pluginServices;
 
@@ -129,6 +131,10 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
                     } else if (TEST_CONN.equalsIgnoreCase(path[1])) {
                         TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
                         result.setStatus(pluginServices.checkRepositoryConnectivity(testConnectivityInfo) ? 200 : 404);
+                    } else if (CREDENTIALS_UPSERT.equalsIgnoreCase(path[1])) {
+                        CredentialsInfo credentialsInfo = dtoFactory.dtoFromJson(task.getBody(), CredentialsInfo.class);
+                        executeUpsertCredentials(result, credentialsInfo);
+
                     } else {
                         result.setStatus(404);
                     }
@@ -238,5 +244,12 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
         BuildHistory content = pluginServices.getHistoryPipeline(jobId, originalBody);
         result.setBody(dtoFactory.dtoToJson(content));
         result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+    }
+
+    private void executeUpsertCredentials(OctaneResultAbridged result, CredentialsInfo credentialsInfo) {
+        CredentialsInfo content = pluginServices.upsertCredentials(credentialsInfo);
+        result.setBody(dtoFactory.dtoToJson(content));
+        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+        result.setStatus(201);
     }
 }
