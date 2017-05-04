@@ -103,4 +103,9 @@ public class CIPluginServicesBase implements CIPluginServices {
         return false;
     }
 
+    @Override
+    public void deleteExecutor(String id) {
+        //do nothing
+    }
+
 }

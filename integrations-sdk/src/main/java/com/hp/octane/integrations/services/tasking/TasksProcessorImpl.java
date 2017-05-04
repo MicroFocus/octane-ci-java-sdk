@@ -19,6 +19,7 @@ package com.hp.octane.integrations.services.tasking;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
@@ -111,24 +112,29 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
                     }
                 } else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
                     executeHistoryRequest(result, path[1], task.getBody());
-                } else{
+                } else {
                     result.setStatus(404);
                 }
 
-            } else if (EXECUTOR.equalsIgnoreCase(path[0]) && path.length == 2) {
-                if(INIT.equalsIgnoreCase(path[1])){
-                    DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
-                    pluginServices.runTestDiscovery(discoveryInfo);
-                    result.setStatus(200);
-                }else if (SUITE_RUN.equalsIgnoreCase(path[1])){
-                    TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
-                    pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
-                    result.setStatus(200);
-                }else if (TEST_CONN.equalsIgnoreCase(path[1])) {
-                    TestConnectivityInfo testConnectivityInfo =  dtoFactory.dtoFromJson(task.getBody(),TestConnectivityInfo.class);
-                    result.setStatus(pluginServices.checkRepositoryConnectivity(testConnectivityInfo) ? 200 : 404);
-                }else{
-                    result.setStatus(404);
+            } else if (EXECUTOR.equalsIgnoreCase(path[0])) {
+                if (HttpMethod.POST.equals(task.getMethod()) && path.length == 2) {
+                    if (INIT.equalsIgnoreCase(path[1])) {
+                        DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+                        pluginServices.runTestDiscovery(discoveryInfo);
+                        result.setStatus(200);
+                    } else if (SUITE_RUN.equalsIgnoreCase(path[1])) {
+                        TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
+                        pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
+                        result.setStatus(200);
+                    } else if (TEST_CONN.equalsIgnoreCase(path[1])) {
+                        TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
+                        result.setStatus(pluginServices.checkRepositoryConnectivity(testConnectivityInfo) ? 200 : 404);
+                    } else {
+                        result.setStatus(404);
+                    }
+                } else if (HttpMethod.DELETE.equals(task.getMethod()) && path.length == 2) {
+                    String id = path[1];
+                    pluginServices.deleteExecutor(id);
                 }
 
             } else {

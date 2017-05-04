@@ -14,9 +14,10 @@ public class TestSuiteExecutionInfoImpl implements TestSuiteExecutionInfo {
     private List<TestExecutionInfo> tests;
 
     private SCMRepository scmRepository;
-    private String executorId;
+    private String scmRepositoryCredentialsId;
     private String workspaceId;
     private String suiteId;
+    private String suiteRunId;
     private TestingToolType testingToolType;
 
     @Override
@@ -38,17 +39,6 @@ public class TestSuiteExecutionInfoImpl implements TestSuiteExecutionInfo {
     @Override
     public TestSuiteExecutionInfo setScmRepository(SCMRepository scmRepository) {
         this.scmRepository = scmRepository;
-        return this;
-    }
-
-    @Override
-    public String getExecutorId() {
-        return executorId;
-    }
-
-    @Override
-    public TestSuiteExecutionInfo setExecutorId(String executorId) {
-        this.executorId = executorId;
         return this;
     }
 
@@ -84,5 +74,23 @@ public class TestSuiteExecutionInfoImpl implements TestSuiteExecutionInfo {
     public TestSuiteExecutionInfo setTestingToolType(TestingToolType testingToolType) {
         this.testingToolType = testingToolType;
         return this;
+    }
+
+    @Override
+    public String getSuiteRunId() {
+        return suiteRunId;
+    }
+
+    @Override
+    public void setSuiteRunId(String suiteRunId) {
+        this.suiteRunId = suiteRunId;
+    }
+
+    public String getScmRepositoryCredentialsId() {
+        return scmRepositoryCredentialsId;
+    }
+
+    public void setScmRepositoryCredentialsId(String scmRepositoryCredentialsId) {
+        this.scmRepositoryCredentialsId = scmRepositoryCredentialsId;
     }
 }
