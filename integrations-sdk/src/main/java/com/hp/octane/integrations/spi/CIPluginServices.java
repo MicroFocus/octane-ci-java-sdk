@@ -148,7 +148,5 @@ public interface CIPluginServices {
 
 	boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo);
 
-	void deleteSuite(String id);
-
 	void deleteExecutor(String id);
 }
