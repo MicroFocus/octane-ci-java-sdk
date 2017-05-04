@@ -3,6 +3,7 @@ package com.hp.octane.integrations.spi;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
+import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
@@ -106,6 +107,12 @@ public class CIPluginServicesBase implements CIPluginServices {
     @Override
     public void deleteExecutor(String id) {
         //do nothing
+    }
+
+    @Override
+    public CredentialsInfo upsertCredentials(CredentialsInfo credentialsInfo){
+        //do nothing
+        return null;
     }
 
 }
