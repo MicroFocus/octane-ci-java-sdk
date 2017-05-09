@@ -8,7 +8,7 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
  */
 public class TestConnectivityInfoImpl implements TestConnectivityInfo {
     private SCMRepository scmRepository;
-    private String usernmae;
+    private String username;
     private String password;
     private String credentialsId;
 
@@ -25,12 +25,12 @@ public class TestConnectivityInfoImpl implements TestConnectivityInfo {
 
     @Override
     public String getUsername() {
-        return this.usernmae;
+        return this.username;
     }
 
     @Override
     public TestConnectivityInfo setUsername(String username) {
-        this.usernmae = username;
+        this.username = username;
         return this;
     }
 
