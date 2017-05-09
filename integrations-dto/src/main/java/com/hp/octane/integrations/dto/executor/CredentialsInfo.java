@@ -15,7 +15,7 @@ public interface CredentialsInfo extends DTOBase {
 
     CredentialsInfo setPassword(String password);
 
-    String getCredentialId();
+    String getCredentialsId();
 
-    CredentialsInfo setCredentialId(String credentialId);
+    CredentialsInfo setCredentialsId(String credentialId);
 }

@@ -9,7 +9,7 @@ public class CredentialsInfoImpl implements CredentialsInfo {
 
     private String username;
     private String password;
-    private String credentialId;
+    private String credentialsId;
 
     @Override
     public String getUsername() {
@@ -34,13 +34,13 @@ public class CredentialsInfoImpl implements CredentialsInfo {
     }
 
     @Override
-    public String getCredentialId() {
-        return this.credentialId;
+    public String getCredentialsId() {
+        return this.credentialsId;
     }
 
     @Override
-    public CredentialsInfo setCredentialId(String credentialId) {
-        this.credentialId = credentialId;
+    public CredentialsInfo setCredentialsId(String credentialsId) {
+        this.credentialsId = credentialsId;
         return this;
     }
 }

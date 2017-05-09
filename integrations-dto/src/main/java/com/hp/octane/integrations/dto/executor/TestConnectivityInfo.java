@@ -7,16 +7,20 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
  * Created by shitritn on 4/3/2017.
  */
 public interface TestConnectivityInfo extends DTOBase {
-	SCMRepository getScmRepository();
+    SCMRepository getScmRepository();
 
-	TestConnectivityInfo setScmRepository(SCMRepository scmRepository);
+    TestConnectivityInfo setScmRepository(SCMRepository scmRepository);
 
-	String getUsername();
+    String getUsername();
 
-	TestConnectivityInfo setUsername(String username);
+    TestConnectivityInfo setUsername(String username);
 
-	String getPassword();
+    String getPassword();
 
-	TestConnectivityInfo setPassword(String password);
+    TestConnectivityInfo setPassword(String password);
+
+    String getCredentialsId();
+
+    TestConnectivityInfo setCredentialsId(String CredentialsId);
 
 }

@@ -2,6 +2,7 @@ package com.hp.octane.integrations.spi;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
@@ -99,9 +100,9 @@ public class CIPluginServicesBase implements CIPluginServices {
     }
 
     @Override
-    public boolean checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+    public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
         //do nothing
-        return false;
+        return null;
     }
 
     @Override
@@ -110,7 +111,7 @@ public class CIPluginServicesBase implements CIPluginServices {
     }
 
     @Override
-    public CredentialsInfo upsertCredentials(CredentialsInfo credentialsInfo){
+    public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
         //do nothing
         return null;
     }

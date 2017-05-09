@@ -20,6 +20,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
@@ -130,7 +131,9 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
                         result.setStatus(200);
                     } else if (TEST_CONN.equalsIgnoreCase(path[1])) {
                         TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
-                        result.setStatus(pluginServices.checkRepositoryConnectivity(testConnectivityInfo) ? 200 : 404);
+                        OctaneResponse connTestResult = pluginServices.checkRepositoryConnectivity(testConnectivityInfo);
+                        result.setStatus(connTestResult.getStatus());
+                        result.setBody(connTestResult.getBody());
                     } else if (CREDENTIALS_UPSERT.equalsIgnoreCase(path[1])) {
                         CredentialsInfo credentialsInfo = dtoFactory.dtoFromJson(task.getBody(), CredentialsInfo.class);
                         executeUpsertCredentials(result, credentialsInfo);
@@ -247,9 +250,8 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
     }
 
     private void executeUpsertCredentials(OctaneResultAbridged result, CredentialsInfo credentialsInfo) {
-        CredentialsInfo content = pluginServices.upsertCredentials(credentialsInfo);
-        result.setBody(dtoFactory.dtoToJson(content));
-        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
-        result.setStatus(201);
+        OctaneResponse response = pluginServices.upsertCredentials(credentialsInfo);
+        result.setBody(response.getBody());
+        result.setStatus(response.getStatus());
     }
 }
