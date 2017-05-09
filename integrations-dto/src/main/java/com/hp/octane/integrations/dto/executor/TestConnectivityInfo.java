@@ -1,3 +1,19 @@
+/*
+ *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
+
 package com.hp.octane.integrations.dto.executor;
 
 import com.hp.octane.integrations.dto.DTOBase;
@@ -7,16 +23,20 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
  * Created by shitritn on 4/3/2017.
  */
 public interface TestConnectivityInfo extends DTOBase {
-	SCMRepository getScmRepository();
+    SCMRepository getScmRepository();
 
-	TestConnectivityInfo setScmRepository(SCMRepository scmRepository);
+    TestConnectivityInfo setScmRepository(SCMRepository scmRepository);
 
-	String getUsername();
+    String getUsername();
 
-	TestConnectivityInfo setUsername(String username);
+    TestConnectivityInfo setUsername(String username);
 
-	String getPassword();
+    String getPassword();
 
-	TestConnectivityInfo setPassword(String password);
+    TestConnectivityInfo setPassword(String password);
+
+    String getCredentialsId();
+
+    TestConnectivityInfo setCredentialsId(String CredentialsId);
 
 }
