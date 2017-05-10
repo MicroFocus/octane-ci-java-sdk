@@ -1,6 +1,6 @@
 # CI Plugin SDK for ALM Octane
 
-<br>
+
 ## Introduction
 
 A Java SDK that should be used by the CI plugin to connect and communicate with ALM Octane. See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK API.
@@ -11,7 +11,7 @@ This Java SDK project has two sub-projects:
 
 - **integrations-sdk**, which is the main source of the CI Plugin SDK.
 
-<br>
+
 ## Compiling the Project
 
 The easiest way to compile the project is to use [Maven](https://maven.apache.org/) and run the following command from the root directory:
@@ -19,7 +19,7 @@ The easiest way to compile the project is to use [Maven](https://maven.apache.or
 mvn clean install
 ```
 
-<br>
+
 ## Creating JavaDoc
 
 To create Javadoc, run the following [Maven](https://maven.apache.org/) command from the project root directory:
@@ -28,7 +28,7 @@ mvn javadoc:aggregate
 ```
 >_This creates a javadoc site in the ```/target/site/apidocs/index.html```_
 
-<br>
+
 ## Include in Your Project
 
 Add the following dependency to the pom.xml to use this SDK in your project:
@@ -40,14 +40,14 @@ Add the following dependency to the pom.xml to use this SDK in your project:
 </dependency>
 ```
 
-<br>
+
 ## Usage Examples
 
 The following CI plugins already use **CI Plugin SDK for ALM Octane** to connect and communicate with ALM Octane:  
 [Octane Bamboo Plugin](https://github.com/HPSoftware/octane-bamboo-plugin)  
 [Octane TeamCity Plugin](https://github.com/HPSoftware/octane-teamcity-plugin)
 
-<br>
+
 ## Initializing
 
 To start using the CI Plugin SDK, first initialize an OctaneSDK instance. This class provides the main entry point of interaction between the SDK and its services, and interaction between the concrete CI plugin and its services.
@@ -56,7 +56,7 @@ OctaneSDK.init(new MyPluginServices(), true);
 ```
 The ```init()``` method expects an object that implements the ```CIPluginServices``` interface. This object is actually a composite API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 
-<br>
+
 ## Communicating with ALM Octane using Data Transfer Objects (DTO)
 
 [Data transfer object](https://en.wikipedia.org/wiki/Data_transfer_object) (DTO) is a design pattern used to transfer data between software application subsystems. We use DTO objects to communicate data to ALM Octane.
@@ -66,7 +66,7 @@ Any DTO in the system should be created using ```DTOFactory```:
 T dto = DTOFactory.getInstance().newDTO(Class<T> targetType);
 ```
 
-<br>
+
 ## Updating ALM Octane with CI Events
 
 Upon a CI event, the CI plugin must update ALM Octane using the ```EventsService``` object. The steps are:
@@ -89,7 +89,7 @@ CIEvent ciEvent = DTOFactory.getInstance().newDTO(CIEvent.class)
 OctaneSDK.getInstance().getEventsService().publishEvent(ciEvent);
 ```
 
-<br>
+
 ## Submitting Source Control Management (SCM) Data
 
 SCM data are provided by the Source Control Management tool about changes in source code reflected in a specific CI build. SCM data should be submitted to ALM Octane as part of the ```CIEvent``` DTO.
@@ -97,7 +97,7 @@ SCM data are provided by the Source Control Management tool about changes in sou
 ciEvent.setScmData(scmData);
 ```
 
-<br>
+
 ## ALM Octane Pipeline Structure
 
 ALM Octane pipelines represent the flow of the CI server jobs and steps. Pipeline provides a clear, multi-level, analytic view of specific CI process, CI runs and their status so you can track product quality and progress.
@@ -108,7 +108,7 @@ Pipeline nodes in internal phases represent CI nodes that complete their executi
 
 This structure is used for correct pipeline representation in ALM Octane. This way in ALM Octane, it is possible to see the flow of steps in the CI server, including which steps run in sequence and which steps run as parts of other steps.
 
-<br>
+
 ## Providing CI Build Information
 
 The ALM Octane server may ask for a specific build information of some pipeline. To provide the information, implement two ```CIPluginServices``` methods:
@@ -127,7 +127,7 @@ SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree)
 <br>
 The main DTOs for CI build snapshots are ```SnapshotNode``` and ```SnapshotPhase```. These provide the same hierarchical structure described in the [Pipeline Structure](#alm-octane-pipeline-structure) section and allow the ALM Octane user to see the build number, the last run date, the run status, and the duration of the run.
 
-<br>
+
 ## Providing Test Results
 
 Test results for a specific build are provided by ```CIPluginServices.getTestsResult``` method.
