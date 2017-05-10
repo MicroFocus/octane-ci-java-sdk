@@ -1,6 +1,6 @@
 # CI Plugin SDK for ALM Octane
-
-
+  
+  
 ## Introduction
 
 A Java SDK that should be used by the CI plugin to connect and communicate with ALM Octane. See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK API.
@@ -10,16 +10,16 @@ This Java SDK project has two sub-projects:
 - **integrations-dto**, which contains the definition and building factory of all DTO objects used for communication with ALM Octane.
 
 - **integrations-sdk**, which is the main source of the CI Plugin SDK.
-
-
+  
+  
 ## Compiling the Project
 
 The easiest way to compile the project is to use [Maven](https://maven.apache.org/) and run the following command from the root directory:
 ```
 mvn clean install
 ```
-
-
+  
+  
 ## Creating JavaDoc
 
 To create Javadoc, run the following [Maven](https://maven.apache.org/) command from the project root directory:
@@ -27,8 +27,8 @@ To create Javadoc, run the following [Maven](https://maven.apache.org/) command 
 mvn javadoc:aggregate
 ```
 >_This creates a javadoc site in the ```/target/site/apidocs/index.html```_
-
-
+  
+  
 ## Include in Your Project
 
 Add the following dependency to the pom.xml to use this SDK in your project:
@@ -118,13 +118,12 @@ SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTr
 ```
 >_This provides a snapshot of the specified CI build of the specified CI job._
 
-<br>
 ```java
 SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree)
 ```
 >_This provides a snapshot of the latest CI build of the specified CI job._
 
-<br>
+
 The main DTOs for CI build snapshots are ```SnapshotNode``` and ```SnapshotPhase```. These provide the same hierarchical structure described in the [Pipeline Structure](#alm-octane-pipeline-structure) section and allow the ALM Octane user to see the build number, the last run date, the run status, and the duration of the run.
 
 
@@ -137,5 +136,5 @@ TestsResult getTestsResult(String jobId, String buildNumber)
 ```
 >_This provides test result report for the specific build. The ```TestResult``` DTO should contain a list of all test runs (```TestRun```) that were executed in the job specified by the ```jobId```._
 
-<br>
+
 Each ```TestRun``` object represents a single test that ran in a specific CI build. It contains all the information of this specific test, the run result status (```TestRunResult``` enum) and error information if the test failed. Also a url to the test report page can be provided with the ```setExternalReportUrl()``` method.
