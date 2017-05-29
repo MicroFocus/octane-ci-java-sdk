@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 public class TestExecutionInfoImpl implements TestExecutionInfo {
     private String testName;
     private String packageName;
+    private String dataTable;
 
     @Override
     public String getTestName() {
@@ -45,5 +46,13 @@ public class TestExecutionInfoImpl implements TestExecutionInfo {
     public TestExecutionInfo setPackageName(String packageName) {
         this.packageName = packageName;
         return this;
+    }
+
+    public String getDataTable() {
+        return dataTable;
+    }
+
+    public void setDataTable(String dataTable) {
+        this.dataTable = dataTable;
     }
 }
