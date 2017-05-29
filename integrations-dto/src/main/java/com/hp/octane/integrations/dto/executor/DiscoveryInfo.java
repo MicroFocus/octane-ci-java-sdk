@@ -52,4 +52,8 @@ public interface DiscoveryInfo extends DTOBase {
     String getScmRepositoryCredentialsId();
 
     void setScmRepositoryCredentialsId(String scmRepositoryCredentialsId);
+
+    String getExecutorLogicalName();
+
+    DiscoveryInfo setExecutorLogicalName(String executorLogicalName);
 }

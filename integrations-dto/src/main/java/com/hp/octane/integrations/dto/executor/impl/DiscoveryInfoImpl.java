@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 public class DiscoveryInfoImpl implements DiscoveryInfo {
 
     private String executorId;
+    private String executorLogicalName;
     private String workspaceId;
     private String scmRepositoryId;
     private String scmRepositoryCredentialsId;
@@ -102,5 +103,14 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
 
     public void setScmRepositoryCredentialsId(String scmRepositoryCredentialsId) {
         this.scmRepositoryCredentialsId = scmRepositoryCredentialsId;
+    }
+
+    public String getExecutorLogicalName() {
+        return executorLogicalName;
+    }
+
+    public DiscoveryInfo setExecutorLogicalName(String executorLogicalName) {
+        this.executorLogicalName = executorLogicalName;
+        return this;
     }
 }
