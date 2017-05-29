@@ -31,4 +31,7 @@ public interface TestExecutionInfo extends DTOBase {
 
     TestExecutionInfo setPackageName(String packageName);
 
+    String getDataTable();
+
+    void setDataTable(String dataTable);
 }
