@@ -50,4 +50,8 @@ public interface CIServerInfo extends DTOBase {
 	Long getSendingTime();
 
 	CIServerInfo setSendingTime(Long sendingTime);
+
+	String getImpersonatedUser();
+
+	CIServerInfo setImpersonatedUser(String impersonatedUser);
 }
