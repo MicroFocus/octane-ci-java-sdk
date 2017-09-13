@@ -31,6 +31,7 @@ class CIServerInfoImpl implements CIServerInfo {
 	private String url;
 	private String instanceId;
 	private Long instanceIdFrom;
+	private String impersonatedUser;
 	private Long sendingTime = System.currentTimeMillis();
 
 	public CIServerInfoImpl() {
@@ -95,6 +96,17 @@ class CIServerInfoImpl implements CIServerInfo {
 
 	public CIServerInfo setSendingTime(Long sendingTime) {
 		this.sendingTime = sendingTime;
+		return this;
+	}
+
+	@Override
+	public String getImpersonatedUser() {
+		return impersonatedUser;
+	}
+
+	@Override
+	public CIServerInfo setImpersonatedUser(String impersonatedUser) {
+		this.impersonatedUser = impersonatedUser;
 		return this;
 	}
 
