@@ -79,6 +79,8 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					String tasksJSON;
 					CIServerInfo serverInfo = pluginServices.getServerInfo();
 					CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
+					String apiKey = pluginServices.getOctaneConfiguration() == null ? null : pluginServices.getOctaneConfiguration().getApiKey();
+
 					try {
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
@@ -87,8 +89,8 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 								OctaneSDK.API_VERSION,
 								OctaneSDK.SDK_VERSION,
 								pluginInfo == null ? "" : pluginInfo.getVersion(),
-								pluginServices.getOctaneConfiguration().getApiKey(),
-								serverInfo.getImpersonatedUser());
+								apiKey == null ? "" : apiKey,
+								serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
