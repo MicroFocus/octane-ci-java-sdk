@@ -22,11 +22,7 @@ import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
-import com.hp.octane.integrations.dto.connectivity.HttpMethod;
-import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
-import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.spi.CIPluginServices;
@@ -90,7 +86,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 								serverInfo.getUrl(),
 								OctaneSDK.API_VERSION,
 								OctaneSDK.SDK_VERSION,
-								pluginInfo == null ? "" : pluginInfo.getVersion());
+								pluginInfo == null ? "" : pluginInfo.getVersion(),
+								pluginServices.getOctaneConfiguration().getApiKey(),
+								serverInfo.getImpersonatedUser());
 						connect();
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
@@ -107,7 +105,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		}
 	}
 
-	private String getAbridgedTasks(String selfIdentity, String selfType, String selfLocation, Integer apiVersion, String sdkVersion, String pluginVersion) {
+	private String getAbridgedTasks(String selfIdentity, String selfType, String selfLocation, Integer apiVersion, String sdkVersion, String pluginVersion, String octaneUser, String ciServerUser) {
 		String responseBody = null;
 		RestClient restClient = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
@@ -118,7 +116,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					.setMethod(HttpMethod.GET)
 					.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" +
 							octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" +
-							selfIdentity + "/tasks?self-type=" + selfType + "&self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion +"&plugin-version=" + pluginVersion)
+							selfIdentity + "/tasks?self-type=" + selfType + "&self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion +
+							"&plugin-version=" + pluginVersion + "&client-id=" + octaneUser + "&ci-server-user=" + ciServerUser)
+
 					.setHeaders(headers);
 			try {
 				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
