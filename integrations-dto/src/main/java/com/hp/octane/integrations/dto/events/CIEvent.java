@@ -82,5 +82,5 @@ public interface CIEvent extends DTOBase {
 
 	boolean getTestResultExpected();
 
-	CIEvent getTestResultExpected(boolean expected);
+	CIEvent setTestResultExpected(boolean expected);
 }

@@ -172,7 +172,7 @@ class CIEventImpl implements CIEvent {
 	}
 
 	@Override
-	public CIEvent getTestResultExpected(boolean expected) {
+	public CIEvent setTestResultExpected(boolean expected) {
 		this.testResultExpected = expected;
 		return this;
 	}
