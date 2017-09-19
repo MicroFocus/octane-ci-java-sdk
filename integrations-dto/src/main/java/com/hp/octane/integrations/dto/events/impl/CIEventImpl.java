@@ -44,6 +44,7 @@ class CIEventImpl implements CIEvent {
 	private Long estimatedDuration;
 	private Long duration;
 	private SCMData scmData;
+	private Boolean testResultExpected;
 	private String projectDisplayName;
 	private PhaseType phaseType;
 
@@ -162,6 +163,17 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setScmData(SCMData scmData) {
 		this.scmData = scmData;
+		return this;
+	}
+
+	@Override
+	public boolean getTestResultExpected() {
+		return testResultExpected;
+	}
+
+	@Override
+	public CIEvent getTestResultExpected(boolean expected) {
+		this.testResultExpected = expected;
 		return this;
 	}
 }

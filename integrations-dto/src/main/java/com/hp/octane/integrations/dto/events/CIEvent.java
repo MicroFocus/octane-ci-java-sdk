@@ -79,4 +79,8 @@ public interface CIEvent extends DTOBase {
 	SCMData getScmData();
 
 	CIEvent setScmData(SCMData scmData);
+
+	boolean getTestResultExpected();
+
+	CIEvent getTestResultExpected(boolean expected);
 }
