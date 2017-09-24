@@ -167,7 +167,7 @@ class CIEventImpl implements CIEvent {
 	}
 
 	@Override
-	public boolean getTestResultExpected() {
+	public Boolean getTestResultExpected() {
 		return testResultExpected;
 	}
 
