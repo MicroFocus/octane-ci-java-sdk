@@ -107,12 +107,20 @@ public interface CIPluginServices {
 	void runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace with parsed parameters/DTO
 
 	/**
-	 * Provides Snapshot of the latest CI Build of the specified CI Job
+	 * suspend events from CI
 	 *
-	 * @param ciJobId Job CI ID to get latest snapshot for
-	 * @param subTree should the snapshot include sub tree or not
-	 * @return latest snapshot's structure or null if build data not found
+	 * @param suspend
 	 */
+	 void suspendCiEvents(boolean suspend);
+
+
+		/**
+		 * Provides Snapshot of the latest CI Build of the specified CI Job
+		 *
+		 * @param ciJobId Job CI ID to get latest snapshot for
+		 * @param subTree should the snapshot include sub tree or not
+		 * @return latest snapshot's structure or null if build data not found
+		 */
 	SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree);
 
 	/**
