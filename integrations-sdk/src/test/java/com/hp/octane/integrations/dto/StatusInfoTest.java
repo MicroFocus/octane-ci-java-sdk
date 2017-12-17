@@ -49,7 +49,7 @@ public class StatusInfoTest {
 				.setVersion(PLUGIN_VERSION);
 
 		CIServerInfo CIServerInfo = dtoFactory.newDTO(CIServerInfo.class)
-				.setType(CIServerTypes.JENKINS)
+				.setType(CIServerTypes.JENKINS.value())
 				.setVersion(SERVER_VERION)
 				.setInstanceId(SERVER_UUID)
 				.setInstanceIdFrom(SERVER_UUID_FROM)
@@ -69,7 +69,7 @@ public class StatusInfoTest {
 		assertEquals(PLUGIN_VERSION, newStatus.getPlugin().getVersion());
 
 		assertNotNull(newStatus.getServer());
-		assertEquals(CIServerTypes.JENKINS, newStatus.getServer().getType());
+		assertEquals(CIServerTypes.JENKINS.value(), newStatus.getServer().getType());
 		assertEquals(SERVER_VERION, newStatus.getServer().getVersion());
 		assertEquals(SERVER_UUID, newStatus.getServer().getInstanceId());
 		assertEquals(SERVER_UUID_FROM, newStatus.getServer().getInstanceIdFrom());
