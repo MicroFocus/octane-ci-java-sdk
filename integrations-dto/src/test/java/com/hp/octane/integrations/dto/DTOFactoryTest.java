@@ -150,14 +150,14 @@ public class DTOFactoryTest {
 	@Test
 	public void test_B() {
 		CIServerInfo ciServerInfo = dtoFactory.newDTO(CIServerInfo.class)
-				.setType(CIServerTypes.JENKINS)
+				.setType(CIServerTypes.JENKINS.value())
 				.setInstanceId("instance id")
 				.setInstanceIdFrom(123456789L)
 				.setSendingTime(123456789L)
 				.setUrl("http://localhost:8080")
 				.setVersion("1.2.3");
 
-		assertEquals(CIServerTypes.JENKINS, ciServerInfo.getType());
+		assertEquals(CIServerTypes.JENKINS.value(), ciServerInfo.getType());
 		assertEquals("instance id", ciServerInfo.getInstanceId());
 		assertEquals((Long) 123456789L, ciServerInfo.getInstanceIdFrom());
 		assertEquals((Long) 123456789L, ciServerInfo.getSendingTime());
@@ -171,21 +171,21 @@ public class DTOFactoryTest {
 	public void test_C() {
 		List<CIServerInfo> coll = new ArrayList<>();
 		CIServerInfo instA = dtoFactory.newDTO(CIServerInfo.class)
-				.setType(CIServerTypes.JENKINS)
+				.setType(CIServerTypes.JENKINS.value())
 				.setInstanceId("instance id A")
 				.setInstanceIdFrom(123456789L)
 				.setSendingTime(123456789L)
 				.setUrl("http://localhost:8080/A")
 				.setVersion("1.2.3");
 		CIServerInfo instB = dtoFactory.newDTO(CIServerInfo.class)
-				.setType(CIServerTypes.JENKINS)
+				.setType(CIServerTypes.JENKINS.value())
 				.setInstanceId("instance id B")
 				.setInstanceIdFrom(123456789L)
 				.setSendingTime(123456789L)
 				.setUrl("http://localhost:8080/B")
 				.setVersion("1.2.4");
 		CIServerInfo instC = dtoFactory.newDTO(CIServerInfo.class)
-				.setType(CIServerTypes.JENKINS)
+				.setType(CIServerTypes.JENKINS.value())
 				.setInstanceId("instance id C")
 				.setInstanceIdFrom(123456789L)
 				.setSendingTime(123456789L)

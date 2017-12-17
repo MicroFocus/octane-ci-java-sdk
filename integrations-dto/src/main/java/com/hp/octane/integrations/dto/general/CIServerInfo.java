@@ -24,9 +24,9 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface CIServerInfo extends DTOBase {
 
-	CIServerTypes getType();
+	String getType();
 
-	CIServerInfo setType(CIServerTypes type);
+	CIServerInfo setType(String type);
 
 	String getVersion();
 

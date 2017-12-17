@@ -84,7 +84,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					try {
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
-								serverInfo.getType().value(),
+								serverInfo.getType(),
 								serverInfo.getUrl(),
 								OctaneSDK.API_VERSION,
 								OctaneSDK.SDK_VERSION);

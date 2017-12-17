@@ -17,7 +17,6 @@
 package com.hp.octane.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 /**
@@ -26,7 +25,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIServerInfoImpl implements CIServerInfo {
-	private CIServerTypes type;
+	private String type;
 	private String version;
 	private String url;
 	private String instanceId;
@@ -36,7 +35,7 @@ class CIServerInfoImpl implements CIServerInfo {
 	public CIServerInfoImpl() {
 	}
 
-	public CIServerInfoImpl(CIServerTypes type, String version, String url, String instanceId, Long instanceIdFrom) {
+	public CIServerInfoImpl(String type, String version, String url, String instanceId, Long instanceIdFrom) {
 		this.type = type;
 		this.version = version;
 		this.url = normalizeURL(url);
@@ -44,11 +43,11 @@ class CIServerInfoImpl implements CIServerInfo {
 		this.instanceIdFrom = instanceIdFrom;
 	}
 
-	public CIServerTypes getType() {
+	public String getType() {
 		return type;
 	}
 
-	public CIServerInfo setType(CIServerTypes type) {
+	public CIServerInfo setType(String type) {
 		this.type = type;
 		return this;
 	}
