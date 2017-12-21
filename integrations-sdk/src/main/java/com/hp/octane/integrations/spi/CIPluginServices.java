@@ -146,11 +146,11 @@ public interface CIPluginServices {
 	/**
 	 * Retrieves tests result report for the specific build
 	 *
-	 * @param jobId       Job CI ID to get tests results of
-	 * @param buildNumber Build CI ID to get tests results of
+	 * @param jobCiId       Job CI ID to get tests results of
+	 * @param buildCiId Build CI ID to get tests results of
 	 * @return TestsResult data; NULL if no tests result available
 	 */
-	TestsResult getTestsResult(String jobId, String buildNumber);
+	TestsResult getTestsResult(String jobCiId, String buildCiId);
 
 	void runTestDiscovery(DiscoveryInfo discoveryInfo);
 

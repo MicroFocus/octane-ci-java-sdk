@@ -26,13 +26,18 @@ public interface TestsService {
 	/**
 	 * Publishes CI Event to the Octane server.
 	 * Tests result is pushed to Octane server in a synchronous manner.
+	 *
+	 * @param testsResult ready-to-be-pushed TestsResult object, having a collection of tests results with the relevant build context
 	 */
 	OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException;
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval.
-	 * This is the preferred way to push tests results to Octane. This method provides facilities of queue,
-     * non-main thread execution and retry.
+	 * This is the preferred way to push tests results to Octane. This method provides facilities of queue, non-main thread execution and retry.
+	 * Pay attention, that when pushing tests results this way, it is assumed that your SPI implementation knows to retrieve and provide TestsResult object given the relevant jobCiId/buildCiId (as they are provided hereby)
+	 *
+	 * @param jobCiId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param buildCiId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 */
-	void enqueuePushTestsResult(String jobId, String buildNumber);
+	void enqueuePushTestsResult(String jobCiId, String buildCiId);
 }
