@@ -86,6 +86,11 @@ public class CIPluginServicesBase implements CIPluginServices {
     }
 
     @Override
+    public void suspendCiEvents(boolean suspend) {
+        //do nothing
+    }
+
+    @Override
     public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
         return null;
     }

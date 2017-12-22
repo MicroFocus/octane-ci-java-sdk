@@ -138,3 +138,6 @@ TestsResult getTestsResult(String jobId, String buildNumber)
 
 
 Each ```TestRun``` object represents a single test that ran in a specific CI build. It contains all the information of this specific test, the run result status (```TestRunResult``` enum) and error information if the test failed. Also a url to the test report page can be provided with the ```setExternalReportUrl()``` method.
+
+## Disclamer update
+Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.  As of September 1, 2017, the software is now offered by Micro Focus, a separately owned and operated company.  Any reference to the HP and Hewlett Packard Enterprise/HPE marks is historical in nature, and the HP and Hewlett Packard Enterprise/HPE marks are the property of their respective owners.

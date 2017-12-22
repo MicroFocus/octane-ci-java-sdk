@@ -33,6 +33,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -210,19 +211,9 @@ final class RestClientImpl implements RestClient {
 		} else if (octaneRequest.getMethod().equals(HttpMethod.DELETE)) {
 			requestBuilder = RequestBuilder.delete(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
-			try {
-				requestBuilder = RequestBuilder.post(octaneRequest.getUrl()).setEntity(new StringEntity(octaneRequest.getBody()));
-			} catch (UnsupportedEncodingException uee) {
-				logger.error("failed to create POST entity", uee);
-				throw new RuntimeException("failed to create POST entity", uee);
-			}
+			requestBuilder = RequestBuilder.post(octaneRequest.getUrl()).setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
-			try {
-				requestBuilder = RequestBuilder.put(octaneRequest.getUrl()).setEntity(new StringEntity(octaneRequest.getBody()));
-			} catch (UnsupportedEncodingException uee) {
-				logger.error("failed to create PUT entity", uee);
-				throw new RuntimeException("failed to create PUT entity", uee);
-			}
+			requestBuilder = RequestBuilder.put(octaneRequest.getUrl()).setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 		} else {
 			throw new RuntimeException("HTTP method " + octaneRequest.getMethod() + " not supported");
 		}

@@ -38,9 +38,9 @@ public interface CIServerInfo extends DTOBase {
 
 	String getInstanceId();
 
-    /**
-     * Set unique id of the CI server instance.
-     */
+	/**
+	 * Set unique id of the CI server instance.
+	 */
 	CIServerInfo setInstanceId(String instanceId);
 
 	Long getInstanceIdFrom();
@@ -50,4 +50,13 @@ public interface CIServerInfo extends DTOBase {
 	Long getSendingTime();
 
 	CIServerInfo setSendingTime(Long sendingTime);
+
+	String getImpersonatedUser();
+
+	CIServerInfo setImpersonatedUser(String impersonatedUser);
+
+	boolean isSuspended();
+
+	void setSuspended(boolean suspended);
+
 }

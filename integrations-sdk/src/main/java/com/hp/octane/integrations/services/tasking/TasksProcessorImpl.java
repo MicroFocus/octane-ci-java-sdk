@@ -23,8 +23,8 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
+import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
@@ -55,6 +55,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
     private static final String NGA_API = "nga/api/v1";
     private static final String STATUS = "status";
+    private static final String SUSPEND_STATUS = "suspend_status";
     private static final String JOBS = "jobs";
     private static final String RUN = "run";
     private static final String HISTORY = "history";
@@ -98,6 +99,8 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
         try {
             if (path.length == 1 && STATUS.equals(path[0])) {
                 executeStatusRequest(result);
+            } else if (path.length == 1 && SUSPEND_STATUS.equals(path[0])) {
+                suspendCiEvents(result, task.getBody());
             } else if (path[0].startsWith(JOBS)) {
                 if (path.length == 1) {
                     executeJobsListRequest(result, !path[0].contains("parameters=false"));
@@ -220,6 +223,12 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 
     private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
         pluginServices.runPipeline(jobId, originalBody);
+        result.setStatus(201);
+    }
+
+    private void suspendCiEvents(OctaneResultAbridged result, String suspend) {
+        Boolean toSuspend = Boolean.parseBoolean(suspend);
+        pluginServices.suspendCiEvents(toSuspend);
         result.setStatus(201);
     }
 
