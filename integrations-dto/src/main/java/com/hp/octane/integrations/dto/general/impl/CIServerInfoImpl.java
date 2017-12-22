@@ -118,16 +118,5 @@ class CIServerInfoImpl implements CIServerInfo {
 			result = input;
 		}
 		return result;
-	}
-
-	@Override
-	public boolean isSuspended(){
-		return this.suspended;
-	}
-
-	@Override
-	public void setSuspended(boolean suspended){
-		this.suspended= suspended;
-	}
-
+	}	
 }
