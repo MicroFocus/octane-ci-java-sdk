@@ -34,107 +34,106 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import java.io.File;
 
 /**
- * Empty implementation of CIPluginServices.
+ * Empty abstract implementation of CIPluginServices.
+ * [YG] TODO: we'll better to define methods that are absolute MUST for and SDK to function and NOT provide default empty implementation of them, thus forcing their correct implementation
  */
 
-public class CIPluginServicesBase implements CIPluginServices {
+public abstract class CIPluginServicesBase implements CIPluginServices {
 
+	@Override
+	public CIServerInfo getServerInfo() {
+		return null;
+	}
 
-    @Override
-    public CIServerInfo getServerInfo() {
-        return null;
-    }
+	@Override
+	public CIPluginInfo getPluginInfo() {
+		return null;
+	}
 
-    @Override
-    public CIPluginInfo getPluginInfo() {
-        return null;
-    }
+	@Override
+	public File getAllowedOctaneStorage() {
+		return null;
+	}
 
-    @Override
-    public File getAllowedOctaneStorage() {
-        return null;
-    }
+	@Override
+	public File getPredictiveOctanePath() {
+		return null;
+	}
 
-    @Override
-    public File getPredictiveOctanePath() {
-        return null;
-    }
+	@Override
+	public OctaneConfiguration getOctaneConfiguration() {
+		return null;
+	}
 
-    @Override
-    public OctaneConfiguration getOctaneConfiguration() {
-        return null;
-    }
+	@Override
+	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
+		return null;
+	}
 
-    @Override
-    public CIProxyConfiguration getProxyConfiguration(String targetHost) {
-        return null;
-    }
+	@Override
+	public CIJobsList getJobsList(boolean includeParameters) {
+		return null;
+	}
 
-    @Override
-    public CIJobsList getJobsList(boolean includeParameters) {
-        return null;
-    }
+	@Override
+	public PipelineNode getPipeline(String rootCIJobId) {
+		return null;
+	}
 
-    @Override
-    public PipelineNode getPipeline(String rootCIJobId) {
-        return null;
-    }
+	@Override
+	public void runPipeline(String ciJobId, String originalBody) {
+		//do nothing
+	}
 
-    @Override
-    public void runPipeline(String ciJobId, String originalBody) {
-        //do nothing
-    }
+	@Override
+	public void suspendCiEvents(boolean suspend) {
+		//do nothing
+	}
 
-    @Override
-    public void suspendCiEvents(boolean suspend) {
-        //do nothing
-    }
+	@Override
+	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
+		return null;
+	}
 
-    @Override
-    public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
-        return null;
-    }
+	@Override
+	public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
+		return null;
+	}
 
-    @Override
-    public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
-        return null;
-    }
+	@Override
+	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
+		return null;
+	}
 
-    @Override
-    public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
-        return null;
-    }
+	@Override
+	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+		return null;
+	}
 
-    @Override
-    public TestsResult getTestsResult(String jobId, String buildNumber) {
-        return null;
-    }
+	@Override
+	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
+		//do nothing
+	}
 
-    @Override
-    public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-        //do nothing
-    }
+	@Override
+	public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
+		//do nothing
+	}
 
-    @Override
-    public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
-        //do nothing
-    }
+	@Override
+	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+		//do nothing
+		return null;
+	}
 
-    @Override
-    public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-        //do nothing
-        return null;
-    }
+	@Override
+	public void deleteExecutor(String id) {
+		//do nothing
+	}
 
-    @Override
-    public void deleteExecutor(String id) {
-        //do nothing
-    }
-
-    @Override
-    public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-        //do nothing
-        return null;
-    }
-
+	@Override
+	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
+		//do nothing
+		return null;
+	}
 }

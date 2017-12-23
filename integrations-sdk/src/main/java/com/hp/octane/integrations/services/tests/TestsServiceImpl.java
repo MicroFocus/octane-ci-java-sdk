@@ -84,8 +84,8 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		return response;
 	}
 
-	public void enqueuePushTestsResult(String jobId, String buildNumber) {
-		buildList.add(new BuildNode(jobId, buildNumber));
+	public void enqueuePushTestsResult(String jobCiId, String buildCiId) {
+		buildList.add(new BuildNode(jobCiId, buildCiId));
 	}
 
 	//  TODO: move thread to thread factory
