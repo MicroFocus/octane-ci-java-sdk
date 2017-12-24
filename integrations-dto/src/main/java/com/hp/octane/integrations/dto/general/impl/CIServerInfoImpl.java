@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 /**
@@ -110,16 +111,6 @@ class CIServerInfoImpl implements CIServerInfo {
 		return this;
 	}
 
-	@Override
-	public boolean isSuspended() {
-		return suspended;
-	}
-
-	@Override
-	public void setSuspended(boolean suspended) {
-		this.suspended = suspended;
-	}
-
 	private String normalizeURL(String input) {
 		String result;
 		if (input != null && input.endsWith("/")) {
@@ -128,5 +119,16 @@ class CIServerInfoImpl implements CIServerInfo {
 			result = input;
 		}
 		return result;
-	}	
+	}
+
+	@Override
+	public boolean isSuspended(){
+		return this.suspended;
+	}
+
+	@Override
+	public void setSuspended(boolean suspended){
+		this.suspended= suspended;
+	}
+
 }
