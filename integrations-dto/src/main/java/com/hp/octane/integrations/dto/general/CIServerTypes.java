@@ -28,6 +28,7 @@ public enum CIServerTypes {
 	TEAMCITY("teamcity"),
 	BAMBOO("bamboo"),
 	TFS("tfs"),
+	GOCD("gocd"),
 	UNKNOWN("unknown");
 
 	private String value;
