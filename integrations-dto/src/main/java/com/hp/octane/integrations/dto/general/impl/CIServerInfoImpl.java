@@ -110,6 +110,16 @@ class CIServerInfoImpl implements CIServerInfo {
 		return this;
 	}
 
+	@Override
+	public boolean isSuspended() {
+		return suspended;
+	}
+
+	@Override
+	public void setSuspended(boolean suspended) {
+		this.suspended = suspended;
+	}
+
 	private String normalizeURL(String input) {
 		String result;
 		if (input != null && input.endsWith("/")) {
