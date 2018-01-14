@@ -64,8 +64,8 @@ Add the following dependency to the pom.xml to use this SDK in your project:
 ## Usage Examples
 
 The following CI Plugins are already using **CI Plugin SDK for ALM Octane** to connect and communicate with ALM Octane:  
-[Octane Bamboo Plugin](https://github.com/HPSoftware/octane-bamboo-plugin)  
-[Octane TeamCity Plugin](https://github.com/HPSoftware/octane-teamcity-plugin)
+[Octane Bamboo Plugin](https://github.com/MicroFocus/octane-bamboo-plugin)  
+[Octane TeamCity Plugin](https://github.com/MicroFocus/octane-teamcity-plugin)
 
 
 ## Initialization
