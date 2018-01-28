@@ -149,11 +149,11 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		String targetOctane = "UNKNOWN!?";
 		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
 		if (octaneConfig != null) {
-			targetOctane = octaneConfig.getUrl() + " (SP: " + octaneConfig.getSharedSpace() + ")";
+			targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
 		}
 
 		try {
-			logger.info("sending [" + eventsSummary + "] event/s to " + targetOctane + "...");
+			logger.info("sending [" + eventsSummary + "] event/s to [" + targetOctane + "]...");
 			OctaneRequest request = createEventsRequest(eventsSnapshot);
 			OctaneResponse response;
 			while (failedRetries < MAX_SEND_RETRIES) {
