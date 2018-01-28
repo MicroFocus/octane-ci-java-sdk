@@ -21,7 +21,6 @@ import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingService;
-import com.hp.octane.integrations.services.predictive.PredictiveService;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
@@ -124,7 +123,6 @@ public final class OctaneSDK {
 		private final TasksProcessor tasksProcessor;
 		private final EventsService eventsService;
 		private final TestsService testsService;
-		private final PredictiveService predictiveService;
 
 		private SDKConfigurator(CIPluginServices pluginServices) {
 			this.pluginServices = pluginServices;
@@ -135,7 +133,6 @@ public final class OctaneSDK {
 			eventsService = new EventsServiceImpl(this, pluginServices, restService);
 			testsService = new TestsServiceImpl(this, pluginServices, restService);
 			bridgeServiceImpl = new BridgeServiceImpl(this, pluginServices, restService, tasksProcessor);
-			predictiveService = new PredictiveService(this, pluginServices);
 		}
 	}
 

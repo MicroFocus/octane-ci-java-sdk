@@ -228,7 +228,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 
     private void suspendCiEvents(OctaneResultAbridged result, String suspend) {
         Boolean toSuspend = Boolean.parseBoolean(suspend);
-        pluginServices.suspendCiEvents(toSuspend);
+        pluginServices.suspendCIEvents(toSuspend);
         result.setStatus(201);
     }
 
