@@ -27,7 +27,7 @@ public class OctaneSDKTest {
 
     @Test
     public void SDKTest_A() {
-        OctaneSDK.init(new CIPluginServicesMockA(), false);
+        OctaneSDK.init(new CIPluginServicesMockA());
     }
 
     private class CIPluginServicesMockA extends CIPluginServicesBase {

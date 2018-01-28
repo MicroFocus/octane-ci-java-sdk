@@ -36,6 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
+
 /**
  * EventsService implementation
  */
@@ -43,6 +45,8 @@ import java.util.Map;
 public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String CONTENT_TYPE_HEADER = "content-type";
+	private static final String APPLICATION_JSON_MIME = "application/json";
 
 	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
 	private final Object INIT_LOCKER = new Object();
@@ -51,7 +55,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private final RestService restService;
 
 	private Thread worker;
-	volatile boolean paused;
+	private volatile boolean paused;
 
 	private int MAX_SEND_RETRIES = 7;
 	private int INITIAL_RETRY_PAUSE = 1739;
@@ -80,7 +84,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		events.add(event);
 	}
 
-	void activate() {
+	private void activate() {
 		resetCounters();
 		if (worker == null || !worker.isAlive()) {
 			synchronized (INIT_LOCKER) {
@@ -92,7 +96,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 									if (events.size() > 0) {
 										if (!sendData()) suspend();
 									}
-									Thread.sleep(DATA_SEND_INTERVAL);
+									doWait(DATA_SEND_INTERVAL);
 								} catch (Exception e) {
 									logger.error("failed to send events", e);
 								}
@@ -101,34 +105,18 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 						}
 					});
 					worker.setDaemon(true);
-					worker.setName("EventsClientWorker");
+					worker.setName("EventsServiceWorker");
 					worker.start();
 				}
 			}
 		}
 	}
 
-	void suspend() {
+	private void suspend() {
 		events.clear();
 		failedRetries = MAX_SEND_RETRIES - 1;
 		doBreakableWait(DATA_SEND_INTERVAL_IN_SUSPEND);
 		//shuttingDown = true;
-	}
-
-	void dispose() {
-		events.clear();
-		if (worker != null) {
-			shuttingDown = true;
-			try {
-				worker.join();
-			} catch (InterruptedException ie) {
-				logger.info("interruption happened while shutting down worker thread", ie);
-			} finally {
-				if (worker.isAlive()) {
-					worker.interrupt();
-				}
-			}
-		}
 	}
 
 	private void resetCounters() {
@@ -146,14 +134,16 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private boolean sendData() {
 		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
 				.setServer(pluginServices.getServerInfo())
-				.setEvents(new ArrayList<CIEvent>(events));
+				.setEvents(new ArrayList<>(events));
 		boolean result = true;
 
-		String eventsSummary = "";
+		StringBuilder eventsSummary = new StringBuilder();
 		for (CIEvent event : eventsSnapshot.getEvents()) {
-			eventsSummary += event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", ";
+			eventsSummary.append(event.getProject()).append(":").append(event.getBuildCiId()).append(":").append(event.getEventType());
+			if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size()) {
+				eventsSummary.append(", ");
+			}
 		}
-		eventsSummary = eventsSummary.substring(0, eventsSummary.length() - 2);
 
 		try {
 			logger.info("sending [" + eventsSummary + "] event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
@@ -186,8 +176,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	}
 
 	private OctaneRequest createEventsRequest(CIEventsList events) {
-		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("content-type", "application/json");
+		Map<String, String> headers = new HashMap<>();
+		headers.put(CONTENT_TYPE_HEADER, APPLICATION_JSON_MIME);
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +

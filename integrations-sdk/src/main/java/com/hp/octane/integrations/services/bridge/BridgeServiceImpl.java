@@ -32,10 +32,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+
+import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
@@ -44,6 +47,10 @@ import java.util.concurrent.ThreadFactory;
 public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private static final Logger logger = LogManager.getLogger(BridgeServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String ACCEPT_HEADER = "accept";
+	private static final String CONTENT_TYPE_HEADER = "content-type";
+	private static final String APPLICATION_JSON_MIME = "application/json";
+
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 
@@ -51,7 +58,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 
-	public BridgeServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService, TasksProcessor tasksProcessor, boolean initBridge) {
+	public BridgeServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService, TasksProcessor tasksProcessor) {
 		super(configurator);
 
 		if (pluginServices == null) {
@@ -67,9 +74,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		this.pluginServices = pluginServices;
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
-		if (initBridge) {
-			connect();
-		}
+		connect();
 	}
 
 	private void connect() {
@@ -79,9 +84,10 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					String tasksJSON;
 					CIServerInfo serverInfo = pluginServices.getServerInfo();
 					CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
-					String apiKey = pluginServices.getOctaneConfiguration() == null ? null : pluginServices.getOctaneConfiguration().getApiKey();
+					String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
 
 					try {
+						//  go and get tasks, wait if needed and return with task or timeout or error
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
 								serverInfo.getType(),
@@ -89,15 +95,19 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 								OctaneSDK.API_VERSION,
 								OctaneSDK.SDK_VERSION,
 								pluginInfo == null ? "" : pluginInfo.getVersion(),
-								apiKey == null ? "" : apiKey,
+								apiKey,
 								serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
+
+						//  regardless of response - reconnect again to keep the light on
 						connect();
+
+						//  now can process the received tasks - if any
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
 						}
 					} catch (Exception e) {
 						logger.error("connection to Octane Server temporary failed", e);
-						doBreakableWait(1000);
+						doWait(1000);
 						connect();
 					}
 				}
@@ -113,14 +123,12 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<>();
-			headers.put("accept", "application/json");
+			headers.put(ACCEPT_HEADER, APPLICATION_JSON_MIME);
 			OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
-					.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" +
-							octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" +
-							selfIdentity + "/tasks?self-type=" + selfType + "&self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion +
+					.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" + octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity +
+							"/tasks?self-type=" + selfType + "&self-url=" + selfLocation + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersion +
 							"&plugin-version=" + pluginVersion + "&client-id=" + octaneUser + "&ci-server-user=" + ciServerUser)
-
 					.setHeaders(headers);
 			try {
 				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
@@ -130,33 +138,29 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 						logger.info("expected timeout disconnection on retrieval of abridged tasks");
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-						logger.error("connection to Octane Server failed: authentication error");
-						doBreakableWait(5000);
+						logger.error("connection to Octane failed: authentication error");
+						doWait(5000);
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
-						logger.error("connection to Octane Server failed: authorization error");
-						doBreakableWait(5000);
+						logger.error("connection to Octane failed: authorization error");
+						doWait(5000);
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-						logger.error("connection to Octane Server failed: 404, API changes? version problem?");
-						doBreakableWait(20000);
+						logger.error("connection to Octane failed: 404, API changes? version problem?");
+						doWait(20000);
 					} else {
-						logger.info("unexpected response; status: " + octaneResponse.getStatus() + "; content: " + octaneResponse.getBody());
-						doBreakableWait(2000);
+						logger.info("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
+						doWait(2000);
 					}
 				}
 			} catch (Exception e) {
 				logger.error("failed to retrieve abridged tasks", e);
-				doBreakableWait(2000);
+				doWait(2000);
 			}
 			return responseBody;
 		} else {
-			logger.info("Octane is not configured on this plugin, breathing before next retry");
-			doBreakableWait(5000);
+			logger.info("Octane is not configured on this plugin or the configuration is not valid, breathing before next retry");
+			doWait(5000);
 			return null;
 		}
-	}
-
-	public void shutdown() {
-		connectivityExecutors.shutdownNow();
 	}
 
 	private void handleTasks(String tasksJSON) {
@@ -183,8 +187,8 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
 		RestClient restClientImpl = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
-		Map<String, String> headers = new HashMap<String, String>();
-		headers.put("content-type", "application/json");
+		Map<String, String> headers = new LinkedHashMap<>();
+		headers.put(CONTENT_TYPE_HEADER, APPLICATION_JSON_MIME);
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" + octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")
@@ -196,15 +200,6 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		} catch (IOException ioe) {
 			logger.error("failed to submit abridged task's result", ioe);
 			return 0;
-		}
-	}
-
-	//  TODO: turn it to breakable wait with notifier
-	private void doBreakableWait(long period) {
-		try {
-			Thread.sleep(period);
-		} catch (InterruptedException ie) {
-			logger.warn("interrupted while doing breakable wait");
 		}
 	}
 

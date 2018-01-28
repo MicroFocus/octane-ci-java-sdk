@@ -51,22 +51,17 @@ public final class OctaneSDK {
 		configurator = new SDKConfigurator(ciPluginServices);
 	}
 
-	//  TODO: remove the boolean once migrated JP
-	private static boolean initBridge;
-
-    /**
-     * To start using the CI Plugin SDK, first initialize an OctaneSDK instance.
-     *
-     * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
-     *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
-     * @param initBridge Flag whether to create live connection to Octane server.
-     */
-	synchronized public static void init(CIPluginServices ciPluginServices, boolean initBridge) {
+	/**
+	 * To start using the CI Plugin SDK, first initialize an OctaneSDK instance.
+	 *
+	 * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
+	 *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
+	 */
+	synchronized public static void init(CIPluginServices ciPluginServices) {
 		if (instance == null) {
 			if (ciPluginServices == null) {
 				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
 			}
-			OctaneSDK.initBridge = initBridge;
 			instance = new OctaneSDK(ciPluginServices);
 			logger.info("SDK has been initialized");
 		} else {
@@ -139,7 +134,7 @@ public final class OctaneSDK {
 			configurationService = new ConfigurationServiceImpl(this, pluginServices, restService);
 			eventsService = new EventsServiceImpl(this, pluginServices, restService);
 			testsService = new TestsServiceImpl(this, pluginServices, restService);
-			bridgeServiceImpl = new BridgeServiceImpl(this, pluginServices, restService, tasksProcessor, initBridge);
+			bridgeServiceImpl = new BridgeServiceImpl(this, pluginServices, restService, tasksProcessor);
 			predictiveService = new PredictiveService(this, pluginServices);
 		}
 	}

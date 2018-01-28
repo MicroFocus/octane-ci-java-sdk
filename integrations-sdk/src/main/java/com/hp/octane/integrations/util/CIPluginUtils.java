@@ -1,43 +1,49 @@
 package com.hp.octane.integrations.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
+import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
+
 /**
  * Created by lazara on 08/06/2017.
  */
+
 public class CIPluginUtils {
+	private static final Logger logger = LogManager.getLogger(CIPluginUtils.class);
 
-    public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr){
+	public static void doWait(long period) {
+		try {
+			Thread.sleep(period);
+		} catch (InterruptedException ie) {
+			logger.warn("interrupted while doing breakable wait");
+		}
+	}
 
-        boolean noProxyHost = false;
-        for (Pattern pattern : getNoProxyHostPatterns(nonProxyHostsStr)) {
-            if (pattern.matcher(targetHost).find()) {
-                noProxyHost = true;
-                break;
-            }
-        }
-        return noProxyHost;
-    }
+	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
+		boolean noProxyHost = false;
+		for (Pattern pattern : getNoProxyHostPatterns(nonProxyHostsStr)) {
+			if (pattern.matcher(targetHost).find()) {
+				noProxyHost = true;
+				break;
+			}
+		}
+		return noProxyHost;
+	}
 
-    private static List<Pattern> getNoProxyHostPatterns(String noProxyHost) {
-        if(noProxyHost == null ||noProxyHost.isEmpty()) {
-            return Collections.emptyList();
-        } else {
-            ArrayList r = new ArrayList();
-            String[] arr$ = noProxyHost.split("[ \t\n,|]+");
-            int len$ = arr$.length;
-
-            for(int i$ = 0; i$ < len$; ++i$) {
-                String s = arr$[i$];
-                if(s.length() != 0) {
-                    r.add(Pattern.compile(s.replace(".", "\\.").replace("*", ".*")));
-                }
-            }
-
-            return r;
-        }
-    }
+	private static List<Pattern> getNoProxyHostPatterns(String noProxyHost) {
+		List<Pattern> result = new LinkedList<>();
+		if (noProxyHost != null && !noProxyHost.isEmpty()) {
+			String[] hosts = noProxyHost.split("[ \t\n,|]+");
+			for (String host : hosts) {
+				if (!host.isEmpty()) {
+					result.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
+				}
+			}
+		}
+		return result;
+	}
 }
 
