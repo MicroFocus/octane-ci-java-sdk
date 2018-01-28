@@ -77,10 +77,11 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		this.pluginServices = pluginServices;
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
-		connect();
+		startBackgroundWorker();
 	}
 
-	private void connect() {
+	//  this should be infallible everlasting worker
+	private void startBackgroundWorker() {
 		if (!connectivityExecutors.isShutdown()) {
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
@@ -102,7 +103,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 								serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
 						//  regardless of response - reconnect again to keep the light on
-						connect();
+						startBackgroundWorker();
 
 						//  now can process the received tasks - if any
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -111,7 +112,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					} catch (Throwable t) {
 						logger.error("connection to Octane Server temporary failed", t);
 						doWait(1000);
-						connect();
+						startBackgroundWorker();
 					}
 				}
 			});
