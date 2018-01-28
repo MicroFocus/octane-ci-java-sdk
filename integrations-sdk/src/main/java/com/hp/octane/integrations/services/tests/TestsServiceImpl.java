@@ -92,7 +92,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToXml(testsResult));
 		OctaneResponse response = restClientImpl.execute(request);
-		logger.info("tests result pushed with result " + response);
+		logger.info("tests result pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		return response;
 	}
 
@@ -113,7 +113,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 				.setHeaders(headers)
 				.setBodyAsStream(testsResult);
 		OctaneResponse response = restClientImpl.execute(request);
-		logger.info("tests result pushed with result " + response);
+		logger.info("tests result pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		return response;
 	}
 
