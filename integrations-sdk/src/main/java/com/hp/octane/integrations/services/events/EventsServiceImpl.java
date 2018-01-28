@@ -37,6 +37,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
 import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
@@ -50,12 +53,11 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
-	private final Object INIT_LOCKER = new Object();
 	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
-	private Thread worker;
+	private ExecutorService worker = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private volatile boolean paused;
 
 	private int MAX_SEND_RETRIES = 7;
@@ -64,7 +66,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private int DATA_SEND_INTERVAL_IN_SUSPEND = 10 * 60 * 2;
 	private int failedRetries;
 	private int pauseInterval;
-	volatile private boolean shuttingDown;
 
 	public EventsServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
 		super(configurator);
@@ -78,54 +79,43 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 		this.pluginServices = pluginServices;
 		this.restService = restService;
-		activate();
+		startBackgroundWorker();
 	}
 
 	public void publishEvent(CIEvent event) {
 		events.add(event);
 	}
 
-	private void activate() {
+	//  this should be infallible everlasting worker
+	private void startBackgroundWorker() {
 		resetCounters();
-		if (worker == null || !worker.isAlive()) {
-			synchronized (INIT_LOCKER) {
-				if (worker == null || !worker.isAlive()) {
-					worker = new Thread(new Runnable() {
-						public void run() {
-							while (!shuttingDown) {
-								try {
-									if (events.size() > 0) {
-										if (!sendData()) suspend();
-									}
-									doWait(DATA_SEND_INTERVAL);
-								} catch (Throwable t) {
-									logger.error("failed to send events", t);
-								}
-							}
-							logger.info("worker thread of events client stopped");
+		worker.execute(new Runnable() {
+			public void run() {
+				while (true) {
+					try {
+						if (events.size() > 0) {
+							if (!sendData()) suspend();
 						}
-					});
-					worker.setDaemon(true);
-					worker.setName("EventsServiceWorker");
-					worker.start();
+						doWait(DATA_SEND_INTERVAL);
+					} catch (Throwable t) {
+						logger.error("failed to send events", t);
+					}
 				}
 			}
-		}
+		});
 	}
 
 	private void suspend() {
 		events.clear();
 		failedRetries = MAX_SEND_RETRIES - 1;
 		doBreakableWait(DATA_SEND_INTERVAL_IN_SUSPEND);
-		//shuttingDown = true;
 	}
 
 	private void resetCounters() {
-		shuttingDown = false;
 		failedRetries = 0;
 		pauseInterval = INITIAL_RETRY_PAUSE;
 		synchronized (WAIT_MONITOR) {
-			if (worker != null && worker.getState() == Thread.State.TIMED_WAITING) {
+			if (worker != null) {
 				WAIT_MONITOR.released = true;
 				WAIT_MONITOR.notify();
 			}
@@ -217,5 +207,16 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 	private static final class WaitMonitor {
 		volatile boolean released;
+	}
+
+	private static final class EventsServiceWorkerThreadFactory implements ThreadFactory {
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread result = new Thread();
+			result.setDaemon(true);
+			result.setName("EventsServiceWorker");
+			return result;
+		}
 	}
 }
