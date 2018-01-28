@@ -41,7 +41,7 @@ import java.util.Map;
 import static com.hp.octane.integrations.api.RestService.CONTENT_ENCODING_HEADER;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
 import static com.hp.octane.integrations.api.RestService.GZIP_ENCODING;
-import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
+import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
 
 /**
  * EventsService implementation

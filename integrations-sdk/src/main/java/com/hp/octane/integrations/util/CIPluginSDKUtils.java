@@ -1,5 +1,6 @@
 package com.hp.octane.integrations.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,8 +12,13 @@ import java.util.regex.Pattern;
  * Created by lazara on 08/06/2017.
  */
 
-public class CIPluginUtils {
-	private static final Logger logger = LogManager.getLogger(CIPluginUtils.class);
+public class CIPluginSDKUtils {
+	private static final Logger logger = LogManager.getLogger(CIPluginSDKUtils.class);
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+
+	public static ObjectMapper getObjectMapper() {
+		return objectMapper;
+	}
 
 	public static void doWait(long period) {
 		try {

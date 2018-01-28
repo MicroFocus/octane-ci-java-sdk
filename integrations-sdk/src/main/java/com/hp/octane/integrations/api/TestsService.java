@@ -27,7 +27,7 @@ public interface TestsService {
 	/**
 	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
 	 */
-	boolean areTestsResultRelevant();
+	boolean isTestsResultRelevant(String serverCiId, String jobCiId);
 
 	/**
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY

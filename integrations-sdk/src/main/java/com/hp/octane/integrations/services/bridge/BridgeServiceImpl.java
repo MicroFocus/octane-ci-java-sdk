@@ -44,7 +44,7 @@ import java.util.concurrent.ThreadFactory;
 
 import static com.hp.octane.integrations.api.RestService.ACCEPT_HEADER;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
+import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality

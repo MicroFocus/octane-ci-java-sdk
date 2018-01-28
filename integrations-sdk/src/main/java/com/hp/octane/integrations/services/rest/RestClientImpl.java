@@ -16,8 +16,8 @@
 
 package com.hp.octane.integrations.services.rest;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -42,6 +43,7 @@ import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.client.CookieStore;
@@ -68,7 +70,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -211,9 +212,19 @@ final class RestClientImpl implements RestClient {
 		} else if (octaneRequest.getMethod().equals(HttpMethod.DELETE)) {
 			requestBuilder = RequestBuilder.delete(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
-			requestBuilder = RequestBuilder.post(octaneRequest.getUrl()).setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			requestBuilder = RequestBuilder.post(octaneRequest.getUrl());
+			if (octaneRequest.getBody() != null) {
+				requestBuilder.setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			} else if (octaneRequest.getBodyAsStream() != null) {
+				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBodyAsStream(), ContentType.APPLICATION_JSON)));
+			}
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
-			requestBuilder = RequestBuilder.put(octaneRequest.getUrl()).setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			requestBuilder = RequestBuilder.put(octaneRequest.getUrl());
+			if (octaneRequest.getBody() != null) {
+				requestBuilder.setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			} else if (octaneRequest.getBodyAsStream() != null) {
+				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBodyAsStream(), ContentType.APPLICATION_JSON)));
+			}
 		} else {
 			throw new RuntimeException("HTTP method " + octaneRequest.getMethod() + " not supported");
 		}
@@ -255,11 +266,7 @@ final class RestClientImpl implements RestClient {
 				credentialsProvider.clear();
 			}
 
-			context.setRequestConfig(RequestConfig
-							.custom()
-							.setProxy(proxyHost)
-							.build()
-			);
+			context.setRequestConfig(RequestConfig.custom().setProxy(proxyHost).build());
 		}
 
 		return context;
@@ -283,7 +290,7 @@ final class RestClientImpl implements RestClient {
 
 	private String readResponseBody(InputStream is) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[4096];
 		int length;
 		while ((length = is.read(buffer)) != -1) {
 			baos.write(buffer, 0, length);
@@ -324,7 +331,7 @@ final class RestClientImpl implements RestClient {
 		HttpUriRequest loginRequest;
 		try {
 			LoginApiBody loginApiBody = new LoginApiBody(config.getApiKey(), config.getSecret());
-			StringEntity loginApiJson = new StringEntity(new ObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
+			StringEntity loginApiJson = new StringEntity(CIPluginSDKUtils.getObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
 			RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
 					.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)
 					.setEntity(loginApiJson);
@@ -369,9 +376,10 @@ final class RestClientImpl implements RestClient {
 		}
 	}
 
+	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 	private static final class LoginApiBody {
-		final String client_id;
-		final String client_secret;
+		private final String client_id;
+		private final String client_secret;
 
 		private LoginApiBody(String client_id, String client_secret) {
 			this.client_id = client_id;

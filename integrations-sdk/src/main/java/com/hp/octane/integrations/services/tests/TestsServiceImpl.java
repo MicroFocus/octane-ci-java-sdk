@@ -51,8 +51,8 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
-	private static List<BuildNode> buildList = Collections.synchronizedList(new LinkedList<BuildNode>());
-	private int DATA_SEND_INTERVAL = 60000;
+	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
+	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 60000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 	private Thread worker;
 
@@ -72,8 +72,8 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	}
 
 	@Override
-	public boolean areTestsResultRelevant() {
-		return false;
+	public boolean isTestsResultRelevant(String serverCiId, String jobCiId) {
+		return true;
 	}
 
 	public OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException {
@@ -92,7 +92,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToXml(testsResult));
 		OctaneResponse response = restClientImpl.execute(request);
-		logger.info("tests result pushed with " + response);
+		logger.info("tests result pushed with result " + response);
 		return response;
 	}
 
@@ -113,13 +113,13 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 				.setHeaders(headers)
 				.setBodyAsStream(testsResult);
 		OctaneResponse response = restClientImpl.execute(request);
-		logger.info("tests result pushed with " + response);
+		logger.info("tests result pushed with result " + response);
 		return response;
 	}
 
 	@Override
 	public void enqueuePushTestsResult(String jobCiId, String buildCiId) {
-		buildList.add(new BuildNode(jobCiId, buildCiId));
+		buildList.add(new TestsResultQueueEntry(jobCiId, buildCiId));
 	}
 
 	//  TODO: move thread to thread factory
@@ -134,23 +134,23 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 							while (true) {
 								if (!buildList.isEmpty()) {
 									try {
-										BuildNode buildNode = buildList.get(0);
-										TestsResult testsResult = pluginServices.getTestsResult(buildNode.jobId, buildNode.buildNumber);
+										TestsResultQueueEntry testsResultQueueEntry = buildList.get(0);
+										TestsResult testsResult = pluginServices.getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
 										OctaneResponse response = pushTestsResult(testsResult);
 										if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-											logger.info("Push tests result was successful");
+											logger.info("tests result push SUCCEED");
 											buildList.remove(0);
 										} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-											logger.info("tests result push failed because of service unavailable; retrying");
-											breathe(DATA_SEND_INTERVAL);
+											logger.info("tests result push FAILED, service unavailable; retrying after a breathe...");
+											breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
 										} else {
 											//  case of any other fatal error
-											logger.error("failed to submit tests result with " + response.getStatus() + "; dropping this item from the queue");
+											logger.error("tests result push FAILED, status " + response.getStatus() + "; dropping this item from the queue");
 											buildList.remove(0);
 										}
 									} catch (Throwable t) {
-										logger.error("Tests result push failed; will retry after " + DATA_SEND_INTERVAL + "ms", t);
-										breathe(DATA_SEND_INTERVAL);
+										logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", t);
+										breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
 									}
 								} else {
 									breathe(LIST_EMPTY_INTERVAL);
@@ -175,13 +175,13 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		}
 	}
 
-	private static final class BuildNode {
+	private static final class TestsResultQueueEntry {
 		private final String jobId;
-		private final String buildNumber;
+		private final String buildId;
 
-		private BuildNode(String jobId, String buildNumber) {
+		private TestsResultQueueEntry(String jobId, String buildId) {
 			this.jobId = jobId;
-			this.buildNumber = buildNumber;
+			this.buildId = buildId;
 		}
 	}
 }
