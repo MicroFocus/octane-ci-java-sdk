@@ -37,6 +37,7 @@ import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpHeaders;
+import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -206,19 +207,19 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
                 .setPlugin(pluginServices.getPluginInfo())
                 .setSdk(sdkInfo);
         result.setBody(dtoFactory.dtoToJson(status));
-        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters) {
         CIJobsList content = pluginServices.getJobsList(includingParameters);
         result.setBody(dtoFactory.dtoToJson(content));
-        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
         PipelineNode content = pluginServices.getPipeline(jobId);
         result.setBody(dtoFactory.dtoToJson(content));
-        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
@@ -239,7 +240,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
         } else {
             result.setStatus(404);
         }
-        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId, boolean subTree) {
@@ -249,13 +250,13 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
         } else {
             result.setStatus(404);
         }
-        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     private void executeHistoryRequest(OctaneResultAbridged result, String jobId, String originalBody) {
         BuildHistory content = pluginServices.getHistoryPipeline(jobId, originalBody);
         result.setBody(dtoFactory.dtoToJson(content));
-        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, "application/json");
+        result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
     }
 
     private void executeUpsertCredentials(OctaneResultAbridged result, CredentialsInfo credentialsInfo) {

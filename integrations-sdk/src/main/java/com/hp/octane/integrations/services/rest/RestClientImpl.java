@@ -370,8 +370,8 @@ final class RestClientImpl implements RestClient {
 	}
 
 	private static final class LoginApiBody {
-		public final String client_id;
-		public final String client_secret;
+		final String client_id;
+		final String client_secret;
 
 		private LoginApiBody(String client_id, String client_secret) {
 			this.client_id = client_id;

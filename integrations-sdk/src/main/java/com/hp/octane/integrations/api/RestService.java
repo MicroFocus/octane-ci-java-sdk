@@ -19,6 +19,10 @@ package com.hp.octane.integrations.api;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
 public interface RestService {
+	String ACCEPT_HEADER = "accept";
+	String CONTENT_TYPE_HEADER = "content-type";
+	String CONTENT_ENCODING_HEADER = "content-encoding";
+	String GZIP_ENCODING = "gzip";
 
 	/**
 	 * Retrieves default REST client: the one initialized with plugin's provided configuration and listening on it changes

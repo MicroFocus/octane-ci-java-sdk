@@ -16,10 +16,12 @@
 
 package com.hp.octane.integrations.dto.connectivity.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -32,6 +34,7 @@ class OctaneRequestImpl implements OctaneRequest {
 	private HttpMethod method;
 	private Map<String, String> headers;
 	private String body;
+	private InputStream bodyAsStream;
 
 	public String getUrl() {
 		return url;
@@ -65,7 +68,24 @@ class OctaneRequestImpl implements OctaneRequest {
 	}
 
 	public OctaneRequest setBody(String body) {
+		if (bodyAsStream != null) {
+			throw new IllegalStateException("request MAY be used only with body as STRING or as INPUT STREAM, but not both; this request already has INPUT STREAM body (not-null)");
+		}
 		this.body = body;
+		return this;
+	}
+
+	@JsonIgnore
+	public InputStream getBodyAsStream() {
+		return bodyAsStream;
+	}
+
+	@JsonIgnore
+	public OctaneRequest setBodyAsStream(InputStream bodyAsStream) {
+		if (body != null) {
+			throw new IllegalStateException("request MAY be used only with body as STRING or as INPUT STREAM, but not both; this request already has STRING body '" + body + "'");
+		}
+		this.bodyAsStream = bodyAsStream;
 		return this;
 	}
 }

@@ -27,11 +27,17 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
+
+import static com.hp.octane.integrations.api.RestService.CONTENT_ENCODING_HEADER;
+import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.api.RestService.GZIP_ENCODING;
 
 /**
  * Default implementation of tests service
@@ -65,6 +71,11 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		activate();
 	}
 
+	@Override
+	public boolean areTestsResultRelevant() {
+		return false;
+	}
+
 	public OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
@@ -72,7 +83,8 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 
 		RestClient restClientImpl = restService.obtainClient();
 		Map<String, String> headers = new HashMap<>();
-		headers.put("content-type", "application/xml");
+		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
+		headers.put(CONTENT_ENCODING_HEADER, GZIP_ENCODING);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
@@ -84,6 +96,28 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		return response;
 	}
 
+	@Override
+	public OctaneResponse pushTestsResult(InputStream testsResult) throws IOException {
+		if (testsResult == null) {
+			throw new IllegalArgumentException("tests result MUST NOT be null");
+		}
+
+		RestClient restClientImpl = restService.obtainClient();
+		Map<String, String> headers = new HashMap<>();
+		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
+		headers.put(CONTENT_ENCODING_HEADER, GZIP_ENCODING);
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.POST)
+				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
+						pluginServices.getOctaneConfiguration().getSharedSpace() + "/analytics/ci/test-results?skip-errors=false")
+				.setHeaders(headers)
+				.setBodyAsStream(testsResult);
+		OctaneResponse response = restClientImpl.execute(request);
+		logger.info("tests result pushed with " + response);
+		return response;
+	}
+
+	@Override
 	public void enqueuePushTestsResult(String jobCiId, String buildCiId) {
 		buildList.add(new BuildNode(jobCiId, buildCiId));
 	}

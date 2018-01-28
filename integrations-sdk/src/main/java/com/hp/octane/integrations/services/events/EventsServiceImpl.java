@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.spi.CIPluginServices;
+import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,6 +38,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.hp.octane.integrations.api.RestService.CONTENT_ENCODING_HEADER;
+import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.api.RestService.GZIP_ENCODING;
 import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
 
 /**
@@ -46,8 +50,6 @@ import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
 public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String CONTENT_TYPE_HEADER = "content-type";
-	private static final String APPLICATION_JSON_MIME = "application/json";
 
 	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
 	private final Object INIT_LOCKER = new Object();
@@ -184,7 +186,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 	private OctaneRequest createEventsRequest(CIEventsList events) {
 		Map<String, String> headers = new HashMap<>();
-		headers.put(CONTENT_TYPE_HEADER, APPLICATION_JSON_MIME);
+		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+		headers.put(CONTENT_ENCODING_HEADER, GZIP_ENCODING);
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +

@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -41,6 +42,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import static com.hp.octane.integrations.api.RestService.ACCEPT_HEADER;
+import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
 import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
 
 /**
@@ -50,9 +53,6 @@ import static com.hp.octane.integrations.util.CIPluginUtils.doWait;
 public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private static final Logger logger = LogManager.getLogger(BridgeServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String ACCEPT_HEADER = "accept";
-	private static final String CONTENT_TYPE_HEADER = "content-type";
-	private static final String APPLICATION_JSON_MIME = "application/json";
 
 	private ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
@@ -146,7 +146,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<>();
-			headers.put(ACCEPT_HEADER, APPLICATION_JSON_MIME);
+			headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 			OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
 					.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" + octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity +
@@ -211,7 +211,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		RestClient restClientImpl = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();
-		headers.put(CONTENT_TYPE_HEADER, APPLICATION_JSON_MIME);
+		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" + octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")

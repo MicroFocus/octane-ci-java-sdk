@@ -18,6 +18,7 @@ package com.hp.octane.integrations.dto.connectivity;
 
 import com.hp.octane.integrations.dto.DTOBase;
 
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -41,4 +42,8 @@ public interface OctaneRequest extends DTOBase {
 	String getBody();
 
 	OctaneRequest setBody(String body);
+
+	InputStream getBodyAsStream();
+
+	OctaneRequest setBodyAsStream(InputStream bodyAsStream);
 }
