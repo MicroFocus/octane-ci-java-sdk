@@ -18,6 +18,7 @@ package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -56,11 +57,13 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.http.Header;
+import org.omg.IOP.ENCODING_CDR_ENCAPS;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -213,6 +216,7 @@ final class RestClientImpl implements RestClient {
 			requestBuilder = RequestBuilder.delete(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
 			requestBuilder = RequestBuilder.post(octaneRequest.getUrl());
+			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
 			if (octaneRequest.getBody() != null) {
 				requestBuilder.setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 			} else if (octaneRequest.getBodyAsStream() != null) {
@@ -220,6 +224,7 @@ final class RestClientImpl implements RestClient {
 			}
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
 			requestBuilder = RequestBuilder.put(octaneRequest.getUrl());
+			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
 			if (octaneRequest.getBody() != null) {
 				requestBuilder.setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 			} else if (octaneRequest.getBodyAsStream() != null) {

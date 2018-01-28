@@ -35,9 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-import static com.hp.octane.integrations.api.RestService.CONTENT_ENCODING_HEADER;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.api.RestService.GZIP_ENCODING;
 
 /**
  * Default implementation of tests service
@@ -84,7 +82,6 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		RestClient restClientImpl = restService.obtainClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
-		headers.put(CONTENT_ENCODING_HEADER, GZIP_ENCODING);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
@@ -105,7 +102,6 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		RestClient restClientImpl = restService.obtainClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
-		headers.put(CONTENT_ENCODING_HEADER, GZIP_ENCODING);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +

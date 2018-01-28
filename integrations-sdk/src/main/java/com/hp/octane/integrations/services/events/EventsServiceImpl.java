@@ -38,9 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.hp.octane.integrations.api.RestService.CONTENT_ENCODING_HEADER;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.api.RestService.GZIP_ENCODING;
 import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
 
 /**
@@ -187,7 +185,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private OctaneRequest createEventsRequest(CIEventsList events) {
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-		headers.put(CONTENT_ENCODING_HEADER, GZIP_ENCODING);
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
