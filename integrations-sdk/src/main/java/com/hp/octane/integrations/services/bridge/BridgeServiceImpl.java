@@ -159,7 +159,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					responseBody = octaneResponse.getBody();
 				} else {
 					if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
-						logger.info("expected timeout disconnection on retrieval of abridged tasks");
+						logger.debug("expected timeout disconnection on retrieval of abridged tasks");
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 						logger.error("connection to Octane failed: authentication error");
 						doWait(5000);
@@ -170,7 +170,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 						logger.error("connection to Octane failed: 404, API changes? version problem?");
 						doWait(20000);
 					} else {
-						logger.info("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
+						logger.error("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
 						doWait(2000);
 					}
 				}
