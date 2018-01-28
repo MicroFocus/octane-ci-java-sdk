@@ -98,8 +98,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 										if (!sendData()) suspend();
 									}
 									doWait(DATA_SEND_INTERVAL);
-								} catch (Exception e) {
-									logger.error("failed to send events", e);
+								} catch (Throwable t) {
+									logger.error("failed to send events", t);
 								}
 							}
 							logger.info("worker thread of events client stopped");

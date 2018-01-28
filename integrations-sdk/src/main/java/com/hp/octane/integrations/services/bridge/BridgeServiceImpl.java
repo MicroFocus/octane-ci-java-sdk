@@ -108,8 +108,8 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
 						}
-					} catch (Exception e) {
-						logger.error("connection to Octane Server temporary failed", e);
+					} catch (Throwable t) {
+						logger.error("connection to Octane Server temporary failed", t);
 						doWait(1000);
 						connect();
 					}

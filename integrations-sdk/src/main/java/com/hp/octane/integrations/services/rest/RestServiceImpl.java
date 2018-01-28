@@ -24,6 +24,8 @@ import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * REST Service - default implementation
  */
@@ -49,7 +51,11 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 		if (defaultClient == null) {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
 				if (defaultClient == null) {
-					defaultClient = new RestClientImpl(pluginServices);
+					try {
+						defaultClient = new RestClientImpl(pluginServices);
+					} catch (Exception e) {
+						logger.error("failed to initialize Octane's REST client");
+					}
 				}
 			}
 		}
