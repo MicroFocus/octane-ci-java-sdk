@@ -177,8 +177,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" +
-						pluginServices.getOctaneConfiguration().getSharedSpace() + "/analytics/ci/events")
+				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" + pluginServices.getOctaneConfiguration().getSharedSpace() +
+						"/analytics/ci/events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));
 	}
@@ -213,9 +213,9 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 		@Override
 		public Thread newThread(Runnable runnable) {
-			Thread result = new Thread();
-			result.setDaemon(true);
+			Thread result = new Thread(runnable);
 			result.setName("EventsServiceWorker");
+			result.setDaemon(true);
 			return result;
 		}
 	}
