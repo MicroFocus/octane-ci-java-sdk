@@ -20,6 +20,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.EventsService;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
@@ -137,16 +138,22 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 				.setEvents(new ArrayList<>(events));
 		boolean result = true;
 
+		//  prepare some data for logging
 		StringBuilder eventsSummary = new StringBuilder();
 		for (CIEvent event : eventsSnapshot.getEvents()) {
 			eventsSummary.append(event.getProject()).append(":").append(event.getBuildCiId()).append(":").append(event.getEventType());
-			if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size()) {
+			if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size() - 1) {
 				eventsSummary.append(", ");
 			}
 		}
+		String targetOctane = "UNKNOWN!?";
+		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
+		if (octaneConfig != null) {
+			targetOctane = octaneConfig.getUrl() + " (SP: " + octaneConfig.getSharedSpace() + ")";
+		}
 
 		try {
-			logger.info("sending [" + eventsSummary + "] event/s to '" + eventsSnapshot.getServer().getUrl() + "'...");
+			logger.info("sending [" + eventsSummary + "] event/s to " + targetOctane + "...");
 			OctaneRequest request = createEventsRequest(eventsSnapshot);
 			OctaneResponse response;
 			while (failedRetries < MAX_SEND_RETRIES) {
