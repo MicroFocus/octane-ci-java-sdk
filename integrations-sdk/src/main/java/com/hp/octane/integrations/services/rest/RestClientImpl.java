@@ -134,10 +134,11 @@ final class RestClientImpl implements RestClient {
 	}
 
 	void notifyConfigurationChange() {
+		logger.info("going to abort " + ongoingRequests.size() + " request/s due to configuration change notification...");
 		synchronized (REQUESTS_LIST_LOCK) {
 			LWSSO_TOKEN = null;
 			for (HttpUriRequest request : ongoingRequests) {
-				logger.info("aborting " + request + " due to configuration change notification");
+				logger.info("aborting " + request);
 				request.abort();
 			}
 		}
