@@ -18,12 +18,12 @@
 <Configuration status="INFO">
 
 	<Properties>
-		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %p - %c{1}: %m%n</Property>
+		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%t] - %c{3}: %m%n</Property>
 	</Properties>
 
 	<Appenders>
 
-		<RollingFile name="OctaneFileAppender" append="true" fileName="${sys:octaneAllowedStorage:-}nga/logs/nga.log"
+		<RollingFile name="octaneFileAppender" append="true" fileName="${sys:octaneAllowedStorage:-}nga/logs/nga.log"
 					 filePattern="${sys:octaneAllowedStorage:-}nga/logs/nga-%i.log">
 			<PatternLayout pattern="${pattern}"/>
 			<Policies>
@@ -31,8 +31,11 @@
 			</Policies>
 			<DefaultRolloverStrategy max="10"/>
 		</RollingFile>
+		<Async name="asyncOctaneFileAppender">
+			<AppenderRef ref="octaneFileAppender"/>
+		</Async>
 
-		<Console name="OctaneConsoleAppender" target="SYSTEM_OUT">
+		<Console name="octaneConsoleAppender" target="SYSTEM_OUT">
 			<PatternLayout pattern="${pattern}"/>
 		</Console>
 
@@ -40,7 +43,7 @@
 
 	<Loggers>
 		<Root level="info" additivity="true">
-			<AppenderRef ref="OctaneFileAppender"/>
+			<AppenderRef ref="asyncOctaneFileAppender"/>
 		</Root>
 	</Loggers>
 
