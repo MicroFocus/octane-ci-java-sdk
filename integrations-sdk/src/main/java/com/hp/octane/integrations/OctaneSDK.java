@@ -62,6 +62,7 @@ public final class OctaneSDK {
 				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
 			}
 			instance = new OctaneSDK(ciPluginServices);
+			logger.info("");
 			logger.info("SDK has been initialized");
 		} else {
 			logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
