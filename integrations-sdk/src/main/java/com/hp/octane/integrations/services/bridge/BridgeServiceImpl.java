@@ -230,7 +230,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {
 		public Thread newThread(Runnable runnable) {
 			Thread result = new Thread(runnable);
-			result.setName("AbridgedConnectivityThread-" + result.getId());
+			result.setName("AbridgedConnectivityWorker-" + result.getId());
 			result.setDaemon(true);
 			return result;
 		}
@@ -239,7 +239,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private static final class AbridgedTasksExecutorsFactory implements ThreadFactory {
 		public Thread newThread(Runnable runnable) {
 			Thread result = new Thread(runnable);
-			result.setName("AbridgedTasksExecutorsFactory-" + result.getId());
+			result.setName("AbridgedTasksWorker-" + result.getId());
 			result.setDaemon(true);
 			return result;
 		}
