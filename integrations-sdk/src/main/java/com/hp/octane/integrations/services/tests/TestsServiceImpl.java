@@ -28,7 +28,6 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -131,7 +130,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
 						"/test-results?skip-errors=false")
 				.setHeaders(headers)
-				.setBodyAsStream(testsResult);
+				.setBody(testsResult);
 		OctaneResponse response = restClient.execute(request);
 		logger.info("tests result pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		return response;

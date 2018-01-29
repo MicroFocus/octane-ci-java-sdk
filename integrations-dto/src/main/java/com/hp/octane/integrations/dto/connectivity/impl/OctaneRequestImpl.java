@@ -18,10 +18,14 @@ package com.hp.octane.integrations.dto.connectivity.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 
 /**
@@ -33,14 +37,21 @@ class OctaneRequestImpl implements OctaneRequest {
 	private String url;
 	private HttpMethod method;
 	private Map<String, String> headers;
-	private String body;
-	private InputStream bodyAsStream;
+	private InputStream body;
 
 	public String getUrl() {
 		return url;
 	}
 
 	public OctaneRequest setUrl(String url) {
+		if (url == null || url.isEmpty()) {
+			throw new IllegalArgumentException("URL MUST NOT be null nor empty");
+		}
+		try {
+			URL tmp = new URL(url);
+		} catch (MalformedURLException mue) {
+			throw new IllegalArgumentException("URL argument is not valid", mue);
+		}
 		this.url = url;
 		return this;
 	}
@@ -50,6 +61,9 @@ class OctaneRequestImpl implements OctaneRequest {
 	}
 
 	public OctaneRequest setMethod(HttpMethod method) {
+		if (method == null) {
+			throw new IllegalArgumentException("method MUST NOT be null");
+		}
 		this.method = method;
 		return this;
 	}
@@ -63,29 +77,19 @@ class OctaneRequestImpl implements OctaneRequest {
 		return this;
 	}
 
-	public String getBody() {
+	public InputStream getBody() {
 		return body;
 	}
 
-	public OctaneRequest setBody(String body) {
-		if (bodyAsStream != null) {
-			throw new IllegalStateException("request MAY be used only with body as STRING or as INPUT STREAM, but not both; this request already has INPUT STREAM body (not-null)");
-		}
+	@JsonIgnore
+	public OctaneRequest setBody(InputStream body) {
 		this.body = body;
 		return this;
 	}
 
-	@JsonIgnore
-	public InputStream getBodyAsStream() {
-		return bodyAsStream;
-	}
-
-	@JsonIgnore
-	public OctaneRequest setBodyAsStream(InputStream bodyAsStream) {
-		if (body != null) {
-			throw new IllegalStateException("request MAY be used only with body as STRING or as INPUT STREAM, but not both; this request already has STRING body '" + body + "'");
-		}
-		this.bodyAsStream = bodyAsStream;
+	@JsonProperty
+	public OctaneRequest setBody(String body) {
+		this.body = new ByteArrayInputStream(body.getBytes());
 		return this;
 	}
 }

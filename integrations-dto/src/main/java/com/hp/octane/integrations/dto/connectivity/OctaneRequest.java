@@ -16,6 +16,7 @@
 
 package com.hp.octane.integrations.dto.connectivity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hp.octane.integrations.dto.DTOBase;
 
 import java.io.InputStream;
@@ -39,11 +40,9 @@ public interface OctaneRequest extends DTOBase {
 
 	OctaneRequest setHeaders(Map<String, String> headers);
 
-	String getBody();
+	InputStream getBody();
+
+	OctaneRequest setBody(InputStream bodyAsStream);
 
 	OctaneRequest setBody(String body);
-
-	InputStream getBodyAsStream();
-
-	OctaneRequest setBodyAsStream(InputStream bodyAsStream);
 }

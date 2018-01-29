@@ -63,7 +63,6 @@ import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.http.Header;
-import org.omg.IOP.ENCODING_CDR_ENCAPS;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -217,19 +216,11 @@ final class RestClientImpl implements RestClient {
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
 			requestBuilder = RequestBuilder.post(octaneRequest.getUrl());
 			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
-			if (octaneRequest.getBody() != null) {
-				requestBuilder.setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
-			} else if (octaneRequest.getBodyAsStream() != null) {
-				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBodyAsStream(), ContentType.APPLICATION_JSON)));
-			}
+			requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
 			requestBuilder = RequestBuilder.put(octaneRequest.getUrl());
 			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
-			if (octaneRequest.getBody() != null) {
-				requestBuilder.setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
-			} else if (octaneRequest.getBodyAsStream() != null) {
-				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBodyAsStream(), ContentType.APPLICATION_JSON)));
-			}
+			requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 		} else {
 			throw new RuntimeException("HTTP method " + octaneRequest.getMethod() + " not supported");
 		}
