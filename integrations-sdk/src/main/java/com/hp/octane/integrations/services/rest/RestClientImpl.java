@@ -168,24 +168,8 @@ final class RestClientImpl implements RestClient {
 		}
 
 		try {
-			uriRequest = createHttpRequest(request);
-			context = createHttpContext(request.getUrl());
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.add(uriRequest);
-			}
-			httpResponse = httpClient.execute(uriRequest, context);
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.remove(uriRequest);
-			}
-
-			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-				logger.info("re-login");
-				HttpClientUtils.closeQuietly(httpResponse);
-				loginResponse = login(configuration);
-				if (loginResponse.getStatus() != 200) {
-					logger.error("failed on re-login, status " + loginResponse.getStatus());
-					return loginResponse;
-				}
+			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
+			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
 				context = createHttpContext(request.getUrl());
 				synchronized (REQUESTS_LIST_LOCK) {
@@ -194,6 +178,21 @@ final class RestClientImpl implements RestClient {
 				httpResponse = httpClient.execute(uriRequest, context);
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests.remove(uriRequest);
+				}
+
+				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
+					logger.info("re-login");
+					EntityUtils.consumeQuietly(httpResponse.getEntity());
+					HttpClientUtils.closeQuietly(httpResponse);
+					loginResponse = login(configuration);
+					if (loginResponse.getStatus() != 200) {
+						logger.error("failed on re-login with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						return loginResponse;
+					} else {
+						logger.info("re-attempting the original request having successful re-login");
+					}
+				} else {
+					break;
 				}
 			}
 
