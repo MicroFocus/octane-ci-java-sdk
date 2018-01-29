@@ -52,13 +52,11 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private final ExecutorService worker = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
 	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
-
-	private ExecutorService worker = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
-	private volatile boolean paused;
 
 	private int MAX_SEND_RETRIES = 7;
 	private int INITIAL_RETRY_PAUSE = 1739;
@@ -188,7 +186,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		long waitStart = new Date().getTime();
 		synchronized (WAIT_MONITOR) {
 			WAIT_MONITOR.released = false;
-			paused = true;
 			while (!WAIT_MONITOR.released && new Date().getTime() - waitStart < timeout) {
 				try {
 					WAIT_MONITOR.wait(timeout);
@@ -196,7 +193,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 					logger.info("waiting period was interrupted", ie);
 				}
 			}
-			paused = false;
 			if (WAIT_MONITOR.released) {
 				logger.info("pause finished on demand");
 			} else {
@@ -214,7 +210,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		@Override
 		public Thread newThread(Runnable runnable) {
 			Thread result = new Thread(runnable);
-			result.setName("EventsServiceWorker");
+			result.setName("EventsServiceWorker-" + result.getId());
 			result.setDaemon(true);
 			return result;
 		}

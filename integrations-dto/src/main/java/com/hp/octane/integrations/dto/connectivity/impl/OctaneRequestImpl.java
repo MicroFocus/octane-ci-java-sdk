@@ -48,7 +48,7 @@ class OctaneRequestImpl implements OctaneRequest {
 			throw new IllegalArgumentException("URL MUST NOT be null nor empty");
 		}
 		try {
-			URL tmp = new URL(url);
+			new URL(url);
 		} catch (MalformedURLException mue) {
 			throw new IllegalArgumentException("URL argument is not valid", mue);
 		}

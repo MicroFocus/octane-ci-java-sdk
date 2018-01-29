@@ -16,7 +16,6 @@
 
 package com.hp.octane.integrations.dto.connectivity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hp.octane.integrations.dto.DTOBase;
 
 import java.io.InputStream;

@@ -24,8 +24,6 @@ import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.concurrent.ExecutorService;
-
 /**
  * REST Service - default implementation
  */

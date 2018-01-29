@@ -35,6 +35,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
 
@@ -46,14 +49,13 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private final Object INIT_LOCKER = new Object();
+	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
 	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
-	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 60000;
+	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
-	private Thread worker;
 
 	public TestsServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
 		super(configurator);
@@ -67,7 +69,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 
 		this.pluginServices = pluginServices;
 		this.restService = restService;
-		activate();
+		startBackgroundWorker();
 	}
 
 	@Override
@@ -141,48 +143,39 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		buildList.add(new TestsResultQueueEntry(jobCiId, buildCiId));
 	}
 
-	//  TODO: move thread to thread factory
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
-	private void activate() {
-		if (worker == null || !worker.isAlive()) {
-			synchronized (INIT_LOCKER) {
-				if (worker == null || !worker.isAlive()) {
-					worker = new Thread(new Runnable() {
-						public void run() {
-							while (true) {
-								if (!buildList.isEmpty()) {
-									try {
-										TestsResultQueueEntry testsResultQueueEntry = buildList.get(0);
-										TestsResult testsResult = pluginServices.getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
-										OctaneResponse response = pushTestsResult(testsResult);
-										if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-											logger.info("tests result push SUCCEED");
-											buildList.remove(0);
-										} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-											logger.info("tests result push FAILED, service unavailable; retrying after a breathe...");
-											breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-										} else {
-											//  case of any other fatal error
-											logger.error("tests result push FAILED, status " + response.getStatus() + "; dropping this item from the queue");
-											buildList.remove(0);
-										}
-									} catch (Throwable t) {
-										logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", t);
-										breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-									}
-								} else {
-									breathe(LIST_EMPTY_INTERVAL);
-								}
+	//  this should be infallible everlasting worker
+	private void startBackgroundWorker() {
+		worker.execute(new Runnable() {
+			public void run() {
+				while (true) {
+					if (!buildList.isEmpty()) {
+						try {
+							TestsResultQueueEntry testsResultQueueEntry = buildList.get(0);
+							TestsResult testsResult = pluginServices.getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
+							OctaneResponse response = pushTestsResult(testsResult);
+							if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+								logger.info("tests result push SUCCEED");
+								buildList.remove(0);
+							} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+								logger.info("tests result push FAILED, service unavailable; retrying after a breathe...");
+								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+							} else {
+								//  case of any other fatal error
+								logger.error("tests result push FAILED, status " + response.getStatus() + "; dropping this item from the queue");
+								buildList.remove(0);
 							}
+						} catch (Throwable t) {
+							logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", t);
+							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
 						}
-					});
-					worker.setDaemon(true);
-					worker.setName("TestPushWorker");
-					worker.start();
+					} else {
+						breathe(LIST_EMPTY_INTERVAL);
+					}
 				}
 			}
-		}
+		});
 	}
 
 	//  TODO: turn to be breakable wait with timeout and notifier
@@ -215,6 +208,17 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		private TestsResultQueueEntry(String jobId, String buildId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+		}
+	}
+
+	private static final class TestsResultPushWorkerThreadFactory implements ThreadFactory {
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread result = new Thread(runnable);
+			result.setName("TestsResultPushWorker-" + result.getId());
+			result.setDaemon(true);
+			return result;
 		}
 	}
 }

@@ -19,16 +19,10 @@ package com.hp.octane.integrations.dto.connectivity;
 import com.hp.octane.integrations.dto.DTOFactory;
 import org.junit.Test;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * OctaneTaskAbridged test
@@ -38,48 +32,41 @@ public class OctaneRequestTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test(expected = IllegalArgumentException.class)
-	public void test_A() {
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setUrl(null);
+	public void testA() {
+		dtoFactory.newDTO(OctaneRequest.class).setUrl(null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void test_B() {
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setUrl("");
+	public void testB() {
+		dtoFactory.newDTO(OctaneRequest.class).setUrl("");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void test_C() {
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setUrl("some non valid url");
+	public void testC() {
+		dtoFactory.newDTO(OctaneRequest.class).setUrl("some non valid url");
 	}
 
 	@Test
-	public void test_D() {
+	public void testD() {
 		String validURL = "http://localhost:8080/something?param=value";
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setUrl(validURL);
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setUrl(validURL);
 		assertEquals(validURL, request.getUrl());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void test_E() {
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(null);
+	public void testE() {
+		dtoFactory.newDTO(OctaneRequest.class).setMethod(null);
 	}
 
 	@Test
-	public void test_F() throws IOException {
+	public void testF() throws IOException {
 		String body = "body";
-		String validURL = "http://localhost:8080/something?param=value";
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setBody(body);
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setBody(body);
 		assertEquals(body, isToString(request.getBody()));
 	}
 
 	@Test
-	public void test_G() throws IOException {
+	public void testG() throws IOException {
 		OctaneRequest request = dtoFactory.dtoFromJson("{\"method\":\"GET\",\"url\":\"http://localhost:8080\",\"body\":\"something\"}", OctaneRequest.class);
 		assertEquals(HttpMethod.GET, request.getMethod());
 		assertEquals("http://localhost:8080", request.getUrl());
@@ -89,10 +76,10 @@ public class OctaneRequestTest {
 	private String isToString(InputStream stream) throws IOException {
 		int l;
 		byte[] buffer = new byte[2048];
-		String result = "";
+		StringBuilder result = new StringBuilder();
 		while ((l = stream.read(buffer, 0, 2048)) > 0) {
-			result += new String(buffer, 0, l);
+			result.append(new String(buffer, 0, l));
 		}
-		return result;
+		return result.toString();
 	}
 }
