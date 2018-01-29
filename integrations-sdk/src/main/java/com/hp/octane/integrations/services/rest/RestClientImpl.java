@@ -169,7 +169,13 @@ final class RestClientImpl implements RestClient {
 		try {
 			uriRequest = createHttpRequest(request);
 			context = createHttpContext(request.getUrl());
+			synchronized (REQUESTS_LIST_LOCK) {
+				ongoingRequests.add(uriRequest);
+			}
 			httpResponse = httpClient.execute(uriRequest, context);
+			synchronized (REQUESTS_LIST_LOCK) {
+				ongoingRequests.remove(uriRequest);
+			}
 
 			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
 				logger.info("re-login");
@@ -181,7 +187,13 @@ final class RestClientImpl implements RestClient {
 				}
 				uriRequest = createHttpRequest(request);
 				context = createHttpContext(request.getUrl());
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests.add(uriRequest);
+				}
 				httpResponse = httpClient.execute(uriRequest, context);
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests.remove(uriRequest);
+				}
 			}
 
 			result = createNGAResponse(httpResponse);
@@ -236,9 +248,6 @@ final class RestClientImpl implements RestClient {
 		requestBuilder.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
 
 		request = requestBuilder.build();
-		synchronized (REQUESTS_LIST_LOCK) {
-			ongoingRequests.add(request);
-		}
 		return request;
 	}
 
@@ -301,7 +310,15 @@ final class RestClientImpl implements RestClient {
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
 			HttpClientContext context = createHttpContext(loginRequest.getURI().toString());
+
+			synchronized (REQUESTS_LIST_LOCK) {
+				ongoingRequests.remove(loginRequest);
+			}
 			response = httpClient.execute(loginRequest, context);
+			synchronized (REQUESTS_LIST_LOCK) {
+				ongoingRequests.remove(loginRequest);
+			}
+
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				for (Cookie cookie : context.getCookieStore().getCookies()) {
 					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
@@ -332,9 +349,6 @@ final class RestClientImpl implements RestClient {
 					.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)
 					.setEntity(loginApiJson);
 			loginRequest = requestBuilder.build();
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.add(loginRequest);
-			}
 			return loginRequest;
 		} catch (JsonProcessingException jpe) {
 			throw new IOException("failed to serialize login content", jpe);
