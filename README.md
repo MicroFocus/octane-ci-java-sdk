@@ -30,6 +30,8 @@ This Java SDK project has two sub-projects:
 - **integrations-dto**, which contains the definition and building factory of all DTO objects used for communication with ALM Octane.
 
 See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK API.
+
+See [change log](changelog.md) for the released versions of this library.
   
   
 ## Compiling the Project

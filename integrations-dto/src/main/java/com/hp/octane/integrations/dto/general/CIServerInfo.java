@@ -26,37 +26,58 @@ public interface CIServerInfo extends DTOBase {
 
 	String getType();
 
+	/**
+	 * Set CI server's type
+	 * The type is an unbound string, but please refer to an existing types in CIServerTypes enumeration for a matching existing one, if possible
+	 */
 	CIServerInfo setType(String type);
 
 	String getVersion();
 
+	/**
+	 * Set CI server's version
+	 */
 	CIServerInfo setVersion(String version);
 
 	String getUrl();
 
+	/**
+	 * Set CI server's self location URL
+	 */
 	CIServerInfo setUrl(String url);
 
 	String getInstanceId();
 
 	/**
-	 * Set unique id of the CI server instance.
+	 * Set unique id of the CI server instance UUID
 	 */
 	CIServerInfo setInstanceId(String instanceId);
 
 	Long getInstanceIdFrom();
 
+	/**
+	 * Set CI server's instance UUID creation time
+	 */
 	CIServerInfo setInstanceIdFrom(Long instanceIdFrom);
 
 	Long getSendingTime();
 
+	/**
+	 * Set CI server's current time
+	 */
 	CIServerInfo setSendingTime(Long sendingTime);
 
 	String getImpersonatedUser();
 
+	/**
+	 * Set CI server's user, that has been given to Octane's CI Plugin to run on behalf of
+	 */
 	CIServerInfo setImpersonatedUser(String impersonatedUser);
 
 	boolean isSuspended();
 
-	void setSuspended(boolean suspended);
-
+	/**
+	 * Set CI server's suspension status
+	 */
+	CIServerInfo setSuspended(boolean suspended);
 }

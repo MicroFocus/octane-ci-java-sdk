@@ -49,7 +49,11 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 		if (defaultClient == null) {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
 				if (defaultClient == null) {
-					defaultClient = new RestClientImpl(pluginServices);
+					try {
+						defaultClient = new RestClientImpl(pluginServices);
+					} catch (Exception e) {
+						logger.error("failed to initialize Octane's REST client");
+					}
 				}
 			}
 		}

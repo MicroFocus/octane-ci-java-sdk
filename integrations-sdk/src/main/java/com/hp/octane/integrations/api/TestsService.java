@@ -20,16 +20,28 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface TestsService {
 
 	/**
-	 * Publishes CI Event to the Octane server.
-	 * Tests result is pushed to Octane server in a synchronous manner.
+	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
+	 */
+	boolean isTestsResultRelevant(String serverCiId, String jobCiId) throws IOException;
+
+	/**
+	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
 	 *
 	 * @param testsResult ready-to-be-pushed TestsResult object, having a collection of tests results with the relevant build context
 	 */
 	OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException;
+
+	/**
+	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
+	 *
+	 * @param testsResult ready-to-be-pushed TestsResult resource given as an InputStream
+	 */
+	OctaneResponse pushTestsResult(InputStream testsResult) throws IOException;
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval.
