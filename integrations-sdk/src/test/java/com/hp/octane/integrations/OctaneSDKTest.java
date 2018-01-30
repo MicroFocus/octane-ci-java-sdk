@@ -19,6 +19,8 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
+
 /**
  * Octane SDK tests
  */
@@ -26,8 +28,9 @@ import org.junit.Test;
 public class OctaneSDKTest {
 
     @Test
-    public void SDKTest_A() {
+    public void SDKTestA() {
         OctaneSDK.init(new CIPluginServicesMockA());
+        assertNotNull(OctaneSDK.getInstance().getPluginServices());
     }
 
     private class CIPluginServicesMockA extends CIPluginServicesBase {
