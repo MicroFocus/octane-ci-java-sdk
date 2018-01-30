@@ -28,7 +28,7 @@ import static org.junit.Assert.assertNotNull;
 public class OctaneSDKTest {
 
     @Test
-    public void SDKTestA() {
+    public void sdkTestA() {
         OctaneSDK.init(new CIPluginServicesMockA());
         assertNotNull(OctaneSDK.getInstance().getPluginServices());
     }

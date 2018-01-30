@@ -82,43 +82,39 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 	//  this should be infallible everlasting worker
 	private void startBackgroundWorker() {
-		if (!connectivityExecutors.isShutdown()) {
-			connectivityExecutors.execute(new Runnable() {
-				public void run() {
-					String tasksJSON;
-					CIServerInfo serverInfo = pluginServices.getServerInfo();
-					CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
-					String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
+		connectivityExecutors.execute(new Runnable() {
+			public void run() {
+				String tasksJSON;
+				CIServerInfo serverInfo = pluginServices.getServerInfo();
+				CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
+				String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
 
-					try {
-						//  get tasks, wait if needed and return with task or timeout or error
-						tasksJSON = getAbridgedTasks(
-								serverInfo.getInstanceId(),
-								serverInfo.getType(),
-								serverInfo.getUrl(),
-								OctaneSDK.API_VERSION,
-								OctaneSDK.SDK_VERSION,
-								pluginInfo == null ? "" : pluginInfo.getVersion(),
-								apiKey,
-								serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
+				try {
+					//  get tasks, wait if needed and return with task or timeout or error
+					tasksJSON = getAbridgedTasks(
+							serverInfo.getInstanceId(),
+							serverInfo.getType(),
+							serverInfo.getUrl(),
+							OctaneSDK.API_VERSION,
+							OctaneSDK.SDK_VERSION,
+							pluginInfo == null ? "" : pluginInfo.getVersion(),
+							apiKey,
+							serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
-						//  regardless of response - reconnect again to keep the light on
-						startBackgroundWorker();
+					//  regardless of response - reconnect again to keep the light on
+					startBackgroundWorker();
 
-						//  now can process the received tasks - if any
-						if (tasksJSON != null && !tasksJSON.isEmpty()) {
-							handleTasks(tasksJSON);
-						}
-					} catch (Throwable t) {
-						logger.error("connection to Octane Server temporary failed", t);
-						doWait(1000);
-						startBackgroundWorker();
+					//  now can process the received tasks - if any
+					if (tasksJSON != null && !tasksJSON.isEmpty()) {
+						handleTasks(tasksJSON);
 					}
+				} catch (Throwable t) {
+					logger.error("connection to Octane Server temporary failed", t);
+					doWait(1000);
+					startBackgroundWorker();
 				}
-			});
-		} else {
-			logger.info("bridge service stopped gracefully by external request");
-		}
+			}
+		});
 	}
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, Integer apiVersion, String sdkVersion, String pluginVersion, String octaneUser, String ciServerUser) {
