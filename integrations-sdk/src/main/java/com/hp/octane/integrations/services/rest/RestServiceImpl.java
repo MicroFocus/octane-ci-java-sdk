@@ -43,6 +43,9 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 		}
 
 		this.pluginServices = pluginServices;
+		logger.info("initialized a default Octane REST client...");
+		obtainClient();
+		logger.info("...Octane REST client initialized");
 	}
 
 	public RestClient obtainClient() {
@@ -67,6 +70,10 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 	@Override
 	public void notifyConfigurationChange() {
 		logger.info("connectivity configuration change has been notified; publishing to the RestClients");
-		defaultClient.notifyConfigurationChange();
+		if (defaultClient != null) {
+			defaultClient.notifyConfigurationChange();
+		} else {
+			logger.error("default client was not yet initialized");
+		}
 	}
 }
