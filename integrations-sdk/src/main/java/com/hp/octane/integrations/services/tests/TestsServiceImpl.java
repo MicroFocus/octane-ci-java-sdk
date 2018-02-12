@@ -58,8 +58,8 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public TestsServiceImpl(Object configurator, RestService restService) {
-		super(configurator);
+	public TestsServiceImpl(Object internalUsageValidator, RestService restService) {
+		super(internalUsageValidator);
 
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
@@ -80,7 +80,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 
 		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(getAnalyticsContextPath(getPluginServices().getOctaneConfiguration().getUrl(), getPluginServices().getOctaneConfiguration().getSharedSpace()) +
+				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
 						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
 						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobCiId) + "/tests-result-preflight");
 
@@ -109,7 +109,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
-				.setUrl(getAnalyticsContextPath(getPluginServices().getOctaneConfiguration().getUrl(), getPluginServices().getOctaneConfiguration().getSharedSpace()) +
+				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
 						"test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(testsResult);
@@ -133,7 +133,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 					if (!buildList.isEmpty()) {
 						try {
 							TestsResultQueueEntry testsResultQueueEntry = buildList.get(0);
-							TestsResult testsResult = getPluginServices().getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
+							TestsResult testsResult = pluginServices.getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
 							OctaneResponse response = pushTestsResult(testsResult);
 							if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 								logger.info("tests result push SUCCEED");

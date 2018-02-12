@@ -62,8 +62,8 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 
-	public BridgeServiceImpl(Object configurator, RestService restService, TasksProcessor tasksProcessor) {
-		super(configurator);
+	public BridgeServiceImpl(Object internalUsageValidator, RestService restService, TasksProcessor tasksProcessor) {
+		super(internalUsageValidator);
 
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
@@ -82,9 +82,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		connectivityExecutors.execute(new Runnable() {
 			public void run() {
 				String tasksJSON;
-				CIServerInfo serverInfo = getPluginServices().getServerInfo();
-				CIPluginInfo pluginInfo = getPluginServices().getPluginInfo();
-				String apiKey = getPluginServices().getOctaneConfiguration() == null ? "" : getPluginServices().getOctaneConfiguration().getApiKey();
+				CIServerInfo serverInfo = pluginServices.getServerInfo();
+				CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
+				String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
 
 				try {
 					//  get tasks, wait if needed and return with task or timeout or error
@@ -131,7 +131,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 		String responseBody = null;
 		RestClient restClient = restService.obtainClient();
-		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
+		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<>();
 			headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -185,7 +185,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					public void run() {
 						OctaneResultAbridged result = tasksProcessor.execute(task);
 						int submitStatus = putAbridgedResult(
-								getPluginServices().getServerInfo().getInstanceId(),
+								pluginServices.getServerInfo().getInstanceId(),
 								result.getId(),
 								dtoFactory.dtoToJson(result));
 						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
@@ -199,7 +199,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
 		RestClient restClientImpl = restService.obtainClient();
-		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
+		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)

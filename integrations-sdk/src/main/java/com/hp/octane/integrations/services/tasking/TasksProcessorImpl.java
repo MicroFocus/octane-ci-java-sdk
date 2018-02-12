@@ -67,8 +67,8 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 
-	public TasksProcessorImpl(Object configurator) {
-		super(configurator);
+	public TasksProcessorImpl(Object internalUsageValidator) {
+		super(internalUsageValidator);
 	}
 
 	public OctaneResultAbridged execute(OctaneTaskAbridged task) {
@@ -118,15 +118,15 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 				if (HttpMethod.POST.equals(task.getMethod()) && path.length == 2) {
 					if (INIT.equalsIgnoreCase(path[1])) {
 						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
-						getPluginServices().runTestDiscovery(discoveryInfo);
+						pluginServices.runTestDiscovery(discoveryInfo);
 						result.setStatus(200);
 					} else if (SUITE_RUN.equalsIgnoreCase(path[1])) {
 						TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
-						getPluginServices().runTestSuiteExecution(testSuiteExecutionInfo);
+						pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
 						result.setStatus(200);
 					} else if (TEST_CONN.equalsIgnoreCase(path[1])) {
 						TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
-						OctaneResponse connTestResult = getPluginServices().checkRepositoryConnectivity(testConnectivityInfo);
+						OctaneResponse connTestResult = pluginServices.checkRepositoryConnectivity(testConnectivityInfo);
 						result.setStatus(connTestResult.getStatus());
 						result.setBody(connTestResult.getBody());
 					} else if (CREDENTIALS_UPSERT.equalsIgnoreCase(path[1])) {
@@ -138,7 +138,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 					}
 				} else if (HttpMethod.DELETE.equals(task.getMethod()) && path.length == 2) {
 					String id = path[1];
-					getPluginServices().deleteExecutor(id);
+					pluginServices.deleteExecutor(id);
 				}
 
 			} else {
@@ -194,38 +194,38 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 				.setApiVersion(OctaneSDK.API_VERSION)
 				.setSdkVersion(OctaneSDK.SDK_VERSION);
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
-				.setServer(getPluginServices().getServerInfo())
-				.setPlugin(getPluginServices().getPluginInfo())
+				.setServer(pluginServices.getServerInfo())
+				.setPlugin(pluginServices.getPluginInfo())
 				.setSdk(sdkInfo);
 		result.setBody(dtoFactory.dtoToJson(status));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters) {
-		CIJobsList content = getPluginServices().getJobsList(includingParameters);
+		CIJobsList content = pluginServices.getJobsList(includingParameters);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
-		PipelineNode content = getPluginServices().getPipeline(jobId);
+		PipelineNode content = pluginServices.getPipeline(jobId);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		getPluginServices().runPipeline(jobId, originalBody);
+		pluginServices.runPipeline(jobId, originalBody);
 		result.setStatus(201);
 	}
 
 	private void suspendCiEvents(OctaneResultAbridged result, String suspend) {
 		Boolean toSuspend = Boolean.parseBoolean(suspend);
-		getPluginServices().suspendCIEvents(toSuspend);
+		pluginServices.suspendCIEvents(toSuspend);
 		result.setStatus(201);
 	}
 
 	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId, boolean subTree) {
-		SnapshotNode data = getPluginServices().getSnapshotLatest(jobId, subTree);
+		SnapshotNode data = pluginServices.getSnapshotLatest(jobId, subTree);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
@@ -235,7 +235,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 	}
 
 	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId, boolean subTree) {
-		SnapshotNode data = getPluginServices().getSnapshotByNumber(jobCiId, buildCiId, subTree);
+		SnapshotNode data = pluginServices.getSnapshotByNumber(jobCiId, buildCiId, subTree);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
@@ -245,13 +245,13 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 	}
 
 	private void executeHistoryRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		BuildHistory content = getPluginServices().getHistoryPipeline(jobId, originalBody);
+		BuildHistory content = pluginServices.getHistoryPipeline(jobId, originalBody);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executeUpsertCredentials(OctaneResultAbridged result, CredentialsInfo credentialsInfo) {
-		OctaneResponse response = getPluginServices().upsertCredentials(credentialsInfo);
+		OctaneResponse response = pluginServices.upsertCredentials(credentialsInfo);
 		result.setBody(response.getBody());
 		result.setStatus(response.getStatus());
 	}

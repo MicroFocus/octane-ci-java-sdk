@@ -65,8 +65,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private int failedRetries;
 	private int pauseInterval;
 
-	public EventsServiceImpl(Object configurator, RestService restService) {
-		super(configurator);
+	public EventsServiceImpl(Object internalUsageValidator, RestService restService) {
+		super(internalUsageValidator);
 
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
@@ -118,7 +118,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 	private boolean sendData() {
 		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-				.setServer(getPluginServices().getServerInfo())
+				.setServer(pluginServices.getServerInfo())
 				.setEvents(new ArrayList<>(events));
 		boolean result = true;
 
@@ -131,7 +131,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 			}
 		}
 		String targetOctane = "UNKNOWN!?";
-		OctaneConfiguration octaneConfig = getPluginServices().getOctaneConfiguration();
+		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
 		if (octaneConfig != null) {
 			targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
 		}
@@ -171,8 +171,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(getPluginServices().getOctaneConfiguration().getUrl() +
-						SHARED_SPACE_INTERNAL_API_PATH_PART + getPluginServices().getOctaneConfiguration().getSharedSpace() +
+				.setUrl(pluginServices.getOctaneConfiguration().getUrl() +
+						SHARED_SPACE_INTERNAL_API_PATH_PART + pluginServices.getOctaneConfiguration().getSharedSpace() +
 						ANALYTICS_CI_PATH_PART + "events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));

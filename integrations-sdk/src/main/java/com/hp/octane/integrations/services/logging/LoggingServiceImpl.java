@@ -26,18 +26,17 @@ import java.io.File;
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
  */
 
-public final class LoggingService extends OctaneSDK.SDKServiceBase {
+public final class LoggingServiceImpl extends OctaneSDK.SDKServiceBase {
 	private static final Object INIT_LOCKER = new Object();
 	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
 
-	public LoggingService(Object configurer) {
-		super(configurer);
-
+	public LoggingServiceImpl(Object internalUsageValidator) {
+		super(internalUsageValidator);
 		configureLogger();
 	}
 
 	private void configureLogger() {
-		File file = getPluginServices().getAllowedOctaneStorage();
+		File file = pluginServices.getAllowedOctaneStorage();
 		if (file != null && (file.isDirectory() || !file.exists())) {
 			synchronized (INIT_LOCKER) {
 				LoggerContext ctx = (LoggerContext) LogManager.getContext(false);

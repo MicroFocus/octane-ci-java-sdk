@@ -33,8 +33,8 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 
 	private RestClientImpl defaultClient;
 
-	public RestServiceImpl(Object configurator) {
-		super(configurator);
+	public RestServiceImpl(Object internalUsageValidator) {
+		super(internalUsageValidator);
 	}
 
 	public RestClient obtainClient() {
@@ -42,7 +42,7 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
 				if (defaultClient == null) {
 					try {
-						defaultClient = new RestClientImpl(getPluginServices());
+						defaultClient = new RestClientImpl(pluginServices);
 					} catch (Exception e) {
 						logger.error("failed to initialize Octane's REST client");
 					}
@@ -53,7 +53,7 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 	}
 
 	public RestClient createClient(CIProxyConfiguration proxyConfiguration) {
-		return new RestClientImpl(getPluginServices());
+		return new RestClientImpl(pluginServices);
 	}
 
 	@Override

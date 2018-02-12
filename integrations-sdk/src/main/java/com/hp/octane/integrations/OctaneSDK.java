@@ -20,7 +20,7 @@ import com.hp.octane.integrations.api.*;
 import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
-import com.hp.octane.integrations.services.logging.LoggingService;
+import com.hp.octane.integrations.services.logging.LoggingServiceImpl;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
@@ -43,13 +43,25 @@ public final class OctaneSDK {
 	public static Integer API_VERSION;
 	public static String SDK_VERSION;
 
+	private final Object INTERNAL_USAGE_VALIDATOR = new Object();
 	private final CIPluginServices pluginServices;
-	private final SDKConfigurer configurer;
+	private final RestService restService;
+	private final ConfigurationService configurationService;
+	private final TasksProcessor tasksProcessor;
+	private final EventsService eventsService;
+	private final TestsService testsService;
 
 	private OctaneSDK(CIPluginServices ciPluginServices) {
+		instance = this;
 		initSDKProperties();
 		pluginServices = ciPluginServices;
-		configurer = new SDKConfigurer(ciPluginServices);
+		new LoggingServiceImpl(INTERNAL_USAGE_VALIDATOR);
+		restService = new RestServiceImpl(INTERNAL_USAGE_VALIDATOR);
+		tasksProcessor = new TasksProcessorImpl(INTERNAL_USAGE_VALIDATOR);
+		configurationService = new ConfigurationServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
 	}
 
 	/**
@@ -63,7 +75,7 @@ public final class OctaneSDK {
 			if (ciPluginServices == null) {
 				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
 			}
-			instance = new OctaneSDK(ciPluginServices);
+			new OctaneSDK(ciPluginServices);
 			logger.info("");
 			logger.info("SDK has been initialized");
 		} else {
@@ -80,27 +92,27 @@ public final class OctaneSDK {
 	}
 
 	public CIPluginServices getPluginServices() {
-		return configurer.pluginServices;
-	}
-
-	public ConfigurationService getConfigurationService() {
-		return configurer.configurationService;
+		return pluginServices;
 	}
 
 	public RestService getRestService() {
-		return configurer.restService;
+		return restService;
 	}
 
 	public TasksProcessor getTasksProcessor() {
-		return configurer.tasksProcessor;
+		return tasksProcessor;
+	}
+
+	public ConfigurationService getConfigurationService() {
+		return configurationService;
 	}
 
 	public EventsService getEventsService() {
-		return configurer.eventsService;
+		return eventsService;
 	}
 
 	public TestsService getTestsService() {
-		return configurer.testsService;
+		return testsService;
 	}
 
 	private void initSDKProperties() {
@@ -117,46 +129,18 @@ public final class OctaneSDK {
 		}
 	}
 
-	private static class SDKConfigurer {
-		private final CIPluginServices pluginServices;
-		private final LoggingService loggingService;
-		private final RestService restService;
-		private final ConfigurationService configurationService;
-		private final BridgeServiceImpl bridgeServiceImpl;
-		private final TasksProcessor tasksProcessor;
-		private final EventsService eventsService;
-		private final TestsService testsService;
-
-		private SDKConfigurer(CIPluginServices pluginServices) {
-			this.pluginServices = pluginServices;
-			loggingService = new LoggingService(this);
-			restService = new RestServiceImpl(this);
-			tasksProcessor = new TasksProcessorImpl(this);
-			configurationService = new ConfigurationServiceImpl(this, restService);
-			eventsService = new EventsServiceImpl(this, restService);
-			testsService = new TestsServiceImpl(this, restService);
-			bridgeServiceImpl = new BridgeServiceImpl(this, restService, tasksProcessor);
-		}
-	}
-
-	//  the below base class used ONLY for a correct initiation enforcement of an SDK services
+	//  the below base class used ONLY for the correct initiation enforcement of an SDK services
 	public static abstract class SDKServiceBase {
+		protected final CIPluginServices pluginServices;
 
-		protected SDKServiceBase(Object configurer) {
-			if (configurer == null) {
-				throw new IllegalArgumentException("configurator MUST NOT be null");
-			}
-			if (!(configurer instanceof SDKConfigurer)) {
-				throw new IllegalArgumentException("configurator MUST be of a correct type");
-			}
-		}
-
-		protected CIPluginServices getPluginServices() {
+		protected SDKServiceBase(Object internalUsageValidator) {
 			if (instance == null || instance.pluginServices == null) {
-				throw new IllegalStateException("this method MUST NOT be called prior to OctaneSDK initialization");
+				throw new IllegalStateException("Octane SDK has not yet been initialized, do that first");
 			}
-
-			return instance.pluginServices;
+			if (internalUsageValidator == null || internalUsageValidator != instance.INTERNAL_USAGE_VALIDATOR) {
+				throw new IllegalStateException("SDK's own services MAY NOT be initialized on themselves, use OctaneSDK instance to get reference to pre-initialized services");
+			}
+			pluginServices = instance.pluginServices;
 		}
 	}
 }

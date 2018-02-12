@@ -52,8 +52,8 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 
 	private final RestService restService;
 
-	public ConfigurationServiceImpl(Object configurator, RestService restService) {
-		super(configurator);
+	public ConfigurationServiceImpl(Object internalUsageValidator, RestService restService) {
+		super(internalUsageValidator);
 
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
@@ -108,7 +108,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
 		}
 
-		CIProxyConfiguration proxyConfiguration = getPluginServices().getProxyConfiguration(configuration.getUrl());
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(configuration.getUrl());
 		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
@@ -117,6 +117,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 	}
 
 	public void notifyChange() {
+		logger.info("notified about Octane Server configuration change, propagating to RestService");
 		restService.notifyConfigurationChange();
 	}
 }
