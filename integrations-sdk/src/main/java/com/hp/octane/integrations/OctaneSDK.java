@@ -43,11 +43,13 @@ public final class OctaneSDK {
 	public static Integer API_VERSION;
 	public static String SDK_VERSION;
 
-	private final SDKConfigurator configurator;
+	private final CIPluginServices pluginServices;
+	private final SDKConfigurer configurer;
 
 	private OctaneSDK(CIPluginServices ciPluginServices) {
 		initSDKProperties();
-		configurator = new SDKConfigurator(ciPluginServices);
+		pluginServices = ciPluginServices;
+		configurer = new SDKConfigurer(ciPluginServices);
 	}
 
 	/**
@@ -78,27 +80,27 @@ public final class OctaneSDK {
 	}
 
 	public CIPluginServices getPluginServices() {
-		return configurator.pluginServices;
+		return configurer.pluginServices;
 	}
 
 	public ConfigurationService getConfigurationService() {
-		return configurator.configurationService;
+		return configurer.configurationService;
 	}
 
 	public RestService getRestService() {
-		return configurator.restService;
+		return configurer.restService;
 	}
 
 	public TasksProcessor getTasksProcessor() {
-		return configurator.tasksProcessor;
+		return configurer.tasksProcessor;
 	}
 
 	public EventsService getEventsService() {
-		return configurator.eventsService;
+		return configurer.eventsService;
 	}
 
 	public TestsService getTestsService() {
-		return configurator.testsService;
+		return configurer.testsService;
 	}
 
 	private void initSDKProperties() {
@@ -115,7 +117,7 @@ public final class OctaneSDK {
 		}
 	}
 
-	private static class SDKConfigurator {
+	private static class SDKConfigurer {
 		private final CIPluginServices pluginServices;
 		private final LoggingService loggingService;
 		private final RestService restService;
@@ -125,27 +127,36 @@ public final class OctaneSDK {
 		private final EventsService eventsService;
 		private final TestsService testsService;
 
-		private SDKConfigurator(CIPluginServices pluginServices) {
+		private SDKConfigurer(CIPluginServices pluginServices) {
 			this.pluginServices = pluginServices;
-			loggingService = new LoggingService(this, pluginServices);
-			restService = new RestServiceImpl(this, pluginServices);
-			tasksProcessor = new TasksProcessorImpl(this, pluginServices);
-			configurationService = new ConfigurationServiceImpl(this, pluginServices, restService);
-			eventsService = new EventsServiceImpl(this, pluginServices, restService);
-			testsService = new TestsServiceImpl(this, pluginServices, restService);
-			bridgeServiceImpl = new BridgeServiceImpl(this, pluginServices, restService, tasksProcessor);
+			loggingService = new LoggingService(this);
+			restService = new RestServiceImpl(this);
+			tasksProcessor = new TasksProcessorImpl(this);
+			configurationService = new ConfigurationServiceImpl(this, restService);
+			eventsService = new EventsServiceImpl(this, restService);
+			testsService = new TestsServiceImpl(this, restService);
+			bridgeServiceImpl = new BridgeServiceImpl(this, restService, tasksProcessor);
 		}
 	}
 
 	//  the below base class used ONLY for a correct initiation enforcement of an SDK services
 	public static abstract class SDKServiceBase {
-		protected SDKServiceBase(Object configurator) {
-			if (configurator == null) {
+
+		protected SDKServiceBase(Object configurer) {
+			if (configurer == null) {
 				throw new IllegalArgumentException("configurator MUST NOT be null");
 			}
-			if (!(configurator instanceof SDKConfigurator)) {
+			if (!(configurer instanceof SDKConfigurer)) {
 				throw new IllegalArgumentException("configurator MUST be of a correct type");
 			}
+		}
+
+		protected CIPluginServices getPluginServices() {
+			if (instance == null || instance.pluginServices == null) {
+				throw new IllegalStateException("this method MUST NOT be called prior to OctaneSDK initialization");
+			}
+
+			return instance.pluginServices;
 		}
 	}
 }

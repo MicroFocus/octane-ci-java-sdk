@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -57,7 +56,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
 	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
-	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
 	private int MAX_SEND_RETRIES = 7;
@@ -67,17 +65,13 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private int failedRetries;
 	private int pauseInterval;
 
-	public EventsServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
+	public EventsServiceImpl(Object configurator, RestService restService) {
 		super(configurator);
 
-		if (pluginServices == null) {
-			throw new IllegalArgumentException("plugin services MUST NOT be null");
-		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.pluginServices = pluginServices;
 		this.restService = restService;
 		startBackgroundWorker();
 	}
@@ -124,7 +118,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 	private boolean sendData() {
 		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-				.setServer(pluginServices.getServerInfo())
+				.setServer(getPluginServices().getServerInfo())
 				.setEvents(new ArrayList<>(events));
 		boolean result = true;
 
@@ -137,7 +131,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 			}
 		}
 		String targetOctane = "UNKNOWN!?";
-		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
+		OctaneConfiguration octaneConfig = getPluginServices().getOctaneConfiguration();
 		if (octaneConfig != null) {
 			targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
 		}
@@ -177,8 +171,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(pluginServices.getOctaneConfiguration().getUrl() +
-						SHARED_SPACE_INTERNAL_API_PATH_PART + pluginServices.getOctaneConfiguration().getSharedSpace() +
+				.setUrl(getPluginServices().getOctaneConfiguration().getUrl() +
+						SHARED_SPACE_INTERNAL_API_PATH_PART + getPluginServices().getOctaneConfiguration().getSharedSpace() +
 						ANALYTICS_CI_PATH_PART + "events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));

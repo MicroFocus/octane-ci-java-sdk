@@ -25,7 +25,6 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -60,16 +59,12 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	private final ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private final ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 
-	private final CIPluginServices pluginServices;
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 
-	public BridgeServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService, TasksProcessor tasksProcessor) {
+	public BridgeServiceImpl(Object configurator, RestService restService, TasksProcessor tasksProcessor) {
 		super(configurator);
 
-		if (pluginServices == null) {
-			throw new IllegalArgumentException("plugin services MUST NOT be null");
-		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
@@ -77,7 +72,6 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 			throw new IllegalArgumentException("task processor MUST NOT be null");
 		}
 
-		this.pluginServices = pluginServices;
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
 		startBackgroundWorker();
@@ -88,9 +82,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		connectivityExecutors.execute(new Runnable() {
 			public void run() {
 				String tasksJSON;
-				CIServerInfo serverInfo = pluginServices.getServerInfo();
-				CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
-				String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
+				CIServerInfo serverInfo = getPluginServices().getServerInfo();
+				CIPluginInfo pluginInfo = getPluginServices().getPluginInfo();
+				String apiKey = getPluginServices().getOctaneConfiguration() == null ? "" : getPluginServices().getOctaneConfiguration().getApiKey();
 
 				try {
 					//  get tasks, wait if needed and return with task or timeout or error
@@ -137,7 +131,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 		String responseBody = null;
 		RestClient restClient = restService.obtainClient();
-		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
+		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<>();
 			headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -191,7 +185,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					public void run() {
 						OctaneResultAbridged result = tasksProcessor.execute(task);
 						int submitStatus = putAbridgedResult(
-								pluginServices.getServerInfo().getInstanceId(),
+								getPluginServices().getServerInfo().getInstanceId(),
 								result.getId(),
 								dtoFactory.dtoToJson(result));
 						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
@@ -205,7 +199,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
 		RestClient restClientImpl = restService.obtainClient();
-		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
+		OctaneConfiguration octaneConfiguration = getPluginServices().getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
