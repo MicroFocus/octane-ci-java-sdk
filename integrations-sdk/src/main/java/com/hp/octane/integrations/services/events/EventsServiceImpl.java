@@ -41,7 +41,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
 
 /**
@@ -175,8 +177,9 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" + pluginServices.getOctaneConfiguration().getSharedSpace() +
-						"/analytics/ci/events")
+				.setUrl(pluginServices.getOctaneConfiguration().getUrl() +
+						SHARED_SPACE_INTERNAL_API_PATH_PART + pluginServices.getOctaneConfiguration().getSharedSpace() +
+						ANALYTICS_CI_PATH_PART + "events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));
 	}

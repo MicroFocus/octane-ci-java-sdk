@@ -43,8 +43,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import static com.hp.octane.integrations.api.RestService.ACCEPT_HEADER;
+import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
+import static com.hp.octane.integrations.util.CIPluginSDKUtils.urlEncodeQueryParam;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
@@ -131,12 +134,6 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		} catch (UnsupportedEncodingException uee) {
 			logger.warn("failed to URL-encode SDK version '" + selfUrl + "' (will be sent as is", uee);
 		}
-		String pluginVersionEscaped = pluginVersion;
-		try {
-			pluginVersionEscaped = URLEncoder.encode(pluginVersion, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode plugin version '" + selfUrl + "' (will be sent as is", uee);
-		}
 
 		String responseBody = null;
 		RestClient restClient = restService.obtainClient();
@@ -146,9 +143,11 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 			headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 			OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
-					.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" + octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity +
-							"/tasks?self-type=" + selfType + "&self-url=" + selfUrlEscaped + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersionEscaped +
-							"&plugin-version=" + pluginVersionEscaped + "&client-id=" + octaneUser + "&ci-server-user=" + ciServerUser)
+					.setUrl(octaneConfiguration.getUrl() +
+							SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+							ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + selfType +
+							"&self-url=" + selfUrlEscaped + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersionEscaped +
+							"&plugin-version=" + urlEncodeQueryParam(pluginVersion) + "&client-id=" + octaneUser + "&ci-server-user=" + ciServerUser)
 					.setHeaders(headers);
 			try {
 				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
@@ -211,7 +210,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(octaneConfiguration.getUrl() + "/internal-api/shared_spaces/" + octaneConfiguration.getSharedSpace() + "/analytics/ci/servers/" + selfIdentity + "/tasks/" + taskId + "/result")
+				.setUrl(octaneConfiguration.getUrl() +
+						SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+						ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks/" + taskId + "/result")
 				.setHeaders(headers)
 				.setBody(contentJSON);
 		try {

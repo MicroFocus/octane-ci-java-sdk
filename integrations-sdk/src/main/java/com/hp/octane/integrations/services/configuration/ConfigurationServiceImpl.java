@@ -38,6 +38,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
+import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
+
 /**
  * Base implementation of Configuration Service API
  */
@@ -45,7 +47,6 @@ import java.util.List;
 public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String SHARED_SPACES_API_URI = "/internal-api/shared_spaces/";
 	private static final String AUTHORIZATION_URI = "/analytics/ci/servers/connectivity/status";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
@@ -117,7 +118,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(configuration.getUrl() + SHARED_SPACES_API_URI + configuration.getSharedSpace() + AUTHORIZATION_URI);
+				.setUrl(configuration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + AUTHORIZATION_URI);
 		return restClientImpl.execute(request, configuration);
 	}
 

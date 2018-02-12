@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -37,6 +40,26 @@ public class CIPluginSDKUtils {
 			}
 		}
 		return noProxyHost;
+	}
+
+	public static String urlEncodePathParam(String input) {
+		String result = input;
+		try {
+			result = URLEncoder.encode(input, StandardCharsets.UTF_8.name()).replace("+", "%20");
+		} catch (UnsupportedEncodingException uee) {
+			logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
+		}
+		return result;
+	}
+
+	public static String urlEncodeQueryParam(String input) {
+		String result = input;
+		try {
+			result = URLEncoder.encode(input, StandardCharsets.UTF_8.name());
+		} catch (UnsupportedEncodingException uee) {
+			logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
+		}
+		return result;
 	}
 
 	private static List<Pattern> getNoProxyHostPatterns(String noProxyHost) {
