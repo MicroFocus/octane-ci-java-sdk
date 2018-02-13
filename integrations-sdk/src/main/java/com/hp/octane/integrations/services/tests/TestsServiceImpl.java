@@ -25,13 +25,14 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
-import com.hp.octane.integrations.spi.CIPluginServices;
-import org.apache.commons.codec.binary.Base64;
+import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -39,7 +40,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 
 /**
  * Default implementation of tests service
@@ -50,24 +53,24 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
-	private final CIPluginServices pluginServices;
+	private final QueueService queueService;
 	private final RestService restService;
 
 	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public TestsServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
-		super(configurator);
+	public TestsServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {
+		super(internalUsageValidator);
 
-		if (pluginServices == null) {
-			throw new IllegalArgumentException("plugin services MUST NOT be null");
+		if (queueService == null) {
+			throw new IllegalArgumentException("queue service MUST NOT be null");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.pluginServices = pluginServices;
+		this.queueService = queueService;
 		this.restService = restService;
 		startBackgroundWorker();
 	}
@@ -81,19 +84,11 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
 		}
 
-		String finalJobCiId = jobCiId;
-
-		//  [YG] TODO the check below should be removed in a few months from here, it is just for a backward compatibility
-		//  basically job ci id should be sent as query parameter and not path parameter and we'll get rid of this encoding
-		boolean encodeJobCiId = isOctaneSupportsBase64JobCiId();
-		if (encodeJobCiId) {
-			finalJobCiId = Base64.encodeBase64String(jobCiId.getBytes());
-		}
-
 		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
 				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"/servers/" + serverCiId + "/jobs/" + finalJobCiId + "/tests-result-preflight?isBase64=true");
+						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
+						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobCiId) + "/tests-result-preflight");
 
 		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
 		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
@@ -104,18 +99,9 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 			throw new IllegalArgumentException("tests result MUST NOT be null");
 		}
 
-		RestClient restClient = restService.obtainClient();
-		Map<String, String> headers = new HashMap<>();
-		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.POST)
-				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"/test-results?skip-errors=false")
-				.setHeaders(headers)
-				.setBody(dtoFactory.dtoToXml(testsResult));
-		OctaneResponse response = restClient.execute(request);
-		logger.info("tests result pushed; status: " + response.getStatus() + ", response: " + response.getBody());
-		return response;
+		String testsResultAsXml = dtoFactory.dtoToXml(testsResult);
+		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes());
+		return pushTestsResult(testsResultAsStream);
 	}
 
 	@Override
@@ -130,7 +116,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"/test-results?skip-errors=false")
+						"test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(testsResult);
 		OctaneResponse response = restClient.execute(request);
@@ -188,17 +174,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	}
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + "/internal-api/shared_spaces/" + sharedSpaceId + "/analytics/ci";
-	}
-
-	//  [YG] TODO remove this method ASAP
-	private boolean isOctaneSupportsBase64JobCiId() throws IOException {
-		OctaneRequest checkBase64SupportRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"/servers/tests-result-preflight-base64");
-		OctaneResponse response = restService.obtainClient().execute(checkBase64SupportRequest);
-		return response.getStatus() == HttpStatus.SC_OK;
+		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
 	}
 
 	private static final class TestsResultQueueEntry {
