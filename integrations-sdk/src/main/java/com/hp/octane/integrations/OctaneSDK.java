@@ -21,6 +21,8 @@ import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingServiceImpl;
+import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queue.QueueServiceImpl;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
@@ -45,6 +47,7 @@ public final class OctaneSDK {
 
 	private final Object INTERNAL_USAGE_VALIDATOR = new Object();
 	private final CIPluginServices pluginServices;
+	private final QueueService queueService;
 	private final RestService restService;
 	private final ConfigurationService configurationService;
 	private final TasksProcessor tasksProcessor;
@@ -56,11 +59,12 @@ public final class OctaneSDK {
 		initSDKProperties();
 		pluginServices = ciPluginServices;
 		new LoggingServiceImpl(INTERNAL_USAGE_VALIDATOR);
+		queueService = new QueueServiceImpl(INTERNAL_USAGE_VALIDATOR);
 		restService = new RestServiceImpl(INTERNAL_USAGE_VALIDATOR);
 		tasksProcessor = new TasksProcessorImpl(INTERNAL_USAGE_VALIDATOR);
 		configurationService = new ConfigurationServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
 		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
 	}
 

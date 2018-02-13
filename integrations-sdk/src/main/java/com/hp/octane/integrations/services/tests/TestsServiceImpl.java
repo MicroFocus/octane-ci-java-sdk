@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -52,19 +53,24 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
+	private final QueueService queueService;
 	private final RestService restService;
 
 	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public TestsServiceImpl(Object internalUsageValidator, RestService restService) {
+	public TestsServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {
 		super(internalUsageValidator);
 
+		if (queueService == null) {
+			throw new IllegalArgumentException("queue service MUST NOT be null");
+		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
+		this.queueService = queueService;
 		this.restService = restService;
 		startBackgroundWorker();
 	}

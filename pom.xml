@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.hpe.adm.octane.ciplugins</groupId>
 	<artifactId>java-sdk</artifactId>
-	<version>1.4-SNAPSHOT</version>
+	<version>1.5-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>HPE ALM Octane Common libraries for CI plugins</name>
@@ -62,22 +63,30 @@
 		<url>https://github.com/MicroFocus/octane-ci-java-sdk</url>
 		<tag>HEAD</tag>
 	</scm>
-	<issueManagement />
-	<ciManagement />
+	<issueManagement/>
+	<ciManagement/>
 
 	<properties>
-		<maven-gpg-plugin.version>1.5</maven-gpg-plugin.version>
-		<nexus-staging-maven-plugin.version>1.6.7</nexus-staging-maven-plugin.version>
-		<maven-javadoc-plugin.version>2.10.4</maven-javadoc-plugin.version>
-		<maven-source-plugin.version>2.2.1</maven-source-plugin.version>
+		<maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+		<maven-javadoc-plugin.version>3.0.0</maven-javadoc-plugin.version>
+		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+		<junit.version>4.12</junit.version>
+		<easymock.version>3.5.1</easymock.version>
 	</properties>
 
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<groupId>junit</groupId>
 				<artifactId>junit</artifactId>
-				<version>4.12</version>
+				<groupId>junit</groupId>
+				<version>${junit.version}</version>
+			</dependency>
+			<dependency>
+				<artifactId>easymock</artifactId>
+				<groupId>org.easymock</groupId>
+				<version>${easymock.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -88,29 +97,22 @@
 				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<groupId>org.apache.maven.plugins</groupId>
-					<version>3.1</version>
+					<version>${maven-compiler-plugin.version}</version>
 					<configuration>
 						<source>1.7</source>
 						<target>1.7</target>
 					</configuration>
 				</plugin>
 				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>2.10.4</version>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-javadoc-plugin.version}</version>
+					<configuration>
+						<excludePackageNames>*.impl</excludePackageNames>
+					</configuration>
 				</plugin>
 			</plugins>
-
 		</pluginManagement>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<configuration>
-					<excludePackageNames>*.impl</excludePackageNames>
-				</configuration>
-			</plugin>
-		</plugins>
 	</build>
 
 	<distributionManagement>
@@ -127,8 +129,8 @@
 				<pluginManagement>
 					<plugins>
 						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-javadoc-plugin</artifactId>
+							<groupId>org.apache.maven.plugins</groupId>
 							<version>${maven-javadoc-plugin.version}</version>
 							<executions>
 								<execution>
@@ -140,8 +142,8 @@
 							</executions>
 						</plugin>
 						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-source-plugin</artifactId>
+							<groupId>org.apache.maven.plugins</groupId>
 							<version>${maven-source-plugin.version}</version>
 							<executions>
 								<execution>
@@ -161,28 +163,20 @@
 		<profile>
 			<id>sign</id>
 			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<groupId>org.apache.maven.plugins</groupId>
-							<artifactId>maven-gpg-plugin</artifactId>
-							<version>${maven-gpg-plugin.version}</version>
-							<executions>
-								<execution>
-									<id>sign-artifacts</id>
-									<phase>verify</phase>
-									<goals>
-										<goal>sign</goal>
-									</goals>
-								</execution>
-							</executions>
-						</plugin>
-					</plugins>
-				</pluginManagement>
 				<plugins>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
+						<groupId>org.apache.maven.plugins</groupId>
+						<version>${maven-gpg-plugin.version}</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
 					</plugin>
 				</plugins>
 			</build>
@@ -193,8 +187,8 @@
 			<build>
 				<plugins>
 					<plugin>
-						<groupId>org.sonatype.plugins</groupId>
 						<artifactId>nexus-staging-maven-plugin</artifactId>
+						<groupId>org.sonatype.plugins</groupId>
 						<version>${nexus-staging-maven-plugin.version}</version>
 						<extensions>true</extensions>
 						<configuration>

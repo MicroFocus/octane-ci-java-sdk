@@ -54,7 +54,7 @@ public interface CIPluginServices {
 	CIPluginInfo getPluginInfo();
 
 	/**
-	 * Provides the folder that the plugin is allowed to write to (logs, temporary stuff etc)
+	 * Provides the folder that the plugin is allowed to write to (logs, queues, temporary stuff etc)
 	 *
 	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
 	 */
