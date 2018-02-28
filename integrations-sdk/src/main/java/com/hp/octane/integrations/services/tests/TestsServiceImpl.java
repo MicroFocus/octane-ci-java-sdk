@@ -114,9 +114,12 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 											logger.error("failed to submit tests result with " + response.getStatus() + "; dropping this item from the queue");
 											buildList.remove(0);
 										}
-									} catch (Throwable t) {
-										logger.error("Tests result push failed; will retry after " + DATA_SEND_INTERVAL + "ms", t);
+									} catch (IOException e){
+										logger.error("Tests result push failed; will retry after " + DATA_SEND_INTERVAL + "ms", e);
 										breathe(DATA_SEND_INTERVAL);
+									}catch (Throwable t) {
+										logger.error("Tests result push failed; dropping this item from the queue ", t);
+										buildList.remove(0);
 									}
 								} else {
 									breathe(LIST_EMPTY_INTERVAL);
