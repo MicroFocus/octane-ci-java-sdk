@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
@@ -38,6 +37,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
+import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
+
 /**
  * Base implementation of Configuration Service API
  */
@@ -45,25 +46,19 @@ import java.util.List;
 public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String SHARED_SPACES_API_URI = "/internal-api/shared_spaces/";
 	private static final String AUTHORIZATION_URI = "/analytics/ci/servers/connectivity/status";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
 
-	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
-	public ConfigurationServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
-		super(configurator);
+	public ConfigurationServiceImpl(Object internalUsageValidator, RestService restService) {
+		super(internalUsageValidator);
 
-		if (pluginServices == null) {
-			throw new IllegalArgumentException("plugin services MUST NOT be null");
-		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.pluginServices = pluginServices;
 		this.restService = restService;
 	}
 
@@ -117,11 +112,12 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(configuration.getUrl() + SHARED_SPACES_API_URI + configuration.getSharedSpace() + AUTHORIZATION_URI);
+				.setUrl(configuration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + AUTHORIZATION_URI);
 		return restClientImpl.execute(request, configuration);
 	}
 
 	public void notifyChange() {
+		logger.info("notified about Octane Server configuration change, propagating to RestService");
 		restService.notifyConfigurationChange();
 	}
 }

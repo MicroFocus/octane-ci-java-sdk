@@ -27,7 +27,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIServerInfoImpl implements CIServerInfo {
 	private String type;
-    private boolean suspended;
+	private boolean suspended;
 	private String version;
 	private String url;
 	private String instanceId;
@@ -111,6 +111,17 @@ class CIServerInfoImpl implements CIServerInfo {
 		return this;
 	}
 
+	@Override
+	public boolean isSuspended() {
+		return this.suspended;
+	}
+
+	@Override
+	public CIServerInfo setSuspended(boolean suspended) {
+		this.suspended = suspended;
+		return this;
+	}
+
 	private String normalizeURL(String input) {
 		String result;
 		if (input != null && input.endsWith("/")) {
@@ -120,15 +131,4 @@ class CIServerInfoImpl implements CIServerInfo {
 		}
 		return result;
 	}
-
-	@Override
-	public boolean isSuspended(){
-		return this.suspended;
-	}
-
-	@Override
-	public void setSuspended(boolean suspended){
-		this.suspended= suspended;
-	}
-
 }

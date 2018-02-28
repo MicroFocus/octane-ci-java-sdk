@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>java-sdk</artifactId>
 		<groupId>com.hpe.adm.octane.ciplugins</groupId>
-		<version>1.4-SNAPSHOT</version>
+		<version>1.5-SNAPSHOT</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -12,9 +12,11 @@
 	<artifactId>integrations-sdk</artifactId>
 
 	<properties>
+		<log4j.version>2.9.1</log4j.version>
+		<commons-logging.version>1.2</commons-logging.version>
 		<httpcore.version>4.4.4</httpcore.version>
 		<httpclient.version>4.5.2</httpclient.version>
-		<log4j.version>2.6.2</log4j.version>
+		<squareup-tape.version>1.2.3</squareup-tape.version>
 	</properties>
 
 	<dependencies>
@@ -27,16 +29,7 @@
 		</dependency>
 
 		<!-- EXTERNAL -->
-		<dependency>
-			<artifactId>httpcore</artifactId>
-			<groupId>org.apache.httpcomponents</groupId>
-			<version>${httpcore.version}</version>
-		</dependency>
-		<dependency>
-			<artifactId>httpclient</artifactId>
-			<groupId>org.apache.httpcomponents</groupId>
-			<version>${httpclient.version}</version>
-		</dependency>
+		<!-- logging -->
 		<dependency>
 			<artifactId>log4j-api</artifactId>
 			<groupId>org.apache.logging.log4j</groupId>
@@ -48,10 +41,20 @@
 			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
-			<artifactId>commons-logging</artifactId>
-			<groupId>commons-logging</groupId>
-			<version>1.2</version>
-			<scope>provided</scope>
+			<artifactId>httpcore</artifactId>
+			<groupId>org.apache.httpcomponents</groupId>
+			<version>${httpcore.version}</version>
+		</dependency>
+		<dependency>
+			<artifactId>httpclient</artifactId>
+			<groupId>org.apache.httpcomponents</groupId>
+			<version>${httpclient.version}</version>
+		</dependency>
+		<!-- queue -->
+		<dependency>
+			<artifactId>tape</artifactId>
+			<groupId>com.squareup</groupId>
+			<version>${squareup-tape.version}</version>
 		</dependency>
 
 		<!-- TESTING -->
@@ -64,7 +67,6 @@
 			<artifactId>easymock</artifactId>
 			<groupId>org.easymock</groupId>
 			<scope>test</scope>
-			<version>2.2</version>
 		</dependency>
 
 	</dependencies>

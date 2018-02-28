@@ -16,8 +16,9 @@
 
 package com.hp.octane.integrations.services.rest;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -26,6 +27,7 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -42,6 +44,7 @@ import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.client.CookieStore;
@@ -54,6 +57,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
@@ -68,7 +72,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -131,10 +134,11 @@ final class RestClientImpl implements RestClient {
 	}
 
 	void notifyConfigurationChange() {
+		logger.info("going to abort " + ongoingRequests.size() + " request/s due to configuration change notification...");
 		synchronized (REQUESTS_LIST_LOCK) {
 			LWSSO_TOKEN = null;
 			for (HttpUriRequest request : ongoingRequests) {
-				logger.info("aborting " + request + " due to configuration change notification");
+				logger.info("aborting " + request);
 				request.abort();
 			}
 		}
@@ -164,21 +168,32 @@ final class RestClientImpl implements RestClient {
 		}
 
 		try {
-			uriRequest = createHttpRequest(request);
-			context = createHttpContext(request.getUrl());
-			httpResponse = httpClient.execute(uriRequest, context);
-
-			if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-				logger.info("re-login");
-				HttpClientUtils.closeQuietly(httpResponse);
-				loginResponse = login(configuration);
-				if (loginResponse.getStatus() != 200) {
-					logger.error("failed on re-login, status " + loginResponse.getStatus());
-					return loginResponse;
-				}
+			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
+			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
 				context = createHttpContext(request.getUrl());
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests.add(uriRequest);
+				}
 				httpResponse = httpClient.execute(uriRequest, context);
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests.remove(uriRequest);
+				}
+
+				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
+					logger.info("re-login");
+					EntityUtils.consumeQuietly(httpResponse.getEntity());
+					HttpClientUtils.closeQuietly(httpResponse);
+					loginResponse = login(configuration);
+					if (loginResponse.getStatus() != 200) {
+						logger.error("failed on re-login with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						return loginResponse;
+					} else {
+						logger.info("re-attempting the original request having successful re-login");
+					}
+				} else {
+					break;
+				}
 			}
 
 			result = createNGAResponse(httpResponse);
@@ -211,9 +226,13 @@ final class RestClientImpl implements RestClient {
 		} else if (octaneRequest.getMethod().equals(HttpMethod.DELETE)) {
 			requestBuilder = RequestBuilder.delete(octaneRequest.getUrl());
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
-			requestBuilder = RequestBuilder.post(octaneRequest.getUrl()).setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			requestBuilder = RequestBuilder.post(octaneRequest.getUrl());
+			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
+			requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
-			requestBuilder = RequestBuilder.put(octaneRequest.getUrl()).setEntity(new GzipCompressingEntity(new StringEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			requestBuilder = RequestBuilder.put(octaneRequest.getUrl());
+			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
+			requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
 		} else {
 			throw new RuntimeException("HTTP method " + octaneRequest.getMethod() + " not supported");
 		}
@@ -229,9 +248,6 @@ final class RestClientImpl implements RestClient {
 		requestBuilder.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
 
 		request = requestBuilder.build();
-		synchronized (REQUESTS_LIST_LOCK) {
-			ongoingRequests.add(request);
-		}
 		return request;
 	}
 
@@ -255,11 +271,7 @@ final class RestClientImpl implements RestClient {
 				credentialsProvider.clear();
 			}
 
-			context.setRequestConfig(RequestConfig
-							.custom()
-							.setProxy(proxyHost)
-							.build()
-			);
+			context.setRequestConfig(RequestConfig.custom().setProxy(proxyHost).build());
 		}
 
 		return context;
@@ -283,7 +295,7 @@ final class RestClientImpl implements RestClient {
 
 	private String readResponseBody(InputStream is) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		byte[] buffer = new byte[1024];
+		byte[] buffer = new byte[4096];
 		int length;
 		while ((length = is.read(buffer)) != -1) {
 			baos.write(buffer, 0, length);
@@ -298,7 +310,15 @@ final class RestClientImpl implements RestClient {
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
 			HttpClientContext context = createHttpContext(loginRequest.getURI().toString());
+
+			synchronized (REQUESTS_LIST_LOCK) {
+				ongoingRequests.remove(loginRequest);
+			}
 			response = httpClient.execute(loginRequest, context);
+			synchronized (REQUESTS_LIST_LOCK) {
+				ongoingRequests.remove(loginRequest);
+			}
+
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				for (Cookie cookie : context.getCookieStore().getCookies()) {
 					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
@@ -324,14 +344,11 @@ final class RestClientImpl implements RestClient {
 		HttpUriRequest loginRequest;
 		try {
 			LoginApiBody loginApiBody = new LoginApiBody(config.getApiKey(), config.getSecret());
-			StringEntity loginApiJson = new StringEntity(new ObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
+			StringEntity loginApiJson = new StringEntity(CIPluginSDKUtils.getObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
 			RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
 					.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)
 					.setEntity(loginApiJson);
 			loginRequest = requestBuilder.build();
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.add(loginRequest);
-			}
 			return loginRequest;
 		} catch (JsonProcessingException jpe) {
 			throw new IOException("failed to serialize login content", jpe);
@@ -369,9 +386,10 @@ final class RestClientImpl implements RestClient {
 		}
 	}
 
+	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 	private static final class LoginApiBody {
-		public final String client_id;
-		public final String client_secret;
+		private final String client_id;
+		private final String client_secret;
 
 		private LoginApiBody(String client_id, String client_secret) {
 			this.client_id = client_id;

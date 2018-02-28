@@ -54,18 +54,11 @@ public interface CIPluginServices {
 	CIPluginInfo getPluginInfo();
 
 	/**
-	 * Provides the folder that the plugin is allowed to write to (logs, temporary stuff etc)
+	 * Provides the folder that the plugin is allowed to write to (logs, queues, temporary stuff etc)
 	 *
 	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
 	 */
 	File getAllowedOctaneStorage();
-
-	/**
-	 * Provider the folder that includes predictive-Octane properties
-	 *
-	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
-	 */
-	File getPredictiveOctanePath();
 
 	/**
 	 * Provides Octane Server configuration (managed by plugin implementation)
@@ -109,18 +102,17 @@ public interface CIPluginServices {
 	/**
 	 * suspend events from CI
 	 *
-	 * @param suspend
+	 * @param suspend desired state of CI events suspension
 	 */
-	 void suspendCiEvents(boolean suspend);
+	void suspendCIEvents(boolean suspend);
 
-
-		/**
-		 * Provides Snapshot of the latest CI Build of the specified CI Job
-		 *
-		 * @param ciJobId Job CI ID to get latest snapshot for
-		 * @param subTree should the snapshot include sub tree or not
-		 * @return latest snapshot's structure or null if build data not found
-		 */
+	/**
+	 * Provides Snapshot of the latest CI Build of the specified CI Job
+	 *
+	 * @param ciJobId Job CI ID to get latest snapshot for
+	 * @param subTree should the snapshot include sub tree or not
+	 * @return latest snapshot's structure or null if build data not found
+	 */
 	SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree);
 
 	/**
@@ -146,7 +138,7 @@ public interface CIPluginServices {
 	/**
 	 * Retrieves tests result report for the specific build
 	 *
-	 * @param jobCiId       Job CI ID to get tests results of
+	 * @param jobCiId   Job CI ID to get tests results of
 	 * @param buildCiId Build CI ID to get tests results of
 	 * @return TestsResult data; NULL if no tests result available
 	 */
@@ -156,7 +148,7 @@ public interface CIPluginServices {
 
 	void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo);
 
-    OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo);
+	OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo);
 
 	void deleteExecutor(String id);
 

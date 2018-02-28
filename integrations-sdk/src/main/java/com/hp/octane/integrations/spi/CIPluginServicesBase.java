@@ -35,7 +35,6 @@ import java.io.File;
 
 /**
  * Empty abstract implementation of CIPluginServices.
- * [YG] TODO: we'll better to define methods that are absolute MUST for and SDK to function and NOT provide default empty implementation of them, thus forcing their correct implementation
  */
 
 public abstract class CIPluginServicesBase implements CIPluginServices {
@@ -52,11 +51,6 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
 	public File getAllowedOctaneStorage() {
-		return null;
-	}
-
-	@Override
-	public File getPredictiveOctanePath() {
 		return null;
 	}
 
@@ -82,12 +76,10 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
 	public void runPipeline(String ciJobId, String originalBody) {
-		//do nothing
 	}
 
 	@Override
-	public void suspendCiEvents(boolean suspend) {
-		//do nothing
+	public void suspendCIEvents(boolean suspend) {
 	}
 
 	@Override
@@ -112,28 +104,23 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-		//do nothing
 	}
 
 	@Override
 	public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
-		//do nothing
 	}
 
 	@Override
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-		//do nothing
 		return null;
 	}
 
 	@Override
 	public void deleteExecutor(String id) {
-		//do nothing
 	}
 
 	@Override
 	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-		//do nothing
 		return null;
 	}
 }
