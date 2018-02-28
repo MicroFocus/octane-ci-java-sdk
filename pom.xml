@@ -8,7 +8,7 @@
 
 	<name>HPE ALM Octane Common libraries for CI plugins</name>
 	<description>HPE ALM Octane common libraries for developing CI plugins for Octane</description>
-	<url>https://github.com/HPSoftware/octane-ci-java-sdk/</url>
+	<url>https://github.com/MicroFocus/octane-ci-java-sdk</url>
 	<organization>
 		<name>HPE</name>
 	</organization>
@@ -57,9 +57,9 @@
 	</modules>
 
 	<scm>
-		<connection>scm:git:ssh://github.com/HPSoftware/octane-ci-java-sdk.git</connection>
-		<developerConnection>scm:git:ssh://github.com/HPSoftware/octane-ci-java-sdk.git</developerConnection>
-		<url>https://github.com/HPSoftware/octane-ci-java-sdk</url>
+		<connection>scm:git:ssh://github.com/MicroFocus/octane-ci-java-sdk.git</connection>
+		<developerConnection>scm:git:ssh://github.com/MicroFocus/octane-ci-java-sdk.git</developerConnection>
+		<url>https://github.com/MicroFocus/octane-ci-java-sdk</url>
 		<tag>HEAD</tag>
 	</scm>
 	<issueManagement />
