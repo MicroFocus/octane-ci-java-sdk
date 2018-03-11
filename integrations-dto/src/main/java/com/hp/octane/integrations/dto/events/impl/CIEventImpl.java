@@ -47,6 +47,9 @@ class CIEventImpl implements CIEvent {
 	private Boolean testResultExpected;
 	private String projectDisplayName;
 	private PhaseType phaseType;
+	private String commonHashId;
+	private String branchName;
+
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -163,6 +166,26 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setScmData(SCMData scmData) {
 		this.scmData = scmData;
+		return this;
+	}
+
+	public String getCommonHashId() {
+		return commonHashId;
+	}
+
+	public CIEvent setCommonHashId(String commonHashId) {
+		this.commonHashId = commonHashId;
+		return this;
+	}
+
+
+
+	public String getBranchName() {
+		return branchName;
+	}
+
+	public CIEvent setBranchName(String branchName) {
+		this.branchName = branchName;
 		return this;
 	}
 
