@@ -83,4 +83,12 @@ public interface CIEvent extends DTOBase {
 	Boolean getTestResultExpected();
 
 	CIEvent setTestResultExpected(boolean expected);
+
+	String getCommonHashId();
+
+	CIEvent setCommonHashId(String commonHashId);
+
+	String getBranchName();
+
+	CIEvent setBranchName(String commonHashId);
 }
