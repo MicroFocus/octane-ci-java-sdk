@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -41,7 +40,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
 
 /**
@@ -55,7 +56,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
 	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
-	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
 	private int MAX_SEND_RETRIES = 7;
@@ -65,17 +65,13 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private int failedRetries;
 	private int pauseInterval;
 
-	public EventsServiceImpl(Object configurator, CIPluginServices pluginServices, RestService restService) {
-		super(configurator);
+	public EventsServiceImpl(Object internalUsageValidator, RestService restService) {
+		super(internalUsageValidator);
 
-		if (pluginServices == null) {
-			throw new IllegalArgumentException("plugin services MUST NOT be null");
-		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.pluginServices = pluginServices;
 		this.restService = restService;
 		startBackgroundWorker();
 	}
@@ -175,8 +171,9 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		return dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(pluginServices.getOctaneConfiguration().getUrl() + "/internal-api/shared_spaces/" + pluginServices.getOctaneConfiguration().getSharedSpace() +
-						"/analytics/ci/events")
+				.setUrl(pluginServices.getOctaneConfiguration().getUrl() +
+						SHARED_SPACE_INTERNAL_API_PATH_PART + pluginServices.getOctaneConfiguration().getSharedSpace() +
+						ANALYTICS_CI_PATH_PART + "events")
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJson(events));
 	}
