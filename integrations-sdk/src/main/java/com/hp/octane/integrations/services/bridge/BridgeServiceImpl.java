@@ -31,9 +31,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -115,49 +112,6 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	}
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, Integer apiVersion, String sdkVersion, String pluginVersion, String octaneUser, String ciServerUser) {
-		//  pre-process potentially non-URL-safe values
-		String selfTypeEscaped = selfType;
-		try {
-			selfTypeEscaped = URLEncoder.encode(selfType, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode server type '" + selfType + "' (will be sent as is", uee);
-		}
-
-		String selfUrlEscaped = selfUrl;
-		try {
-			selfUrlEscaped = URLEncoder.encode(selfUrl, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode server URL '" + selfUrl + "' (will be sent as is", uee);
-		}
-
-		String sdkVersionEscaped = sdkVersion;
-		try {
-			sdkVersionEscaped = URLEncoder.encode(sdkVersion, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode SDK version '" + sdkVersion + "' (will be sent as is", uee);
-		}
-
-		String pluginVersionEscaped = pluginVersion;
-		try {
-			pluginVersionEscaped = URLEncoder.encode(pluginVersion, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode plugin version '" + pluginVersion + "' (will be sent as is", uee);
-		}
-
-		String octaneUserEscaped = octaneUser;
-		try {
-			octaneUserEscaped = URLEncoder.encode(octaneUser, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode octane user '" + octaneUser + "' (will be sent as is", uee);
-		}
-
-		String ciServerUserEscaped = ciServerUser;
-		try {
-			ciServerUserEscaped = URLEncoder.encode(ciServerUser, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode ci server user '" + ciServerUser + "' (will be sent as is", uee);
-		}
-
 		String responseBody = null;
 		RestClient restClient = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
@@ -168,9 +122,13 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					.setMethod(HttpMethod.GET)
 					.setUrl(octaneConfiguration.getUrl() +
 							SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-							ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + selfType +
-							"&self-url=" + selfUrlEscaped + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersionEscaped +
-							"&plugin-version=" + urlEncodeQueryParam(pluginVersion) + "&client-id=" + octaneUser + "&ci-server-user=" + ciServerUser)
+							ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + urlEncodeQueryParam(selfType) +
+							"&self-url=" + urlEncodeQueryParam(selfUrl) +
+							"&api-version=" + apiVersion +
+							"&sdk-version=" + urlEncodeQueryParam(sdkVersion) +
+							"&plugin-version=" + urlEncodeQueryParam(pluginVersion) +
+							"&client-id=" + urlEncodeQueryParam(octaneUser) +
+							"&ci-server-user=" + urlEncodeQueryParam(ciServerUser))
 					.setHeaders(headers);
 			try {
 				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
