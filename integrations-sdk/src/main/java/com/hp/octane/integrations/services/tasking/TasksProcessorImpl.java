@@ -30,7 +30,6 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
@@ -58,7 +57,6 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 	private static final String SUSPEND_STATUS = "suspend_status";
 	private static final String JOBS = "jobs";
 	private static final String RUN = "run";
-	private static final String HISTORY = "history";
 	private static final String BUILDS = "builds";
 	private static final String LATEST = "latest";
 	private static final String EXECUTOR = "executor";
@@ -108,8 +106,6 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 					} else {
 						executeSnapshotByNumberRequest(result, path[1], path[3], subTree);
 					}
-				} else if (path.length == 3 && JOBS.equals(path[0]) && HISTORY.equals(path[2])) {
-					executeHistoryRequest(result, path[1], task.getBody());
 				} else {
 					result.setStatus(404);
 				}
@@ -167,7 +163,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 		String[] path = Pattern.compile("^.*" + NGA_API + "/?").matcher(url).replaceFirst("").split("/");
 		params.put(0, path[0]);
 		for (int i = 1; i < path.length; i++) {
-			if ((path[i].equals(HISTORY) || path[i].equals(BUILDS) || path[i].equals(RUN)) && i == path.length - 1) { // last token
+			if ((path[i].equals(BUILDS) || path[i].equals(RUN)) && i == path.length - 1) { // last token
 				params.put(2, path[i]);
 			} else if (path[i].equals(BUILDS) && i == path.length - 2) {        // one before last token
 				params.put(2, path[i]);
@@ -241,12 +237,6 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 		} else {
 			result.setStatus(404);
 		}
-		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
-	}
-
-	private void executeHistoryRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		BuildHistory content = pluginServices.getHistoryPipeline(jobId, originalBody);
-		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 

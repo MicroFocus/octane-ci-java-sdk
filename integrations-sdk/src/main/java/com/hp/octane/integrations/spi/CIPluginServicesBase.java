@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
@@ -89,11 +88,6 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
 	public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
-		return null;
-	}
-
-	@Override
-	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
 		return null;
 	}
 
