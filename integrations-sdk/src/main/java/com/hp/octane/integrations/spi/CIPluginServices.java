@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
@@ -124,16 +123,6 @@ public interface CIPluginServices {
 	 * @return specified snapshot's structure or null if build data not found
 	 */
 	SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree);
-
-	/**
-	 * Retrieves aggregated latest builds info
-	 *
-	 * @param ciJobId      Job CI ID to get history data for
-	 * @param originalBody request body
-	 * @return history data for the specified pipeline
-	 */
-	@Deprecated
-	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
 
 	/**
 	 * Retrieves tests result report for the specific build
