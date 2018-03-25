@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.dto.pipelines;
 
 import com.hp.octane.integrations.dto.DTOBase;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 
 import java.util.List;
@@ -46,4 +47,8 @@ public interface PipelineNode extends DTOBase {
 	List<PipelinePhase> getPhasesPostBuild();
 
 	PipelineNode setPhasesPostBuild(List<PipelinePhase> phasesPostBuild);
+
+	MultiBranchType getMultiBranchType();
+
+	PipelineNode setMultiBranchType(MultiBranchType multiBranchType);
 }

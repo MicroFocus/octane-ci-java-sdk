@@ -16,6 +16,7 @@
 
 package com.hp.octane.integrations.dto.pipelines.impl;
 
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
@@ -30,6 +31,7 @@ import java.util.List;
 class PipelineNodeImpl implements PipelineNode {
 	private String jobCiId;
 	private String name;
+	private MultiBranchType multiBranchType;
 	private List<CIParameter> parameters = new ArrayList<>();
 	private List<PipelinePhase> phasesInternal = new ArrayList<>();
 	private List<PipelinePhase> phasesPostBuild = new ArrayList<>();
@@ -76,6 +78,17 @@ class PipelineNodeImpl implements PipelineNode {
 
 	public PipelineNode setPhasesPostBuild(List<PipelinePhase> phasesPostBuild) {
 		this.phasesPostBuild = phasesPostBuild;
+		return this;
+	}
+
+	@Override
+	public MultiBranchType getMultiBranchType() {
+		return multiBranchType;
+	}
+
+	@Override
+	public PipelineNode setMultiBranchType(MultiBranchType multiBranchType) {
+		this.multiBranchType = multiBranchType;
 		return this;
 	}
 }

@@ -48,6 +48,14 @@ public interface CIEvent extends DTOBase {
 
 	CIEvent setProject(String project);
 
+	String getParentCiId();
+
+	CIEvent setParentCiId(String parentCiId);
+
+	MultiBranchType getMultiBranchType();
+
+	CIEvent setMultiBranchType(MultiBranchType multiBranchType);
+
 	String getNumber();
 
 	CIEvent setNumber(String number);

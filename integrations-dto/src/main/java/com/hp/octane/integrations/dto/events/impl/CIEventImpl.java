@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.scm.SCMData;
@@ -36,6 +37,8 @@ class CIEventImpl implements CIEvent {
 	private CIEventType eventType;
 	private String buildCiId;
 	private String project;
+	private String parentCiId;
+	private MultiBranchType multiBranchType;
 	private String number;
 	private List<CIEventCause> causes;
 	private List<CIParameter> parameters;
@@ -94,6 +97,28 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setProject(String project) {
 		this.project = project;
+		return this;
+	}
+
+	@Override
+	public String getParentCiId() {
+		return this.parentCiId;
+	}
+
+	@Override
+	public CIEvent setParentCiId(String parentCiId) {
+		this.parentCiId = parentCiId;
+		return this;
+	}
+
+	@Override
+	public MultiBranchType getMultiBranchType() {
+		return multiBranchType;
+	}
+
+	@Override
+	public CIEvent setMultiBranchType(MultiBranchType multiBranchType) {
+		this.multiBranchType = multiBranchType;
 		return this;
 	}
 
