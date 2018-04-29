@@ -47,7 +47,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.client.CookieStore;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -155,7 +154,7 @@ final class RestClientImpl implements RestClient {
 	private OctaneResponse executeRequest(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
 		OctaneResponse result;
 		HttpClientContext context;
-		HttpUriRequest uriRequest;
+		HttpUriRequest uriRequest = null;
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
@@ -171,7 +170,7 @@ final class RestClientImpl implements RestClient {
 			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
 			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext(request.getUrl());
+				context = createHttpContext(request.getUrl(), false);
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests.add(uriRequest);
 				}
@@ -181,17 +180,18 @@ final class RestClientImpl implements RestClient {
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-					logger.info("re-login");
+					logger.info("doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
 					EntityUtils.consumeQuietly(httpResponse.getEntity());
 					HttpClientUtils.closeQuietly(httpResponse);
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
-						logger.error("failed on re-login with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						logger.error("failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
 						return loginResponse;
 					} else {
-						logger.info("re-attempting the original request having successful re-login");
+						logger.info("re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
+					refreshSecurityToken(context);
 					break;
 				}
 			}
@@ -201,6 +201,11 @@ final class RestClientImpl implements RestClient {
 			logger.error("failed executing " + request, ioe);
 			throw ioe;
 		} finally {
+			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests.remove(uriRequest);
+				}
+			}
 			if (httpResponse != null) {
 				EntityUtils.consumeQuietly(httpResponse.getEntity());
 				HttpClientUtils.closeQuietly(httpResponse);
@@ -251,11 +256,14 @@ final class RestClientImpl implements RestClient {
 		return request;
 	}
 
-	private HttpClientContext createHttpContext(String requestUrl) {
+	private HttpClientContext createHttpContext(String requestUrl, boolean isLoginRequest) {
 		HttpClientContext context = HttpClientContext.create();
-		CookieStore localCookies = new BasicCookieStore();
-		localCookies.addCookie(LWSSO_TOKEN);
-		context.setCookieStore(localCookies);
+		context.setCookieStore(new BasicCookieStore());
+
+		//  add security token if needed
+		if (!isLoginRequest) {
+			context.getCookieStore().addCookie(LWSSO_TOKEN);
+		}
 
 		//  configure proxy if needed
 		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(requestUrl);
@@ -275,6 +283,21 @@ final class RestClientImpl implements RestClient {
 		}
 
 		return context;
+	}
+
+	private void refreshSecurityToken(HttpClientContext context) {
+		boolean securityTokenRefreshed = false;
+		for (Cookie cookie : context.getCookieStore().getCookies()) {
+			if (LWSSO_COOKIE_NAME.equals(cookie.getName()) && (LWSSO_TOKEN == null || cookie.getValue().compareTo(LWSSO_TOKEN.getValue()) != 0)) {
+				LWSSO_TOKEN = cookie;
+				securityTokenRefreshed = true;
+				break;
+			}
+		}
+
+		if (securityTokenRefreshed) {
+			logger.info("successfully refreshed security token");
+		}
 	}
 
 	private OctaneResponse createNGAResponse(HttpResponse response) throws IOException {
@@ -309,22 +332,13 @@ final class RestClientImpl implements RestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			HttpClientContext context = createHttpContext(loginRequest.getURI().toString());
-
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.remove(loginRequest);
-			}
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), true);
 			response = httpClient.execute(loginRequest, context);
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.remove(loginRequest);
-			}
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				for (Cookie cookie : context.getCookieStore().getCookies()) {
-					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
-						LWSSO_TOKEN = cookie;
-					}
-				}
+				refreshSecurityToken(context);
+			} else {
+				logger.warn("failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(response);
 		} catch (IOException ioe) {
