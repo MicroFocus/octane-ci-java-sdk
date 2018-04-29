@@ -17,9 +17,6 @@
 package com.hp.octane.integrations.dto.tests.impl;
 
 import com.hp.octane.integrations.dto.tests.TestField;
-import com.hp.octane.integrations.dto.tests.TestRun;
-import com.hp.octane.integrations.dto.tests.TestRunError;
-import com.hp.octane.integrations.dto.tests.TestRunResult;
 
 import javax.xml.bind.annotation.*;
 
