@@ -18,23 +18,18 @@ package com.hp.octane.integrations.dto.tests;
 
 import com.hp.octane.integrations.dto.DTOBase;
 
-import java.util.List;
-
 /**
- * TestsResult DTO
+ * TestRun DTO
  */
 
-public interface TestsResult extends DTOBase {
+public interface TestField extends DTOBase {
 
-	BuildContext getBuildContext();
+	String getType();
 
-	TestsResult setBuildContext(BuildContext buildContext);
+	TestField setType(String fieldType);
 
-	List<TestField> getTestFields();
+	String getValue();
 
-	TestsResult setTestFields(List<TestField> testFields);
+	TestField setValue(String value);
 
-	List<TestRun> getTestRuns();
-
-	TestsResult setTestRuns(List<TestRun> testRuns);
 }
