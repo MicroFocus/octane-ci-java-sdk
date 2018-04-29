@@ -155,7 +155,7 @@ final class RestClientImpl implements RestClient {
 	private OctaneResponse executeRequest(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
 		OctaneResponse result;
 		HttpClientContext context;
-		HttpUriRequest uriRequest;
+		HttpUriRequest uriRequest = null;
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
@@ -181,15 +181,15 @@ final class RestClientImpl implements RestClient {
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-					logger.info("re-login");
+					logger.info("doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
 					EntityUtils.consumeQuietly(httpResponse.getEntity());
 					HttpClientUtils.closeQuietly(httpResponse);
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
-						logger.error("failed on re-login with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						logger.error("failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
 						return loginResponse;
 					} else {
-						logger.info("re-attempting the original request having successful re-login");
+						logger.info("re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
 					break;
@@ -201,6 +201,11 @@ final class RestClientImpl implements RestClient {
 			logger.error("failed executing " + request, ioe);
 			throw ioe;
 		} finally {
+			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests.remove(uriRequest);
+				}
+			}
 			if (httpResponse != null) {
 				EntityUtils.consumeQuietly(httpResponse.getEntity());
 				HttpClientUtils.closeQuietly(httpResponse);
@@ -310,14 +315,7 @@ final class RestClientImpl implements RestClient {
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
 			HttpClientContext context = createHttpContext(loginRequest.getURI().toString());
-
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.remove(loginRequest);
-			}
 			response = httpClient.execute(loginRequest, context);
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.remove(loginRequest);
-			}
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				for (Cookie cookie : context.getCookieStore().getCookies()) {
