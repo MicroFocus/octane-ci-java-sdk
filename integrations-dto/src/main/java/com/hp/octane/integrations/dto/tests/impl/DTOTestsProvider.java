@@ -19,10 +19,7 @@ package com.hp.octane.integrations.dto.tests.impl;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
-import com.hp.octane.integrations.dto.tests.BuildContext;
-import com.hp.octane.integrations.dto.tests.TestRun;
-import com.hp.octane.integrations.dto.tests.TestRunError;
-import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.dto.tests.*;
 
 /**
  * Octane oriented test result DTOs definitions provider
@@ -34,11 +31,13 @@ public final class DTOTestsProvider extends DTOInternalProviderBase {
 		dtoPairs.put(BuildContext.class, BuildContextImpl.class);
 		dtoPairs.put(TestRunError.class, TestRunErrorImpl.class);
 		dtoPairs.put(TestRun.class, TestRunImpl.class);
+		dtoPairs.put(TestField.class, TestFieldImpl.class);
 		dtoPairs.put(TestsResult.class, TestsResultImpl.class);
 
 		xmlAbles.add(BuildContextImpl.class);
 		xmlAbles.add(TestRunErrorImpl.class);
 		xmlAbles.add(TestRunImpl.class);
+		xmlAbles.add(TestFieldImpl.class);
 		xmlAbles.add(TestsResultImpl.class);
 	}
 
