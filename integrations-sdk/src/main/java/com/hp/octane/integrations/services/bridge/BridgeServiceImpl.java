@@ -71,6 +71,8 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
+
+		logger.info("Starting background worker...");
 		startBackgroundWorker();
 	}
 
@@ -82,6 +84,8 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 				CIServerInfo serverInfo = pluginServices.getServerInfo();
 				CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
 				String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
+
+				logger.info("Executing getAbridgedTasks...");
 
 				try {
 					//  get tasks, wait if needed and return with task or timeout or error
@@ -98,10 +102,12 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					//  regardless of response - reconnect again to keep the light on
 					startBackgroundWorker();
 
+
 					//  now can process the received tasks - if any
 					if (tasksJSON != null && !tasksJSON.isEmpty()) {
 						handleTasks(tasksJSON);
 					}
+					logger.info("Finished backgroundWorker");
 				} catch (Throwable t) {
 					logger.error("connection to Octane Server temporary failed", t);
 					doWait(1000);
