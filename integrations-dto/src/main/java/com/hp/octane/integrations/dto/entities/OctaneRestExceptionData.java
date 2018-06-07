@@ -22,7 +22,7 @@ import com.hp.octane.integrations.dto.DTOBase;
  * Entity DTO
  */
 
-public interface OctaneException extends DTOBase {
+public interface OctaneRestExceptionData extends DTOBase {
 
     String getErrorCode();
 
@@ -32,7 +32,7 @@ public interface OctaneException extends DTOBase {
 
     String getDescriptionTranslated();
 
-    String getOctaneStackTrace();
+    String getStackTrace();
 
     boolean getBusinessError();
 

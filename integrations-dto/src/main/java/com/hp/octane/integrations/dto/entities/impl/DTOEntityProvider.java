@@ -32,8 +32,8 @@ public final class DTOEntityProvider extends DTOInternalProviderBase {
         dtoPairs.put(Entity.class, EntityImpl.class);
         dtoPairs.put(EntityList.class, EntityListImpl.class);
         dtoPairs.put(ResponseEntityList.class, ResponseEntityListImpl.class);
-        dtoPairs.put(OctaneException.class, OctaneExceptionImpl.class);
-        dtoPairs.put(OctaneBulkException.class,OctaneBulkExceptionImpl.class);
+        dtoPairs.put(OctaneRestExceptionData.class, OctaneRestExceptionDataImpl.class);
+        dtoPairs.put(OctaneBulkExceptionData.class,OctaneBulkExceptionDataImpl.class);
     }
 
     protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

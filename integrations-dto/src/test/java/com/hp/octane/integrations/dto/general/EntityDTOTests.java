@@ -101,13 +101,13 @@ public class EntityDTOTests {
     @Test
     public void testParseOctaneException() {
         String json = "{\"error_code\":\"platform.web_application\",\"correlation_id\":\"o5jp1yvjo54lxbjmo7dxz12v6\",\"description\":\"HTTP 404 Not Found\",\"description_translated\":\"HTTP 404 Not Found\",\"properties\":null,\"stack_trace\":\"javax.ws.rs.NotFoundException: HTTP 404\",\"business_error\":false}\n";
-        OctaneException octaneException = dtoFactory.dtoFromJson(json, OctaneException.class);
-        Assert.assertEquals("platform.web_application", octaneException.getErrorCode());
+        OctaneRestExceptionData octaneRestExceptionData = dtoFactory.dtoFromJson(json, OctaneRestExceptionData.class);
+        Assert.assertEquals("platform.web_application", octaneRestExceptionData.getErrorCode());
     }
     @Test
     public void testParseOctaneBulkException() {
         String json = "{\"total_count\":0,\"data\":[],\"exceeds_total_count\":false,\"errors\":[{\"error_code\":\"platform.unknown_field\",\"correlation_id\":\"o5jp1y5576mo0tdyd60g7n2v6\",\"description\":\"The entity type 'defect' does not have a field/s by name/s 'sss'\",\"description_translated\":\"The entity type 'defect' does not have a field/s by name/s 'sss'\",\"properties\":{\"entity_type\":\"defect\",\"field_name\":\"sss\"},\"stack_trace\":\"com.hp.mqm.bl.platform.exception.NonExistingFieldException\",\"business_error\":true}]}";
-        OctaneBulkException octaneException = dtoFactory.dtoFromJson(json, OctaneBulkException.class);
+        OctaneBulkExceptionData octaneException = dtoFactory.dtoFromJson(json, OctaneBulkExceptionData.class);
         Assert.assertEquals("platform.unknown_field", octaneException.getErrors().get(0).getErrorCode());
     }
 

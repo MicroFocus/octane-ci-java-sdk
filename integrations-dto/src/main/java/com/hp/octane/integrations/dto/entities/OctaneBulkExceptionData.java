@@ -24,8 +24,8 @@ import java.util.List;
  * Entity DTO
  */
 
-public interface OctaneBulkException extends DTOBase {
+public interface OctaneBulkExceptionData extends DTOBase {
 
-	List<OctaneException> getErrors();
+	List<OctaneRestExceptionData> getErrors();
 
 }

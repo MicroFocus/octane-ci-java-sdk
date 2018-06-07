@@ -25,8 +25,8 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.entities.*;
-import com.hp.octane.integrations.dto.entities.impl.OctaneBulkExceptionImpl;
-import com.hp.octane.integrations.dto.entities.impl.OctaneExceptionImpl;
+import com.hp.octane.integrations.exceptions.OctaneBulkException;
+import com.hp.octane.integrations.exceptions.OctaneRestException;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 
@@ -189,13 +189,13 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
         } else {
             try {
                 if (body.contains("exceeds_total_count")) {
-                    OctaneBulkExceptionImpl exception = (OctaneBulkExceptionImpl) dtoFactory.dtoFromJson(body, OctaneBulkException.class);
-                    throw exception;
+                    OctaneBulkExceptionData data = dtoFactory.dtoFromJson(body, OctaneBulkExceptionData.class);
+                    throw new OctaneBulkException((data));
                 } else {
-                    OctaneExceptionImpl exception = (OctaneExceptionImpl) dtoFactory.dtoFromJson(body, OctaneException.class);
-                    throw exception;
+                    OctaneRestExceptionData data = dtoFactory.dtoFromJson(body, OctaneRestExceptionData.class);
+                    throw new OctaneRestException(data);
                 }
-            } catch (OctaneBulkExceptionImpl | OctaneExceptionImpl ex1) {
+            } catch (OctaneRestException | OctaneBulkException ex1) {
                 throw ex1;
             } catch (Exception ex2) {
                 throw new RuntimeException("The request failed : " + body, ex2);

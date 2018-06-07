@@ -2,10 +2,10 @@ package com.hp.octane.integrations.dto.entities.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSetter;
-import com.hp.octane.integrations.dto.entities.OctaneException;
+import com.hp.octane.integrations.dto.entities.OctaneRestExceptionData;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class OctaneExceptionImpl extends RuntimeException implements OctaneException {
+public class OctaneRestExceptionDataImpl implements OctaneRestExceptionData {
 
 
     private String errorCode;
@@ -37,7 +37,7 @@ public class OctaneExceptionImpl extends RuntimeException implements OctaneExcep
     }
 
     @Override
-    public String getOctaneStackTrace() {
+    public String getStackTrace() {
         return stackTrace;
     }
 
