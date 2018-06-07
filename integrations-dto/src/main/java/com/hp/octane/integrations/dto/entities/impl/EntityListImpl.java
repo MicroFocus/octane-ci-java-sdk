@@ -9,7 +9,7 @@ import java.util.List;
 
 public class EntityListImpl implements EntityList {
 
-    List<Entity> data;
+    private List<Entity> data;
 
     @Override
     public List<Entity> getData() {

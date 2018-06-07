@@ -16,21 +16,17 @@
 
 package com.hp.octane.integrations.dto.entities;
 
-import com.hp.octane.integrations.dto.DTOBase;
-
-import java.util.List;
-
 /**
  * Entity DTO received from response
  */
 
 public interface ResponseEntityList extends EntityList {
 
-	int getTotalCount();
+    int getTotalCount();
 
-	boolean getExceedsTotalCount();
+    boolean getExceedsTotalCount();
 
-	ResponseEntityList setTotalCount(int totalCount);
+    ResponseEntityList setTotalCount(int totalCount);
 
-	ResponseEntityList setExceedsTotalCount(boolean exceedsTotalCount);
+    ResponseEntityList setExceedsTotalCount(boolean exceedsTotalCount);
 }

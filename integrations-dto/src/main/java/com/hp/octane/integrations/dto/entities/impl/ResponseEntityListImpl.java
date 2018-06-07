@@ -7,10 +7,10 @@ import com.hp.octane.integrations.dto.entities.ResponseEntityList;
 public class ResponseEntityListImpl extends EntityListImpl implements ResponseEntityList {
 
     @JsonProperty(value="total_count")
-    int totalCount;
+    private int totalCount;
 
     @JsonProperty(value="exceeds_total_count")
-    boolean exceedsTotalCount;
+    private boolean exceedsTotalCount;
 
 
     @Override

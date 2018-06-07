@@ -29,8 +29,6 @@ import com.hp.octane.integrations.dto.entities.impl.OctaneBulkExceptionImpl;
 import com.hp.octane.integrations.dto.entities.impl.OctaneExceptionImpl;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -46,7 +44,7 @@ import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
  */
 
 public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implements EntitiesService {
-    private static final Logger logger = LogManager.getLogger(EntitiesServiceImpl.class);
+    //private static final Logger logger = LogManager.getLogger(EntitiesServiceImpl.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     private final RestService restService;
@@ -197,12 +195,10 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
                     OctaneExceptionImpl exception = (OctaneExceptionImpl) dtoFactory.dtoFromJson(body, OctaneException.class);
                     throw exception;
                 }
-            } catch (Exception e) {
-                if (e instanceof OctaneBulkExceptionImpl || e instanceof OctaneExceptionImpl) {
-                    throw e;
-                } else {
-                    throw new RuntimeException("The request failed : " + body);
-                }
+            } catch (OctaneBulkExceptionImpl | OctaneExceptionImpl ex1) {
+                throw ex1;
+            } catch (Exception ex2) {
+                throw new RuntimeException("The request failed : " + body, ex2);
             }
         }
     }
