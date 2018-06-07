@@ -190,10 +190,10 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
             try {
                 if (body.contains("exceeds_total_count")) {
                     OctaneBulkExceptionData data = dtoFactory.dtoFromJson(body, OctaneBulkExceptionData.class);
-                    throw new OctaneBulkException((data));
+                    throw new OctaneBulkException(response.getStatus(), data);
                 } else {
                     OctaneRestExceptionData data = dtoFactory.dtoFromJson(body, OctaneRestExceptionData.class);
-                    throw new OctaneRestException(data);
+                    throw new OctaneRestException(response.getStatus(), data);
                 }
             } catch (OctaneRestException | OctaneBulkException ex1) {
                 throw ex1;
