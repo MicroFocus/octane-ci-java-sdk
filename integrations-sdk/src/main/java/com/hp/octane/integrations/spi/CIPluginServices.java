@@ -31,6 +31,7 @@ import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
+import java.io.InputStream;
 
 /**
  * Composite API of all the endpoints to be implemented by a hosting CI Plugin for Octane use cases.
@@ -132,6 +133,15 @@ public interface CIPluginServices {
 	 * @return TestsResult data; NULL if no tests result available
 	 */
 	TestsResult getTestsResult(String jobCiId, String buildCiId);
+
+	/**
+	 * Retrieves build's log as an InputStream
+	 *
+	 * @param jobCiId   job CI ID of the specific build to get log for
+	 * @param buildCiId build CI ID to get log for
+	 * @return build's log as an InputStream; NULL if no log available
+	 */
+	InputStream getBuildLog(String jobCiId, String buildCiId);
 
 	void runTestDiscovery(DiscoveryInfo discoveryInfo);
 

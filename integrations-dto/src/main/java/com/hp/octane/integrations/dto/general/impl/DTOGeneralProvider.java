@@ -32,6 +32,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 public final class DTOGeneralProvider extends DTOInternalProviderBase {
 
 	public DTOGeneralProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
 		dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
 		dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);

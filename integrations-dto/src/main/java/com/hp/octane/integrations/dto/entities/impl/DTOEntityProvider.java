@@ -27,20 +27,20 @@ import com.hp.octane.integrations.dto.entities.*;
 
 public final class DTOEntityProvider extends DTOInternalProviderBase {
 
-    public DTOEntityProvider(DTOFactory.DTOConfiguration configuration) {
+	public DTOEntityProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
+		dtoPairs.put(Entity.class, EntityImpl.class);
+		dtoPairs.put(EntityList.class, EntityListImpl.class);
+		dtoPairs.put(ResponseEntityList.class, ResponseEntityListImpl.class);
+		dtoPairs.put(OctaneRestExceptionData.class, OctaneRestExceptionDataImpl.class);
+		dtoPairs.put(OctaneBulkExceptionData.class, OctaneBulkExceptionDataImpl.class);
+	}
 
-        dtoPairs.put(Entity.class, EntityImpl.class);
-        dtoPairs.put(EntityList.class, EntityListImpl.class);
-        dtoPairs.put(ResponseEntityList.class, ResponseEntityListImpl.class);
-        dtoPairs.put(OctaneRestExceptionData.class, OctaneRestExceptionDataImpl.class);
-        dtoPairs.put(OctaneBulkExceptionData.class,OctaneBulkExceptionDataImpl.class);
-    }
-
-    protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
-        T result = null;
-        if (dtoPairs.containsKey(targetType)) {
-            result = (T) dtoPairs.get(targetType).newInstance();
-        }
-        return result;
-    }
+	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+		T result = null;
+		if (dtoPairs.containsKey(targetType)) {
+			result = (T) dtoPairs.get(targetType).newInstance();
+		}
+		return result;
+	}
 }

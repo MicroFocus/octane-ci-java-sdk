@@ -31,6 +31,7 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 public final class DTOSCMProvider extends DTOInternalProviderBase {
 
 	public DTOSCMProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(SCMChange.class, SCMChangeImpl.class);
 		dtoPairs.put(SCMCommit.class, SCMCommitImpl.class);
 		dtoPairs.put(SCMRepository.class, SCMRepositoryImpl.class);

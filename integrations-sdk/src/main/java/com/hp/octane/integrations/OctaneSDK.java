@@ -22,6 +22,7 @@ import com.hp.octane.integrations.services.configuration.ConfigurationServiceImp
 import com.hp.octane.integrations.services.entities.EntitiesServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingServiceImpl;
+import com.hp.octane.integrations.services.logs.LogsServiceImpl;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.services.queue.QueueServiceImpl;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
@@ -54,6 +55,7 @@ public final class OctaneSDK {
 	private final TasksProcessor tasksProcessor;
 	private final EventsService eventsService;
 	private final TestsService testsService;
+	private final LogsService logsService;
 	private final EntitiesService entitiesService;
 
 	private OctaneSDK(CIPluginServices ciPluginServices) {
@@ -67,6 +69,7 @@ public final class OctaneSDK {
 		configurationService = new ConfigurationServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
 		entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
 	}
@@ -120,6 +123,10 @@ public final class OctaneSDK {
 
 	public TestsService getTestsService() {
 		return testsService;
+	}
+
+	public LogsService getLogsService() {
+		return logsService;
 	}
 
 	public EntitiesService getEntitiesService() {

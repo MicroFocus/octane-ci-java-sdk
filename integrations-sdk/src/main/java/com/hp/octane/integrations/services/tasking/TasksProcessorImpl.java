@@ -182,7 +182,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 		for (int i = 0; i < params.size(); i++) {
 			listAsArray.add(i, params.get(i));
 		}
-		return listAsArray.toArray(new String[listAsArray.size()]);
+		return listAsArray.toArray(new String[0]);
 	}
 
 	private void executeStatusRequest(OctaneResultAbridged result) {

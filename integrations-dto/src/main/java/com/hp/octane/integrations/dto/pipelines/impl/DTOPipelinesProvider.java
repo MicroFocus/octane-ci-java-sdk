@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 public final class DTOPipelinesProvider extends DTOInternalProviderBase {
 
 	public DTOPipelinesProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(PipelineNode.class, PipelineNodeImpl.class);
 		dtoPairs.put(PipelinePhase.class, PipelinePhaseImpl.class);
 	}

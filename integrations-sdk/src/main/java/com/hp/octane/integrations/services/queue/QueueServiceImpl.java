@@ -1,26 +1,16 @@
-/*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
- *
- */
-
 package com.hp.octane.integrations.services.queue;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.squareup.tape.FileObjectQueue;
+import com.squareup.tape.InMemoryObjectQueue;
+import com.squareup.tape.ObjectQueue;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Queue Service provides a common queue infrastructure, initialization and maintenance
@@ -41,6 +31,47 @@ public final class QueueServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		} else {
 			storageDirectory = null;
 			logger.info("hosting plugin DO NOT PROVIDE available storage, queues persistence disabled");
+		}
+	}
+
+	@Override
+	public boolean isPersistenceEnabled() {
+		return storageDirectory != null;
+	}
+
+	@Override
+	public <T> ObjectQueue<T> initMemoQueue() {
+		return new InMemoryObjectQueue<>();
+	}
+
+	@Override
+	public <T> ObjectQueue<T> initFileQueue(String queueFileName, Class<T> targetType) {
+		ObjectQueue<T> result;
+		try {
+			File queueFile = new File(storageDirectory, queueFileName);
+			result = new FileObjectQueue<>(queueFile, new GenericOctaneQueueItemConverter<>(targetType));
+		} catch (Exception e) {
+			logger.error("failed to create file based queue, falling back to memory based one", e);
+			result = initMemoQueue();
+		}
+		return result;
+	}
+
+	private static final class GenericOctaneQueueItemConverter<T> implements FileObjectQueue.Converter<T> {
+		private final Class<T> targetType;
+
+		private GenericOctaneQueueItemConverter(Class<T> targetType) {
+			this.targetType = targetType;
+		}
+
+		@Override
+		public T from(byte[] bytes) throws IOException {
+			return CIPluginSDKUtils.getObjectMapper().readValue(bytes, targetType);
+		}
+
+		@Override
+		public void toStream(T t, OutputStream outputStream) throws IOException {
+			CIPluginSDKUtils.getObjectMapper().writeValue(outputStream, t);
 		}
 	}
 }

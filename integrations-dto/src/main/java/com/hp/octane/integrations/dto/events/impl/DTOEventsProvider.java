@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.events.CIEventsList;
 public final class DTOEventsProvider extends DTOInternalProviderBase {
 
 	public DTOEventsProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(CIEvent.class, CIEventImpl.class);
 		dtoPairs.put(CIEventsList.class, CIEventsListImpl.class);
 	}
