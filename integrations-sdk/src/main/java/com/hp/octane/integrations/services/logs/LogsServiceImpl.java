@@ -92,24 +92,28 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 						try {
 							BuildLogQueueItem buildLogQueueItem = buildLogsQueue.peek();
 							InputStream log = pluginServices.getBuildLog(buildLogQueueItem.jobId, buildLogQueueItem.buildId);
-							OctaneResponse response = pushBuildLog("", "", "", log);
-							if (response.getStatus() == HttpStatus.SC_OK) {
-								logger.info("build log push SUCCEED");
+							OctaneResponse response = pushBuildLog(
+									pluginServices.getServerInfo().getInstanceId(),
+									buildLogQueueItem.jobId,
+									buildLogQueueItem.buildId,
+									log);
+							if (response != null && response.getStatus() == HttpStatus.SC_OK) {
+								logger.info("build log dispatch round SUCCEED");
 								buildLogsQueue.remove();
-							} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-								logger.info("build log push FAILED, service unavailable; retrying after a breathe...");
+							} else if (response != null && response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+								logger.info("build log dispatch round FAILED, service unavailable; retrying after a breathe...");
 								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
 							} else {
 								//  case of any other fatal error
-								logger.error("build log push FAILED, status " + response.getStatus() + "; dropping this item from the queue");
+								logger.error("build log dispatch round FAILED, status " + (response != null ? response.getStatus() : " - failed to get response") + "; dropping this item from the queue");
 								buildLogsQueue.remove();
 							}
 
 						} catch (IOException e) {
-							logger.error("build log push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
+							logger.error("build log dispatch round FAILED; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
 							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
 						} catch (Throwable t) {
-							logger.error("build log push failed; dropping this item from the queue ", t);
+							logger.error("build log dispatch round FAILED; dropping this item from the queue ", t);
 							buildLogsQueue.remove();
 						}
 					} else {
@@ -126,14 +130,56 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 		OctaneResponse preflightResponse = preflight(octaneConfiguration, encodedServerId, encodedJobId);
+		String[] workspaceIDs;
 		if (preflightResponse.getStatus() == HttpStatus.SC_OK) {
-
+			try {
+				workspaceIDs = CIPluginSDKUtils.getObjectMapper().readValue(preflightResponse.getBody(), String[].class);
+				if (workspaceIDs == null || workspaceIDs.length == 0) {
+					logger.debug("no relevant workspaces found, moving to the next task");
+					return preflightResponse;
+				}
+			} catch (Exception e) {
+				throw new RuntimeException("failed to parse workspace IDs, won't retry");
+			}
 		} else {
 			return preflightResponse;
 		}
 
 		//  submit log for each workspace returned by the 'preflight' API
-
+		//  [YG] TODO: the code below should and will be refactored to a simpler state once Octane's APIs will be adjusted
+		//  meanwhile - if any of the workspaces got successful response, this will be the response back to queue iteration
+		//          - if not - the last erroneous response will be passed back to the queue iteration to decide, retry or not
+		OctaneResponse anySuccessResponse = null,
+				lastResponse = null;
+		for (String workspaceId : workspaceIDs) {
+			try {
+				OctaneRequest pushLogRequest = dtoFactory.newDTO(OctaneRequest.class)
+						.setMethod(HttpMethod.POST)
+						.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+								"workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
+								encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs")
+						.setBody(log);
+				lastResponse = restService.obtainClient().execute(pushLogRequest);
+				if (lastResponse.getStatus() == HttpStatus.SC_OK) {
+					anySuccessResponse = lastResponse;
+				}
+			} catch (IOException ioe) {
+				logger.error("failed to post log to workspace " + workspaceId + ", retrying one more time due to IOException", ioe);
+				OctaneRequest pushLogRequest = dtoFactory.newDTO(OctaneRequest.class)
+						.setMethod(HttpMethod.POST)
+						.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+								"workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
+								encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs")
+						.setBody(log);
+				lastResponse = restService.obtainClient().execute(pushLogRequest);
+				if (lastResponse.getStatus() == HttpStatus.SC_OK) {
+					anySuccessResponse = lastResponse;
+				}
+			} catch (Exception e) {
+				logger.error("failed to dispatch log to workspace " + workspaceId + ", won't retry", e);
+			}
+		}
+		return anySuccessResponse != null ? anySuccessResponse : lastResponse;
 	}
 
 	private OctaneResponse preflight(OctaneConfiguration octaneConfiguration, String serverId, String jobId) throws IOException {
@@ -144,7 +190,6 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		return restService.obtainClient().execute(preflightRequest);
 	}
 
-	//  TODO: turn to be breakable wait with timeout and notifier
 	private void breathe(int period) {
 		try {
 			Thread.sleep(period);
