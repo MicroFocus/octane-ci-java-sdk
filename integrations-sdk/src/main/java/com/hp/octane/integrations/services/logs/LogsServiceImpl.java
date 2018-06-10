@@ -16,6 +16,8 @@
 
 package com.hp.octane.integrations.services.logs;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.LogsService;
 import com.hp.octane.integrations.api.RestService;
@@ -92,23 +94,26 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 						try {
 							BuildLogQueueItem buildLogQueueItem = buildLogsQueue.peek();
 							InputStream log = pluginServices.getBuildLog(buildLogQueueItem.jobId, buildLogQueueItem.buildId);
-							OctaneResponse response = pushBuildLog(
-									pluginServices.getServerInfo().getInstanceId(),
-									buildLogQueueItem.jobId,
-									buildLogQueueItem.buildId,
-									log);
-							if (response != null && response.getStatus() == HttpStatus.SC_OK) {
-								logger.info("build log dispatch round SUCCEED");
-								buildLogsQueue.remove();
-							} else if (response != null && response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-								logger.info("build log dispatch round FAILED, service unavailable; retrying after a breathe...");
-								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+							if (log != null) {
+								OctaneResponse response = pushBuildLog(
+										pluginServices.getServerInfo().getInstanceId(),
+										buildLogQueueItem.jobId,
+										buildLogQueueItem.buildId,
+										log);
+								if (response != null && response.getStatus() == HttpStatus.SC_OK) {
+									logger.info("build log dispatch round SUCCEED");
+									buildLogsQueue.remove();
+								} else if (response != null && response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+									logger.info("build log dispatch round FAILED, service unavailable; retrying after a breathe...");
+									breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+								} else {
+									//  case of any other fatal error
+									logger.error("build log dispatch round FAILED, status " + (response != null ? response.getStatus() : " - failed to get response") + "; dropping this item from the queue");
+									buildLogsQueue.remove();
+								}
 							} else {
-								//  case of any other fatal error
-								logger.error("build log dispatch round FAILED, status " + (response != null ? response.getStatus() : " - failed to get response") + "; dropping this item from the queue");
-								buildLogsQueue.remove();
+								logger.debug("build '" + buildLogQueueItem.buildId + "' of job '" + buildLogQueueItem.jobId + "' is empty, nothing to post");
 							}
-
 						} catch (IOException e) {
 							logger.error("build log dispatch round FAILED; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
 							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
@@ -202,6 +207,8 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
 	}
 
+	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	private static final class BuildLogQueueItem {
 		private final String jobId;
 		private final String buildId;
