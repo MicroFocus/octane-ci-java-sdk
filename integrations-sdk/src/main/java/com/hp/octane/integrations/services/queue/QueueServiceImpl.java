@@ -45,7 +45,7 @@ public final class QueueServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	}
 
 	@Override
-	public <T> ObjectQueue<T> initFileQueue(String queueFileName, Class<T> targetType) {
+	public <T extends QueueItem> ObjectQueue<T> initFileQueue(String queueFileName, Class<T> targetType) {
 		ObjectQueue<T> result;
 		try {
 			File queueFile = new File(storageDirectory, queueFileName);

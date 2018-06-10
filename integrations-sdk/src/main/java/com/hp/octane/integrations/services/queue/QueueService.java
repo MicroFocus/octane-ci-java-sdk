@@ -1,8 +1,8 @@
 package com.hp.octane.integrations.services.queue;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.squareup.tape.ObjectQueue;
-
-import java.io.File;
 
 public interface QueueService {
 
@@ -30,5 +30,10 @@ public interface QueueService {
 	 * @param <T>           type of an item of the queue
 	 * @return initialized queue
 	 */
-	<T> ObjectQueue<T> initFileQueue(String queueFileName, Class<T> targetType);
+	<T extends QueueItem> ObjectQueue<T> initFileQueue(String queueFileName, Class<T> targetType);
+
+	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	interface QueueItem {
+	}
 }

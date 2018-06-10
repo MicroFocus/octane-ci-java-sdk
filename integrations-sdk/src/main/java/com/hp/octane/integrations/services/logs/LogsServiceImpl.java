@@ -16,8 +16,6 @@
 
 package com.hp.octane.integrations.services.logs;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.LogsService;
 import com.hp.octane.integrations.api.RestService;
@@ -93,26 +91,20 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 					if (buildLogsQueue.size() > 0) {
 						try {
 							BuildLogQueueItem buildLogQueueItem = buildLogsQueue.peek();
-							InputStream log = pluginServices.getBuildLog(buildLogQueueItem.jobId, buildLogQueueItem.buildId);
-							if (log != null) {
-								OctaneResponse response = pushBuildLog(
-										pluginServices.getServerInfo().getInstanceId(),
-										buildLogQueueItem.jobId,
-										buildLogQueueItem.buildId,
-										log);
-								if (response != null && response.getStatus() == HttpStatus.SC_OK) {
-									logger.info("build log dispatch round SUCCEED");
-									buildLogsQueue.remove();
-								} else if (response != null && response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-									logger.info("build log dispatch round FAILED, service unavailable; retrying after a breathe...");
-									breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-								} else {
-									//  case of any other fatal error
-									logger.error("build log dispatch round FAILED, status " + (response != null ? response.getStatus() : " - failed to get response") + "; dropping this item from the queue");
-									buildLogsQueue.remove();
-								}
+							OctaneResponse response = pushBuildLog(
+									pluginServices.getServerInfo().getInstanceId(),
+									buildLogQueueItem.jobId,
+									buildLogQueueItem.buildId);
+							if (response != null && response.getStatus() == HttpStatus.SC_OK) {
+								logger.info("build log dispatch round SUCCEED");
+								buildLogsQueue.remove();
+							} else if (response != null && response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+								logger.info("build log dispatch round FAILED, service unavailable; retrying after a breathe...");
+								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
 							} else {
-								logger.debug("build '" + buildLogQueueItem.buildId + "' of job '" + buildLogQueueItem.jobId + "' is empty, nothing to post");
+								//  case of any other fatal error
+								logger.error("build log dispatch round FAILED, status " + (response != null ? response.getStatus() : " - failed to get response") + "; dropping this item from the queue");
+								buildLogsQueue.remove();
 							}
 						} catch (IOException e) {
 							logger.error("build log dispatch round FAILED; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
@@ -129,7 +121,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		});
 	}
 
-	private OctaneResponse pushBuildLog(String serverId, String jobId, String buildId, InputStream log) throws IOException {
+	private OctaneResponse pushBuildLog(String serverId, String jobId, String buildId) throws IOException {
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
@@ -156,20 +148,33 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		//          - if not - the last erroneous response will be passed back to the queue iteration to decide, retry or not
 		OctaneResponse anySuccessResponse = null,
 				lastResponse = null;
+		InputStream log;
 		for (String workspaceId : workspaceIDs) {
 			try {
+				log = pluginServices.getBuildLog(jobId, buildId);
+				if (log == null) {
+					logger.debug("build '" + buildId + "' of job '" + jobId + "' is empty, nothing to post");
+					break;
+				}
 				OctaneRequest pushLogRequest = dtoFactory.newDTO(OctaneRequest.class)
 						.setMethod(HttpMethod.POST)
 						.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-								"workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
+								"/workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
 								encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs")
 						.setBody(log);
 				lastResponse = restService.obtainClient().execute(pushLogRequest);
 				if (lastResponse.getStatus() == HttpStatus.SC_OK) {
 					anySuccessResponse = lastResponse;
+				} else {
+					logger.error("post of logs to Octane failed with status " + lastResponse.getStatus());
 				}
 			} catch (IOException ioe) {
 				logger.error("failed to post log to workspace " + workspaceId + ", retrying one more time due to IOException", ioe);
+				log = pluginServices.getBuildLog(jobId, buildId);
+				if (log == null) {
+					logger.debug("build '" + buildId + "' of job '" + jobId + "' is empty, nothing to post");
+					break;
+				}
 				OctaneRequest pushLogRequest = dtoFactory.newDTO(OctaneRequest.class)
 						.setMethod(HttpMethod.POST)
 						.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
@@ -179,6 +184,8 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 				lastResponse = restService.obtainClient().execute(pushLogRequest);
 				if (lastResponse.getStatus() == HttpStatus.SC_OK) {
 					anySuccessResponse = lastResponse;
+				} else {
+					logger.error("post of logs to Octane failed with status " + lastResponse.getStatus());
 				}
 			} catch (Exception e) {
 				logger.error("failed to dispatch log to workspace " + workspaceId + ", won't retry", e);
@@ -207,11 +214,12 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
 	}
 
-	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	private static final class BuildLogQueueItem {
-		private final String jobId;
-		private final String buildId;
+	private static final class BuildLogQueueItem implements QueueService.QueueItem {
+		private String jobId;
+		private String buildId;
+
+		private BuildLogQueueItem() {
+		}
 
 		private BuildLogQueueItem(String jobId, String buildId) {
 			this.jobId = jobId;
