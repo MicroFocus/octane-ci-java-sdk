@@ -153,13 +153,13 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 								buildList.remove(0);
 							}
 
-                        } catch (IOException e){
-                            logger.error("Tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
-                            breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-                        }catch (Throwable t) {
-                            logger.error("Tests result push failed; dropping this item from the queue ", t);
-                            buildList.remove(0);
-                        }
+						} catch (IOException e) {
+							logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
+							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+						} catch (Throwable t) {
+							logger.error("tests result push failed; dropping this item from the queue ", t);
+							buildList.remove(0);
+						}
 					} else {
 						breathe(LIST_EMPTY_INTERVAL);
 					}

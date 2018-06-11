@@ -31,6 +31,7 @@ import com.hp.octane.integrations.dto.coverage.TestCoverage;
 public final class DTOCoverageProvider extends DTOInternalProviderBase {
 
 	public DTOCoverageProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(BuildCoverage.class, BuildCoverageImpl.class);
 		dtoPairs.put(FileCoverage.class, FileCoverageImpl.class);
 		dtoPairs.put(LineCoverage.class, LineCoverageImpl.class);

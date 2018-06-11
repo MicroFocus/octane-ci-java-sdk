@@ -30,6 +30,7 @@ import com.hp.octane.integrations.dto.tests.TestSuite;
 public final class DTOJUnitTestsProvider extends DTOInternalProviderBase {
 
 	public DTOJUnitTestsProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(Property.class, PropertyImpl.class);
 		dtoPairs.put(TestCase.class, TestCaseImpl.class);
 		dtoPairs.put(TestSuite.class, TestSuiteImpl.class);
