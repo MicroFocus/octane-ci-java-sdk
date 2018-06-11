@@ -24,7 +24,9 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
 import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -53,7 +55,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
 	private final RestService restService;
 
-	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
+	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
 	public LogsServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {
@@ -83,34 +85,26 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
+	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  this should be infallible everlasting worker
 	private void startBackgroundWorker() {
 		worker.execute(new Runnable() {
 			public void run() {
 				while (true) {
 					if (buildLogsQueue.size() > 0) {
+						BuildLogQueueItem buildLogQueueItem = buildLogsQueue.peek();
 						try {
-							BuildLogQueueItem buildLogQueueItem = buildLogsQueue.peek();
-							OctaneResponse response = pushBuildLog(
-									pluginServices.getServerInfo().getInstanceId(),
-									buildLogQueueItem.jobId,
-									buildLogQueueItem.buildId);
-							if (response != null && response.getStatus() == HttpStatus.SC_OK) {
-								logger.info("build log dispatch round SUCCEED");
-								buildLogsQueue.remove();
-							} else if (response != null && response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-								logger.info("build log dispatch round FAILED, service unavailable; retrying after a breathe...");
-								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-							} else {
-								//  case of any other fatal error
-								logger.error("build log dispatch round FAILED, status " + (response != null ? response.getStatus() : " - failed to get response") + "; dropping this item from the queue");
-								buildLogsQueue.remove();
-							}
-						} catch (IOException e) {
-							logger.error("build log dispatch round FAILED; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
-							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+							pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
+							logger.debug("successfully processed " + buildLogQueueItem);
+							buildLogsQueue.remove();
+						} catch (TemporaryQueueItemException tque) {
+							logger.error("temporary error on " + buildLogQueueItem + ", breathing and retrying", tque);
+							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+						} catch (PermanentQueueItemException pqie) {
+							logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
+							buildLogsQueue.remove();
 						} catch (Throwable t) {
-							logger.error("build log dispatch round FAILED; dropping this item from the queue ", t);
+							logger.error("unexpected error on " + buildLogQueueItem + ", passing over", t);
 							buildLogsQueue.remove();
 						}
 					} else {
@@ -121,85 +115,97 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		});
 	}
 
-	private OctaneResponse pushBuildLog(String serverId, String jobId, String buildId) throws IOException {
+	private void pushBuildLog(String serverId, BuildLogQueueItem queueItem) {
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
-		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
-		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
-		OctaneResponse preflightResponse = preflight(octaneConfiguration, encodedServerId, encodedJobId);
-		String[] workspaceIDs;
-		if (preflightResponse.getStatus() == HttpStatus.SC_OK) {
-			try {
-				workspaceIDs = CIPluginSDKUtils.getObjectMapper().readValue(preflightResponse.getBody(), String[].class);
-				if (workspaceIDs == null || workspaceIDs.length == 0) {
-					logger.debug("no relevant workspaces found, moving to the next task");
-					return preflightResponse;
-				}
-			} catch (Exception e) {
-				throw new RuntimeException("failed to parse workspace IDs, won't retry");
-			}
+		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
+		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(queueItem.buildId);
+
+		//  preflight
+		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId);
+		if (workspaceIDs.length == 0) {
+			logger.info("log of " + queueItem + " found no interested workspace in Octane, passing over");
+			return;
 		} else {
-			return preflightResponse;
+			logger.info("log of " + queueItem + " found " + workspaceIDs.length + " interested workspace/s in Octane, dispatching the log");
 		}
 
 		//  submit log for each workspace returned by the 'preflight' API
 		//  [YG] TODO: the code below should and will be refactored to a simpler state once Octane's APIs will be adjusted
-		//  meanwhile - if any of the workspaces got successful response, this will be the response back to queue iteration
-		//          - if not - the last erroneous response will be passed back to the queue iteration to decide, retry or not
-		OctaneResponse anySuccessResponse = null,
-				lastResponse = null;
 		InputStream log;
+		OctaneRequest request;
+		OctaneResponse response;
 		for (String workspaceId : workspaceIDs) {
+			request = dtoFactory.newDTO(OctaneRequest.class)
+					.setMethod(HttpMethod.POST)
+					.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+							"/workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
+							encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs");
 			try {
-				log = pluginServices.getBuildLog(jobId, buildId);
+				log = pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
-					logger.debug("build '" + buildId + "' of job '" + jobId + "' is empty, nothing to post");
+					logger.info("no log for " + queueItem + " found, abandoning");
 					break;
 				}
-				OctaneRequest pushLogRequest = dtoFactory.newDTO(OctaneRequest.class)
-						.setMethod(HttpMethod.POST)
-						.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-								"/workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
-								encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs")
-						.setBody(log);
-				lastResponse = restService.obtainClient().execute(pushLogRequest);
-				if (lastResponse.getStatus() == HttpStatus.SC_OK) {
-					anySuccessResponse = lastResponse;
+				request.setBody(log);
+				response = restService.obtainClient().execute(request);
+				if (response.getStatus() == HttpStatus.SC_OK) {
+					logger.info("successfully pushed log of " + queueItem + " to WS " + workspaceId);
 				} else {
-					logger.error("post of logs to Octane failed with status " + lastResponse.getStatus());
+					logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
 				}
 			} catch (IOException ioe) {
-				logger.error("failed to post log to workspace " + workspaceId + ", retrying one more time due to IOException", ioe);
-				log = pluginServices.getBuildLog(jobId, buildId);
+				logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", waiting and retrying one more time due to IOException", ioe);
+				breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+				log = pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
-					logger.debug("build '" + buildId + "' of job '" + jobId + "' is empty, nothing to post");
+					logger.info("no log for " + queueItem + " found, abandoning");
 					break;
 				}
-				OctaneRequest pushLogRequest = dtoFactory.newDTO(OctaneRequest.class)
-						.setMethod(HttpMethod.POST)
-						.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-								"workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
-								encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs")
-						.setBody(log);
-				lastResponse = restService.obtainClient().execute(pushLogRequest);
-				if (lastResponse.getStatus() == HttpStatus.SC_OK) {
-					anySuccessResponse = lastResponse;
-				} else {
-					logger.error("post of logs to Octane failed with status " + lastResponse.getStatus());
+				request.setBody(log);
+				try {
+					response = restService.obtainClient().execute(request);
+					if (response.getStatus() == HttpStatus.SC_OK) {
+						logger.info("successfully pushed log of " + queueItem + " to WS " + workspaceId);
+					} else {
+						logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
+					}
+				} catch (IOException ioem) {
+					logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + " for the second time, abandoning", ioem);
 				}
-			} catch (Exception e) {
-				logger.error("failed to dispatch log to workspace " + workspaceId + ", won't retry", e);
 			}
 		}
-		return anySuccessResponse != null ? anySuccessResponse : lastResponse;
 	}
 
-	private OctaneResponse preflight(OctaneConfiguration octaneConfiguration, String serverId, String jobId) throws IOException {
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getAnalyticsContextPath(octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
-						"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
-		return restService.obtainClient().execute(preflightRequest);
+	private String[] preflightRequest(OctaneConfiguration octaneConfiguration, String serverId, String jobId) {
+		String[] result = new String[0];
+		OctaneResponse response;
+
+		//  get result
+		try {
+			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
+					.setMethod(HttpMethod.GET)
+					.setUrl(getAnalyticsContextPath(octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
+							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
+			response = restService.obtainClient().execute(preflightRequest);
+			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+				throw new TemporaryQueueItemException("preflight request failed with status " + response.getStatus());
+			} else if (response.getStatus() != HttpStatus.SC_OK) {
+				throw new PermanentQueueItemException("preflight request failed with status " + response.getStatus());
+			}
+		} catch (IOException ioe) {
+			throw new TemporaryQueueItemException(ioe);
+		}
+
+		//  parse result
+		if (response.getBody() != null && !response.getBody().isEmpty()) {
+			try {
+				result = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
+			} catch (IOException ioe) {
+				throw new PermanentQueueItemException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
+			}
+		}
+		return result;
 	}
 
 	private void breathe(int period) {
@@ -224,6 +230,11 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		private BuildLogQueueItem(String jobId, String buildId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+		}
+
+		@Override
+		public String toString() {
+			return "'" + jobId + " #" + buildId + "'";
 		}
 	}
 
