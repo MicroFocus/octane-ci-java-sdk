@@ -98,7 +98,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 							logger.debug("successfully processed " + buildLogQueueItem);
 							buildLogsQueue.remove();
 						} catch (TemporaryQueueItemException tque) {
-							logger.error("temporary error on " + buildLogQueueItem + ", breathing and retrying", tque);
+							logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
 						} catch (PermanentQueueItemException pqie) {
 							logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
@@ -155,7 +155,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 					logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
 				}
 			} catch (IOException ioe) {
-				logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", waiting and retrying one more time due to IOException", ioe);
+				logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);
 				breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
 				log = pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
@@ -190,7 +190,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 			response = restService.obtainClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 				throw new TemporaryQueueItemException("preflight request failed with status " + response.getStatus());
-			} else if (response.getStatus() != HttpStatus.SC_OK) {
+			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
 				throw new PermanentQueueItemException("preflight request failed with status " + response.getStatus());
 			}
 		} catch (IOException ioe) {
