@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
@@ -99,6 +100,15 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 			return result;
 		}
 	}
+
+    public boolean isConfigurationValid() {
+        try {
+            OctaneResponse response = validateConfiguration(pluginServices.getOctaneConfiguration());
+            return response.getStatus() == HttpStatus.SC_OK;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
 	public OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException {
 		if (configuration == null) {

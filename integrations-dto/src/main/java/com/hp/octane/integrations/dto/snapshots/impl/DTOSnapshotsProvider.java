@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.snapshots.SnapshotPhase;
 public final class DTOSnapshotsProvider extends DTOInternalProviderBase {
 
 	public DTOSnapshotsProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(SnapshotNode.class, SnapshotNodeImpl.class);
 		dtoPairs.put(SnapshotPhase.class, SnapshotPhaseImpl.class);
 	}

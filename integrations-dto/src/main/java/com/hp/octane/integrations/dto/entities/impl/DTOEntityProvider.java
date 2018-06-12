@@ -14,30 +14,26 @@
  *
  */
 
-package com.hp.octane.integrations.dto.tests.impl;
+package com.hp.octane.integrations.dto.entities.impl;
 
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
-import com.hp.octane.integrations.dto.tests.Property;
-import com.hp.octane.integrations.dto.tests.TestCase;
-import com.hp.octane.integrations.dto.tests.TestSuite;
+import com.hp.octane.integrations.dto.entities.*;
 
 /**
- * JUnit report related DTOs definitions provider
+ * General Entities purposes DTOs definitions
  */
 
-public final class DTOJUnitTestsProvider extends DTOInternalProviderBase {
+public final class DTOEntityProvider extends DTOInternalProviderBase {
 
-	public DTOJUnitTestsProvider(DTOFactory.DTOConfiguration configuration) {
+	public DTOEntityProvider(DTOFactory.DTOConfiguration configuration) {
 		super(configuration);
-		dtoPairs.put(Property.class, PropertyImpl.class);
-		dtoPairs.put(TestCase.class, TestCaseImpl.class);
-		dtoPairs.put(TestSuite.class, TestSuiteImpl.class);
-
-		xmlAbles.add(TestSuiteImpl.class);
-		xmlAbles.add(TestCaseImpl.class);
-		xmlAbles.add(PropertyImpl.class);
+		dtoPairs.put(Entity.class, EntityImpl.class);
+		dtoPairs.put(EntityList.class, EntityListImpl.class);
+		dtoPairs.put(ResponseEntityList.class, ResponseEntityListImpl.class);
+		dtoPairs.put(OctaneRestExceptionData.class, OctaneRestExceptionDataImpl.class);
+		dtoPairs.put(OctaneBulkExceptionData.class, OctaneBulkExceptionDataImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

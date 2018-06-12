@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.causes.CIEventCause;
 public final class DTOCausesProvider extends DTOInternalProviderBase {
 
 	public DTOCausesProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(CIEventCause.class, CIEventCauseImpl.class);
 	}
 

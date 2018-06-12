@@ -31,6 +31,7 @@ import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
+import java.io.InputStream;
 
 /**
  * Empty abstract implementation of CIPluginServices.
@@ -93,6 +94,11 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
 	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+		return null;
+	}
+
+	@Override
+	public InputStream getBuildLog(String jobCiId, String buildCiId) {
 		return null;
 	}
 

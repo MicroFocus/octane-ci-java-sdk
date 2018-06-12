@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.parameters.CIParameter;
 public final class DTOParametersProvider extends DTOInternalProviderBase {
 
 	public DTOParametersProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(CIParameter.class, CIParameterImpl.class);
 	}
 

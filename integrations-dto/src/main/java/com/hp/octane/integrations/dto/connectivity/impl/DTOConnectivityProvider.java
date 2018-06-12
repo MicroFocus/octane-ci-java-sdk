@@ -31,6 +31,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 public final class DTOConnectivityProvider extends DTOInternalProviderBase {
 
 	public DTOConnectivityProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(OctaneRequest.class, OctaneRequestImpl.class);
 		dtoPairs.put(OctaneResponse.class, OctaneResponseImpl.class);
 		dtoPairs.put(OctaneTaskAbridged.class, OctaneTaskAbridgedImpl.class);

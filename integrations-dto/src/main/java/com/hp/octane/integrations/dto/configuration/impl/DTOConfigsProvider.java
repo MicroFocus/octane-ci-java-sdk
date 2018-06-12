@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 public final class DTOConfigsProvider extends DTOInternalProviderBase {
 
 	public DTOConfigsProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(OctaneConfiguration.class, OctaneConfigurationImpl.class);
 		dtoPairs.put(CIProxyConfiguration.class, CIProxyConfigurationImpl.class);
 	}

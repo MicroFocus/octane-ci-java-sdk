@@ -44,6 +44,12 @@ public interface ConfigurationService {
 	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
 
 	/**
+	 * Check if current configuration is valid
+	 *
+	 */
+	boolean isConfigurationValid();
+
+	/**
 	 * Notify SDK upon Octane configuration change
 	 */
 	void notifyChange();

@@ -28,7 +28,7 @@ public interface RestClient {
 	 * Executes Octane server oriented request based on the pre-configuration
 	 *
 	 * @return OctaneResponse
-	 * @throws IOException
+	 * @throws IOException exception during connectivity or (de)serialization
 	 */
 	OctaneResponse execute(OctaneRequest request) throws IOException;
 
@@ -36,7 +36,7 @@ public interface RestClient {
 	 * Executes Octane server oriented request based on the provided configuration
 	 *
 	 * @return OctaneResponse
-	 * @throws IOException
+	 * @throws IOException exception during connectivity or (de)serialization
 	 */
 	OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) throws IOException;
 }

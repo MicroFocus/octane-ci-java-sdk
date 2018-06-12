@@ -198,7 +198,7 @@ final class RestClientImpl implements RestClient {
 
 			result = createNGAResponse(httpResponse);
 		} catch (IOException ioe) {
-			logger.error("failed executing " + request, ioe);
+			logger.debug("failed executing " + request, ioe);
 			throw ioe;
 		} finally {
 			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
@@ -342,7 +342,7 @@ final class RestClientImpl implements RestClient {
 			}
 			result = createNGAResponse(response);
 		} catch (IOException ioe) {
-			logger.error("failed to login to " + config, ioe);
+			logger.debug("failed to login to " + config, ioe);
 			throw ioe;
 		} finally {
 			if (response != null) {
@@ -389,11 +389,9 @@ final class RestClientImpl implements RestClient {
 						}
 					}
 				} catch (CertificateParsingException cpe) {
-					logger.error("failed to parse certificate", cpe);
-					return false;
+					logger.error("failed to parse certificate", cpe);       //  result will remain false
 				} catch (SSLException ssle) {
-					logger.error("failed to handle certificate", ssle);
-					result = false;
+					logger.error("failed to handle certificate", ssle);     //  result will remain false
 				}
 			}
 			return result;
