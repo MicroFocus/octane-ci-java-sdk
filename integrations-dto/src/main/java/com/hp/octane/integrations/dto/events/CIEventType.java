@@ -28,7 +28,8 @@ public enum CIEventType {
 	QUEUED("queued"),
 	STARTED("started"),
 	FINISHED("finished"),
-	SCM("scm");
+	SCM("scm"),
+	DELETED("deleted");
 
 	private String value;
 
