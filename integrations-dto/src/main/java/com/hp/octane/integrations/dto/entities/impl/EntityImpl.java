@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
+import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.entities.ResponseEntityList;
 
 import java.util.HashMap;
@@ -11,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 public class EntityImpl implements Entity {
+
+    private static final String COLLECTION_TOTAL_COUNT_FIELD = "total_count";
+    private static final String COLLECTION_DATA_FIELD = "data";
 
     private Map<String, Object> fields = new HashMap<>();
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -24,14 +28,14 @@ public class EntityImpl implements Entity {
     @Override
     public Entity setField(String fieldName, Object fieldValue) {
         Object myFieldValue = fieldValue;
+
         if (fieldValue instanceof Map) {
             Map<String, Object> map = (Map) fieldValue;
-            if (map.containsKey(TYPE_FIELD_NAME)) {
+            if (map.containsKey(EntityConstants.Base.TYPE_FIELD_NAME)) {
                 myFieldValue = deserializeEntityFromMap(map);
-            } else if (map.containsKey("data") && map.containsKey("total_count")) {
+            } else if (map.containsKey(COLLECTION_DATA_FIELD) && map.containsKey(COLLECTION_TOTAL_COUNT_FIELD)) {
                 myFieldValue = deserializeEntityListFromMap(map);
             }
-
         }
         fields.put(fieldName, myFieldValue);
 
@@ -40,8 +44,8 @@ public class EntityImpl implements Entity {
 
     private ResponseEntityList deserializeEntityListFromMap(Map<String, Object> map) {
         ResponseEntityList list = dtoFactory.newDTO(ResponseEntityList.class);
-        list.setTotalCount((int) map.get("total_count"));
-        List<Map<String, Object>> data = (List) map.get("data");
+        list.setTotalCount((int) map.get(COLLECTION_TOTAL_COUNT_FIELD));
+        List<Map<String, Object>> data = (List) map.get(COLLECTION_DATA_FIELD);
         for (Map<String, Object> entry : data) {
             Entity entity = deserializeEntityFromMap(entry);
             list.addEntity(entity);
@@ -62,43 +66,38 @@ public class EntityImpl implements Entity {
 
     @Override
     public String getId() {
-        return (String) getField(ID_FIELD_NAME);
+        return (String) getField(EntityConstants.Base.ID_FIELD);
     }
 
 
     @Override
     public Entity setId(String id) {
-        setField(ID_FIELD_NAME, id);
+        setField(EntityConstants.Base.ID_FIELD, id);
         return this;
     }
 
 
     @Override
     public String getName() {
-        return (String) getField(NAME_FIELD_NAME);
+        return (String) getField(EntityConstants.Base.NAME_FIELD);
     }
 
 
     @Override
     public Entity setName(String name) {
-        setField(NAME_FIELD_NAME, name);
+        setField(EntityConstants.Base.NAME_FIELD, name);
         return this;
     }
 
     @Override
-    public String getLogicalName() {
-        return (String) getField(LOGICAL_NAME_FIELD_NAME);
-    }
-
-    @Override
     public String getType() {
-        return (String) getField(TYPE_FIELD_NAME);
+        return (String) getField(EntityConstants.Base.TYPE_FIELD_NAME);
     }
 
 
     @Override
     public Entity setType(String type) {
-        setField(TYPE_FIELD_NAME, type);
+        setField(EntityConstants.Base.TYPE_FIELD_NAME, type);
         return this;
     }
 
@@ -131,11 +130,11 @@ public class EntityImpl implements Entity {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        if (fields.containsKey(TYPE_FIELD_NAME)) {
+        if (fields.containsKey(EntityConstants.Base.TYPE_FIELD_NAME)) {
             sb.append(getType());
         }
 
-        if (fields.containsKey(ID_FIELD_NAME)) {
+        if (fields.containsKey(EntityConstants.Base.TYPE_FIELD_NAME)) {
             if (sb.length() > 0) {
                 sb.append(", ");
             }
@@ -144,7 +143,7 @@ public class EntityImpl implements Entity {
             sb.append(getId());
         }
 
-        if (fields.containsKey(NAME_FIELD_NAME)) {
+        if (fields.containsKey(EntityConstants.Base.NAME_FIELD)) {
             if (sb.length() > 0) {
                 sb.append(" - ");
             }

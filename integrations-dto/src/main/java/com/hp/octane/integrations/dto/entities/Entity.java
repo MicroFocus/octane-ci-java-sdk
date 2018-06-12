@@ -24,11 +24,6 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface Entity extends DTOBase {
 
-    String TYPE_FIELD_NAME = "type";
-    String ID_FIELD_NAME = "id";
-    String NAME_FIELD_NAME = "name";
-    String LOGICAL_NAME_FIELD_NAME = "logical_name";
-
     Object getField(String fieldName);
 
     Entity setField(String fieldName, Object fieldValue);
@@ -40,8 +35,6 @@ public interface Entity extends DTOBase {
     String getName();
 
     Entity setName(String name);
-
-    String getLogicalName();
 
     String getType();
 
