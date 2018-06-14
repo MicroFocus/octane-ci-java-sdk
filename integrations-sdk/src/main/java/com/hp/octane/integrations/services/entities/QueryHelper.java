@@ -16,8 +16,9 @@
 package com.hp.octane.integrations.services.entities;
 
 
+import com.hp.octane.integrations.util.SdkStringUtils;
+
 import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * Created by berkovir on 17/05/2017.
@@ -46,26 +47,14 @@ public class QueryHelper {
 
     public static String conditionIn(String name, Collection<?> ids, boolean isNumber) {
         if (isNumber) {
-            return name + " IN " + join(ids, ",");
+            return name + " IN " + SdkStringUtils.join(ids, ",");
         } else {
             //wrap values with '
-            return name + " IN '" + join(ids, "','") + "'";
+            return name + " IN '" + SdkStringUtils.join(ids, "','") + "'";
         }
     }
 
     private static String escapeQueryValue(String value) {
         return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'])", "\\\\$1");
-    }
-
-    public static String join(Collection collection, String splitter) {
-        StringBuffer buffer = new StringBuffer();
-
-        for (Iterator iterator = collection.iterator(); iterator.hasNext(); buffer.append(iterator.next().toString())) {
-            if (buffer.length() != 0) {
-                buffer.append(splitter);
-            }
-        }
-
-        return buffer.toString();
     }
 }
