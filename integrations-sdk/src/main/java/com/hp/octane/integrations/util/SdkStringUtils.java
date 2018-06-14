@@ -26,8 +26,7 @@ public class SdkStringUtils {
         if (isEmpty(str)) {
             return str;
         } else {
-            str = stripStart(str, stripChars);
-            return stripEnd(str, stripChars);
+            return stripEnd(stripStart(str, stripChars), stripChars);
         }
     }
 
