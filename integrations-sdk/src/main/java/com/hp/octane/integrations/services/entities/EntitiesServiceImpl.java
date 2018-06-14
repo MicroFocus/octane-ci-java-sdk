@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.entities.*;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.exceptions.OctaneRestException;
+import com.hp.octane.integrations.util.SdkStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 
@@ -237,11 +238,11 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
         }
 
         if (fields != null && !fields.isEmpty()) {
-            params.put("fields", QueryHelper.join(fields, ","));
+            params.put("fields", SdkStringUtils.join(fields, ","));
             template.append("&" + FIELDS_FRAGMENT);
         }
 
-        if (orderBy != null && !orderBy.isEmpty()) {
+        if (SdkStringUtils.isNotEmpty(orderBy)) {
             params.put("order", orderBy);
             template.append("&" + ORDER_BY_FRAGMENT);
         }
