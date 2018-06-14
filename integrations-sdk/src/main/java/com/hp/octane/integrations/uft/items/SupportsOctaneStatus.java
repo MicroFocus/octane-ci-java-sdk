@@ -14,12 +14,13 @@
  *
  */
 
-package com.hp.octane.integrations.util;
+package com.hp.octane.integrations.uft.items;
 
-public class SdkConstants {
+/**
+ * Interface for entities that support octane status
+ */
+public interface SupportsOctaneStatus {
 
-    public static class FileSystem{
-        public static final String WINDOWS_PATH_SPLITTER = "\\";
-        public static final String LINUX_PATH_SPLITTER = "/";
-    }
+    OctaneStatus getOctaneStatus();
+
 }

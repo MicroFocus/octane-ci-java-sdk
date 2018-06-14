@@ -14,12 +14,20 @@
  *
  */
 
-package com.hp.octane.integrations.util;
+package com.hp.octane.integrations.uft.items;
 
-public class SdkConstants {
+/**
+ * Created by berkovir on 20/04/2017.
+ */
+public enum UftTestType {
+    GUI("gui"), API("api"), None("none");
+    private String testType;
 
-    public static class FileSystem{
-        public static final String WINDOWS_PATH_SPLITTER = "\\";
-        public static final String LINUX_PATH_SPLITTER = "/";
+    UftTestType(String testType) {
+        this.testType = testType;
+    }
+
+    public boolean isNone() {
+        return this.testType.equals(None.testType);
     }
 }
