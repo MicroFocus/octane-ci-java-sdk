@@ -90,7 +90,7 @@ public class UftTestDispatchUtils {
         //delete scm resources
         resources = result.getDeletedScmResourceFiles();
         if (!resources.isEmpty()) {
-            boolean posted = deleteScmResources(entitiesService, resources, result.getWorkspaceId(), result.getScmRepositoryId());
+            boolean posted = deleteScmResources(entitiesService, resources, result.getWorkspaceId());
             logger.warn("Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  scmResources deleted successfully = " + posted);
         }
     }
@@ -114,9 +114,7 @@ public class UftTestDispatchUtils {
             String key = createKey(discoveredTest.getPackage(), discoveredTest.getName());
             Entity octaneTest = octaneTestsMap.remove(key);
 
-            if (octaneTest == null) {
-                //do nothing, status of test should remain NEW
-            } else {
+            if (octaneTest != null) {
                 hasDiff = true;//if we get here - there is diff with discovered tests
                 //the only fields that might be different is description and executable
                 boolean testsEqual = checkTestEquals(discoveredTest, octaneTest);
@@ -126,7 +124,7 @@ public class UftTestDispatchUtils {
                 } else {
                     discoveredTest.setOctaneStatus(OctaneStatus.NONE);
                 }
-            }
+            }//else do nothing, status of test should remain NEW
         }
 
         //go over executable tests that exist in Octane but not discovered and disable them
@@ -401,7 +399,7 @@ public class UftTestDispatchUtils {
         }
     }
 
-    private static boolean deleteScmResources(EntitiesService entitiesService, List<ScmResourceFile> deletedResourceFiles, String workspaceId, String scmRepositoryId) {
+    private static boolean deleteScmResources(EntitiesService entitiesService, List<ScmResourceFile> deletedResourceFiles, String workspaceId) {
         Set<String> deletedIds = new HashSet<>();
         try {
             for (ScmResourceFile scmResource : deletedResourceFiles) {
