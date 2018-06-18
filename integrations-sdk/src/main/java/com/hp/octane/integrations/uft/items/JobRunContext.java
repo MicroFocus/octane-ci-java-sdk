@@ -14,12 +14,27 @@
  *
  */
 
-package com.hp.octane.integrations.util;
+package com.hp.octane.integrations.uft.items;
 
-public class SdkConstants {
+public class JobRunContext {
 
-    public static class FileSystem{
-        public static final String WINDOWS_PATH_SPLITTER = "\\";
-        public static final String LINUX_PATH_SPLITTER = "/";
+    private String projectName;
+    private int buildNumber;
+
+    public JobRunContext(String projectName, int buildNumber) {
+        this.projectName = projectName;
+        this.buildNumber = buildNumber;
+    }
+
+    public static JobRunContext create(String projectName, int buildNumber) {
+        return new JobRunContext(projectName, buildNumber);
+    }
+
+    public int getBuildNumber() {
+        return buildNumber;
+    }
+
+    public String getProjectName() {
+        return projectName;
     }
 }

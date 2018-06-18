@@ -13,13 +13,11 @@
  *     limitations under the License.
  *
  */
+package com.hp.octane.integrations.uft.items;
 
-package com.hp.octane.integrations.util;
-
-public class SdkConstants {
-
-    public static class FileSystem{
-        public static final String WINDOWS_PATH_SPLITTER = "\\";
-        public static final String LINUX_PATH_SPLITTER = "/";
-    }
+/**
+ * Octane status of items that should be dispatched to Octane
+ */
+public enum OctaneStatus {
+    NEW, MODIFIED, DELETED, NONE
 }

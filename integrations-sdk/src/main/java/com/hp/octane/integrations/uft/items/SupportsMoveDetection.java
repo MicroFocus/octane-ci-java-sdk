@@ -14,12 +14,19 @@
  *
  */
 
-package com.hp.octane.integrations.util;
+package com.hp.octane.integrations.uft.items;
 
-public class SdkConstants {
+/**
+ * Interface for entities that support changeSet source and destination properties
+ */
+public interface SupportsMoveDetection {
 
-    public static class FileSystem{
-        public static final String WINDOWS_PATH_SPLITTER = "\\";
-        public static final String LINUX_PATH_SPLITTER = "/";
-    }
+    String getChangeSetSrc();
+
+    void setChangeSetSrc(String changeSetSrc);
+
+    String getChangeSetDst();
+
+    void setChangeSetDst(String changeSetDst);
+
 }
