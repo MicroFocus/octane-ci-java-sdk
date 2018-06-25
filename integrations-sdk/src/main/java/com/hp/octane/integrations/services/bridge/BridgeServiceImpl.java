@@ -74,19 +74,14 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
 
-		logger.info("Starting background worker...");
+		logger.info("starting background worker...");
 
 		((ThreadPoolExecutor) connectivityExecutors).setRejectedExecutionHandler(new RejectedExecutionHandler() {
 			@Override
 			public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
-				logger.error("execution REJECTED, retrying after a short wait");
-				try {
-					Thread.sleep(1000);
-				} catch (InterruptedException ie) {
-					logger.warn("interrupted during await");
-				} finally {
-					startBackgroundWorker();
-				}
+				logger.error("execution REJECTED, retrying after a short while");
+				doWait(1000);
+				startBackgroundWorker();
 			}
 		});
 		startBackgroundWorker();
@@ -95,22 +90,18 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 	//  this should be infallible everlasting worker
 	private void startBackgroundWorker() {
 		try {
-			if (connectivityExecutors == null) {
-				logger.error("connectivityExecutors is null!");
-			}
-
-			logger.info("Executing on connectivityExecutor...");
 			logger.info("pool size: " + ((ThreadPoolExecutor) connectivityExecutors).getPoolSize() + ", active: " + ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
-					String tasksJSON;
-					CIServerInfo serverInfo = pluginServices.getServerInfo();
-					CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
-					String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
 
-					logger.info("Executing getAbridgedTasks...");
+					logger.info("executing getAbridgedTasks...");
 
 					try {
+						String tasksJSON;
+						CIServerInfo serverInfo = pluginServices.getServerInfo();
+						CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
+						String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
+
 						//  get tasks, wait if needed and return with task or timeout or error
 						tasksJSON = getAbridgedTasks(
 								serverInfo.getInstanceId(),
@@ -130,7 +121,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
 						}
-						logger.info("Finished backgroundWorker");
+						logger.info("finished backgroundWorker");
 					} catch (Throwable t) {
 						logger.error("connection to Octane Server temporary failed", t);
 						doWait(1000);
@@ -138,9 +129,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					}
 				}
 			});
-			logger.info("Executing on connectivityExecutors finished");
-		} catch (Throwable e) {
-			logger.error("Error executing startBackgroundWorker!", e);
+			logger.info("executing on connectivityExecutors finished");
+		} catch (Throwable t) {
+			logger.error("error executing startBackgroundWorker", t);
 		}
 	}
 
