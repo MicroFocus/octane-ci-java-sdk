@@ -36,6 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -74,6 +75,20 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		this.tasksProcessor = tasksProcessor;
 
 		logger.info("Starting background worker...");
+
+		((ThreadPoolExecutor) connectivityExecutors).setRejectedExecutionHandler(new RejectedExecutionHandler() {
+			@Override
+			public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
+				logger.error("execution REJECTED, retrying after a short wait");
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException ie) {
+					logger.warn("interrupted during await");
+				} finally {
+					startBackgroundWorker();
+				}
+			}
+		});
 		startBackgroundWorker();
 	}
 
