@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -24,11 +24,6 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface Entity extends DTOBase {
 
-    String TYPE_FIELD_NAME = "type";
-    String ID_FIELD_NAME = "id";
-    String NAME_FIELD_NAME = "name";
-    String LOGICAL_NAME_FIELD_NAME = "logical_name";
-
     Object getField(String fieldName);
 
     Entity setField(String fieldName, Object fieldValue);
@@ -40,8 +35,6 @@ public interface Entity extends DTOBase {
     String getName();
 
     Entity setName(String name);
-
-    String getLogicalName();
 
     String getType();
 

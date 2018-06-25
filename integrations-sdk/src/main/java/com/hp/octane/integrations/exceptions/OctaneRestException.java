@@ -7,6 +7,7 @@ public class OctaneRestException extends RuntimeException {
     private int responseStatus;
 
     public OctaneRestException(int responseStatus, OctaneRestExceptionData data){
+        super(data.getDescription());
         this.data = data;
         this.responseStatus = responseStatus;
     }

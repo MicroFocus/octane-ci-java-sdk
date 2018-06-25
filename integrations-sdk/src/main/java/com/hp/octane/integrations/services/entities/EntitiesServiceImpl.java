@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.entities.*;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.exceptions.OctaneRestException;
+import com.hp.octane.integrations.util.SdkStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 
@@ -237,11 +238,11 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
         }
 
         if (fields != null && !fields.isEmpty()) {
-            params.put("fields", QueryHelper.join(fields, ","));
+            params.put("fields", SdkStringUtils.join(fields, ","));
             template.append("&" + FIELDS_FRAGMENT);
         }
 
-        if (orderBy != null && !orderBy.isEmpty()) {
+        if (SdkStringUtils.isNotEmpty(orderBy)) {
             params.put("order", orderBy);
             template.append("&" + ORDER_BY_FRAGMENT);
         }
