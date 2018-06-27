@@ -30,7 +30,6 @@ public class SdkStringUtils {
         }
     }
 
-
     public static String stripStart(String str, String stripChars) {
         int strLen;
         if (str != null && (strLen = str.length()) != 0) {
@@ -104,6 +103,14 @@ public class SdkStringUtils {
 
     public static String join(String[] collection, String separator) {
         return join(Arrays.asList(collection), separator);
+    }
+
+    public static boolean equals(String str1, String str2) {
+        return str1 == null ? str2 == null : str1.equals(str2);
+    }
+
+    public static boolean equalsIgnoreCase(String str1, String str2) {
+        return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
     }
 
 }
