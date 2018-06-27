@@ -36,9 +36,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.hp.octane.integrations.api.RestService.ACCEPT_HEADER;
 import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
@@ -75,27 +73,14 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		this.tasksProcessor = tasksProcessor;
 
 		logger.info("starting background worker...");
-
-		((ThreadPoolExecutor) connectivityExecutors).setRejectedExecutionHandler(new RejectedExecutionHandler() {
-			@Override
-			public void rejectedExecution(Runnable runnable, ThreadPoolExecutor threadPoolExecutor) {
-				logger.error("execution REJECTED, retrying after a short while");
-				doWait(1000);
-				startBackgroundWorker();
-			}
-		});
 		startBackgroundWorker();
 	}
 
 	//  this should be infallible everlasting worker
 	private void startBackgroundWorker() {
 		try {
-			logger.info("pool size: " + ((ThreadPoolExecutor) connectivityExecutors).getPoolSize() + ", active: " + ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
 			connectivityExecutors.execute(new Runnable() {
 				public void run() {
-
-					logger.info("executing getAbridgedTasks...");
-
 					try {
 						String tasksJSON;
 						CIServerInfo serverInfo = pluginServices.getServerInfo();
@@ -121,15 +106,13 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 						if (tasksJSON != null && !tasksJSON.isEmpty()) {
 							handleTasks(tasksJSON);
 						}
-						logger.info("finished backgroundWorker");
 					} catch (Throwable t) {
-						logger.error("connection to Octane Server temporary failed", t);
-						doWait(1000);
+						logger.error("getting tasks from Octane Server temporary failed", t);
+						doWait(2000);
 						startBackgroundWorker();
 					}
 				}
 			});
-			logger.info("executing on connectivityExecutors finished");
 		} catch (Throwable t) {
 			logger.error("error executing startBackgroundWorker", t);
 		}
@@ -192,8 +175,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 	private void handleTasks(String tasksJSON) {
 		try {
+			logger.info("parsing tasks...");
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
-			logger.info("going to process " + tasks.length + " tasks");
+			logger.info("parsed " + tasks.length + " tasks, processing...");
 			for (final OctaneTaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
