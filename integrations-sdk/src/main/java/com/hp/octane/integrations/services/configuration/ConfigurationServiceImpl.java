@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -118,7 +119,8 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
 		}
 
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(configuration.getUrl());
+		String octaneHost = CIPluginSDKUtils.extractHostFromURL(configuration.getUrl());
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneHost);
 		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
