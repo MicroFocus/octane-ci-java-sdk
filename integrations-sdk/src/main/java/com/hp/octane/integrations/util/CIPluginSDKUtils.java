@@ -17,10 +17,13 @@
 package com.hp.octane.integrations.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
@@ -47,15 +50,35 @@ public class CIPluginSDKUtils {
 		}
 	}
 
+	//  [YG] should be removed from here and implemented with the relevant plugin, as this implementation is specific to some plugin (Bamboo or TeamCity, i presume)
+	@Deprecated
 	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
 		boolean noProxyHost = false;
-		for (Pattern pattern : getNoProxyHostPatterns(nonProxyHostsStr)) {
+		List<Pattern> noProxyHosts = new LinkedList<>();
+		if (nonProxyHostsStr != null && !nonProxyHostsStr.isEmpty()) {
+			String[] hosts = nonProxyHostsStr.split("[ \t\n,|]+");
+			for (String host : hosts) {
+				if (!host.isEmpty()) {
+					noProxyHosts.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
+				}
+			}
+		}
+		for (Pattern pattern : noProxyHosts) {
 			if (pattern.matcher(targetHost).find()) {
 				noProxyHost = true;
 				break;
 			}
 		}
 		return noProxyHost;
+	}
+
+	public static String extractHostFromURL(String input) {
+		try {
+			URL url = new URL(input);
+			return url.getHost();
+		} catch (MalformedURLException murle) {
+			throw new OctaneSDKGeneralException("failed to extract host from URL '" + input + "'", murle);
+		}
 	}
 
 	public static String urlEncodePathParam(String input) {
@@ -74,19 +97,6 @@ public class CIPluginSDKUtils {
 			result = URLEncoder.encode(input, StandardCharsets.UTF_8.name());
 		} catch (UnsupportedEncodingException uee) {
 			logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
-		}
-		return result;
-	}
-
-	private static List<Pattern> getNoProxyHostPatterns(String noProxyHost) {
-		List<Pattern> result = new LinkedList<>();
-		if (noProxyHost != null && !noProxyHost.isEmpty()) {
-			String[] hosts = noProxyHost.split("[ \t\n,|]+");
-			for (String host : hosts) {
-				if (!host.isEmpty()) {
-					result.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
-				}
-			}
 		}
 		return result;
 	}

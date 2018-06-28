@@ -266,7 +266,8 @@ final class RestClientImpl implements RestClient {
 		}
 
 		//  configure proxy if needed
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(requestUrl);
+		String requestHost = CIPluginSDKUtils.extractHostFromURL(requestUrl);
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(requestHost);
 		if (proxyConfiguration != null) {
 			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
