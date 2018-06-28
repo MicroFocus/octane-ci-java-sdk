@@ -18,7 +18,6 @@ package com.hp.octane.integrations.exceptions;
 
 
 public class OctaneSDKGeneralException extends RuntimeException {
-	private int errorCode;
 
 	public OctaneSDKGeneralException(Throwable throwable) {
 		super(throwable);
