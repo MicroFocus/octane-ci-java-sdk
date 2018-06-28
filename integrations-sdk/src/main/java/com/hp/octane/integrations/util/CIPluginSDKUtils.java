@@ -51,26 +51,26 @@ public class CIPluginSDKUtils {
 	}
 
 	//  [YG] should be removed from here and implemented with the relevant plugin, as this implementation is specific to some plugin (Bamboo or TeamCity, i presume)
-	@Deprecated
-	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
-		boolean noProxyHost = false;
-		List<Pattern> noProxyHosts = new LinkedList<>();
-		if (nonProxyHostsStr != null && !nonProxyHostsStr.isEmpty()) {
-			String[] hosts = nonProxyHostsStr.split("[ \t\n,|]+");
-			for (String host : hosts) {
-				if (!host.isEmpty()) {
-					noProxyHosts.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
-				}
-			}
-		}
-		for (Pattern pattern : noProxyHosts) {
-			if (pattern.matcher(targetHost).find()) {
-				noProxyHost = true;
-				break;
-			}
-		}
-		return noProxyHost;
-	}
+//	@Deprecated
+//	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
+//		boolean noProxyHost = false;
+//		List<Pattern> noProxyHosts = new LinkedList<>();
+//		if (nonProxyHostsStr != null && !nonProxyHostsStr.isEmpty()) {
+//			String[] hosts = nonProxyHostsStr.split("[ \t\n,|]+");
+//			for (String host : hosts) {
+//				if (!host.isEmpty()) {
+//					noProxyHosts.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
+//				}
+//			}
+//		}
+//		for (Pattern pattern : noProxyHosts) {
+//			if (pattern.matcher(targetHost).find()) {
+//				noProxyHost = true;
+//				break;
+//			}
+//		}
+//		return noProxyHost;
+//	}
 
 	public static String extractHostFromURL(String input) {
 		try {
