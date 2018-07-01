@@ -26,6 +26,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created by lazara on 08/06/2017.
@@ -47,27 +50,31 @@ public class CIPluginSDKUtils {
 		}
 	}
 
-	//  [YG] should be removed from here and implemented with the relevant plugin, as this implementation is specific to some plugin (Bamboo or TeamCity, i presume)
-//	@Deprecated
-//	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
-//		boolean noProxyHost = false;
-//		List<Pattern> noProxyHosts = new LinkedList<>();
-//		if (nonProxyHostsStr != null && !nonProxyHostsStr.isEmpty()) {
-//			String[] hosts = nonProxyHostsStr.split("[ \t\n,|]+");
-//			for (String host : hosts) {
-//				if (!host.isEmpty()) {
-//					noProxyHosts.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
-//				}
-//			}
-//		}
-//		for (Pattern pattern : noProxyHosts) {
-//			if (pattern.matcher(targetHost).find()) {
-//				noProxyHost = true;
-//				break;
-//			}
-//		}
-//		return noProxyHost;
-//	}
+	/***
+	 *
+	 * @param targetHost host of request
+	 * @param nonProxyHostsStr   list of hosts, separated by the '|' character. The wildcard '*' can be used:  localhost|*.mydomain.com)
+	 * @return
+	 */
+	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
+		boolean noProxyHost = false;
+		List<Pattern> noProxyHosts = new LinkedList<>();
+		if (nonProxyHostsStr != null && !nonProxyHostsStr.isEmpty()) {
+			String[] hosts = nonProxyHostsStr.split("[ \t\n,|]+");
+			for (String host : hosts) {
+				if (!host.isEmpty()) {
+					noProxyHosts.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
+				}
+			}
+		}
+		for (Pattern pattern : noProxyHosts) {
+			if (pattern.matcher(targetHost).find()) {
+				noProxyHost = true;
+				break;
+			}
+		}
+		return noProxyHost;
+	}
 
 	public static URL parseURL(String input) {
 		try {
