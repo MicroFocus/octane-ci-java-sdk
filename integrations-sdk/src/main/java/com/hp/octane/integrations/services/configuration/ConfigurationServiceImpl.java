@@ -102,14 +102,14 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		}
 	}
 
-    public boolean isConfigurationValid() {
-        try {
-            OctaneResponse response = validateConfiguration(pluginServices.getOctaneConfiguration());
-            return response.getStatus() == HttpStatus.SC_OK;
-        } catch (Exception e) {
-            return false;
-        }
-    }
+	public boolean isConfigurationValid() {
+		try {
+			OctaneResponse response = validateConfiguration(pluginServices.getOctaneConfiguration());
+			return response.getStatus() == HttpStatus.SC_OK;
+		} catch (Exception e) {
+			return false;
+		}
+	}
 
 	public OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException {
 		if (configuration == null) {
@@ -119,8 +119,8 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
 		}
 
-		String octaneHost = CIPluginSDKUtils.extractHostFromURL(configuration.getUrl());
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneHost);
+		URL octaneUrl = CIPluginSDKUtils.parseURL(configuration.getUrl());
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneUrl);
 		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
