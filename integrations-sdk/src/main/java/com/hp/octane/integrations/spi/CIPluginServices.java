@@ -32,6 +32,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * Composite API of all the endpoints to be implemented by a hosting CI Plugin for Octane use cases.
@@ -70,10 +71,10 @@ public interface CIPluginServices {
 	/**
 	 * Provides CI Server proxy configuration (managed by plugin implementation)
 	 *
-	 * @param targetHost target host that the proxy, if available, should be relevant to
+	 * @param targetUrl target URL that the proxy, if available, should be relevant to
 	 * @return ProxyConfiguration object; if no configuration available the implementation should return NULL
 	 */
-	CIProxyConfiguration getProxyConfiguration(String targetHost);
+	CIProxyConfiguration getProxyConfiguration(URL targetUrl);
 
 	/**
 	 * Provides a list of Projects existing on this CI Server

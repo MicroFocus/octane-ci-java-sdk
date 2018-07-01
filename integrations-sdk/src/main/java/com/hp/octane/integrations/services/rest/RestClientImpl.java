@@ -71,6 +71,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -266,8 +267,8 @@ final class RestClientImpl implements RestClient {
 		}
 
 		//  configure proxy if needed
-		String requestHost = CIPluginSDKUtils.extractHostFromURL(requestUrl);
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(requestHost);
+		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(parsedUrl);
 		if (proxyConfiguration != null) {
 			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());

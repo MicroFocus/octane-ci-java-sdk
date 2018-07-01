@@ -26,9 +26,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created by lazara on 08/06/2017.
@@ -72,10 +69,9 @@ public class CIPluginSDKUtils {
 //		return noProxyHost;
 //	}
 
-	public static String extractHostFromURL(String input) {
+	public static URL parseURL(String input) {
 		try {
-			URL url = new URL(input);
-			return url.getHost();
+			return new URL(input);
 		} catch (MalformedURLException murle) {
 			throw new OctaneSDKGeneralException("failed to extract host from URL '" + input + "'", murle);
 		}

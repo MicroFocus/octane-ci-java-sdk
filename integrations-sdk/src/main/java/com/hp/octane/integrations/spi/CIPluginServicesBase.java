@@ -32,6 +32,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 import java.io.InputStream;
+import java.net.URL;
 
 /**
  * Empty abstract implementation of CIPluginServices.
@@ -60,7 +61,7 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
+	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		return null;
 	}
 
