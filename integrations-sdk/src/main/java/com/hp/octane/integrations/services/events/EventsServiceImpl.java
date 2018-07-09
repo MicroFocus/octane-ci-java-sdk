@@ -74,9 +74,9 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 		this.restService = restService;
 
-		logger.info("EventsService starting background worker...");
+		logger.info("starting background worker...");
 		startBackgroundWorker();
-		logger.info("EventsService initialized successfully");
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	public void publishEvent(CIEvent event) {

@@ -83,11 +83,10 @@ public final class OctaneSDK {
 	synchronized public static void init(CIPluginServices ciPluginServices) {
 		if (instance == null) {
 			if (ciPluginServices == null) {
-				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
+				throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
 			}
 			new OctaneSDK(ciPluginServices);
-			logger.info("");
-			logger.info("SDK has been initialized");
+			logger.info("initialized SUCCESSFULLY");
 		} else {
 			logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
 		}
@@ -138,7 +137,7 @@ public final class OctaneSDK {
 		try {
 			p.load(OctaneSDK.class.getClassLoader().getResourceAsStream("sdk.properties"));
 		} catch (IOException ioe) {
-			logger.error("SDK initialization failed: failed to load SDK properties", ioe);
+			logger.error("initialization failed: failed to load SDK properties", ioe);
 			throw new IllegalStateException("SDK initialization failed: failed to load SDK properties", ioe);
 		}
 		if (!p.isEmpty()) {

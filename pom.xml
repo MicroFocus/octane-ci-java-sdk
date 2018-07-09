@@ -67,13 +67,21 @@
 	<ciManagement/>
 
 	<properties>
+		<maven-clean-plugin.verion>3.1.0</maven-clean-plugin.verion>
+		<maven-install-plugin.verion>2.5.2</maven-install-plugin.verion>
+		<maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
+		<maven-resources-plugin.verion>3.1.0</maven-resources-plugin.verion>
 		<maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
+		<maven-jar-plugin.version>3.1.0</maven-jar-plugin.version>
 		<maven-javadoc-plugin.version>3.0.0</maven-javadoc-plugin.version>
 		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+
 		<junit.version>4.12</junit.version>
 		<easymock.version>3.5.1</easymock.version>
+		<maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
+		<jacoco-maven-plugin.version>0.8.1</jacoco-maven-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -95,6 +103,39 @@
 		<pluginManagement>
 			<plugins>
 				<plugin>
+					<artifactId>maven-clean-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-clean-plugin.verion}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-install-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-install-plugin.verion}</version>
+				</plugin>
+				<plugin>
+					<artifactId>maven-enforcer-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-enforcer-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>enforce</id>
+							<configuration>
+								<rules>
+									<dependencyConvergence/>
+								</rules>
+							</configuration>
+							<goals>
+								<goal>enforce</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
+				<plugin>
+					<artifactId>maven-resources-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-resources-plugin.verion}</version>
+				</plugin>
+				<plugin>
 					<artifactId>maven-compiler-plugin</artifactId>
 					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven-compiler-plugin.version}</version>
@@ -104,6 +145,12 @@
 					</configuration>
 				</plugin>
 				<plugin>
+					<artifactId>maven-jar-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-jar-plugin.verion}</version>
+				</plugin>
+
+				<plugin>
 					<artifactId>maven-javadoc-plugin</artifactId>
 					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven-javadoc-plugin.version}</version>
@@ -111,8 +158,25 @@
 						<excludePackageNames>*.impl</excludePackageNames>
 					</configuration>
 				</plugin>
+				<plugin>
+					<artifactId>maven-surefire-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-surefire-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<groupId>org.jacoco</groupId>
+					<version>${jacoco-maven-plugin.version}</version>
+				</plugin>
 			</plugins>
 		</pluginManagement>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-enforcer-plugin</artifactId>
+			</plugin>
+		</plugins>
 	</build>
 
 	<distributionManagement>
@@ -200,6 +264,7 @@
 				</plugins>
 			</build>
 		</profile>
+
 		<profile>
 			<id>snapshot</id>
 			<distributionManagement>
@@ -210,6 +275,44 @@
 					<uniqueVersion>false</uniqueVersion>
 				</snapshotRepository>
 			</distributionManagement>
+		</profile>
+
+		<profile>
+			<id>jacoco-coverage</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>jacoco-maven-plugin</artifactId>
+						<groupId>org.jacoco</groupId>
+						<executions>
+							<execution>
+								<id>prepare-agent</id>
+								<goals>
+									<goal>prepare-agent</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>report</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+							</execution>
+							<execution>
+								<id>post-unit-test</id>
+								<phase>test</phase>
+								<goals>
+									<goal>report</goal>
+								</goals>
+								<configuration>
+									<dataFile>target/jacoco.exec</dataFile>
+									<outputDirectory>target/jacoco-report</outputDirectory>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
 		</profile>
 	</profiles>
 </project>

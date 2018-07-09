@@ -66,7 +66,7 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
             throw new IllegalArgumentException("rest service MUST NOT be null");
         }
         this.restService = restService;
-	    logger.info("EntitiesService initialized successfully");
+	    logger.info("initialized SUCCESSFULLY");
     }
 
     @Override

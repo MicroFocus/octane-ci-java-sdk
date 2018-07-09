@@ -80,9 +80,9 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 
 		this.restService = restService;
 
-		logger.info("TestsService starting background worker...");
+		logger.info("starting background worker...");
 		startBackgroundWorker();
-		logger.info("TestsService initialized successfully");
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	@Override

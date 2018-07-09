@@ -62,7 +62,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		}
 
 		this.restService = restService;
-		logger.info("ConfigurationService initialized successfully");
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	public OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {

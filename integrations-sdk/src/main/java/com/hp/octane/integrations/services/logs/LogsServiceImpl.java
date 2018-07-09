@@ -76,9 +76,9 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 
 		this.restService = restService;
 
-		logger.info("LogsService starting background worker...");
+		logger.info("starting background worker...");
 		startBackgroundWorker();
-		logger.info("LogsService initialized successfully, backed by " + buildLogsQueue.getClass().getSimpleName());
+		logger.info("initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
