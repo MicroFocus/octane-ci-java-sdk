@@ -147,7 +147,7 @@
 				<plugin>
 					<artifactId>maven-jar-plugin</artifactId>
 					<groupId>org.apache.maven.plugins</groupId>
-					<version>${maven-jar-plugin.verion}</version>
+					<version>${maven-jar-plugin.version}</version>
 				</plugin>
 
 				<plugin>
