@@ -38,7 +38,7 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 
 		logger.info("initializing a default Octane REST client...");
 		obtainClient();
-		logger.info("...Octane REST client initialized");
+		logger.info("...default Octane REST client initialized");
 	}
 
 	public RestClient obtainClient() {

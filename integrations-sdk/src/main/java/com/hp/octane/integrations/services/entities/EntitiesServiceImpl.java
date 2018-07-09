@@ -30,6 +30,8 @@ import com.hp.octane.integrations.exceptions.OctaneRestException;
 import com.hp.octane.integrations.util.SdkStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -45,7 +47,7 @@ import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
  */
 
 public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implements EntitiesService {
-    //private static final Logger logger = LogManager.getLogger(EntitiesServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(EntitiesServiceImpl.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     private final RestService restService;
@@ -64,6 +66,7 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
             throw new IllegalArgumentException("rest service MUST NOT be null");
         }
         this.restService = restService;
+	    logger.info("initialized SUCCESSFULLY");
     }
 
     @Override
@@ -74,7 +77,7 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
             return null;
         }
         String deleteCondition = QueryHelper.conditionIn("id", entitiesIds, true);
-        return deleteEntities(workspaceId, entityCollectionName, Arrays.asList(deleteCondition));
+        return deleteEntities(workspaceId, entityCollectionName, Collections.singletonList(deleteCondition));
     }
 
     @Override
@@ -246,9 +249,7 @@ public final class EntitiesServiceImpl extends OctaneSDK.SDKServiceBase implemen
             params.put("order", orderBy);
             template.append("&" + ORDER_BY_FRAGMENT);
         }
-        String result = resolveTemplate(template.toString(), params);
-        return result;
-
+        return resolveTemplate(template.toString(), params);
     }
 
     private static String resolveTemplate(String template, Map<String, ?> params) {

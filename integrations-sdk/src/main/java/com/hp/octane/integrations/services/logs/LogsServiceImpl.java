@@ -75,7 +75,10 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		}
 
 		this.restService = restService;
+
+		logger.info("starting background worker...");
 		startBackgroundWorker();
+		logger.info("initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
@@ -105,7 +108,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 							logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
 							buildLogsQueue.remove();
 						} catch (Throwable t) {
-							logger.error("unexpected error on " + buildLogQueueItem + ", passing over", t);
+							logger.error("unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
 							buildLogsQueue.remove();
 						}
 					} else {
@@ -225,6 +228,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		private String jobId;
 		private String buildId;
 
+		//  [YG] this constructor MUST be present
 		private BuildLogQueueItem() {
 		}
 

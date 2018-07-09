@@ -74,6 +74,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 		logger.info("starting background worker...");
 		startBackgroundWorker();
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	//  this should be infallible everlasting worker
