@@ -61,14 +61,14 @@ public class OctaneRequestTest {
 	}
 
 	@Test
-	public void testF_1() throws IOException {
+	public void testF1() throws IOException {
 		String body = "body עברית русский";
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setBody(body);
 		assertEquals(body, isToString(request.getBody()));
 	}
 
 	@Test
-	public void testF_2() throws IOException {
+	public void testF2() throws IOException {
 		String body = "body עברית русский";
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setBody(new ByteArrayInputStream(body.getBytes(Charset.forName("UTF-8"))));
 		assertEquals(body, isToString(request.getBody()));
