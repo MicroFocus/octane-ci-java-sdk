@@ -19,6 +19,7 @@ package com.hp.octane.integrations.dto.connectivity;
 import com.hp.octane.integrations.dto.DTOFactory;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -59,9 +60,16 @@ public class OctaneRequestTest {
 	}
 
 	@Test
-	public void testF() throws IOException {
-		String body = "body";
+	public void testF_1() throws IOException {
+		String body = "body עברית русский";
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setBody(body);
+		assertEquals(body, isToString(request.getBody()));
+	}
+
+	@Test
+	public void testF_2() throws IOException {
+		String body = "body עברית русский";
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setBody(new ByteArrayInputStream(body.getBytes()));
 		assertEquals(body, isToString(request.getBody()));
 	}
 

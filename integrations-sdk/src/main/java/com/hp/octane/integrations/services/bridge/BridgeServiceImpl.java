@@ -31,6 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -186,7 +187,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 						int submitStatus = putAbridgedResult(
 								pluginServices.getServerInfo().getInstanceId(),
 								result.getId(),
-								dtoFactory.dtoToJson(result));
+								dtoFactory.dtoToJsonStream(result));
 						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
 					}
 				});
@@ -196,7 +197,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		}
 	}
 
-	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
+	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
 		RestClient restClientImpl = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();

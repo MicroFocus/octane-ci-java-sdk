@@ -36,8 +36,10 @@ import com.hp.octane.integrations.dto.tests.impl.DTOJUnitTestsProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOTestsProvider;
 
 import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -78,6 +80,18 @@ public final class DTOFactory {
 		}
 	}
 
+	public <T extends DTOBase> InputStream dtoToJsonStream(T dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		try {
+			return new ByteArrayInputStream(configuration.objectMapper.writeValueAsBytes(dto));
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + jpe.getMessage());
+		}
+	}
+
 	public <T extends DTOBase> String dtoToJson(T dto) {
 		if (dto == null) {
 			throw new IllegalArgumentException("dto MUST NOT be null");
@@ -85,8 +99,20 @@ public final class DTOFactory {
 
 		try {
 			return configuration.objectMapper.writeValueAsString(dto);
-		} catch (JsonProcessingException ioe) {
-			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + ioe.getMessage());
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + jpe.getMessage());
+		}
+	}
+
+	public <T extends DTOBase> InputStream dtoCollectionToJsonStream(List<T> dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		try {
+			return new ByteArrayInputStream(configuration.objectMapper.writeValueAsBytes(dto));
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + jpe.getMessage());
 		}
 	}
 
@@ -97,8 +123,8 @@ public final class DTOFactory {
 
 		try {
 			return configuration.objectMapper.writeValueAsString(dto);
-		} catch (JsonProcessingException ioe) {
-			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + ioe.getMessage());
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + jpe.getMessage());
 		}
 	}
 
