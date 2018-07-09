@@ -27,7 +27,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
-import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -52,7 +51,7 @@ import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_A
 public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
+//	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
 
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
 	//private final ObjectQueue<TestsResultQueueEntry> testsQueue;
