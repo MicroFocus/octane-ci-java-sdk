@@ -149,6 +149,20 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven-jar-plugin.version}</version>
 				</plugin>
+				<plugin>
+					<artifactId>maven-source-plugin</artifactId>
+					<groupId>org.apache.maven.plugins</groupId>
+					<version>${maven-source-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>attach-sources</id>
+							<goals>
+								<goal>jar</goal>
+								<goal>test-jar</goal>
+							</goals>
+						</execution>
+					</executions>
+				</plugin>
 
 				<plugin>
 					<artifactId>maven-javadoc-plugin</artifactId>
@@ -176,6 +190,10 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-enforcer-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<artifactId>maven-source-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -201,20 +219,6 @@
 									<id>attach-javadocs</id>
 									<goals>
 										<goal>jar</goal>
-									</goals>
-								</execution>
-							</executions>
-						</plugin>
-						<plugin>
-							<artifactId>maven-source-plugin</artifactId>
-							<groupId>org.apache.maven.plugins</groupId>
-							<version>${maven-source-plugin.version}</version>
-							<executions>
-								<execution>
-									<id>attach-sources</id>
-									<goals>
-										<goal>jar</goal>
-										<goal>test-jar</goal>
 									</goals>
 								</execution>
 							</executions>
