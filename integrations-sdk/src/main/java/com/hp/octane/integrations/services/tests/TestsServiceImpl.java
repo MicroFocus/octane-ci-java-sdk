@@ -192,8 +192,12 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	}
 
 	private static final class TestsResultQueueEntry implements QueueService.QueueItem {
-		private final String jobId;
-		private final String buildId;
+		private String jobId;
+		private String buildId;
+
+		//  [YG] this constructor MUST be present
+		private TestsResultQueueEntry() {
+		}
 
 		private TestsResultQueueEntry(String jobId, String buildId) {
 			this.jobId = jobId;

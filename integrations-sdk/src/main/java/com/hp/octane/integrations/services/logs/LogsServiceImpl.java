@@ -108,7 +108,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 							logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
 							buildLogsQueue.remove();
 						} catch (Throwable t) {
-							logger.error("unexpected error on " + buildLogQueueItem + ", passing over", t);
+							logger.error("unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
 							buildLogsQueue.remove();
 						}
 					} else {
@@ -227,6 +227,10 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 	private static final class BuildLogQueueItem implements QueueService.QueueItem {
 		private String jobId;
 		private String buildId;
+
+		//  [YG] this constructor MUST be present
+		private BuildLogQueueItem() {
+		}
 
 		private BuildLogQueueItem(String jobId, String buildId) {
 			this.jobId = jobId;
