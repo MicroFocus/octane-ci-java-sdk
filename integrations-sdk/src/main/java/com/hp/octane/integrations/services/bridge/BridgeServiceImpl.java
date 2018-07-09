@@ -72,8 +72,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
 
-		logger.info("starting background worker...");
+		logger.info("BridgeService starting background worker...");
 		startBackgroundWorker();
+		logger.info("BridgeService initialized successfully");
 	}
 
 	//  this should be infallible everlasting worker

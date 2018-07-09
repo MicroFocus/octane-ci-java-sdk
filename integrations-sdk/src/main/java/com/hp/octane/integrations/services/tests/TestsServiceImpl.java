@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -51,9 +52,10 @@ import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_A
 public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
 
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
-	private final QueueService queueService;
+	private final ObjectQueue<TestsResultQueueEntry> testsQueue;
 	private final RestService restService;
 
 	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
@@ -70,9 +72,17 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.queueService = queueService;
+		if (queueService.isPersistenceEnabled()) {
+			testsQueue = queueService.initFileQueue(TESTS_QUEUE_FILE, TestsResultQueueEntry.class);
+		} else {
+			testsQueue = queueService.initMemoQueue();
+		}
+
 		this.restService = restService;
+
+		logger.info("TestsService starting background worker...");
 		startBackgroundWorker();
+		logger.info("TestsService initialized successfully");
 	}
 
 	@Override
@@ -181,13 +191,18 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
 	}
 
-	private static final class TestsResultQueueEntry {
+	private static final class TestsResultQueueEntry implements QueueService.QueueItem {
 		private final String jobId;
 		private final String buildId;
 
 		private TestsResultQueueEntry(String jobId, String buildId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+		}
+
+		@Override
+		public String toString() {
+			return "'" + jobId + " #" + buildId + "'";
 		}
 	}
 

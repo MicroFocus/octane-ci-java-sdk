@@ -75,7 +75,10 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		}
 
 		this.restService = restService;
+
+		logger.info("LogsService starting background worker...");
 		startBackgroundWorker();
+		logger.info("LogsService initialized successfully, backed by " + buildLogsQueue.getClass().getSimpleName());
 	}
 
 	@Override
@@ -92,8 +95,9 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 			public void run() {
 				while (true) {
 					if (buildLogsQueue.size() > 0) {
-						BuildLogQueueItem buildLogQueueItem = buildLogsQueue.peek();
+						BuildLogQueueItem buildLogQueueItem = null;
 						try {
+							buildLogQueueItem = buildLogsQueue.peek();
 							pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
 							logger.debug("successfully processed " + buildLogQueueItem);
 							buildLogsQueue.remove();
@@ -223,9 +227,6 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 	private static final class BuildLogQueueItem implements QueueService.QueueItem {
 		private String jobId;
 		private String buildId;
-
-		private BuildLogQueueItem() {
-		}
 
 		private BuildLogQueueItem(String jobId, String buildId) {
 			this.jobId = jobId;
