@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -89,7 +90,7 @@ class OctaneRequestImpl implements OctaneRequest {
 
 	@JsonProperty
 	public OctaneRequest setBody(String body) {
-		this.body = new ByteArrayInputStream(body.getBytes());
+		this.body = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
 		return this;
 	}
 }
