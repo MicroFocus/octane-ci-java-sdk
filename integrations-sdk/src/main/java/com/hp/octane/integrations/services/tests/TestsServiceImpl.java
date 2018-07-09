@@ -55,7 +55,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
 
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
-	private final ObjectQueue<TestsResultQueueEntry> testsQueue;
+	//private final ObjectQueue<TestsResultQueueEntry> testsQueue;
 	private final RestService restService;
 
 	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
@@ -72,11 +72,11 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		if (queueService.isPersistenceEnabled()) {
-			testsQueue = queueService.initFileQueue(TESTS_QUEUE_FILE, TestsResultQueueEntry.class);
-		} else {
-			testsQueue = queueService.initMemoQueue();
-		}
+//		if (queueService.isPersistenceEnabled()) {
+//			testsQueue = queueService.initFileQueue(TESTS_QUEUE_FILE, TestsResultQueueEntry.class);
+//		} else {
+//			testsQueue = queueService.initMemoQueue();
+//		}
 
 		this.restService = restService;
 
