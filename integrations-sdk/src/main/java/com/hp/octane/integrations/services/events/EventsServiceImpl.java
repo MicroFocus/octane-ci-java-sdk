@@ -178,7 +178,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 						SHARED_SPACE_INTERNAL_API_PATH_PART + pluginServices.getOctaneConfiguration().getSharedSpace() +
 						ANALYTICS_CI_PATH_PART + "events")
 				.setHeaders(headers)
-				.setBody(dtoFactory.dtoToJson(events));
+				.setBody(dtoFactory.dtoToJsonStream(events));
 	}
 
 	private void doBreakableWait(long timeout) {
