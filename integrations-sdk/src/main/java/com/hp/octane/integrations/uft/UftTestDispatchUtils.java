@@ -167,8 +167,7 @@ public class UftTestDispatchUtils {
         String octaneDescription = octaneTest.getStringValue(EntityConstants.AutomatedTest.DESCRIPTION_FIELD);
         boolean descriptionEquals = ((SdkStringUtils.isEmpty(octaneDescription) || "null".equals(octaneDescription)) && SdkStringUtils.isEmpty(discoveredTest.getDescription())) ||
                 octaneDescription.contains(discoveredTest.getDescription());
-        boolean testsEqual = (octaneExecutable && descriptionEquals && !discoveredTest.getIsMoved());
-        return testsEqual;
+        return (octaneExecutable && descriptionEquals && !discoveredTest.getIsMoved());
     }
 
     /**
@@ -245,7 +244,7 @@ public class UftTestDispatchUtils {
                 EntityConstants.ScmResourceFile.RELATIVE_PATH_FIELD);
         List<Entity> octaneDataTables = entitiesService.getEntities(workspaceId, EntityConstants.ScmResourceFile.COLLECTION_NAME, conditions, dataTablesFields);
 
-        Map<String, Entity> octaneDataTablesMap = new HashMap();
+        Map<String, Entity> octaneDataTablesMap = new HashMap<>();
         for (Entity dataTable : octaneDataTables) {
             octaneDataTablesMap.put(dataTable.getStringValue(EntityConstants.ScmResourceFile.RELATIVE_PATH_FIELD), dataTable);
         }
@@ -442,7 +441,6 @@ public class UftTestDispatchUtils {
     }
 
     private static Entity createListNodeEntity(String id) {
-        Entity entity = dtoFactory.newDTO(Entity.class).setType("list_node").setId(id);
-        return entity;
+        return dtoFactory.newDTO(Entity.class).setType("list_node").setId(id);
     }
 }
