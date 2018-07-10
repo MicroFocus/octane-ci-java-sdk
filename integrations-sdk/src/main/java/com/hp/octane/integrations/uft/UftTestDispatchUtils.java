@@ -28,6 +28,7 @@ import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.util.SdkStringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,47 +52,64 @@ public class UftTestDispatchUtils {
         removeItemsWithStatusNone(discoveryResult.getAllScmResourceFiles());
     }
 
-    public static void dispatchDiscoveryResult(EntitiesService entitiesService, UftTestDiscoveryResult result, JobRunContext jobRunContext) {
+    public static void dispatchDiscoveryResult(EntitiesService entitiesService, UftTestDiscoveryResult result, JobRunContext jobRunContext, CustomLogger customLogger) {
         //post new tests
         List<AutomatedTest> tests = result.getNewTests();
         if (!tests.isEmpty()) {
             boolean posted = postTests(entitiesService, tests, result.getWorkspaceId(), result.getScmRepositoryId());
-            logger.warn("Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  new tests posted successfully = " + posted);
+            String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  new tests posted successfully = " + posted;
+            logMessage(Level.WARN, customLogger, msg);
         }
 
         //post test updated
         tests = result.getUpdatedTests();
         if (!tests.isEmpty()) {
             boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId());
-            logger.warn("Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  updated tests posted successfully = " + updated);
+            String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  updated tests posted successfully = " + updated;
+            logMessage(Level.WARN, customLogger, msg);
         }
 
         //post test deleted
         tests = result.getDeletedTests();
         if (!tests.isEmpty()) {
             boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId());
-            logger.warn("Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  deleted tests set as not executable successfully = " + updated);
+            String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  deleted tests set as not executable successfully = " + updated;
+            logMessage(Level.WARN, customLogger, msg);
         }
 
         //post scm resources
         List<ScmResourceFile> resources = result.getNewScmResourceFiles();
         if (!resources.isEmpty()) {
             boolean posted = postScmResources(entitiesService, resources, result.getWorkspaceId(), result.getScmRepositoryId());
-            logger.warn("Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  new scmResources posted successfully = " + posted);
+            String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  new scmResources posted successfully = " + posted;
+            logMessage(Level.WARN, customLogger, msg);
         }
 
         //update scm resources
         resources = result.getUpdatedScmResourceFiles();
         if (!resources.isEmpty()) {
             boolean posted = updateScmResources(entitiesService, resources, result.getWorkspaceId());
-            logger.warn("Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  updated scmResources posted successfully = " + posted);
+            String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  updated scmResources posted successfully = " + posted;
+            logMessage(Level.WARN, customLogger, msg);
         }
 
         //delete scm resources
         resources = result.getDeletedScmResourceFiles();
         if (!resources.isEmpty()) {
             boolean posted = deleteScmResources(entitiesService, resources, result.getWorkspaceId());
-            logger.warn("Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  scmResources deleted successfully = " + posted);
+            String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  scmResources deleted successfully = " + posted;
+            logMessage(Level.WARN, customLogger, msg);
+        }
+    }
+
+    private static void logMessage(Level level, CustomLogger customLogger, String msg) {
+        logger.log(level, msg);
+        if (customLogger != null) {
+            try {
+                customLogger.add(msg);
+            } catch (Exception e) {
+                logger.error("failed to add to customLogger " + e.getMessage());
+            }
         }
     }
 
