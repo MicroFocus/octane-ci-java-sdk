@@ -27,6 +27,9 @@ import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class UftTestDiscoveryUtils {
 
@@ -34,6 +37,8 @@ public class UftTestDiscoveryUtils {
     private static final String QTPFileExtention = ".tsp";//gui test
     private static final String XLSXExtention = ".xlsx";//excel file
     private static final String XLSExtention = ".xls";//excel file
+
+    private static final Set<String> SKIP_FOLDERS = new HashSet<>(Arrays.asList("_discovery_results"));
 
     public static UftTestDiscoveryResult doFullDiscovery(File root) {
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();
@@ -43,6 +48,10 @@ public class UftTestDiscoveryUtils {
     }
 
     private static void scanFileSystemRecursively(File root, File dirPath, UftTestDiscoveryResult discoveryResult) {
+        if(dirPath.isDirectory() && SKIP_FOLDERS.contains(dirPath.getName())){
+            return;
+        }
+
         File[] paths = dirPath.isDirectory() ? dirPath.listFiles() : new File[]{dirPath};
 
         //if it test folder - create new test, else drill down to subFolders
