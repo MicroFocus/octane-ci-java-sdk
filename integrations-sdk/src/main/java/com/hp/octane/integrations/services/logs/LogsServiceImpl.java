@@ -121,6 +121,11 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 
 	private void pushBuildLog(String serverId, BuildLogQueueItem queueItem) {
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
+		if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
+			logger.warn("no (valid) Octane configuration found, bypassing " + queueItem);
+			return;
+		}
+
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(queueItem.buildId);
@@ -228,7 +233,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		private String jobId;
 		private String buildId;
 
-		//  [YG] this constructor MUST be present
+		//  [YG] this constructor MUST be present, don't remove
 		private BuildLogQueueItem() {
 		}
 
