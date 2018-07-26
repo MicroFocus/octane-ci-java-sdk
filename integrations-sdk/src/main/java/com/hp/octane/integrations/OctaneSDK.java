@@ -28,6 +28,7 @@ import com.hp.octane.integrations.services.queue.QueueServiceImpl;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,6 +57,7 @@ public final class OctaneSDK {
 	private final EventsService eventsService;
 	private final TestsService testsService;
 	private final LogsService logsService;
+	private final VulnerabilitiesService vulnerabilitiesService;
 	private final EntitiesService entitiesService;
 
 	private OctaneSDK(CIPluginServices ciPluginServices) {
@@ -70,6 +72,7 @@ public final class OctaneSDK {
 		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
 		logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
 	}
@@ -126,6 +129,10 @@ public final class OctaneSDK {
 
 	public LogsService getLogsService() {
 		return logsService;
+	}
+
+	public VulnerabilitiesService getVulnerabilitiesService() {
+		return vulnerabilitiesService;
 	}
 
 	public EntitiesService getEntitiesService() {

@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.dto.vulnerabilities.VulnerabilitiesData;
 
 import java.io.File;
 import java.io.InputStream;
@@ -135,6 +136,24 @@ public interface CIPluginServices {
 	 */
 	TestsResult getTestsResult(String jobCiId, String buildCiId);
 
+	/**
+	 * Retrieves vulnerabilities scan result for the specific build
+	 *
+	 * @param jobCiId   Job CI ID to get tests results of
+	 * @param buildCiId Build CI ID to get tests results of
+	 * @return vulnerabilitiesData; NULL if no Vulnerabilities result available
+	 */
+	VulnerabilitiesData getVulnerabilitiesScanResult(String jobCiId, String buildCiId);
+
+
+	/**
+	 * Retrieves vulnerabilities scan result for the specific build
+	 *
+	 * @param jobCiId   Job CI ID to get tests results of
+	 * @param buildCiId Build CI ID to get tests results of
+	 * @return InputStream; NULL if no Vulnerabilities result available
+	 */
+	InputStream getVulnerabilitiesScanResultStream(String jobCiId, String buildCiId);
 	/**
 	 * Retrieves build's log as an InputStream
 	 *
