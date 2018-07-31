@@ -19,8 +19,8 @@ package com.hp.octane.integrations.spi;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
+import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
@@ -29,7 +29,6 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
-import com.hp.octane.integrations.dto.vulnerabilities.VulnerabilitiesData;
 
 import java.io.File;
 import java.io.InputStream;
@@ -96,11 +95,6 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
 	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
-		return null;
-	}
-
-	@Override
-	public VulnerabilitiesData getVulnerabilitiesScanResult(String jobCiId, String buildCiId){
 		return null;
 	}
 
