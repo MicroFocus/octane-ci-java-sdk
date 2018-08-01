@@ -68,14 +68,16 @@ class OctaneConfigurationImpl implements OctaneConfiguration {
 	}
 
 	public boolean isValid() {
-		boolean result = false;
+		boolean result;
 		if (url != null && !url.isEmpty() && sharedSpace != null && !sharedSpace.isEmpty()) {
 			try {
-				URL tmp = new URL(url);
+				new URL(url);
 				result = true;
 			} catch (MalformedURLException mue) {
 				result = false;
 			}
+		} else {
+			result = false;
 		}
 		return result;
 	}
