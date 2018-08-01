@@ -34,6 +34,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.config.Registry;
@@ -47,14 +48,13 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
@@ -97,13 +97,12 @@ final class RestClientImpl implements RestClient {
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
+	private static final int MAX_TOTAL_CONNECTIONS = 20;
 
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
-	private final CredentialsProvider credentialsProvider;
 	private final List<HttpUriRequest> ongoingRequests = new LinkedList<>();
 
-	private int MAX_TOTAL_CONNECTIONS = 20;
 	private Cookie LWSSO_TOKEN = null;
 
 	static {
@@ -124,11 +123,9 @@ final class RestClientImpl implements RestClient {
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
-		credentialsProvider = new BasicCredentialsProvider();
 
 		HttpClientBuilder clientBuilder = HttpClients.custom()
-				.setConnectionManager(connectionManager)
-				.setDefaultCredentialsProvider(credentialsProvider);
+				.setConnectionManager(connectionManager);
 
 		httpClient = clientBuilder.build();
 	}
@@ -276,9 +273,9 @@ final class RestClientImpl implements RestClient {
 			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
 				AuthScope authScope = new AuthScope(proxyHost);
 				Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
+				CredentialsProvider credentialsProvider = new SystemDefaultCredentialsProvider();
 				credentialsProvider.setCredentials(authScope, credentials);
-			} else {
-				credentialsProvider.clear();
+				context.setCredentialsProvider(credentialsProvider);
 			}
 
 			context.setRequestConfig(RequestConfig.custom().setProxy(proxyHost).build());
@@ -408,6 +405,13 @@ final class RestClientImpl implements RestClient {
 		private LoginApiBody(String client_id, String client_secret) {
 			this.client_id = client_id;
 			this.client_secret = client_secret;
+		}
+
+		@Override
+		public String toString() {
+			return "LoginApiBody {" +
+					"client_id: " + client_id +
+					", client_secret: " + client_secret + "}";
 		}
 	}
 }
