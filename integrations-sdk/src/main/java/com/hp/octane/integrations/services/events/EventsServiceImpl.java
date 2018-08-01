@@ -120,26 +120,28 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	}
 
 	private boolean sendData() {
+		boolean result = true;
+
+		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
+		if (octaneConfig == null || !octaneConfig.isValid()) {
+			logger.warn("no (valid) Octane configuration found, bypassing dispatching events");
+			return true;
+		}
+
 		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
 				.setServer(pluginServices.getServerInfo())
 				.setEvents(new ArrayList<>(events));
-		boolean result = true;
-
-		//  prepare some data for logging
-		StringBuilder eventsSummary = new StringBuilder();
-		for (CIEvent event : eventsSnapshot.getEvents()) {
-			eventsSummary.append(event.getProject()).append(":").append(event.getBuildCiId()).append(":").append(event.getEventType());
-			if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size() - 1) {
-				eventsSummary.append(", ");
-			}
-		}
-		String targetOctane = "UNKNOWN!?";
-		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
-		if (octaneConfig != null) {
-			targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
-		}
-
+		String targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
 		try {
+			//  prepare some data for logging
+			StringBuilder eventsSummary = new StringBuilder();
+			for (CIEvent event : eventsSnapshot.getEvents()) {
+				eventsSummary.append(event.getProject()).append(":").append(event.getBuildCiId()).append(":").append(event.getEventType());
+				if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size() - 1) {
+					eventsSummary.append(", ");
+				}
+			}
+
 			logger.info("sending [" + eventsSummary + "] event/s to [" + targetOctane + "]...");
 			OctaneRequest request = createEventsRequest(eventsSnapshot);
 			OctaneResponse response;
