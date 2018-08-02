@@ -23,6 +23,7 @@ public interface RestService {
 	String SHARED_SPACE_API_PATH_PART = "/api/shared_spaces/";
 	String ANALYTICS_CI_PATH_PART = "/analytics/ci/";
 	String VULNERABILITIES = "/vulnerabilities";
+	String VULNERABILITIES_PRE_FLIGHT = "/vulnerabilities/preflight";
 	String ACCEPT_HEADER = "accept";
 	String CONTENT_TYPE_HEADER = "content-type";
 	String CONTENT_ENCODING_HEADER = "content-encoding";
