@@ -14,7 +14,6 @@
 	<properties>
 		<log4j.version>2.9.1</log4j.version>
 		<commons-logging.version>1.2</commons-logging.version>
-		<httpcore.version>4.4.4</httpcore.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<squareup-tape.version>1.2.3</squareup-tape.version>
 	</properties>
@@ -39,11 +38,6 @@
 			<artifactId>log4j-core</artifactId>
 			<groupId>org.apache.logging.log4j</groupId>
 			<version>${log4j.version}</version>
-		</dependency>
-		<dependency>
-			<artifactId>httpcore</artifactId>
-			<groupId>org.apache.httpcomponents</groupId>
-			<version>${httpcore.version}</version>
 		</dependency>
 		<dependency>
 			<artifactId>httpclient</artifactId>
