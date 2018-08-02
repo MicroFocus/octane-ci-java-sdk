@@ -294,12 +294,8 @@ final class RestClientImpl implements RestClient {
 		boolean securityTokenRefreshed = false;
 		for (Cookie cookie : context.getCookieStore().getCookies()) {
 			if (LWSSO_COOKIE_NAME.equals(cookie.getName()) && (LWSSO_TOKEN == null || cookie.getValue().compareTo(LWSSO_TOKEN.getValue()) != 0)) {
-				BasicClientCookie tmpCookie = new BasicClientCookie(cookie.getName(), cookie.getValue());
-				tmpCookie.setSecure(cookie.isSecure());
-				tmpCookie.setExpiryDate(cookie.getExpiryDate());
-				tmpCookie.setDomain(cookie.getDomain());
-				tmpCookie.setPath("/");
-				LWSSO_TOKEN = tmpCookie;
+				((BasicClientCookie) cookie).setPath("/");
+				LWSSO_TOKEN = cookie;
 				securityTokenRefreshed = true;
 				break;
 			}
