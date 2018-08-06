@@ -35,6 +35,7 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.config.Registry;
@@ -56,6 +57,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
@@ -189,7 +191,7 @@ final class RestClientImpl implements RestClient {
 						logger.info("re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
-					refreshSecurityToken(context);
+					refreshSecurityToken(context, false);
 					break;
 				}
 			}
@@ -263,6 +265,10 @@ final class RestClientImpl implements RestClient {
 			context.getCookieStore().addCookie(LWSSO_TOKEN);
 		}
 
+		//  prepare request config
+		RequestConfig.Builder requestConfigBuilder = RequestConfig.custom()
+				.setCookieSpec(CookieSpecs.STANDARD);
+
 		//  configure proxy if needed
 		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
 		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(parsedUrl);
@@ -277,17 +283,18 @@ final class RestClientImpl implements RestClient {
 				credentialsProvider.setCredentials(authScope, credentials);
 				context.setCredentialsProvider(credentialsProvider);
 			}
-
-			context.setRequestConfig(RequestConfig.custom().setProxy(proxyHost).build());
+			requestConfigBuilder.setProxy(proxyHost);
 		}
 
+		context.setRequestConfig(requestConfigBuilder.build());
 		return context;
 	}
 
-	private void refreshSecurityToken(HttpClientContext context) {
+	private void refreshSecurityToken(HttpClientContext context, boolean mustPresent) {
 		boolean securityTokenRefreshed = false;
 		for (Cookie cookie : context.getCookieStore().getCookies()) {
 			if (LWSSO_COOKIE_NAME.equals(cookie.getName()) && (LWSSO_TOKEN == null || cookie.getValue().compareTo(LWSSO_TOKEN.getValue()) != 0)) {
+				((BasicClientCookie) cookie).setPath("/");
 				LWSSO_TOKEN = cookie;
 				securityTokenRefreshed = true;
 				break;
@@ -296,6 +303,8 @@ final class RestClientImpl implements RestClient {
 
 		if (securityTokenRefreshed) {
 			logger.info("successfully refreshed security token");
+		} else if (mustPresent) {
+			logger.error("security token expected but NOT found (domain attribute configured wrongly?)");
 		}
 	}
 
@@ -335,7 +344,7 @@ final class RestClientImpl implements RestClient {
 			response = httpClient.execute(loginRequest, context);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				refreshSecurityToken(context);
+				refreshSecurityToken(context, true);
 			} else {
 				logger.warn("failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
 			}
