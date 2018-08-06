@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.causes.impl.DTOCausesProvider;
 import com.hp.octane.integrations.dto.configuration.impl.DTOConfigsProvider;
 import com.hp.octane.integrations.dto.connectivity.impl.DTOConnectivityProvider;
 import com.hp.octane.integrations.dto.coverage.impl.DTOCoverageProvider;
+import com.hp.octane.integrations.dto.entities.impl.DTOEntityProvider;
 import com.hp.octane.integrations.dto.events.impl.DTOEventsProvider;
 import com.hp.octane.integrations.dto.executor.impl.DTOExecutorsProvider;
 import com.hp.octane.integrations.dto.general.impl.DTOGeneralProvider;
@@ -35,8 +36,10 @@ import com.hp.octane.integrations.dto.tests.impl.DTOJUnitTestsProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOTestsProvider;
 
 import javax.xml.bind.JAXBException;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -71,9 +74,21 @@ public final class DTOFactory {
 		try {
 			return configuration.registry.get(targetType).instantiateDTO(targetType);
 		} catch (InstantiationException ie) {
-			throw new RuntimeException("failed to instantiate " + targetType + "; error: " + ie.getMessage());
+			throw new RuntimeException("failed to instantiate " + targetType, ie);
 		} catch (IllegalAccessException iae) {
-			throw new RuntimeException("access denied to " + targetType + "; error: " + iae.getMessage());
+			throw new RuntimeException("access denied to " + targetType, iae);
+		}
+	}
+
+	public <T extends DTOBase> InputStream dtoToJsonStream(T dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		try {
+			return new ByteArrayInputStream(configuration.objectMapper.writeValueAsBytes(dto));
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
 
@@ -84,8 +99,20 @@ public final class DTOFactory {
 
 		try {
 			return configuration.objectMapper.writeValueAsString(dto);
-		} catch (JsonProcessingException ioe) {
-			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + ioe.getMessage());
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
+		}
+	}
+
+	public <T extends DTOBase> InputStream dtoCollectionToJsonStream(List<T> dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		try {
+			return new ByteArrayInputStream(configuration.objectMapper.writeValueAsBytes(dto));
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
 
@@ -96,8 +123,8 @@ public final class DTOFactory {
 
 		try {
 			return configuration.objectMapper.writeValueAsString(dto);
-		} catch (JsonProcessingException ioe) {
-			throw new RuntimeException("failed to serialize " + dto + " to JSON; error: " + ioe.getMessage());
+		} catch (JsonProcessingException jpe) {
+			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
 
@@ -112,7 +139,7 @@ public final class DTOFactory {
 		try {
 			return configuration.objectMapper.readValue(json, targetType);
 		} catch (IOException ioe) {
-			throw new RuntimeException("failed to deserialize " + json + " into " + targetType + "; error: " + ioe.getMessage());
+			throw new RuntimeException("failed to deserialize " + json + " into " + targetType, ioe);
 		}
 	}
 
@@ -127,7 +154,7 @@ public final class DTOFactory {
 		try {
 			return configuration.objectMapper.readValue(json, targetType);
 		} catch (IOException ioe) {
-			throw new RuntimeException("failed to deserialize " + json + " into " + targetType + "; error: " + ioe.getMessage());
+			throw new RuntimeException("failed to deserialize " + json + " into " + targetType, ioe);
 		}
 	}
 
@@ -150,7 +177,7 @@ public final class DTOFactory {
 				throw new RuntimeException(dto.getClass() + " is not supported in this flow");
 			}
 		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to serialize " + dto + " to XML; error: " + jaxbe.getMessage());
+			throw new RuntimeException("failed to serialize " + dto + " to XML", jaxbe);
 		}
 	}
 
@@ -176,7 +203,7 @@ public final class DTOFactory {
 				throw new RuntimeException(targetType + " is not supported in this flow");
 			}
 		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to deserialize " + xml + " into " + targetType + "; error: " + jaxbe.getMessage());
+			throw new RuntimeException("failed to deserialize " + xml + " into " + targetType, jaxbe);
 		}
 	}
 
@@ -202,7 +229,7 @@ public final class DTOFactory {
 				throw new RuntimeException(targetType + " is not supported in this flow");
 			}
 		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType + "; error: " + jaxbe.getMessage());
+			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType, jaxbe);
 		}
 	}
 
@@ -230,6 +257,7 @@ public final class DTOFactory {
 			providers.add(new DTOTestsProvider(this));
 			providers.add(new DTOExecutorsProvider(this));
 			providers.add(new DTOJUnitTestsProvider(this));
+			providers.add(new DTOEntityProvider(this));
 
 			//  register providers' data within the Factory
 			//  configure ObjectMapper with interfaces and implementations

@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -26,12 +26,13 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 
 /**
  * Composite API of all the endpoints to be implemented by a hosting CI Plugin for Octane use cases.
@@ -70,10 +71,10 @@ public interface CIPluginServices {
 	/**
 	 * Provides CI Server proxy configuration (managed by plugin implementation)
 	 *
-	 * @param targetHost target host that the proxy, if available, should be relevant to
+	 * @param targetUrl target URL that the proxy, if available, should be relevant to
 	 * @return ProxyConfiguration object; if no configuration available the implementation should return NULL
 	 */
-	CIProxyConfiguration getProxyConfiguration(String targetHost);
+	CIProxyConfiguration getProxyConfiguration(URL targetUrl);
 
 	/**
 	 * Provides a list of Projects existing on this CI Server
@@ -126,16 +127,6 @@ public interface CIPluginServices {
 	SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree);
 
 	/**
-	 * Retrieves aggregated latest builds info
-	 *
-	 * @param ciJobId      Job CI ID to get history data for
-	 * @param originalBody request body
-	 * @return history data for the specified pipeline
-	 */
-	@Deprecated
-	BuildHistory getHistoryPipeline(String ciJobId, String originalBody);
-
-	/**
 	 * Retrieves tests result report for the specific build
 	 *
 	 * @param jobCiId   Job CI ID to get tests results of
@@ -143,6 +134,23 @@ public interface CIPluginServices {
 	 * @return TestsResult data; NULL if no tests result available
 	 */
 	TestsResult getTestsResult(String jobCiId, String buildCiId);
+
+	/**
+	 * Retrieves vulnerabilities scan result for the specific build
+	 *
+	 * @param jobCiId   Job CI ID to get tests results of
+	 * @param buildCiId Build CI ID to get tests results of
+	 * @return InputStream; NULL if no Vulnerabilities result available
+	 */
+	InputStream getVulnerabilitiesScanResultStream(String jobCiId, String buildCiId);
+	/**
+	 * Retrieves build's log as an InputStream
+	 *
+	 * @param jobCiId   job CI ID of the specific build to get log for
+	 * @param buildCiId build CI ID to get log for
+	 * @return build's log as an InputStream; NULL if no log available
+	 */
+	InputStream getBuildLog(String jobCiId, String buildCiId);
 
 	void runTestDiscovery(DiscoveryInfo discoveryInfo);
 

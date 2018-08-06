@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -73,7 +73,10 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		}
 
 		this.restService = restService;
+
+		logger.info("starting background worker...");
 		startBackgroundWorker();
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	public void publishEvent(CIEvent event) {
@@ -117,26 +120,28 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	}
 
 	private boolean sendData() {
+		boolean result = true;
+
+		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
+		if (octaneConfig == null || !octaneConfig.isValid()) {
+			logger.warn("no (valid) Octane configuration found, bypassing dispatching events");
+			return true;
+		}
+
 		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
 				.setServer(pluginServices.getServerInfo())
 				.setEvents(new ArrayList<>(events));
-		boolean result = true;
-
-		//  prepare some data for logging
-		StringBuilder eventsSummary = new StringBuilder();
-		for (CIEvent event : eventsSnapshot.getEvents()) {
-			eventsSummary.append(event.getProject()).append(":").append(event.getBuildCiId()).append(":").append(event.getEventType());
-			if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size() - 1) {
-				eventsSummary.append(", ");
-			}
-		}
-		String targetOctane = "UNKNOWN!?";
-		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
-		if (octaneConfig != null) {
-			targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
-		}
-
+		String targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
 		try {
+			//  prepare some data for logging
+			StringBuilder eventsSummary = new StringBuilder();
+			for (CIEvent event : eventsSnapshot.getEvents()) {
+				eventsSummary.append(event.getProject()).append(":").append(event.getBuildCiId()).append(":").append(event.getEventType());
+				if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size() - 1) {
+					eventsSummary.append(", ");
+				}
+			}
+
 			logger.info("sending [" + eventsSummary + "] event/s to [" + targetOctane + "]...");
 			OctaneRequest request = createEventsRequest(eventsSnapshot);
 			OctaneResponse response;
@@ -175,7 +180,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 						SHARED_SPACE_INTERNAL_API_PATH_PART + pluginServices.getOctaneConfiguration().getSharedSpace() +
 						ANALYTICS_CI_PATH_PART + "events")
 				.setHeaders(headers)
-				.setBody(dtoFactory.dtoToJson(events));
+				.setBody(dtoFactory.dtoToJsonStream(events));
 	}
 
 	private void doBreakableWait(long timeout) {

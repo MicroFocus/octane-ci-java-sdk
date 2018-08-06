@@ -1,5 +1,8 @@
 #Change log
 
+#####1.5.6
+-   improved login/re-login logic and logging
+
 #####1.5.2
 -   normalized all REST APIs with a proper escaping
 -   removed unneeded call for Base64 support check

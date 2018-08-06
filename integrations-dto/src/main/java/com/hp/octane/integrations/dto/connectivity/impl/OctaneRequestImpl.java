@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 /**
@@ -89,7 +90,7 @@ class OctaneRequestImpl implements OctaneRequest {
 
 	@JsonProperty
 	public OctaneRequest setBody(String body) {
-		this.body = new ByteArrayInputStream(body.getBytes());
+		this.body = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
 		return this;
 	}
 }

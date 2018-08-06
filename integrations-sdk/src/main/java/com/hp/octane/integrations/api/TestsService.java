@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -48,8 +48,8 @@ public interface TestsService {
 	 * This is the preferred way to push tests results to Octane. This method provides facilities of queue, non-main thread execution and retry.
 	 * Pay attention, that when pushing tests results this way, it is assumed that your SPI implementation knows to retrieve and provide TestsResult object given the relevant jobCiId/buildCiId (as they are provided hereby)
 	 *
-	 * @param jobCiId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
-	 * @param buildCiId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 */
-	void enqueuePushTestsResult(String jobCiId, String buildCiId);
+	void enqueuePushTestsResult(String jobId, String buildId);
 }

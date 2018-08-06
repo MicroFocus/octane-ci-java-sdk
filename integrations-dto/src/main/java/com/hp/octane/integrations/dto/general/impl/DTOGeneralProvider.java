@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -32,6 +32,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 public final class DTOGeneralProvider extends DTOInternalProviderBase {
 
 	public DTOGeneralProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
 		dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
 		dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);

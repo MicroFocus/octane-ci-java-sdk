@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -19,13 +19,16 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.api.*;
 import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
+import com.hp.octane.integrations.services.entities.EntitiesServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingServiceImpl;
+import com.hp.octane.integrations.services.logs.LogsServiceImpl;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.services.queue.QueueServiceImpl;
 import com.hp.octane.integrations.services.rest.RestServiceImpl;
 import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
 import com.hp.octane.integrations.services.tests.TestsServiceImpl;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -53,6 +56,9 @@ public final class OctaneSDK {
 	private final TasksProcessor tasksProcessor;
 	private final EventsService eventsService;
 	private final TestsService testsService;
+	private final LogsService logsService;
+	private final VulnerabilitiesService vulnerabilitiesService;
+	private final EntitiesService entitiesService;
 
 	private OctaneSDK(CIPluginServices ciPluginServices) {
 		instance = this;
@@ -65,6 +71,9 @@ public final class OctaneSDK {
 		configurationService = new ConfigurationServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
 	}
 
@@ -77,11 +86,10 @@ public final class OctaneSDK {
 	synchronized public static void init(CIPluginServices ciPluginServices) {
 		if (instance == null) {
 			if (ciPluginServices == null) {
-				throw new IllegalArgumentException("SDK initialization failed: MUST be initialized with valid plugin services provider");
+				throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
 			}
 			new OctaneSDK(ciPluginServices);
-			logger.info("");
-			logger.info("SDK has been initialized");
+			logger.info("initialized SUCCESSFULLY");
 		} else {
 			logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
 		}
@@ -119,12 +127,24 @@ public final class OctaneSDK {
 		return testsService;
 	}
 
+	public LogsService getLogsService() {
+		return logsService;
+	}
+
+	public VulnerabilitiesService getVulnerabilitiesService() {
+		return vulnerabilitiesService;
+	}
+
+	public EntitiesService getEntitiesService() {
+		return entitiesService;
+	}
+
 	private void initSDKProperties() {
 		Properties p = new Properties();
 		try {
 			p.load(OctaneSDK.class.getClassLoader().getResourceAsStream("sdk.properties"));
 		} catch (IOException ioe) {
-			logger.error("SDK initialization failed: failed to load SDK properties", ioe);
+			logger.error("initialization failed: failed to load SDK properties", ioe);
 			throw new IllegalStateException("SDK initialization failed: failed to load SDK properties", ioe);
 		}
 		if (!p.isEmpty()) {

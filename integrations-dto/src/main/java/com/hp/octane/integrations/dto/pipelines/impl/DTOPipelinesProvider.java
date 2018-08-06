@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -19,7 +19,6 @@ package com.hp.octane.integrations.dto.pipelines.impl;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 
@@ -30,9 +29,9 @@ import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 public final class DTOPipelinesProvider extends DTOInternalProviderBase {
 
 	public DTOPipelinesProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(PipelineNode.class, PipelineNodeImpl.class);
 		dtoPairs.put(PipelinePhase.class, PipelinePhaseImpl.class);
-		dtoPairs.put(BuildHistory.class, BuildHistoryImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

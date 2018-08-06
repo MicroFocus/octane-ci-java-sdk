@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -20,7 +20,10 @@ import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
 public interface RestService {
 	String SHARED_SPACE_INTERNAL_API_PATH_PART = "/internal-api/shared_spaces/";
+	String SHARED_SPACE_API_PATH_PART = "/api/shared_spaces/";
 	String ANALYTICS_CI_PATH_PART = "/analytics/ci/";
+	String VULNERABILITIES = "/vulnerabilities";
+	String VULNERABILITIES_PRE_FLIGHT = "/vulnerabilities/preflight";
 	String ACCEPT_HEADER = "accept";
 	String CONTENT_TYPE_HEADER = "content-type";
 	String CONTENT_ENCODING_HEADER = "content-encoding";

@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -26,6 +26,8 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
@@ -60,6 +62,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		}
 
 		this.restService = restService;
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	public OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {
@@ -100,6 +103,15 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		}
 	}
 
+	public boolean isConfigurationValid() {
+		try {
+			OctaneResponse response = validateConfiguration(pluginServices.getOctaneConfiguration());
+			return response.getStatus() == HttpStatus.SC_OK;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	public OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException {
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration MUST not be null");
@@ -108,7 +120,8 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
 		}
 
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(configuration.getUrl());
+		URL octaneUrl = CIPluginSDKUtils.parseURL(configuration.getUrl());
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneUrl);
 		RestClient restClientImpl = restService.createClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)

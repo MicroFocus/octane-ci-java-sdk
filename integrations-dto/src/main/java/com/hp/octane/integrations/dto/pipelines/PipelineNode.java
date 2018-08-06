@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.dto.pipelines;
 
 import com.hp.octane.integrations.dto.DTOBase;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 
 import java.util.List;
@@ -46,4 +47,8 @@ public interface PipelineNode extends DTOBase {
 	List<PipelinePhase> getPhasesPostBuild();
 
 	PipelineNode setPhasesPostBuild(List<PipelinePhase> phasesPostBuild);
+
+	MultiBranchType getMultiBranchType();
+
+	PipelineNode setMultiBranchType(MultiBranchType multiBranchType);
 }

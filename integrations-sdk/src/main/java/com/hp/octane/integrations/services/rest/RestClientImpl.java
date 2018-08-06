@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -34,6 +34,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.Credentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.GzipCompressingEntity;
 import org.apache.http.config.Registry;
@@ -47,15 +48,13 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.client.CookieStore;
-import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContexts;
@@ -72,6 +71,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
@@ -97,13 +97,12 @@ final class RestClientImpl implements RestClient {
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
+	private static final int MAX_TOTAL_CONNECTIONS = 20;
 
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
-	private final CredentialsProvider credentialsProvider;
 	private final List<HttpUriRequest> ongoingRequests = new LinkedList<>();
 
-	private int MAX_TOTAL_CONNECTIONS = 20;
 	private Cookie LWSSO_TOKEN = null;
 
 	static {
@@ -124,11 +123,9 @@ final class RestClientImpl implements RestClient {
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
 		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
 		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
-		credentialsProvider = new BasicCredentialsProvider();
 
 		HttpClientBuilder clientBuilder = HttpClients.custom()
-				.setConnectionManager(connectionManager)
-				.setDefaultCredentialsProvider(credentialsProvider);
+				.setConnectionManager(connectionManager);
 
 		httpClient = clientBuilder.build();
 	}
@@ -155,7 +152,7 @@ final class RestClientImpl implements RestClient {
 	private OctaneResponse executeRequest(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
 		OctaneResponse result;
 		HttpClientContext context;
-		HttpUriRequest uriRequest;
+		HttpUriRequest uriRequest = null;
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
@@ -171,7 +168,7 @@ final class RestClientImpl implements RestClient {
 			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
 			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext(request.getUrl());
+				context = createHttpContext(request.getUrl(), false);
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests.add(uriRequest);
 				}
@@ -181,26 +178,32 @@ final class RestClientImpl implements RestClient {
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-					logger.info("re-login");
+					logger.info("doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
 					EntityUtils.consumeQuietly(httpResponse.getEntity());
 					HttpClientUtils.closeQuietly(httpResponse);
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
-						logger.error("failed on re-login with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						logger.error("failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
 						return loginResponse;
 					} else {
-						logger.info("re-attempting the original request having successful re-login");
+						logger.info("re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
+					refreshSecurityToken(context);
 					break;
 				}
 			}
 
 			result = createNGAResponse(httpResponse);
 		} catch (IOException ioe) {
-			logger.error("failed executing " + request, ioe);
+			logger.debug("failed executing " + request, ioe);
 			throw ioe;
 		} finally {
+			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests.remove(uriRequest);
+				}
+			}
 			if (httpResponse != null) {
 				EntityUtils.consumeQuietly(httpResponse.getEntity());
 				HttpClientUtils.closeQuietly(httpResponse);
@@ -251,14 +254,18 @@ final class RestClientImpl implements RestClient {
 		return request;
 	}
 
-	private HttpClientContext createHttpContext(String requestUrl) {
+	private HttpClientContext createHttpContext(String requestUrl, boolean isLoginRequest) {
 		HttpClientContext context = HttpClientContext.create();
-		CookieStore localCookies = new BasicCookieStore();
-		localCookies.addCookie(LWSSO_TOKEN);
-		context.setCookieStore(localCookies);
+		context.setCookieStore(new BasicCookieStore());
+
+		//  add security token if needed
+		if (!isLoginRequest) {
+			context.getCookieStore().addCookie(LWSSO_TOKEN);
+		}
 
 		//  configure proxy if needed
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(requestUrl);
+		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
+		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(parsedUrl);
 		if (proxyConfiguration != null) {
 			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
@@ -266,15 +273,30 @@ final class RestClientImpl implements RestClient {
 			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
 				AuthScope authScope = new AuthScope(proxyHost);
 				Credentials credentials = new UsernamePasswordCredentials(proxyConfiguration.getUsername(), proxyConfiguration.getPassword());
+				CredentialsProvider credentialsProvider = new SystemDefaultCredentialsProvider();
 				credentialsProvider.setCredentials(authScope, credentials);
-			} else {
-				credentialsProvider.clear();
+				context.setCredentialsProvider(credentialsProvider);
 			}
 
 			context.setRequestConfig(RequestConfig.custom().setProxy(proxyHost).build());
 		}
 
 		return context;
+	}
+
+	private void refreshSecurityToken(HttpClientContext context) {
+		boolean securityTokenRefreshed = false;
+		for (Cookie cookie : context.getCookieStore().getCookies()) {
+			if (LWSSO_COOKIE_NAME.equals(cookie.getName()) && (LWSSO_TOKEN == null || cookie.getValue().compareTo(LWSSO_TOKEN.getValue()) != 0)) {
+				LWSSO_TOKEN = cookie;
+				securityTokenRefreshed = true;
+				break;
+			}
+		}
+
+		if (securityTokenRefreshed) {
+			logger.info("successfully refreshed security token");
+		}
 	}
 
 	private OctaneResponse createNGAResponse(HttpResponse response) throws IOException {
@@ -309,26 +331,17 @@ final class RestClientImpl implements RestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			HttpClientContext context = createHttpContext(loginRequest.getURI().toString());
-
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.remove(loginRequest);
-			}
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), true);
 			response = httpClient.execute(loginRequest, context);
-			synchronized (REQUESTS_LIST_LOCK) {
-				ongoingRequests.remove(loginRequest);
-			}
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				for (Cookie cookie : context.getCookieStore().getCookies()) {
-					if (cookie.getName().equals(LWSSO_COOKIE_NAME)) {
-						LWSSO_TOKEN = cookie;
-					}
-				}
+				refreshSecurityToken(context);
+			} else {
+				logger.warn("failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(response);
 		} catch (IOException ioe) {
-			logger.error("failed to login to " + config, ioe);
+			logger.debug("failed to login to " + config, ioe);
 			throw ioe;
 		} finally {
 			if (response != null) {
@@ -375,11 +388,9 @@ final class RestClientImpl implements RestClient {
 						}
 					}
 				} catch (CertificateParsingException cpe) {
-					logger.error("failed to parse certificate", cpe);
-					return false;
+					logger.error("failed to parse certificate", cpe);       //  result will remain false
 				} catch (SSLException ssle) {
-					logger.error("failed to handle certificate", ssle);
-					result = false;
+					logger.error("failed to handle certificate", ssle);     //  result will remain false
 				}
 			}
 			return result;
@@ -394,6 +405,13 @@ final class RestClientImpl implements RestClient {
 		private LoginApiBody(String client_id, String client_secret) {
 			this.client_id = client_id;
 			this.client_secret = client_secret;
+		}
+
+		@Override
+		public String toString() {
+			return "LoginApiBody {" +
+					"client_id: " + client_id +
+					", client_secret: " + client_secret + "}";
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -19,19 +19,20 @@ package com.hp.octane.integrations.spi;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
+import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.dto.pipelines.BuildHistory;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 
 /**
  * Empty abstract implementation of CIPluginServices.
@@ -60,7 +61,7 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public CIProxyConfiguration getProxyConfiguration(String targetHost) {
+	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		return null;
 	}
 
@@ -93,12 +94,17 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public BuildHistory getHistoryPipeline(String ciJobId, String originalBody) {
+	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
 		return null;
 	}
 
 	@Override
-	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+	public InputStream getVulnerabilitiesScanResultStream(String jobCiId, String buildCiId){
+		return null;
+	}
+
+	@Override
+	public InputStream getBuildLog(String jobCiId, String buildCiId) {
 		return null;
 	}
 

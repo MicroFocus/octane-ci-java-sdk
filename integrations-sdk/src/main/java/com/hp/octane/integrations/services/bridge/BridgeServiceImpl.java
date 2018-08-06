@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -31,9 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -74,61 +72,55 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
+
+		logger.info("starting background worker...");
 		startBackgroundWorker();
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	//  this should be infallible everlasting worker
 	private void startBackgroundWorker() {
-		connectivityExecutors.execute(new Runnable() {
-			public void run() {
-				String tasksJSON;
-				CIServerInfo serverInfo = pluginServices.getServerInfo();
-				CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
-				String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
+		try {
+			connectivityExecutors.execute(new Runnable() {
+				public void run() {
+					try {
+						String tasksJSON;
+						CIServerInfo serverInfo = pluginServices.getServerInfo();
+						CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
+						String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
 
-				try {
-					//  get tasks, wait if needed and return with task or timeout or error
-					tasksJSON = getAbridgedTasks(
-							serverInfo.getInstanceId(),
-							serverInfo.getType(),
-							serverInfo.getUrl(),
-							OctaneSDK.API_VERSION,
-							OctaneSDK.SDK_VERSION,
-							pluginInfo == null ? "" : pluginInfo.getVersion(),
-							apiKey,
-							serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
+						//  get tasks, wait if needed and return with task or timeout or error
+						tasksJSON = getAbridgedTasks(
+								serverInfo.getInstanceId(),
+								serverInfo.getType(),
+								serverInfo.getUrl(),
+								OctaneSDK.API_VERSION,
+								OctaneSDK.SDK_VERSION,
+								pluginInfo == null ? "" : pluginInfo.getVersion(),
+								apiKey,
+								serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
-					//  regardless of response - reconnect again to keep the light on
-					startBackgroundWorker();
+						//  regardless of response - reconnect again to keep the light on
+						startBackgroundWorker();
 
-					//  now can process the received tasks - if any
-					if (tasksJSON != null && !tasksJSON.isEmpty()) {
-						handleTasks(tasksJSON);
+
+						//  now can process the received tasks - if any
+						if (tasksJSON != null && !tasksJSON.isEmpty()) {
+							handleTasks(tasksJSON);
+						}
+					} catch (Throwable t) {
+						logger.error("getting tasks from Octane Server temporary failed", t);
+						doWait(2000);
+						startBackgroundWorker();
 					}
-				} catch (Throwable t) {
-					logger.error("connection to Octane Server temporary failed", t);
-					doWait(1000);
-					startBackgroundWorker();
 				}
-			}
-		});
+			});
+		} catch (Throwable t) {
+			logger.error("error executing startBackgroundWorker", t);
+		}
 	}
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, Integer apiVersion, String sdkVersion, String pluginVersion, String octaneUser, String ciServerUser) {
-		//  pre-process potentially non-URL-safe values
-		String selfUrlEscaped = selfUrl;
-		try {
-			selfUrlEscaped = URLEncoder.encode(selfUrl, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode server URL '" + selfUrl + "' (will be sent as is", uee);
-		}
-		String sdkVersionEscaped = sdkVersion;
-		try {
-			sdkVersionEscaped = URLEncoder.encode(sdkVersion, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.warn("failed to URL-encode SDK version '" + selfUrl + "' (will be sent as is", uee);
-		}
-
 		String responseBody = null;
 		RestClient restClient = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
@@ -139,9 +131,13 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 					.setMethod(HttpMethod.GET)
 					.setUrl(octaneConfiguration.getUrl() +
 							SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-							ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + selfType +
-							"&self-url=" + selfUrlEscaped + "&api-version=" + apiVersion + "&sdk-version=" + sdkVersionEscaped +
-							"&plugin-version=" + urlEncodeQueryParam(pluginVersion) + "&client-id=" + octaneUser + "&ci-server-user=" + ciServerUser)
+							ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + urlEncodeQueryParam(selfType) +
+							"&self-url=" + urlEncodeQueryParam(selfUrl) +
+							"&api-version=" + apiVersion +
+							"&sdk-version=" + urlEncodeQueryParam(sdkVersion) +
+							"&plugin-version=" + urlEncodeQueryParam(pluginVersion) +
+							"&client-id=" + urlEncodeQueryParam(octaneUser) +
+							"&ci-server-user=" + urlEncodeQueryParam(ciServerUser))
 					.setHeaders(headers);
 			try {
 				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
@@ -152,21 +148,24 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 						logger.debug("expected timeout disconnection on retrieval of abridged tasks");
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 						logger.error("connection to Octane failed: authentication error");
-						doWait(5000);
+						doWait(9000);
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
 						logger.error("connection to Octane failed: authorization error");
-						doWait(5000);
+						doWait(9000);
 					} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
 						logger.error("connection to Octane failed: 404, API changes? version problem?");
 						doWait(20000);
 					} else {
 						logger.error("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
-						doWait(2000);
+						doWait(10000);
 					}
 				}
-			} catch (Exception e) {
-				logger.error("failed to retrieve abridged tasks", e);
-				doWait(2000);
+			} catch (IOException ioe) {
+				logger.error("failed to retrieve abridged tasks", ioe);
+				doWait(8000);
+			} catch (Throwable t) {
+				logger.error("unexpected error during retrieval of abridged tasks", t);
+				doWait(10000);
 			}
 			return responseBody;
 		} else {
@@ -178,8 +177,9 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 
 	private void handleTasks(String tasksJSON) {
 		try {
+			logger.info("parsing tasks...");
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
-			logger.info("going to process " + tasks.length + " tasks");
+			logger.info("parsed " + tasks.length + " tasks, processing...");
 			for (final OctaneTaskAbridged task : tasks) {
 				taskProcessingExecutors.execute(new Runnable() {
 					public void run() {
@@ -187,7 +187,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 						int submitStatus = putAbridgedResult(
 								pluginServices.getServerInfo().getInstanceId(),
 								result.getId(),
-								dtoFactory.dtoToJson(result));
+								dtoFactory.dtoToJsonStream(result));
 						logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
 					}
 				});
@@ -197,7 +197,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 		}
 	}
 
-	private int putAbridgedResult(String selfIdentity, String taskId, String contentJSON) {
+	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
 		RestClient restClientImpl = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();

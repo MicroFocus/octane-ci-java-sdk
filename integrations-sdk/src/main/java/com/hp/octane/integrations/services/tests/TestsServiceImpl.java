@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -51,9 +51,10 @@ import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_A
 public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+//	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
 
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
-	private final QueueService queueService;
+	//private final ObjectQueue<TestsResultQueueEntry> testsQueue;
 	private final RestService restService;
 
 	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
@@ -70,9 +71,17 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.queueService = queueService;
+//		if (queueService.isPersistenceEnabled()) {
+//			testsQueue = queueService.initFileQueue(TESTS_QUEUE_FILE, TestsResultQueueEntry.class);
+//		} else {
+//			testsQueue = queueService.initMemoQueue();
+//		}
+
 		this.restService = restService;
+
+		logger.info("starting background worker...");
 		startBackgroundWorker();
+		logger.info("initialized SUCCESSFULLY");
 	}
 
 	@Override
@@ -153,13 +162,13 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 								buildList.remove(0);
 							}
 
-                        } catch (IOException e){
-                            logger.error("Tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
-                            breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-                        }catch (Throwable t) {
-                            logger.error("Tests result push failed; dropping this item from the queue ", t);
-                            buildList.remove(0);
-                        }
+						} catch (IOException e) {
+							logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
+							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+						} catch (Throwable t) {
+							logger.error("tests result push failed; dropping this item from the queue ", t);
+							buildList.remove(0);
+						}
 					} else {
 						breathe(LIST_EMPTY_INTERVAL);
 					}
@@ -181,13 +190,22 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
 	}
 
-	private static final class TestsResultQueueEntry {
-		private final String jobId;
-		private final String buildId;
+	private static final class TestsResultQueueEntry implements QueueService.QueueItem {
+		private String jobId;
+		private String buildId;
+
+		//  [YG] this constructor MUST be present
+		private TestsResultQueueEntry() {
+		}
 
 		private TestsResultQueueEntry(String jobId, String buildId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+		}
+
+		@Override
+		public String toString() {
+			return "'" + jobId + " #" + buildId + "'";
 		}
 	}
 
