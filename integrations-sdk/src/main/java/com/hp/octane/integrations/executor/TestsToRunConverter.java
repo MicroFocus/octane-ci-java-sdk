@@ -1,8 +1,3 @@
-package com.hp.octane.integrations.executor;
-
-import com.hp.octane.integrations.util.SdkStringUtils;
-import org.apache.commons.codec.binary.StringUtils;
-import org.apache.poi.util.StringUtil;
 /*
  *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +13,11 @@ import org.apache.poi.util.StringUtil;
  *     limitations under the License.
  *
  */
+
+package com.hp.octane.integrations.executor;
+
+import com.hp.octane.integrations.util.SdkStringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
