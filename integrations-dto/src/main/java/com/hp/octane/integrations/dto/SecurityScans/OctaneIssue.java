@@ -18,4 +18,10 @@ public interface OctaneIssue extends DTOBase {
     Entity get_analysis();
     Entity set_state();
     Entity set_severity();
+    String getRemote_id();
+    void setRemote_id(String remote_id);
+    String getIntroduced_date();
+    void setIntroduced_date(String introducedDate);
+    String getExternal_link();
+    void setExternal_link(String external_link);
 }
