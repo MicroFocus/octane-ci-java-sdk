@@ -16,6 +16,7 @@ public class OctaneIssueImpl implements OctaneIssue {
     String remote_id;
     String introduced_date;
     String external_link;
+    String toolName;
 
     @Override
     public void setExtended_data(Map extendedData) {
@@ -103,5 +104,15 @@ public class OctaneIssueImpl implements OctaneIssue {
     @Override
     public void setExternal_link(String external_link) {
         this.external_link = external_link;
+    }
+
+    @Override
+    public String getTool_name() {
+        return toolName;
+    }
+
+    @Override
+    public void setTool_name(String toolName) {
+        this.toolName = toolName;
     }
 }

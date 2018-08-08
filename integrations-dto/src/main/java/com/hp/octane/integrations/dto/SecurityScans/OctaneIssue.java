@@ -24,4 +24,6 @@ public interface OctaneIssue extends DTOBase {
     void setIntroduced_date(String introducedDate);
     String getExternal_link();
     void setExternal_link(String external_link);
+    String getTool_name();
+    void setTool_name(String toolName);
 }
