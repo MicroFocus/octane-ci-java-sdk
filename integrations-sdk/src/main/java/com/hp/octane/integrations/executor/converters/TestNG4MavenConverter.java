@@ -22,11 +22,11 @@ import com.hp.octane.integrations.util.SdkStringUtils;
 import java.util.List;
 
 /**
- * Converter for JUnit4 for maven.
- * Expected command line : mvn -Dtest=TestCircle#test* test
- * The class create string in format : className1#testName1;className2#testName2;
+ * Converter for test ng for maven.
+ * Expected command line : mvn -Dtest=TestCircle test
+ * The class create string in format : className1,className2;
  */
-public class JUnit4MavenConverter extends TestsToRunConverter {
+public class TestNG4MavenConverter extends TestsToRunConverter {
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         StringBuilder sb = new StringBuilder();
@@ -36,9 +36,10 @@ public class JUnit4MavenConverter extends TestsToRunConverter {
             if (SdkStringUtils.isNotEmpty(testData.getPackageName())) {
                 sb.append(testData.getPackageName()).append(".");
             }
-            sb.append(testData.getClassName()).append("#").append(testData.getTestName());
+            sb.append(testData.getClassName());
             joiner = ",";
         }
+
         return sb.toString();
     }
 }
