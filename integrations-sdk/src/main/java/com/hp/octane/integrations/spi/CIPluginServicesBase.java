@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
@@ -107,6 +108,12 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	public InputStream getBuildLog(String jobCiId, String buildCiId) {
 		return null;
 	}
+
+	@Override
+	public SonarInfo getSonarInfo(){
+		return null;
+	}
+
 
 	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {

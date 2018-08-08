@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.dto.tests.TestsResult;
@@ -149,8 +150,16 @@ public interface CIPluginServices {
 	 * @param jobCiId   job CI ID of the specific build to get log for
 	 * @param buildCiId build CI ID to get log for
 	 * @return build's log as an InputStream; NULL if no log available
-	 */
+	 * 	 */
 	InputStream getBuildLog(String jobCiId, String buildCiId);
+
+	/**
+	 * Retrieves sonarQube info from CI
+	 *
+	 *
+	 * @return sonarQube
+	 */
+	SonarInfo getSonarInfo();
 
 	void runTestDiscovery(DiscoveryInfo discoveryInfo);
 
@@ -161,4 +170,6 @@ public interface CIPluginServices {
 	void deleteExecutor(String id);
 
 	OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo);
+
+
 }
