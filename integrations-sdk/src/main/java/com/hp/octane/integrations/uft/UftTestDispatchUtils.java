@@ -165,8 +165,9 @@ public class UftTestDispatchUtils {
     public static boolean checkTestEquals(AutomatedTest discoveredTest, Entity octaneTest) {
         boolean octaneExecutable = octaneTest.getBooleanValue(EntityConstants.AutomatedTest.EXECUTABLE_FIELD);
         String octaneDescription = octaneTest.getStringValue(EntityConstants.AutomatedTest.DESCRIPTION_FIELD);
-        boolean descriptionEquals = ((SdkStringUtils.isEmpty(octaneDescription) || "null".equals(octaneDescription)) && SdkStringUtils.isEmpty(discoveredTest.getDescription())) ||
-                octaneDescription.contains(discoveredTest.getDescription());
+        boolean checkWhenDescriptionIsEmpty = ((SdkStringUtils.isEmpty(octaneDescription) || "null".equals(octaneDescription)) && SdkStringUtils.isEmpty(discoveredTest.getDescription()));
+        boolean checkWhenDescriptionIsNotEmpty = (SdkStringUtils.isNotEmpty(octaneDescription) && SdkStringUtils.isNotEmpty(discoveredTest.getDescription()) && octaneDescription.contains(discoveredTest.getDescription()));
+        boolean descriptionEquals = checkWhenDescriptionIsEmpty || checkWhenDescriptionIsNotEmpty;
         return (octaneExecutable && descriptionEquals && !discoveredTest.getIsMoved());
     }
 
