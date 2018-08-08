@@ -18,62 +18,62 @@ public class OctaneIssueImpl implements OctaneIssue {
     String external_link;
 
     @Override
-    public void set_extended_data(Map extendedData) {
+    public void setExtended_data(Map extendedData) {
         this.extented_data = extendedData;
     }
 
     @Override
-    public void set_primary_location_full(String primaryLocationFull) {
+    public void setPrimary_location_full(String primaryLocationFull) {
         this.primary_location_full = primaryLocationFull;
     }
 
     @Override
-    public void set_line(Integer line) {
+    public void setLine(Integer line) {
         this.line = line;
     }
 
     @Override
-    public void set_analysis(Entity analysis) {
+    public void setAnalysis(Entity analysis) {
         this.analysis = analysis;
     }
 
     @Override
-    public void set_state(Entity state) {
+    public void setState(Entity state) {
         this.state = state;
     }
 
     @Override
-    public void set_severity(Entity severity) {
+    public void setSeverity(Entity severity) {
         this.severity = severity;
     }
 
     @Override
-    public Map get_extended_data() {
+    public Map getExtended_data() {
         return this.extented_data;
     }
 
     @Override
-    public String get_primary_location_full() {
+    public String getPrimary_location_full() {
         return this.primary_location_full;
     }
 
     @Override
-    public Integer get_line() {
+    public Integer getLine() {
         return this.line;
     }
 
     @Override
-    public Entity get_analysis() {
+    public Entity getAnalysis() {
         return analysis;
     }
 
     @Override
-    public Entity set_state() {
+    public Entity getState() {
         return state;
     }
 
     @Override
-    public Entity set_severity() {
+    public Entity getSeverity() {
         return severity;
     }
 
