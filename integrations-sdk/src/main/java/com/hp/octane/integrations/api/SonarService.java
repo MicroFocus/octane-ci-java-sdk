@@ -6,7 +6,7 @@ public interface SonarService {
 
     void unregisterWebhook(String webhookKey);
 
-    void injectSonarDataToOctane(String projectKey,String jobId, String buildId);
+    void injectSonarDataToOctane(String projectKey, String ciIdentity, String jobId, String buildId);
 
 
 

@@ -19,6 +19,7 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.api.*;
 import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
 import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
+import com.hp.octane.integrations.services.coverage.SonarServiceImpl;
 import com.hp.octane.integrations.services.entities.EntitiesServiceImpl;
 import com.hp.octane.integrations.services.events.EventsServiceImpl;
 import com.hp.octane.integrations.services.logging.LoggingServiceImpl;
@@ -54,6 +55,9 @@ public final class OctaneSDK {
 	private final RestService restService;
 	private final ConfigurationService configurationService;
 	private final TasksProcessor tasksProcessor;
+
+
+	private final SonarService sonarService;
 	private final EventsService eventsService;
 	private final TestsService testsService;
 	private final LogsService logsService;
@@ -74,6 +78,7 @@ public final class OctaneSDK {
 		logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
 		vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		sonarService = new SonarServiceImpl(INTERNAL_USAGE_VALIDATOR);
 		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
 	}
 
@@ -109,6 +114,10 @@ public final class OctaneSDK {
 
 	public RestService getRestService() {
 		return restService;
+	}
+
+	public SonarService getSonarService() {
+		return sonarService;
 	}
 
 	public TasksProcessor getTasksProcessor() {

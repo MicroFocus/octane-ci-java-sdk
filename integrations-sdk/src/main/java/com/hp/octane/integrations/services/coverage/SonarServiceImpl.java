@@ -5,7 +5,7 @@ import com.hp.octane.integrations.api.SonarService;
 
 public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarService {
 
-    protected SonarServiceImpl(Object internalUsageValidator) {
+    public SonarServiceImpl(Object internalUsageValidator) {
         super(internalUsageValidator);
     }
 
@@ -23,7 +23,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     }
 
     @Override
-    public void injectSonarDataToOctane(String projectKey,String jobId, String buildId) {
+    public void injectSonarDataToOctane(String projectKey,String ciIdentity, String jobId, String buildId) {
 
     }
 }
