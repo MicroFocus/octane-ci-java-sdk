@@ -111,7 +111,6 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
 		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
 	}
-
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
 	//  this should be infallible everlasting worker
