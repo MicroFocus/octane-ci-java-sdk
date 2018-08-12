@@ -2,7 +2,7 @@ package com.hp.octane.integrations.api;
 
 public interface SonarService {
 
-    String registerWebhook(String sonarURL, String projectKey, String token);
+    String registerWebhook(String jenkinsUrl, String sonarURL, String projectKey, String token);
 
     void unregisterWebhook(String sonarURL, String projectKey, String token);
 
