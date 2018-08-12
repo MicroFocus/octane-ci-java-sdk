@@ -151,6 +151,7 @@ public class UftTestDispatchUtils {
             boolean octaneExecutable = octaneTest.getBooleanValue(EntityConstants.AutomatedTest.EXECUTABLE_FIELD);
             if (octaneExecutable) {
                 AutomatedTest test = new AutomatedTest();
+                discoveryResult.getAllTests().add(test);
                 test.setId(octaneTest.getId());
                 test.setExecutable(false);
                 test.setName(octaneTest.getName());
@@ -164,10 +165,10 @@ public class UftTestDispatchUtils {
 
     public static boolean checkTestEquals(AutomatedTest discoveredTest, Entity octaneTest) {
         boolean octaneExecutable = octaneTest.getBooleanValue(EntityConstants.AutomatedTest.EXECUTABLE_FIELD);
-        String octaneDescription = octaneTest.getStringValue(EntityConstants.AutomatedTest.DESCRIPTION_FIELD);
-        boolean checkWhenDescriptionIsEmpty = ((SdkStringUtils.isEmpty(octaneDescription) || "null".equals(octaneDescription)) && SdkStringUtils.isEmpty(discoveredTest.getDescription()));
-        boolean checkWhenDescriptionIsNotEmpty = (SdkStringUtils.isNotEmpty(octaneDescription) && SdkStringUtils.isNotEmpty(discoveredTest.getDescription()) && octaneDescription.contains(discoveredTest.getDescription()));
-        boolean descriptionEquals = checkWhenDescriptionIsEmpty || checkWhenDescriptionIsNotEmpty;
+        String octaneDesc = octaneTest.getStringValue(EntityConstants.AutomatedTest.DESCRIPTION_FIELD);
+        octaneDesc = (SdkStringUtils.isEmpty(octaneDesc) || "null".equals(octaneDesc)) ? "" : octaneDesc;
+        String discoveredDesc = SdkStringUtils.isEmpty(discoveredTest.getDescription()) ? "" : discoveredTest.getDescription();
+        boolean descriptionEquals = (SdkStringUtils.isEmpty(octaneDesc) && SdkStringUtils.isEmpty(discoveredDesc)) || octaneDesc.contains(discoveredDesc);
         return (octaneExecutable && descriptionEquals && !discoveredTest.getIsMoved());
     }
 
