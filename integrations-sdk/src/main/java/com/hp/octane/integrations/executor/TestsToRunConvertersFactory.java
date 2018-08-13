@@ -18,7 +18,6 @@ package com.hp.octane.integrations.executor;
 
 import com.hp.octane.integrations.executor.converters.JUnit4MavenConverter;
 import com.hp.octane.integrations.executor.converters.MfUftConverter;
-import com.hp.octane.integrations.executor.converters.TestNG4MavenConverter;
 
 
 public class TestsToRunConvertersFactory {
@@ -27,8 +26,6 @@ public class TestsToRunConvertersFactory {
         switch (framework) {
             case JUnit4:
                 return new JUnit4MavenConverter();
-            case TestNG:
-                return new TestNG4MavenConverter();
             case MF_UFT:
                 return new MfUftConverter();
             default:
