@@ -72,7 +72,7 @@ public final class OctaneSDK {
 		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
 		logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
-		vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR,queueService, restService);
 		entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
 		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
 	}

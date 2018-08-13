@@ -24,7 +24,10 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
 import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
+import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -32,7 +35,8 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -49,23 +53,34 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 	private final ExecutorService worker = Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory());
 	private final RestService restService;
+	private static final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
 
-	private static List<VulnerabilitiesQueueEntry> buildList = Collections.synchronizedList(new LinkedList<VulnerabilitiesQueueEntry>());
+	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
+
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
-	private int LIST_EMPTY_INTERVAL = 3000;
+	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
+	private int LIST_EMPTY_INTERVAL = 10000;
+	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
+	private Long TIME_OUT_FOR_QUEUE_ITEM = 3*60*1000L; //3 hours
 
-	public VulnerabilitiesServiceImpl(Object internalUsageValidator, RestService restService) {
+	public VulnerabilitiesServiceImpl(Object internalUsageValidator,QueueService queueService, RestService restService) {
 		super(internalUsageValidator);
 
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
+		if (queueService.isPersistenceEnabled()) {
+			vulnerabilitiesQueue = queueService.initFileQueue(VULNERABILITIES_QUEUE_FILE, VulnerabilitiesQueueItem.class);
+		} else {
+			vulnerabilitiesQueue = queueService.initMemoQueue();
+		}
+
 		this.restService = restService;
 
 		logger.info("starting background worker...");
 		startBackgroundWorker();
-		logger.info("initialized SUCCESSFULLY");
+		logger.info("initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
 	}
 
 
@@ -91,7 +106,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 	@Override
 	public void enqueuePushVulnerabilitiesScanResult(String jobCiId, String buildCiId) {
-		buildList.add(new VulnerabilitiesQueueEntry(jobCiId, buildCiId));
+		vulnerabilitiesQueue.add(new VulnerabilitiesQueueItem(jobCiId, buildCiId));
 	}
 
 	@Override
@@ -113,42 +128,89 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	}
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
+	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  this should be infallible everlasting worker
 	private void startBackgroundWorker() {
 		worker.execute(new Runnable() {
 			public void run() {
 				while (true) {
-					if (!buildList.isEmpty()) {
+					if (vulnerabilitiesQueue.size() > 0) {
+						VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem = null;
 						try {
-							VulnerabilitiesQueueEntry vulnerabilitiesQueueEntry = buildList.get(0);
-							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueEntry.jobId, vulnerabilitiesQueueEntry.buildId);
-							OctaneResponse response = pushVulnerabilities(vulnerabilitiesStream,vulnerabilitiesQueueEntry.jobId, vulnerabilitiesQueueEntry.buildId);
-							if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-								logger.info("vulnerabilities push SUCCEED");
-								buildList.remove(0);
-							} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-								logger.info("vulnerabilities push FAILED, service unavailable; retrying after a breathe...");
-								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-							} else {
-								//  case of any other fatal error
-								logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n"+response.getBody());
-								buildList.remove(0);
+							vulnerabilitiesQueueItem = vulnerabilitiesQueue.peek();
+							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+							if(vulnerabilitiesStream==null) {
+								handleQueueItem(vulnerabilitiesQueueItem);
+							}else{
+								OctaneResponse response = pushVulnerabilities(vulnerabilitiesStream,vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+								if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+									logger.info("vulnerabilities push SUCCEED");
+									vulnerabilitiesQueue.remove();
+								} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+									logger.info("vulnerabilities push FAILED, service unavailable; retrying after a breathe...");
+									breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+									handleQueueItem(vulnerabilitiesQueueItem);
+								} else {
+									//  case of any other fatal error
+									logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n"+response.getBody());
+									handleQueueItem(vulnerabilitiesQueueItem);
+								}
+								logger.debug("successfully processed " + vulnerabilitiesQueueItem);
 							}
-
-						} catch (IOException e) {
-							logger.error("vulnerabilities push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
-							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+						} catch (TemporaryQueueItemException tque) {
+							logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+							handleQueueItem(vulnerabilitiesQueueItem);
+							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+						} catch (PermanentQueueItemException pqie) {
+							logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
+							handleQueueItem(vulnerabilitiesQueueItem);
 						} catch (Throwable t) {
-							logger.error("vulnerabilities push failed; dropping this item from the queue ", t);
-							buildList.remove(0);
+							logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
+							handleQueueItem(vulnerabilitiesQueueItem);
 						}
 					} else {
 						breathe(LIST_EMPTY_INTERVAL);
 					}
 				}
 			}
+
+			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.getStartTime();
+				vulnerabilitiesQueue.remove();
+				if(timePass<TIME_OUT_FOR_QUEUE_ITEM) {
+					vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
+				}
+				breathe(SKIP_QUEUE_ITEM_INTERVAL);
+			}
 		});
 	}
+
+	private static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
+		private String jobId;
+		private String buildId;
+		private Long startTime;
+
+
+		public Long getStartTime() {
+			return startTime;
+		}
+
+		//  [YG] this constructor MUST be present, don't remove
+		private VulnerabilitiesQueueItem() {
+		}
+
+		private VulnerabilitiesQueueItem(String jobId, String buildId) {
+			this.jobId = jobId;
+			this.buildId = buildId;
+			this.startTime = System.currentTimeMillis();
+		}
+
+		@Override
+		public String toString() {
+			return "'" + jobId + " #" + buildId + "'";
+		}
+	}
+
 
 	//  TODO: turn to be breakable wait with timeout and notifier
 	private void breathe(int period) {
