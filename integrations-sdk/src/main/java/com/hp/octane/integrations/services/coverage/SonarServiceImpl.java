@@ -15,7 +15,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     }
 
     @Override
-    public void unregisterWebhook(String sonarURL, String token, String projectKey) {
+    public void unregisterWebhook(String projectKey) {
 
     }
 
