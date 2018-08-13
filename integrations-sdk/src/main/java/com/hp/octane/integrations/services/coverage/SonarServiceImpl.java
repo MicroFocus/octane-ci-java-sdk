@@ -28,4 +28,9 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     public boolean testConnectivity(String projectKey, String sonarUrl, String sonarToken) {
         return true;
     }
+
+    @Override
+    public void setSonarAuthentication(String projectKey , String sonarURL, String token) {
+
+    }
 }

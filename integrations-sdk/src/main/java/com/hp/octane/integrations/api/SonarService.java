@@ -10,4 +10,6 @@ public interface SonarService {
 
     boolean testConnectivity(String projectKey, String sonarUrl, String sonarToken);
 
+    void setSonarAuthentication(String projectKey , String sonarURL, String token);
+
 }
