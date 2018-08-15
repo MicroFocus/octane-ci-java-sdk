@@ -24,11 +24,19 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface FileCoverage extends DTOBase {
 
-	String getFile();
+    String getFile();
 
-	FileCoverage setFile(String file);
+    FileCoverage setFile(String file);
 
-	LineCoverage[] getLines();
+    LineCoverage[] getLines();
 
-	FileCoverage setLines(LineCoverage[] lines);
+    FileCoverage setLines(LineCoverage[] lines);
+
+    Integer getSumOfCoveredLines();
+
+    FileCoverage setSumOfCoveredLines(Integer sumOfCoveredLines);
+
+    Integer getTotalCoverableLines();
+
+    FileCoverage setTotalCoverableLines(Integer totalCodeLinesInFile);
 }

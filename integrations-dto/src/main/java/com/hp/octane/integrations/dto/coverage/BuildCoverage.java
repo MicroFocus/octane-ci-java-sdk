@@ -16,7 +16,11 @@
 
 package com.hp.octane.integrations.dto.coverage;
 
+
 import com.hp.octane.integrations.dto.DTOBase;
+
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * BuildCoverage DTO
@@ -24,7 +28,26 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface BuildCoverage extends DTOBase {
 
-	TestCoverage[] getTestCoverages();
+    Integer getSumOfCoveredLines();
 
-	BuildCoverage setTestCoverages(TestCoverage[] testCoverages);
+    BuildCoverage setSumOfCoveredLines(Integer sumOfCoveredLines);
+
+    Integer getTotalCoverableLines();
+
+    BuildCoverage setTotalCoverableLines(Integer totalCoverableLines);
+
+    String getProjectName();
+
+    BuildCoverage setProjectName(String projectName);
+
+    Integer getNumberOfFiles();
+
+    BuildCoverage setNumberOfFiles(Integer numberOfFiles);
+
+    List<FileCoverage> getFileCoverageList();
+
+    BuildCoverage setFileCoverageList(List<FileCoverage> fileCoverageList);
+
+    BuildCoverage mergeSonarCoverageReport(InputStream report);
+
 }

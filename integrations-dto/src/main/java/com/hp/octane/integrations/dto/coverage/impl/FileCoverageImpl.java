@@ -26,24 +26,45 @@ import com.hp.octane.integrations.dto.coverage.LineCoverage;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class FileCoverageImpl implements FileCoverage {
-	private String file;
-	private LineCoverage[] lines;
+    private String file;
+    private LineCoverage[] lines;
+    private Integer sumOfCoveredLines;
+    private Integer totalCoverableLines;
 
-	public String getFile() {
-		return file;
-	}
 
-	public FileCoverage setFile(String file) {
-		this.file = file;
-		return this;
-	}
+    public String getFile() {
+        return file;
+    }
 
-	public LineCoverage[] getLines() {
-		return lines;
-	}
+    public FileCoverage setFile(String file) {
+        this.file = file;
+        return this;
+    }
 
-	public FileCoverage setLines(LineCoverage[] lines) {
-		this.lines = lines;
-		return this;
-	}
+    public LineCoverage[] getLines() {
+        return lines;
+    }
+
+    public FileCoverage setLines(LineCoverage[] lines) {
+        this.lines = lines;
+        return this;
+    }
+
+    public Integer getSumOfCoveredLines() {
+        return sumOfCoveredLines;
+    }
+
+    public FileCoverage setSumOfCoveredLines(Integer sumOfCoveredLines) {
+        this.sumOfCoveredLines = sumOfCoveredLines;
+        return this;
+    }
+
+    public Integer getTotalCoverableLines() {
+        return totalCoverableLines;
+    }
+
+    public FileCoverage setTotalCoverableLines(Integer totalCodeLinesInFile) {
+        this.totalCoverableLines = totalCodeLinesInFile;
+        return this;
+    }
 }
