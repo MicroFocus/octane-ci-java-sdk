@@ -24,7 +24,7 @@ public interface SonarService {
      * @return unique webhook key
      * @throws OctaneSDKSonarException
      */
-    String registerWebhook(String ciNotificationUrl, String projectKey) throws OctaneSDKSonarException;
+    String registerWebhook(String ciNotificationUrl, String projectKey, String jenkinsJob) throws OctaneSDKSonarException;
 
 
     /**
@@ -34,7 +34,7 @@ public interface SonarService {
      * @param webhookKey
      * @throws OctaneSDKSonarException
      */
-    void unregisterWebhook(String projectKey, String webhookKey) throws OctaneSDKSonarException;
+    void unregisterWebhook(String projectKey, String jenkinsJob) throws OctaneSDKSonarException;
 
 
     /**

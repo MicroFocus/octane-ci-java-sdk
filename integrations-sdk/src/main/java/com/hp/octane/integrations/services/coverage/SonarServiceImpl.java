@@ -69,7 +69,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 
 
     @Override
-    public String registerWebhook(String ciNotificationUrl, String projectKey) throws OctaneSDKSonarException {
+    public String registerWebhook(String ciNotificationUrl, String projectKey, String jenkinsJob) throws OctaneSDKSonarException {
 
         String sonarURL = sonarAuthenticationMap.get(projectKey).getUrl();
         String token = sonarAuthenticationMap.get(projectKey).getToken();
@@ -118,15 +118,15 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 
 
     @Override
-    public void unregisterWebhook(String projectKey, String webhookKey) throws OctaneSDKSonarException {
+    public void unregisterWebhook(String projectKey, String jenkinsJob) throws OctaneSDKSonarException {
         String sonarURL = sonarAuthenticationMap.get(projectKey).getUrl();
         String token = sonarAuthenticationMap.get(projectKey).getToken();
 
         try {
             HttpClient httpClient = HttpClientBuilder.create().build();
-
+            // TODO: FIX
             URIBuilder uriBuilder = new URIBuilder(sonarURL + WEBHOOK_DELETE_URI)
-                    .setParameter("webhook", webhookKey);
+                    .setParameter("webhook", "FIX");
 
             HttpPost request = new HttpPost(uriBuilder.toString());
             setTokenInHttpRequest(request, token);
