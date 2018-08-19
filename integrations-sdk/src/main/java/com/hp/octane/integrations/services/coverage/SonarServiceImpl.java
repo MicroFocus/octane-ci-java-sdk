@@ -257,7 +257,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 
         try {
             URIBuilder uriBuilder = new URIBuilder(sonarURL + WEBHOOK_LIST_URI);
-            uriBuilder.setParameter("project", "hpe:demo");
+            uriBuilder.setParameter("project", projectKey);
 
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet request = new HttpGet(uriBuilder.build());
