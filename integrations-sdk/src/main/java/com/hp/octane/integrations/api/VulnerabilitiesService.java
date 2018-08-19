@@ -42,7 +42,7 @@ public interface VulnerabilitiesService {
 	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 */
-	void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId);
+	void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId, String projectName, String projectVersion, String dir);
 	/**
 	 * check if the corresponding pipeline in octane is exists and is type of security
 	 * @param jobId

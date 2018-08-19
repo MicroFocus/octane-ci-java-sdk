@@ -105,8 +105,12 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	}
 
 	@Override
-	public void enqueuePushVulnerabilitiesScanResult(String jobCiId, String buildCiId) {
-		vulnerabilitiesQueue.add(new VulnerabilitiesQueueItem(jobCiId, buildCiId));
+	public void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId,String projectName, String projectVersion, String outDir) {
+		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
+		vulnerabilitiesQueueItem.setTargetFolder(outDir);
+		vulnerabilitiesQueueItem.setProjectName(projectName);
+		vulnerabilitiesQueueItem.setProjectVersionSymbol(projectVersion);
+		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 	}
 
 	@Override
@@ -146,7 +150,9 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							}else{
 								vulnerabilitiesQueueItem.increaseRetry();
 							}
-							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.projectName,
+									vulnerabilitiesQueueItem.projectVersionSymbol,
+									vulnerabilitiesQueueItem.targetFolder);
 							if(vulnerabilitiesStream==null) {
 								handleQueueItem(vulnerabilitiesQueueItem);
 							}else{
@@ -199,6 +205,10 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	private static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
 		private String jobId;
 		private String buildId;
+		private String projectName;
+		private String projectVersionSymbol;
+		private String targetFolder;
+
 		private Long startTime;
 		private int retryTimes=0;
 
@@ -231,6 +241,18 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		@Override
 		public String toString() {
 			return "'" + jobId + " #" + buildId + "'";
+		}
+
+		public void setProjectName(String projectName) {
+			this.projectName = projectName;
+		}
+
+		public void setProjectVersionSymbol(String projectVersionSymbol) {
+			this.projectVersionSymbol = projectVersionSymbol;
+		}
+
+		public void setTargetFolder(String targetFolder) {
+			this.targetFolder = targetFolder;
 		}
 	}
 
