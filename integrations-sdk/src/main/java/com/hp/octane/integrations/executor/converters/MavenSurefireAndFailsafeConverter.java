@@ -24,11 +24,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Converter for JUnit4 for maven.
+ * Converter for JUnit/TestNg over  Maven Surefire And Failsafe  plugins
  * Expected command line : mvn -Dtest=TestCircle#test* test
  * The class create string in format : package1.className1#testNameA+testNameB,package2.className2#testNameC;
  */
-public class JUnit4MavenConverter extends TestsToRunConverter {
+public class MavenSurefireAndFailsafeConverter extends TestsToRunConverter {
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         StringBuilder sb = new StringBuilder();

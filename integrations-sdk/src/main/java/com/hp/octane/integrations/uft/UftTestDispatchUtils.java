@@ -58,7 +58,7 @@ public class UftTestDispatchUtils {
         if (!tests.isEmpty()) {
             boolean posted = postTests(entitiesService, tests, result.getWorkspaceId(), result.getScmRepositoryId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  new tests posted successfully = " + posted;
-            logMessage(Level.WARN, customLogger, msg);
+            logMessage(Level.INFO, customLogger, msg);
         }
 
         //post test updated
@@ -66,7 +66,7 @@ public class UftTestDispatchUtils {
         if (!tests.isEmpty()) {
             boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  updated tests posted successfully = " + updated;
-            logMessage(Level.WARN, customLogger, msg);
+            logMessage(Level.INFO, customLogger, msg);
         }
 
         //post test deleted
@@ -74,7 +74,7 @@ public class UftTestDispatchUtils {
         if (!tests.isEmpty()) {
             boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  deleted tests set as not executable successfully = " + updated;
-            logMessage(Level.WARN, customLogger, msg);
+            logMessage(Level.INFO, customLogger, msg);
         }
 
         //post scm resources
@@ -82,7 +82,7 @@ public class UftTestDispatchUtils {
         if (!resources.isEmpty()) {
             boolean posted = postScmResources(entitiesService, resources, result.getWorkspaceId(), result.getScmRepositoryId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  new scmResources posted successfully = " + posted;
-            logMessage(Level.WARN, customLogger, msg);
+            logMessage(Level.INFO, customLogger, msg);
         }
 
         //update scm resources
@@ -90,7 +90,7 @@ public class UftTestDispatchUtils {
         if (!resources.isEmpty()) {
             boolean posted = updateScmResources(entitiesService, resources, result.getWorkspaceId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  updated scmResources posted successfully = " + posted;
-            logMessage(Level.WARN, customLogger, msg);
+            logMessage(Level.INFO, customLogger, msg);
         }
 
         //delete scm resources
@@ -98,7 +98,7 @@ public class UftTestDispatchUtils {
         if (!resources.isEmpty()) {
             boolean posted = deleteScmResources(entitiesService, resources, result.getWorkspaceId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + resources.size() + "  scmResources deleted successfully = " + posted;
-            logMessage(Level.WARN, customLogger, msg);
+            logMessage(Level.INFO, customLogger, msg);
         }
     }
 
