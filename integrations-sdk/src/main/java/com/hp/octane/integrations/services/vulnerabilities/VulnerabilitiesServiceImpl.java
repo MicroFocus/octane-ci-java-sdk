@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -191,7 +192,11 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.getStartTime();
-				vulnerabilitiesQueue.remove();
+				try {
+					vulnerabilitiesQueue.remove();
+				}catch (NoSuchElementException e){
+					//Do Nothing.
+				}
 				System.out.println(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue 3");
 				if(timePass<TIME_OUT_FOR_QUEUE_ITEM) {
 					vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
