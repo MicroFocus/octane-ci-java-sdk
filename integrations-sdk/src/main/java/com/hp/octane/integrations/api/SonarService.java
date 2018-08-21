@@ -7,50 +7,7 @@ public interface SonarService {
     String SONAR_TYPE = "SONARQUBBE";
 
     /**
-     * set sonar connection details in stateful map, which can have one sonarQube server per object;
-     *
-     * @param projectKey
-     * @param sonarURL
-     * @param token
-     */
-    void setSonarAuthentication(String projectKey, String sonarURL, String token);
-
-    /**
-     * register sonarQube webwook with the provided URL, in sonarQube server associated with projectKey
-     * if webhook with the same specification already exists, it will be returned instead of creating new one.
-     *
-     * @param ciNotificationUrl
-     * @param projectKey
-     * @return unique webhook key
-     * @throws OctaneSDKSonarException
-     */
-    String registerWebhook(String ciNotificationUrl, String projectKey, String jenkinsJob) throws OctaneSDKSonarException;
-
-
-    /**
-     * remove webehook which its UUID key is: webhookKey, in sonarQube server associated with projectKey
-     *
-     * @param projectKey
-     * @param webhookKey
-     * @throws OctaneSDKSonarException
-     */
-    void unregisterWebhook(String projectKey, String jenkinsJob) throws OctaneSDKSonarException;
-
-
-    /**
-     * fetch coverage data from sonarQube server associated with projectKey, and inject it to octane
-     * the ci parameters will be sent to octane as parameters
-     *
-     * @param projectKey
-     * @param ciIdentity
-     * @param jobId
-     * @param buildId
-     * @throws OctaneSDKSonarException
-     */
-    void injectSonarDataToOctane(String projectKey, String ciIdentity, String jobId, String buildId) throws OctaneSDKSonarException;
-
-    /**
-     * get status object from m sonarQube server associated with projectKey, as specified in sonar documentation :
+     * get status object from m sonarQube server listens to sonarURL, as specified in sonar documentation :
      * <p>
      * STARTING: SonarQube Web Server is up and serving some Web Services (eg. api/system/status) but initialization is still ongoing
      * UP: SonarQube instance is up and running
@@ -62,8 +19,38 @@ public interface SonarService {
      * in case of connection failure the status will be:
      * CONNECTION_FAILURE
      *
-     * @param projectKey
+     * @param sonarURL
      * @return
      */
-    String getSonarStatus(String projectKey);
+     String getSonarStatus(String sonarURL);
+
+    /**
+     *
+     *  enqueue FetchAndPushSonarCoverageToOctane task, the  fetch coverage data for projectKey from sonarQube server associated with sonarURL, and inject it to octane.
+     *  the ci parameters will be sent to octane as parameters
+     *
+     * @param jobId
+     * @param buildId
+     * @param projectKey
+     * @param sonarURL
+     * @param sonarToken
+     */
+
+     void enqueueFetchAndPushSonarCoverageToOctane(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken);
+
+    /**
+     * ensure that webhook with the ciCallbackUrl exist in the soanr server listen to sonarURL, and create new webhook
+     * if no webhook with ciCallbackUrl is found
+     *
+     * @param ciCallbackUrl
+     * @param sonarURL
+     * @param sonarToken
+     * @throws OctaneSDKSonarException
+     */
+
+     void ensureWebhookExist(String ciCallbackUrl, String sonarURL, String sonarToken) throws OctaneSDKSonarException;
+
+
+
+
 }

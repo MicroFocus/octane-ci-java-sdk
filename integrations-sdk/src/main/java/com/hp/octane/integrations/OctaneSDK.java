@@ -78,7 +78,7 @@ public final class OctaneSDK {
         logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
         vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
         entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-        sonarService = new SonarServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+        sonarService = new SonarServiceImpl(INTERNAL_USAGE_VALIDATOR,queueService, restService);
         new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
     }
 
