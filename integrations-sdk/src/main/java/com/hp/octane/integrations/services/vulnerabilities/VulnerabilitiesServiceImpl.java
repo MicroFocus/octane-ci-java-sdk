@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -147,7 +146,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							if(vulnerabilitiesQueueItem.getRetryTimes()%100==0 && !isVulnerabilitiesRelevant(vulnerabilitiesQueueItem.jobId,vulnerabilitiesQueueItem.buildId)){
 								logger.info("vulnerabilities are not relevant, removing from the queue");
 								vulnerabilitiesQueue.remove();
-								System.out.println(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue 1");
+								logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue");
 							}else{
 								vulnerabilitiesQueueItem.increaseRetry();
 							}
@@ -161,7 +160,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 								if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 									logger.info("vulnerabilities push SUCCEED");
 									vulnerabilitiesQueue.remove();
-									System.out.println(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue 2");
+									logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue");
 								} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 									logger.info("vulnerabilities push FAILED, service unavailable; retrying after a breathe...");
 									breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
@@ -169,7 +168,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 								} else {
 									//  case of any other fatal error
 									logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n"+response.getBody());
-									handleQueueItem(vulnerabilitiesQueueItem);
+									vulnerabilitiesQueue.remove();
 								}
 								logger.debug("successfully processed " + vulnerabilitiesQueueItem);
 							}
@@ -192,15 +191,11 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.getStartTime();
-				try {
-					vulnerabilitiesQueue.remove();
-				}catch (NoSuchElementException e){
-					//Do Nothing.
-				}
-				System.out.println(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue 3");
+				vulnerabilitiesQueue.remove();
 				if(timePass<TIME_OUT_FOR_QUEUE_ITEM) {
 					vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
-					System.out.println(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was Added to queue 3");
+				}else{
+					logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue after timeout in queue is over");
 				}
 				breathe(SKIP_QUEUE_ITEM_INTERVAL);
 			}
