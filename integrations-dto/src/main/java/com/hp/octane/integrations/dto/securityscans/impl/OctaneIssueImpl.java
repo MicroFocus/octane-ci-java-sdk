@@ -13,33 +13,33 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.dto.SecurityScans.impl;
+package com.hp.octane.integrations.dto.securityscans.impl;
 
-import com.hp.octane.integrations.dto.SecurityScans.OctaneIssue;
+import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.entities.Entity;
 
 import java.util.Map;
 
 public class OctaneIssueImpl implements OctaneIssue {
 
-    Map extented_data;
-    String primary_location_full;
-    Integer line;
-    Entity analysis;
-    Entity state;
-    Entity severity;
-    String remote_id;
-    String introduced_date;
-    String external_link;
-    String toolName;
+    private Map extented_data;
+    private String primary_location_full;
+    private Integer line;
+    private Entity analysis;
+    private Entity state;
+    private Entity severity;
+    private String remote_id;
+    private String introduced_date;
+    private String external_link;
+    private String toolName;
 
     @Override
-    public void setExtended_data(Map extendedData) {
+    public void setExtendedData(Map extendedData) {
         this.extented_data = extendedData;
     }
 
     @Override
-    public void setPrimary_location_full(String primaryLocationFull) {
+    public void setPrimaryLocationFull(String primaryLocationFull) {
         this.primary_location_full = primaryLocationFull;
     }
 
@@ -64,12 +64,12 @@ public class OctaneIssueImpl implements OctaneIssue {
     }
 
     @Override
-    public Map getExtended_data() {
+    public Map getExtendedData() {
         return this.extented_data;
     }
 
     @Override
-    public String getPrimary_location_full() {
+    public String getPrimaryLocationFull() {
         return this.primary_location_full;
     }
 
@@ -93,41 +93,41 @@ public class OctaneIssueImpl implements OctaneIssue {
         return severity;
     }
 
-    public String getRemote_id() {
+    public String getRemoteId() {
         return remote_id;
     }
 
-    public void setRemote_id(String remote_id) {
+    public void setRemoteId(String remote_id) {
         this.remote_id = remote_id;
     }
 
     @Override
-    public String getIntroduced_date() {
+    public String getIntroducedDate() {
         return this.introduced_date;
     }
 
     @Override
-    public void setIntroduced_date(String introducedDate) {
+    public void setIntroducedDate(String introducedDate) {
         this.introduced_date = introducedDate;
     }
 
     @Override
-    public String getExternal_link() {
+    public String getExternalLink() {
         return this.external_link;
     }
 
     @Override
-    public void setExternal_link(String external_link) {
+    public void setExternalLink(String external_link) {
         this.external_link = external_link;
     }
 
     @Override
-    public String getTool_name() {
+    public String getToolName() {
         return toolName;
     }
 
     @Override
-    public void setTool_name(String toolName) {
+    public void setToolName(String toolName) {
         this.toolName = toolName;
     }
 }
