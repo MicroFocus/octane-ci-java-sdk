@@ -18,8 +18,8 @@ package com.hp.octane.integrations.dto.pipelines.impl;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
-import com.hp.octane.integrations.dto.SecurityScans.OctaneIssue;
-import com.hp.octane.integrations.dto.SecurityScans.impl.OctaneIssueImpl;
+import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
+import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 
 public class DTOIssueProvider  extends DTOInternalProviderBase {
 
