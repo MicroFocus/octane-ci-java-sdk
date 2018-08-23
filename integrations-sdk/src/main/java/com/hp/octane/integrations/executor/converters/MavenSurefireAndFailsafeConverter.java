@@ -20,25 +20,35 @@ import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.util.SdkStringUtils;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Converter for JUnit4 for maven.
+ * Converter for JUnit/TestNg over  Maven Surefire And Failsafe  plugins
  * Expected command line : mvn -Dtest=TestCircle#test* test
- * The class create string in format : className1#testName1;className2#testName2;
+ * The class create string in format : package1.className1#testNameA+testNameB,package2.className2#testNameC;
  */
-public class JUnit4MavenConverter extends TestsToRunConverter {
+public class MavenSurefireAndFailsafeConverter extends TestsToRunConverter {
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         StringBuilder sb = new StringBuilder();
-        String joiner = "";
-        for (TestToRunData testData : data) {
-            sb.append(joiner);
-            if (SdkStringUtils.isNotEmpty(testData.getPackageName())) {
-                sb.append(testData.getPackageName()).append(".");
-            }
-            sb.append(testData.getClassName()).append("#").append(testData.getTestName());
-            joiner = ",";
+        String classJoiner = "";
+        Map<String, List<TestToRunData>> fullClassName2tests = data.stream().collect(Collectors.groupingBy(item -> getFullClassPath(item)));
+        for (Map.Entry<String, List<TestToRunData>> entry : fullClassName2tests.entrySet()) {
+            sb.append(classJoiner);
+            String tests = entry.getValue().stream().map(TestToRunData::getTestName).collect(Collectors.joining("+"));
+            sb.append(entry.getKey()).append("#").append(tests);
+            classJoiner = ",";
         }
         return sb.toString();
+    }
+
+    private String getFullClassPath(TestToRunData runData) {
+        String result = "";
+        if (SdkStringUtils.isNotEmpty(runData.getPackageName())) {
+            result = runData.getPackageName() + ".";
+        }
+        result += runData.getClassName();
+        return result;
     }
 }
