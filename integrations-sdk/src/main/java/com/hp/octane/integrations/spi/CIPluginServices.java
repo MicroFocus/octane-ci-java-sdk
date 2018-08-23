@@ -161,4 +161,6 @@ public interface CIPluginServices {
 	void deleteExecutor(String id);
 
 	OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo);
+
+	PipelineNode createExecutor(DiscoveryInfo discoveryInfo);
 }

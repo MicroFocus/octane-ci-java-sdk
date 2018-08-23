@@ -115,6 +115,11 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 					if (INIT.equalsIgnoreCase(path[1])) {
 						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
 						pluginServices.runTestDiscovery(discoveryInfo);
+						PipelineNode node = pluginServices.createExecutor(discoveryInfo);
+						if (node != null) {
+							result.setBody(dtoFactory.dtoToJson(node));
+							result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+						}
 						result.setStatus(200);
 					} else if (SUITE_RUN.equalsIgnoreCase(path[1])) {
 						TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
