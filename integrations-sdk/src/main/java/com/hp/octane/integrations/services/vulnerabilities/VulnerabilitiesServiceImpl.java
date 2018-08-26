@@ -111,6 +111,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		vulnerabilitiesQueueItem.setProjectName(projectName);
 		vulnerabilitiesQueueItem.setProjectVersionSymbol(projectVersion);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
+		logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was added to vulnerabilities queue");
 	}
 
 	@Override
@@ -146,7 +147,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							if(vulnerabilitiesQueueItem.getRetryTimes()%100==0 && !isVulnerabilitiesRelevant(vulnerabilitiesQueueItem.jobId,vulnerabilitiesQueueItem.buildId)){
 								logger.info("vulnerabilities are not relevant, removing from the queue");
 								vulnerabilitiesQueue.remove();
-								logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue");
+								logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from vulnerabilities queue");
 							}else{
 								vulnerabilitiesQueueItem.increaseRetry();
 							}
@@ -160,7 +161,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 								if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 									logger.info("vulnerabilities push SUCCEED");
 									vulnerabilitiesQueue.remove();
-									logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue");
+									logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from vulnerabilities queue");
 								} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 									logger.info("vulnerabilities push FAILED, service unavailable; retrying after a breathe...");
 									breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
