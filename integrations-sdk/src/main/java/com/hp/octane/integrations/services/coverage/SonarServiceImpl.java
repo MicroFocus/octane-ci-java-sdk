@@ -230,12 +230,13 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 
             BuildCoverage buildCoverageReport = dtoFactory.newDTO(BuildCoverage.class);
 
-            InputStream reportStream;
+            JsonNode jsonReport;
             do {
                 pageIndex++;
-                reportStream = getPageFromSonar(queueItem, pageIndex);
-                buildCoverageReport.mergeSonarCoverageReport(reportStream);
-            } while (coverageReportHasAnotherPage(pageIndex, reportStream));
+                InputStream reportStream = getPageFromSonar(queueItem, pageIndex);
+                jsonReport = objectMapper.readTree(reportStream);
+                buildCoverageReport.mergeSonarCoverageReport(jsonReport);
+            } while (coverageReportHasAnotherPage(pageIndex, jsonReport));
 
             OctaneRequest coveragePutRequest = buildCoveragePutRequest(buildCoverageReport, serverId, queueItem.jobId, queueItem.buildId);
             OctaneResponse response = restService.obtainClient().execute(coveragePutRequest);
@@ -287,8 +288,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     }
 
 
-    private Boolean coverageReportHasAnotherPage(Integer pageIndex, InputStream content) throws IOException {
-        JsonNode jsonContent = objectMapper.readTree(content);
+    private Boolean coverageReportHasAnotherPage(Integer pageIndex, JsonNode jsonContent) throws IOException {
 
         JsonNode pagingNode = jsonContent.get("paging");
         Integer pageSize = pagingNode.get("pageSize").intValue();

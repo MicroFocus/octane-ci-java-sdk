@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.coverage.FileCoverage;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -43,6 +44,10 @@ public class BuildCoverageImpl implements BuildCoverage {
     private String projectName;
 
     static ObjectMapper objectMapper = new ObjectMapper();
+
+    public BuildCoverageImpl() {
+        fileCoverageList = new ArrayList<>();
+    }
 
     public Integer getSumOfCoveredLines() {
         return sumOfCoveredLines;
@@ -89,30 +94,25 @@ public class BuildCoverageImpl implements BuildCoverage {
         return this;
     }
 
-    public BuildCoverage mergeSonarCoverageReport(InputStream report) {
-        JsonNode jsonReport;
-        try {
-            jsonReport = objectMapper.readTree(report);
-            if (this.projectName == null) {
-                this.numberOfFiles = jsonReport.get("paging").get("total").asInt();
+    public BuildCoverage mergeSonarCoverageReport(JsonNode jsonReport) {
+        if (this.projectName == null) {
+            this.numberOfFiles = jsonReport.get("paging").get("total").asInt();
 
-                JsonNode baseComponentJson = jsonReport.get("baseComponent");
-                this.projectName = baseComponentJson.get("name").textValue();
-                //add measures
-                JsonNode measuresArray = baseComponentJson.get("measures");
-                this.totalCoverableLines = getIntegerValueFromMeasuresArray("lines_to_cover", measuresArray);
-                Integer uncoveredLines = getIntegerValueFromMeasuresArray("uncovered_lines", measuresArray);
-                this.sumOfCoveredLines = this.totalCoverableLines - uncoveredLines;
+            JsonNode baseComponentJson = jsonReport.get("baseComponent");
+            this.projectName = baseComponentJson.get("name").textValue();
+            //add measures
+            JsonNode measuresArray = baseComponentJson.get("measures");
+            this.totalCoverableLines = getIntegerValueFromMeasuresArray("lines_to_cover", measuresArray);
+            Integer uncoveredLines = getIntegerValueFromMeasuresArray("uncovered_lines", measuresArray);
+            this.sumOfCoveredLines = this.totalCoverableLines - uncoveredLines;
 
-            }
-            ArrayNode componentsArray = (ArrayNode) jsonReport.get("fileCoverageList");
-            for (JsonNode component : componentsArray) {
-                FileCoverage fileCoverage = getFileCoverageFromJson(component);
-                this.fileCoverageList.add(fileCoverage);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
+        ArrayNode componentsArray = (ArrayNode) jsonReport.get("components");
+        for (JsonNode component : componentsArray) {
+            FileCoverage fileCoverage = getFileCoverageFromJson(component);
+            this.fileCoverageList.add(fileCoverage);
+        }
+
         return this;
 
 

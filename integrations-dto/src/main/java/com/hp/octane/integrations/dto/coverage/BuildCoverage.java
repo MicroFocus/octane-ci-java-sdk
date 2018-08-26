@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.dto.coverage;
 
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.hp.octane.integrations.dto.DTOBase;
 
 import java.io.InputStream;
@@ -48,6 +49,6 @@ public interface BuildCoverage extends DTOBase {
 
     BuildCoverage setFileCoverageList(List<FileCoverage> fileCoverageList);
 
-    BuildCoverage mergeSonarCoverageReport(InputStream report);
+    BuildCoverage mergeSonarCoverageReport(JsonNode report);
 
 }
