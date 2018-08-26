@@ -4,7 +4,7 @@ import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
 
 public interface SonarService {
 
-    String SONAR_TYPE = "SONARQUBBE";
+    String SONAR_REPORT = "SONAR_REPORT";
 
     /**
      * get status object from m sonarQube server listens to sonarURL, as specified in sonar documentation :

@@ -14,7 +14,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.coverage.BuildCoverage;
 import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
-import com.hp.octane.integrations.services.logs.LogsServiceImpl;
 import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
@@ -29,7 +28,6 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.entity.ContentType;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -38,9 +36,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -302,7 +297,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
                 .setParameter("ci-server-identity", ciIdentity)
                 .setParameter("ci-job-id", jobId)
                 .setParameter("ci-build-id", buildId)
-                .setParameter("file-type", SonarService.SONAR_TYPE);
+                .setParameter("file-type", SonarService.SONAR_REPORT);
 
         String reportToOctane = objectMapper.writeValueAsString(buildCoverage);
         OctaneRequest coverageRequest = dtoFactory.newDTO(OctaneRequest.class)
