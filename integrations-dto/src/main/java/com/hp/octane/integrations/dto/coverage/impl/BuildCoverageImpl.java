@@ -23,8 +23,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.hp.octane.integrations.dto.coverage.BuildCoverage;
 import com.hp.octane.integrations.dto.coverage.FileCoverage;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +34,6 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BuildCoverageImpl implements BuildCoverage {
 
-
-    private Integer numberOfFiles;
     private List<FileCoverage> fileCoverageList;
     private Integer sumOfCoveredLines;
     private Integer totalCoverableLines;
@@ -76,14 +72,6 @@ public class BuildCoverageImpl implements BuildCoverage {
         return this;
     }
 
-    public Integer getNumberOfFiles() {
-        return numberOfFiles;
-    }
-
-    public BuildCoverage setNumberOfFiles(Integer numberOfFiles) {
-        this.numberOfFiles = numberOfFiles;
-        return this;
-    }
 
     public List<FileCoverage> getFileCoverageList() {
         return fileCoverageList;
@@ -96,7 +84,6 @@ public class BuildCoverageImpl implements BuildCoverage {
 
     public BuildCoverage mergeSonarCoverageReport(JsonNode jsonReport) {
         if (this.projectName == null) {
-            this.numberOfFiles = jsonReport.get("paging").get("total").asInt();
 
             JsonNode baseComponentJson = jsonReport.get("baseComponent");
             this.projectName = baseComponentJson.get("name").textValue();
@@ -115,7 +102,6 @@ public class BuildCoverageImpl implements BuildCoverage {
 
         return this;
 
-
     }
 
     private FileCoverage getFileCoverageFromJson(JsonNode fileComponent) {
@@ -127,7 +113,7 @@ public class BuildCoverageImpl implements BuildCoverage {
         uncoveredLines = getIntegerValueFromMeasuresArray("uncovered_lines", measuresArray);
 
         return new FileCoverageImpl()
-                .setFile(fileComponent.get("path").textValue())
+                .setPath(fileComponent.get("path").textValue())
                 .setSumOfCoveredLines(linesToCover - uncoveredLines)
                 .setTotalCoverableLines(linesToCover);
     }

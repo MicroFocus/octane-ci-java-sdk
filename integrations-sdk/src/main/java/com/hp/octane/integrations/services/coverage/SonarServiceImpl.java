@@ -104,10 +104,14 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
                             pushSonarDataToOctane(pluginServices.getServerInfo().getInstanceId(), buildCoverageQueueItem);
                             logger.debug("successfully processed " + buildCoverageQueueItem);
                             buildCoverageQueue.remove();
+                        } catch (TemporaryQueueItemException tque) {
+                            logger.error("temporary error on " + buildCoverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+                            breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+                        } catch (PermanentQueueItemException pqie) {
+                            logger.error("permanent error on " + buildCoverageQueueItem + ", passing over", pqie);
+                            buildCoverageQueue.remove();
                         } catch (Throwable t) {
-                            logger.error(new StringBuilder().append("unexpected error on build log item '")
-                                    .append(buildCoverageQueueItem)
-                                    .append("', passing over").toString(), t);
+                            logger.error("unexpected error on build log item '" + buildCoverageQueueItem + "', passing over", t);
                             buildCoverageQueue.remove();
                         }
                     } else {
@@ -194,7 +198,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     }
 
 
-    public void pushSonarDataToOctane(String serverId, BuildCoverageQueueItem queueItem) throws OctaneSDKSonarException {
+    public void pushSonarDataToOctane(String serverId, BuildCoverageQueueItem queueItem){
 
         OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
         if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
@@ -239,15 +243,13 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
             if (response.getStatus() != HttpStatus.SC_OK) {
                 errorMessage.append(" with status code: ").append(response.getStatus())
                         .append(" and response body: ").append(response.getBody());
-                throw new OctaneSDKSonarException(errorMessage.toString());
+                throw new PermanentQueueItemException(errorMessage.toString());
             }
 
-        } catch (OctaneSDKSonarException e) {
-            logger.error(e.getMessage(), e);
-            throw e;
+
         } catch (Exception e) {
             logger.error(errorMessage.toString(), e);
-            throw new OctaneSDKSonarException(errorMessage.toString(), e);
+            throw new PermanentQueueItemException(errorMessage.toString(), e);
         }
     }
 
@@ -352,7 +354,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     }
 
 
-    private InputStream  getPageFromSonar( BuildCoverageQueueItem queueItem, Integer page) throws OctaneSDKSonarException {
+    private InputStream  getPageFromSonar( BuildCoverageQueueItem queueItem, Integer page) {
         String sonarURL = queueItem.sonarURL;
         String token = queueItem.sonarToken;
         String projectKey = queueItem.projectKey;
@@ -378,7 +380,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
                     .append("failed to get coverage data from sonar for project: ")
                     .append(projectKey).toString();
             logger.error(errorMessage, e);
-            throw new OctaneSDKSonarException(errorMessage, e);
+            throw new PermanentQueueItemException(errorMessage, e);
         }
     }
 

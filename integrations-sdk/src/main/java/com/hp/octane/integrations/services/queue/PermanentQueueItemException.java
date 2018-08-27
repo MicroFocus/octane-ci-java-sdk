@@ -6,6 +6,11 @@ public class PermanentQueueItemException extends RuntimeException {
 		super(throwable);
 	}
 
+	public PermanentQueueItemException(String message, Throwable cause) {
+		super(message,cause);
+	}
+
+
 	public PermanentQueueItemException(String message) {
 		super(message);
 	}

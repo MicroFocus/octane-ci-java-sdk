@@ -41,10 +41,6 @@ public interface BuildCoverage extends DTOBase {
 
     BuildCoverage setProjectName(String projectName);
 
-    Integer getNumberOfFiles();
-
-    BuildCoverage setNumberOfFiles(Integer numberOfFiles);
-
     List<FileCoverage> getFileCoverageList();
 
     BuildCoverage setFileCoverageList(List<FileCoverage> fileCoverageList);

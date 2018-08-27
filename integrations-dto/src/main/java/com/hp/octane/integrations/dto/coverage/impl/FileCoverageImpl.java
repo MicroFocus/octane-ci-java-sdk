@@ -1,7 +1,7 @@
 /*
  *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
+ *     you may not use this path except in compliance with the License.
  *     You may obtain a copy of the License at
  *
  *       http://www.apache.org/licenses/LICENSE-2.0
@@ -26,27 +26,18 @@ import com.hp.octane.integrations.dto.coverage.LineCoverage;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class FileCoverageImpl implements FileCoverage {
-    private String file;
+    private String path;
     private LineCoverage[] lines;
     private Integer sumOfCoveredLines;
     private Integer totalCoverableLines;
 
 
-    public String getFile() {
-        return file;
+    public String getPath() {
+        return path;
     }
 
-    public FileCoverage setFile(String file) {
-        this.file = file;
-        return this;
-    }
-
-    public LineCoverage[] getLines() {
-        return lines;
-    }
-
-    public FileCoverage setLines(LineCoverage[] lines) {
-        this.lines = lines;
+    public FileCoverage setPath(String path) {
+        this.path = path;
         return this;
     }
 
