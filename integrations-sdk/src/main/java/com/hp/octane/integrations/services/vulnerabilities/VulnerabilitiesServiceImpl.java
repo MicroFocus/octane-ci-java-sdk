@@ -106,30 +106,35 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	}
 
 	@Override
-	public void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId,String projectName, String projectVersion, String outDir) {
+	public void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId,
+													 String projectName, String projectVersion,
+													 String outDir,
+													 long startRunTime) {
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
 		vulnerabilitiesQueueItem.setTargetFolder(outDir);
 		vulnerabilitiesQueueItem.setProjectName(projectName);
 		vulnerabilitiesQueueItem.setProjectVersionSymbol(projectVersion);
+		vulnerabilitiesQueueItem.setStartRunTime(startRunTime);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 	}
 
 	@Override
 	public boolean isVulnerabilitiesRelevant( String jobId, String buildId) throws IOException {
-		if (buildId == null || buildId.isEmpty()) {
-			throw new IllegalArgumentException("build CI ID MUST NOT be null nor empty");
-		}
-		if (jobId == null || jobId.isEmpty()) {
-			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
-		}
-
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'");
-
-		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
-		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
+//		if (buildId == null || buildId.isEmpty()) {
+//			throw new IllegalArgumentException("build CI ID MUST NOT be null nor empty");
+//		}
+//		if (jobId == null || jobId.isEmpty()) {
+//			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
+//		}
+//
+//		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
+//				.setMethod(HttpMethod.GET)
+//				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
+//						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'");
+//
+//		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
+//		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
+		return true;
 	}
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
@@ -153,7 +158,8 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							}
 							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.projectName,
 									vulnerabilitiesQueueItem.projectVersionSymbol,
-									vulnerabilitiesQueueItem.targetFolder);
+									vulnerabilitiesQueueItem.targetFolder,
+									vulnerabilitiesQueueItem.startTime);
 							if(vulnerabilitiesStream==null) {
 								handleQueueItem(vulnerabilitiesQueueItem);
 							}else{
@@ -240,7 +246,6 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		private VulnerabilitiesQueueItem(String jobId, String buildId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
-			this.startTime = System.currentTimeMillis();
 		}
 
 		@Override
@@ -258,6 +263,10 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 		public void setTargetFolder(String targetFolder) {
 			this.targetFolder = targetFolder;
+		}
+
+		public void setStartRunTime(long startTime) {
+			this.startTime = startTime;
 		}
 	}
 
