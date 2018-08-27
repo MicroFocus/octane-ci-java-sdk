@@ -120,21 +120,20 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 	@Override
 	public boolean isVulnerabilitiesRelevant( String jobId, String buildId) throws IOException {
-//		if (buildId == null || buildId.isEmpty()) {
-//			throw new IllegalArgumentException("build CI ID MUST NOT be null nor empty");
-//		}
-//		if (jobId == null || jobId.isEmpty()) {
-//			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
-//		}
-//
-//		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-//				.setMethod(HttpMethod.GET)
-//				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-//						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'");
-//
-//		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
-//		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
-		return true;
+		if (buildId == null || buildId.isEmpty()) {
+			throw new IllegalArgumentException("build CI ID MUST NOT be null nor empty");
+		}
+		if (jobId == null || jobId.isEmpty()) {
+			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
+		}
+
+		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.GET)
+				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
+						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'");
+
+		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
+		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
 	}
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
