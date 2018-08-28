@@ -142,7 +142,7 @@ public interface CIPluginServices {
 	 * @param projectVersion The version of the project.
 	 * @return InputStream; NULL if no Vulnerabilities result available
 	 */
-	InputStream getVulnerabilitiesScanResultStream(String projectName, String projectVersion, String runRootDir, long startRunTime);
+	VulnerabilitiesStatus getVulnerabilitiesScanResultStream(String projectName, String projectVersion, String runRootDir, long startRunTime);
 	/**
 	 * Retrieves build's log as an InputStream
 	 *

@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
+import com.hp.octane.integrations.spi.VulnerabilitiesStatus;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -155,12 +156,13 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							}else{
 								vulnerabilitiesQueueItem.increaseRetry();
 							}
-							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.projectName,
+							VulnerabilitiesStatus scanResultStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.projectName,
 									vulnerabilitiesQueueItem.projectVersionSymbol,
 									vulnerabilitiesQueueItem.targetFolder,
 									vulnerabilitiesQueueItem.startTime);
+							InputStream vulnerabilitiesStream = scanResultStream.issuesStream;
 							if(vulnerabilitiesStream==null) {
-								handleQueueItem(vulnerabilitiesQueueItem);
+								handleQueueItem(vulnerabilitiesQueueItem, scanResultStream.polling);
 							}else{
 								OctaneResponse response = pushVulnerabilities(vulnerabilitiesStream,vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
 								if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
@@ -170,24 +172,24 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 								} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 									logger.info("vulnerabilities push FAILED, service unavailable; retrying after a breathe...");
 									breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-									handleQueueItem(vulnerabilitiesQueueItem);
+									handleQueueItem(vulnerabilitiesQueueItem, scanResultStream.polling);
 								} else {
 									//  case of any other fatal error
-									logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n"+response.getBody());
-									vulnerabilitiesQueue.remove();
+									logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
+									handleQueueItem(vulnerabilitiesQueueItem, scanResultStream.polling);
 								}
 								logger.debug("successfully processed " + vulnerabilitiesQueueItem);
 							}
 						} catch (TemporaryQueueItemException tque) {
 							logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
-							handleQueueItem(vulnerabilitiesQueueItem);
+							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
 						} catch (PermanentQueueItemException pqie) {
 							logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
-							handleQueueItem(vulnerabilitiesQueueItem);
+							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 						} catch (Throwable t) {
 							logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
-							handleQueueItem(vulnerabilitiesQueueItem);
+							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 						}
 					} else {
 						breathe(LIST_EMPTY_INTERVAL);
@@ -195,10 +197,10 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 				}
 			}
 
-			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling polling) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.getStartTime();
 				vulnerabilitiesQueue.remove();
-				if(timePass<TIME_OUT_FOR_QUEUE_ITEM) {
+				if(timePass<TIME_OUT_FOR_QUEUE_ITEM && polling.equals(VulnerabilitiesStatus.Polling.ContinuePolling)) {
 					vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 				}else{
 					logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue after timeout in queue is over");
