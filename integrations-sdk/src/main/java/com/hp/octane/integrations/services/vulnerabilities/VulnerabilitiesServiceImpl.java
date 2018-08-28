@@ -105,11 +105,15 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	}
 
 	@Override
-	public void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId,String projectName, String projectVersion, String outDir) {
+	public void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId,
+													 String projectName, String projectVersion,
+													 String outDir,
+													 long startRunTime) {
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
 		vulnerabilitiesQueueItem.setTargetFolder(outDir);
 		vulnerabilitiesQueueItem.setProjectName(projectName);
 		vulnerabilitiesQueueItem.setProjectVersionSymbol(projectVersion);
+		vulnerabilitiesQueueItem.setStartRunTime(startRunTime);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 		logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was added to vulnerabilities queue");
 	}
@@ -153,7 +157,8 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							}
 							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.projectName,
 									vulnerabilitiesQueueItem.projectVersionSymbol,
-									vulnerabilitiesQueueItem.targetFolder);
+									vulnerabilitiesQueueItem.targetFolder,
+									vulnerabilitiesQueueItem.startTime);
 							if(vulnerabilitiesStream==null) {
 								handleQueueItem(vulnerabilitiesQueueItem);
 							}else{
@@ -236,7 +241,6 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		private VulnerabilitiesQueueItem(String jobId, String buildId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
-			this.startTime = System.currentTimeMillis();
 		}
 
 		@Override
@@ -254,6 +258,10 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 		public void setTargetFolder(String targetFolder) {
 			this.targetFolder = targetFolder;
+		}
+
+		public void setStartRunTime(long startTime) {
+			this.startTime = startTime;
 		}
 	}
 
