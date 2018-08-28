@@ -15,14 +15,16 @@
  */
 package com.hp.octane.integrations.dto.securityscans.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.entities.Entity;
 
 import java.util.Map;
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class OctaneIssueImpl implements OctaneIssue {
 
-    private Map extented_data;
+    private Map extended_data;
     private String primary_location_full;
     private Integer line;
     private Entity analysis;
@@ -31,14 +33,16 @@ public class OctaneIssueImpl implements OctaneIssue {
     private String remote_id;
     private String introduced_date;
     private String external_link;
-    private String toolName;
+    private String tool_name;
 
     @Override
+    @JsonProperty(value="extended_data")
     public void setExtendedData(Map extendedData) {
-        this.extented_data = extendedData;
+        this.extended_data = extendedData;
     }
 
     @Override
+    @JsonProperty(value="primary_location_full")
     public void setPrimaryLocationFull(String primaryLocationFull) {
         this.primary_location_full = primaryLocationFull;
     }
@@ -64,11 +68,13 @@ public class OctaneIssueImpl implements OctaneIssue {
     }
 
     @Override
+    @JsonProperty(value="extended_data")
     public Map getExtendedData() {
-        return this.extented_data;
+        return this.extended_data;
     }
 
     @Override
+    @JsonProperty(value="primary_location_full")
     public String getPrimaryLocationFull() {
         return this.primary_location_full;
     }
@@ -93,41 +99,50 @@ public class OctaneIssueImpl implements OctaneIssue {
         return severity;
     }
 
+    @Override
+    @JsonProperty(value="remote_id")
     public String getRemoteId() {
         return remote_id;
     }
-
+    @Override
+    @JsonProperty(value="remote_id")
     public void setRemoteId(String remote_id) {
         this.remote_id = remote_id;
     }
 
     @Override
+    @JsonProperty(value="introduced_date")
     public String getIntroducedDate() {
         return this.introduced_date;
     }
 
     @Override
+    @JsonProperty(value="introduced_date")
     public void setIntroducedDate(String introducedDate) {
         this.introduced_date = introducedDate;
     }
 
     @Override
+    @JsonProperty(value="external_link")
     public String getExternalLink() {
         return this.external_link;
     }
 
     @Override
+    @JsonProperty(value="external_link")
     public void setExternalLink(String external_link) {
         this.external_link = external_link;
     }
 
     @Override
+    @JsonProperty(value="tool_name")
     public String getToolName() {
-        return toolName;
+        return tool_name;
     }
 
     @Override
+    @JsonProperty(value="tool_name")
     public void setToolName(String toolName) {
-        this.toolName = toolName;
+        this.tool_name = toolName;
     }
 }
