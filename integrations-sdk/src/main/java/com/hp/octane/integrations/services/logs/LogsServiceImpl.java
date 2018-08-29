@@ -24,9 +24,9 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
+import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queue.QueueService;
-import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -101,10 +101,10 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 							pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
 							logger.debug("successfully processed " + buildLogQueueItem);
 							buildLogsQueue.remove();
-						} catch (TemporaryQueueItemException tque) {
+						} catch (TemporaryException tque) {
 							logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
-						} catch (PermanentQueueItemException pqie) {
+						} catch (PermanentException pqie) {
 							logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
 							buildLogsQueue.remove();
 						} catch (Throwable t) {
@@ -198,12 +198,12 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
 			response = restService.obtainClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-				throw new TemporaryQueueItemException("preflight request failed with status " + response.getStatus());
+				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
-				throw new PermanentQueueItemException("preflight request failed with status " + response.getStatus());
+				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			}
 		} catch (IOException ioe) {
-			throw new TemporaryQueueItemException(ioe);
+			throw new TemporaryException(ioe);
 		}
 
 		//  parse result
@@ -211,7 +211,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 			try {
 				result = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
 			} catch (IOException ioe) {
-				throw new PermanentQueueItemException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
+				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
 			}
 		}
 		return result;

@@ -46,15 +46,16 @@ public class CIPluginSDKUtils {
 		try {
 			Thread.sleep(period);
 		} catch (InterruptedException ie) {
-			logger.warn("interrupted while doing breakable wait");
+			logger.warn("interrupted while awaiting", ie);
 		}
 	}
 
 	/***
+	 * This function verifies if the target host matches one of the non-proxy hosts and returns boolean result for that
 	 *
 	 * @param targetHost host of request
-	 * @param nonProxyHostsStr   list of hosts, separated by the '|' character. The wildcard '*' can be used:  localhost|*.mydomain.com)
-	 * @return
+	 * @param nonProxyHostsStr list of hosts, separated by the '|' character. The wildcard '*' can be used:  localhost|*.mydomain.com)
+	 * @return result of verification
 	 */
 	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
 		boolean noProxyHost = false;
