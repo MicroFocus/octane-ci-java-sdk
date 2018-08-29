@@ -80,4 +80,7 @@ public interface CIServerInfo extends DTOBase {
 	 * Set CI server's suspension status
 	 */
 	CIServerInfo setSuspended(boolean suspended);
+
+	long getSSCPollingIntervalSeconds();
+	void setSSCPollingIntervalSeconds(long interval);
 }

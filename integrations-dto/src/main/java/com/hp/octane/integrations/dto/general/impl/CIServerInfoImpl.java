@@ -34,16 +34,19 @@ class CIServerInfoImpl implements CIServerInfo {
 	private Long instanceIdFrom;
 	private String impersonatedUser;
 	private Long sendingTime = System.currentTimeMillis();
+	volatile long sscPollingIntervalSeconds;
+
 
 	public CIServerInfoImpl() {
 	}
 
-	public CIServerInfoImpl(String type, String version, String url, String instanceId, Long instanceIdFrom) {
+	public CIServerInfoImpl(String type, String version, String url, String instanceId, Long instanceIdFrom, long interval) {
 		this.type = type;
 		this.version = version;
 		this.url = normalizeURL(url);
 		this.instanceId = instanceId;
 		this.instanceIdFrom = instanceIdFrom;
+		this.sscPollingIntervalSeconds = interval;
 	}
 
 	public String getType() {
@@ -120,6 +123,16 @@ class CIServerInfoImpl implements CIServerInfo {
 	public CIServerInfo setSuspended(boolean suspended) {
 		this.suspended = suspended;
 		return this;
+	}
+
+    @Override
+    public long getSSCPollingIntervalSeconds() {
+        return this.sscPollingIntervalSeconds;
+    }
+
+	@Override
+	public void setSSCPollingIntervalSeconds(long interval) {
+		this.sscPollingIntervalSeconds = interval;
 	}
 
 	private String normalizeURL(String input) {

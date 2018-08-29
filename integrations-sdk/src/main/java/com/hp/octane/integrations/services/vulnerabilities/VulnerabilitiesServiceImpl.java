@@ -63,6 +63,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	private int LIST_EMPTY_INTERVAL = 10000;
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long TIME_OUT_FOR_QUEUE_ITEM = 3*60*60*1000L; //3 hours
+	private long sscPollingInterval = 10000;
 
 	public VulnerabilitiesServiceImpl(Object internalUsageValidator,QueueService queueService, RestService restService) {
 		super(internalUsageValidator);
@@ -80,8 +81,24 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		this.restService = restService;
 
 		logger.info("starting background worker...");
+		//setActualSSCPollingInterval();
 		startBackgroundWorker();
 		logger.info("initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
+	}
+
+	private void setActualSSCPollingInterval() {
+
+
+		if(pluginServices != null &&
+				pluginServices.getServerInfo() != null) {
+			long pollingIntervalSeconds = pluginServices.getServerInfo().getSSCPollingIntervalSeconds();
+
+			if (pollingIntervalSeconds <= 0) {
+				this.sscPollingInterval = LIST_EMPTY_INTERVAL;
+				return;
+			}
+			this.sscPollingInterval = pollingIntervalSeconds * 1000;// Millies.
+		}
 	}
 
 
@@ -143,9 +160,15 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	private void startBackgroundWorker() {
 		worker.execute(new Runnable() {
 			public void run() {
+				int i = 0;
 				while (true) {
+					i++;
+					if(i == 10){
+						i=0;
+						setActualSSCPollingInterval();
+					}
 					if (vulnerabilitiesQueue.size() > 0) {
-						VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem = null;
+						VulnerabilitiesQueueItem vulnerabilitiesQueueItem = null;
 						try {
 							vulnerabilitiesQueueItem = vulnerabilitiesQueue.peek();
 							//if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
@@ -192,7 +215,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 						}
 					} else {
-						breathe(LIST_EMPTY_INTERVAL);
+						breathe(getPollingIntervalMillies());
 					}
 				}
 			}
@@ -205,9 +228,13 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 				}else{
 					logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue after timeout in queue is over");
 				}
-				breathe(SKIP_QUEUE_ITEM_INTERVAL);
+				breathe(getPollingIntervalMillies());
 			}
 		});
+	}
+
+	public int getPollingIntervalMillies() {
+		return (int)sscPollingInterval;
 	}
 
 	private static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
