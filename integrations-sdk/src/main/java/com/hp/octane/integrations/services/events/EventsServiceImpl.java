@@ -40,10 +40,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
@@ -57,7 +55,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private final ExecutorService executorService = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private final RestService restService;
 	private final List<CIEvent> events;
 
@@ -79,7 +76,9 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		this.events = new LinkedList<>();
 
 		logger.info("starting background worker...");
-		executorService.execute(this::worker);
+		Executors
+				.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory())
+				.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY");
 	}
 
