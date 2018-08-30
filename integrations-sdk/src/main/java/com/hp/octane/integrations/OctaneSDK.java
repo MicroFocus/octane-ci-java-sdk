@@ -34,6 +34,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -84,14 +86,15 @@ public final class OctaneSDK {
 	 *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 	 */
 	synchronized public static void init(CIPluginServices ciPluginServices) {
+		if (ciPluginServices == null) {
+			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
+		}
+
 		if (instance == null) {
-			if (ciPluginServices == null) {
-				throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
-			}
 			new OctaneSDK(ciPluginServices);
 			logger.info("initialized SUCCESSFULLY");
 		} else {
-			logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
+			throw new IllegalStateException("SDK may be initialized only once, secondary initialization attempt encountered");
 		}
 	}
 
