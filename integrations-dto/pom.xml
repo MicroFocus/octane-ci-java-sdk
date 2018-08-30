@@ -22,6 +22,11 @@
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<version>${jackson.version}</version>
 			</dependency>
+			<dependency>
+				<artifactId>jackson-annotations</artifactId>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<version>${jackson.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -30,6 +35,10 @@
 		<!-- EXTERNAL -->
 		<dependency>
 			<artifactId>jackson-databind</artifactId>
+			<groupId>com.fasterxml.jackson.core</groupId>
+		</dependency>
+		<dependency>
+			<artifactId>jackson-annotations</artifactId>
 			<groupId>com.fasterxml.jackson.core</groupId>
 		</dependency>
 
