@@ -62,8 +62,8 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private final List<CIEvent> events;
 
 	private final Object NO_EVENTS_MONITOR = new Object();
-	private final int EVENTS_CHUNK_SIZE = 10;
-	private final int MAX_EVENTS_TO_KEEP = 3000;
+	private final int EVENTS_CHUNK_SIZE = System.getProperty("octane.sdk.events.chunk-size") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.chunk-size")) : 10;
+	private final int MAX_EVENTS_TO_KEEP = System.getProperty("octane.sdk.events.max-to-keep") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.max-to-keep")) : 3000;
 	private final long NO_EVENTS_PAUSE = 15000;
 	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
 	private final long TEMPORARY_FAILURE_PAUSE = 15000;

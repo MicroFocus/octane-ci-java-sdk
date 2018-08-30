@@ -99,7 +99,7 @@ public final class OctaneSDK {
 		if (instance != null) {
 			return instance;
 		} else {
-			throw new IllegalStateException("SDK MUST be initialized prior to any usage");
+			throw new IllegalStateException("SDK MUST be initialized prior to any usage, see OctaneSDK.init(..) method");
 		}
 	}
 
