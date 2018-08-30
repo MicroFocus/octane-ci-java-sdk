@@ -173,8 +173,11 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private void logEventsToBeSent(OctaneConfiguration configuration, CIEventsList eventsList) {
 		try {
 			String targetOctane = configuration.getUrl() + ", SP: " + configuration.getSharedSpace();
-			String eventsSummary = String.join(", ", eventsList.getEvents().stream().map(e -> e.getProject() + ":" + e.getBuildCiId() + ":" + e.getEventType()).collect(Collectors.toSet()));
-			logger.info("sending [" + eventsSummary + "] event/s to [" + targetOctane + "]...");
+			List<String> eventsStringified = new LinkedList<>();
+			for (CIEvent event : eventsList.getEvents()) {
+				eventsStringified.add(event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType());
+			}
+			logger.info("sending [" + String.join(", ", eventsStringified) + "] event/s to [" + targetOctane + "]...");
 		} catch (Exception e) {
 			logger.error("failed to log events to be sent", e);
 		}
