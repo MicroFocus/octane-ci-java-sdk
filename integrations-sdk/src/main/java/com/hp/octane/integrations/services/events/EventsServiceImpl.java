@@ -88,7 +88,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		synchronized (events) {
 			events.add(event);
 			if (events.size() > MAX_EVENTS_TO_KEEP) {
-				logger.warn("reached MAX amount of events to keep in queue (max -" + MAX_EVENTS_TO_KEEP + ", found - " + events.size() + "), capping the head");
+				logger.warn("reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + events.size() + "), capping the head");
 				while (events.size() > MAX_EVENTS_TO_KEEP) {
 					events.remove(0);
 				}
