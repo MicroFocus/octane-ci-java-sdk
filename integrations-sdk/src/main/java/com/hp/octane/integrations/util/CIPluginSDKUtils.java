@@ -122,7 +122,7 @@ public class CIPluginSDKUtils {
 		try {
 			return new URL(input);
 		} catch (MalformedURLException murle) {
-			throw new OctaneSDKGeneralException("failed to extract host from URL '" + input + "'", murle);
+			throw new OctaneSDKGeneralException("failed to parse '" + input + "' as URL", murle);
 		}
 	}
 
