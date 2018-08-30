@@ -42,18 +42,59 @@ public class CIPluginSDKUtils {
 		return objectMapper;
 	}
 
+	/**
+	 * This function will safely sleep the current thread for the specified amount of MILLIS
+	 * NO exception thrown expected
+	 *
+	 * @param period millis to wait
+	 */
 	public static void doWait(long period) {
-		try {
-			Thread.sleep(period);
-		} catch (InterruptedException ie) {
-			logger.warn("interrupted while awaiting", ie);
+		if (period == 0) {
+			throw new IllegalArgumentException("period MUST be higher than 0");
+		}
+
+		long started = System.currentTimeMillis();
+		while (System.currentTimeMillis() - started < period) {
+			try {
+				Thread.sleep(period - (System.currentTimeMillis() - started));
+			} catch (InterruptedException ie) {
+				logger.warn("prematurely interrupted while waiting", ie);
+			}
 		}
 	}
 
-	/***
+	/**
+	 * This function will safely sleep the current thread for the specified amount of MILLIS OR until monitor is NOTIFIED - earliest of those
+	 * NO exception thrown expected
+	 *
+	 * @param period  millis to wait in case the monitor stayed silent
+	 * @param monitor notification object to interrupt the sleep on demand
+	 */
+	public static void doBreakableWait(long period, Object monitor) {
+		if (period == 0) {
+			throw new IllegalArgumentException("period MUST be higher than 0");
+		}
+		if (monitor == null) {
+			throw new IllegalArgumentException("monitor MUST NOT be null");
+		}
+
+		long started = System.currentTimeMillis();
+		while (System.currentTimeMillis() - started < period) {
+			try {
+				synchronized (monitor) {
+					monitor.wait(period - (System.currentTimeMillis() - started));
+				}
+				break;
+			} catch (InterruptedException ie) {
+				logger.warn("prematurely interrupted while waiting", ie);
+			}
+		}
+	}
+
+	/**
 	 * This function verifies if the target host matches one of the non-proxy hosts and returns boolean result for that
 	 *
-	 * @param targetHost host of request
+	 * @param targetHost       host of request
 	 * @param nonProxyHostsStr list of hosts, separated by the '|' character. The wildcard '*' can be used:  localhost|*.mydomain.com)
 	 * @return result of verification
 	 */

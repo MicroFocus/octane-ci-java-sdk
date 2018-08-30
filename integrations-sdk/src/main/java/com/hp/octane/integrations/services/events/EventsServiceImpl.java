@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -60,11 +61,12 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private final RestService restService;
 	private final List<CIEvent> events;
 
+	private final Object NO_EVENTS_MONITOR = new Object();
 	private final int EVENTS_CHUNK_SIZE = 10;
 	private final int MAX_EVENTS_TO_KEEP = 3000;
-	private final long NO_EVENTS_PAUSE = 5000;
+	private final long NO_EVENTS_PAUSE = 15000;
 	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
-	private final long TEMPORARY_FAILURE_PAUSE = 10000;
+	private final long TEMPORARY_FAILURE_PAUSE = 15000;
 
 	public EventsServiceImpl(Object internalUsageValidator, RestService restService) {
 		super(internalUsageValidator);
@@ -92,7 +94,9 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 				}
 			}
 		}
-		//  TODO: release events available monitor
+		synchronized (NO_EVENTS_MONITOR) {
+			NO_EVENTS_MONITOR.notify();
+		}
 	}
 
 	private void removeEvents(List<CIEvent> eventsToRemove) {
@@ -108,7 +112,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		while (true) {
 			//  have any events to send?
 			if (events.isEmpty()) {
-				doBreakableWait(NO_EVENTS_PAUSE);
+				CIPluginSDKUtils.doBreakableWait(NO_EVENTS_PAUSE, NO_EVENTS_MONITOR);
 				continue;
 			}
 
@@ -118,13 +122,13 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 				octaneConfiguration = pluginServices.getOctaneConfiguration();
 				if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
 					logger.info("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...");
-					doBreakableWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
+					CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
 					logger.info("back from pause");
 					continue;
 				}
 			} catch (Throwable t) {
 				logger.error("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...", t);
-				doBreakableWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
+				CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
 				logger.info("back from pause");
 				continue;
 			}
@@ -155,7 +159,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 				logger.info("... done, left to send " + events.size() + " events");
 			} catch (TemporaryException tqie) {
 				logger.error("failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
-				doBreakableWait(TEMPORARY_FAILURE_PAUSE);
+				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
 			} catch (PermanentException pqie) {
 				logger.error("failed to send events with permanent error, dropping this chunk and continue", pqie);
 				removeEvents(eventsChunk);
@@ -196,14 +200,6 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 			throw new TemporaryException("PUT events failed with status " + octaneResponse.getStatus());
 		} else if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
 			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());
-		}
-	}
-
-	private void doBreakableWait(long period) {
-		try {
-			Thread.sleep(period);
-		} catch (InterruptedException ie) {
-			logger.warn("interrupted while waiting", ie);
 		}
 	}
 
