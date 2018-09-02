@@ -14,18 +14,15 @@
  *
  */
 
-package com.hp.octane.integrations;
+package com.hp.octane.integrations.exceptions;
 
-import org.junit.Test;
+public class PermanentException extends RuntimeException {
 
-/**
- * Octane SDK tests
- */
+	public PermanentException(Throwable throwable) {
+		super(throwable);
+	}
 
-public class OctaneSDKTest {
-
-	@Test(expected = IllegalArgumentException.class)
-	public void sdkTestANegative() {
-		OctaneSDK.init(null);
+	public PermanentException(String message) {
+		super(message);
 	}
 }

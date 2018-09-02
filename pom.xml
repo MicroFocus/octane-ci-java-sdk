@@ -83,6 +83,7 @@
 		<easymock.version>3.5.1</easymock.version>
 		<maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
 		<jacoco-maven-plugin.version>0.8.1</jacoco-maven-plugin.version>
+		<spotbugs.version>3.1.6</spotbugs.version>
 	</properties>
 
 	<dependencyManagement>
@@ -182,6 +183,29 @@
 					<artifactId>jacoco-maven-plugin</artifactId>
 					<groupId>org.jacoco</groupId>
 					<version>${jacoco-maven-plugin.version}</version>
+				</plugin>
+				<plugin>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<groupId>com.github.spotbugs</groupId>
+					<version>${spotbugs.version}</version>
+					<configuration>
+						<effort>max</effort>
+						<maxRank>9</maxRank>
+					</configuration>
+					<executions>
+						<execution>
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
+					<dependencies>
+						<dependency>
+							<artifactId>spotbugs</artifactId>
+							<groupId>com.github.spotbugs</groupId>
+							<version>${spotbugs.version}</version>
+						</dependency>
+					</dependencies>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -319,5 +343,37 @@
 				</plugins>
 			</build>
 		</profile>
+
+		<profile>
+			<id>enforce-quality</id>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>spotbugs-maven-plugin</artifactId>
+						<groupId>com.github.spotbugs</groupId>
+						<version>${spotbugs.version}</version>
+						<configuration>
+							<effort>max</effort>
+							<maxRank>9</maxRank>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>check</goal>
+								</goals>
+							</execution>
+						</executions>
+						<dependencies>
+							<dependency>
+								<artifactId>spotbugs</artifactId>
+								<groupId>com.github.spotbugs</groupId>
+								<version>${spotbugs.version}</version>
+							</dependency>
+						</dependencies>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
 	</profiles>
 </project>
