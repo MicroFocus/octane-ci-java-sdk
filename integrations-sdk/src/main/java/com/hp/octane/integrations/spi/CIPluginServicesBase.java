@@ -99,7 +99,7 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public InputStream getVulnerabilitiesScanResultStream(String jobCiId, String buildCiId){
+	public InputStream getVulnerabilitiesScanResultStream(String projectName, String projectVersion, String runRootDir){
 		return null;
 	}
 
