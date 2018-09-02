@@ -207,6 +207,12 @@ public class SSCHandler {
             else if(issue.scanStatus.toLowerCase().equalsIgnoreCase("new")) {
                 listNodeId = "list_node.issue_state_node.new";
             }
+            else if(issue.scanStatus.toLowerCase().equalsIgnoreCase("REINTRODUCED")) {
+                listNodeId = "list_node.issue_state_node.reopen";
+            }
+            else if(issue.scanStatus.toLowerCase().equalsIgnoreCase("REMOVED")) {
+                listNodeId = "list_node.issue_state_node.closed";
+            }
             if (isLegalOctaneState(listNodeId)) {
                 octaneIssue.setState(createListNodeEntity(dtoFactory, listNodeId));
             }
