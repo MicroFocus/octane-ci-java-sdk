@@ -27,7 +27,6 @@ import com.hp.octane.integrations.dto.coverage.LineCoverage;
 @JsonIgnoreProperties(ignoreUnknown = true)
 class FileCoverageImpl implements FileCoverage {
     private String path;
-    private LineCoverage[] lines;
     private Integer sumOfCoveredLines;
     private Integer totalCoverableLines;
 

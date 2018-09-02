@@ -20,7 +20,6 @@ package com.hp.octane.integrations.dto.coverage;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hp.octane.integrations.dto.DTOBase;
 
-import java.io.InputStream;
 import java.util.List;
 
 /**

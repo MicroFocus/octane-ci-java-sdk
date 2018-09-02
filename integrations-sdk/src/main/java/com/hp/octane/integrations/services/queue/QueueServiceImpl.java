@@ -84,7 +84,7 @@ public final class QueueServiceImpl extends OctaneSDK.SDKServiceBase implements 
 
 	private static final class PushWorkerThreadFactory implements ThreadFactory {
 
-		String name;
+		private String name;
 
 		PushWorkerThreadFactory(String name){
 			super();

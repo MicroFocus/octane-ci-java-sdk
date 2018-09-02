@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 import static com.hp.octane.integrations.api.RestService.*;
 
@@ -65,7 +64,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     private int LIST_EMPTY_INTERVAL = 3000;
 
 
-    static ObjectMapper objectMapper = new ObjectMapper();
+    private static ObjectMapper objectMapper = new ObjectMapper();
 
 
     public SonarServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {

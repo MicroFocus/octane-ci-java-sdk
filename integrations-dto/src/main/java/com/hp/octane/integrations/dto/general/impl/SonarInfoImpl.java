@@ -6,9 +6,9 @@ import com.hp.octane.integrations.dto.general.SonarInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SonarInfoImpl implements SonarInfo{
 
-    String serverUrl;
-    String ServerVersion;
-    String ServerAuthenticationToken;
+    private String serverUrl;
+    private String ServerVersion;
+    private String ServerAuthenticationToken;
 
     public SonarInfoImpl(){
 
