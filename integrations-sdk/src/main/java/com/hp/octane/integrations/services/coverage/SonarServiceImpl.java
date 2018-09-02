@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import static com.hp.octane.integrations.api.RestService.*;
@@ -47,7 +46,6 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 
 
     private static String WEBHOOK_CREATE_URI = "/api/webhooks/create";
-    private static String WEBHOOK_DELETE_URI = "/api/webhooks/delete";
     private static String WEBHOOK_LIST_URI = "/api/webhooks/list";
     private static String SONAR_STATUS_URI = "/api/system/status";
     private static String CONNECTION_FAILURE = "CONNECTION_FAILURE";
@@ -60,7 +58,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
     private static final String BUILD_COVERAGE_QUEUE_FILE = "build-coverage-queue.dat";
 
 
-    private final ExecutorService worker = Executors.newSingleThreadExecutor(new SonarServiceImpl.BuildCoveragePushWorkerThreadFactory());
+    private final ExecutorService worker;
     private final ObjectQueue<SonarServiceImpl.BuildCoverageQueueItem> buildCoverageQueue;
 
     private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
@@ -79,6 +77,8 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
         if (restService == null) {
             throw new IllegalArgumentException("rest service MUST NOT be null");
         }
+
+        worker = queueService.getNewPushWorker("BuildCoveragePushWorker");
 
         if (queueService.isPersistenceEnabled()) {
             buildCoverageQueue = queueService.initFileQueue(BUILD_COVERAGE_QUEUE_FILE, SonarServiceImpl.BuildCoverageQueueItem.class);
@@ -111,7 +111,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
                             logger.error("permanent error on " + buildCoverageQueueItem + ", passing over", pqie);
                             buildCoverageQueue.remove();
                         } catch (Throwable t) {
-                            logger.error("unexpected error on build log item '" + buildCoverageQueueItem + "', passing over", t);
+                            logger.error("unexpected error on build coverage item '" + buildCoverageQueueItem + "', passing over", t);
                             buildCoverageQueue.remove();
                         }
                     } else {
@@ -416,18 +416,6 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
             return "'" + jobId + " #" + buildId + "'";
         }
     }
-
-    private static final class BuildCoveragePushWorkerThreadFactory implements ThreadFactory {
-
-        @Override
-        public Thread newThread(Runnable runnable) {
-            Thread result = new Thread(runnable);
-            result.setName("BuildCoveragePushWorker-" + result.getId());
-            result.setDaemon(true);
-            return result;
-        }
-    }
-
 
     private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
         return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;

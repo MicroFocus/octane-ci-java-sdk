@@ -11,6 +11,9 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Queue Service provides a common queue infrastructure, initialization and maintenance
@@ -74,4 +77,28 @@ public final class QueueServiceImpl extends OctaneSDK.SDKServiceBase implements 
 			CIPluginSDKUtils.getObjectMapper().writeValue(outputStream, t);
 		}
 	}
+
+	public  ExecutorService getNewPushWorker(String name){
+		return Executors.newSingleThreadExecutor(new PushWorkerThreadFactory(name));
+	}
+
+	private static final class PushWorkerThreadFactory implements ThreadFactory {
+
+		String name;
+
+		PushWorkerThreadFactory(String name){
+			super();
+			this.name = name;
+		}
+
+
+		@Override
+		public Thread newThread(Runnable runnable) {
+			Thread result = new Thread(runnable);
+			result.setName(this.name + result.getId());
+			result.setDaemon(true);
+			return result;
+		}
+	}
+
 }

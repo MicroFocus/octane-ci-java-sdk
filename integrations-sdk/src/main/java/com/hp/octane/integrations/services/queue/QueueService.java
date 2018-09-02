@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.squareup.tape.ObjectQueue;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
+
 public interface QueueService {
 
 	/**
@@ -36,4 +39,11 @@ public interface QueueService {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	interface QueueItem {
 	}
+
+	/**
+	 * get new executor for queue items
+	 * @param name
+	 * @return
+	 */
+	ExecutorService getNewPushWorker(String name);
 }
