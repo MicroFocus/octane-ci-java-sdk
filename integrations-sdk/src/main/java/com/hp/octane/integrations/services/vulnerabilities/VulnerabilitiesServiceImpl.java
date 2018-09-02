@@ -34,6 +34,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -179,10 +181,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							}else{
 								vulnerabilitiesQueueItem.increaseRetry();
 							}
-							VulnerabilitiesStatus scanResultStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.projectName,
-									vulnerabilitiesQueueItem.projectVersionSymbol,
-									vulnerabilitiesQueueItem.targetFolder,
-									vulnerabilitiesQueueItem.startTime);
+							VulnerabilitiesStatus scanResultStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem);
 							InputStream vulnerabilitiesStream = scanResultStream.issuesStream;
 							if(vulnerabilitiesStream==null) {
 								handleQueueItem(vulnerabilitiesQueueItem, scanResultStream.polling);
@@ -219,7 +218,6 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 					}
 				}
 			}
-
 			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling polling) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.getStartTime();
 				vulnerabilitiesQueue.remove();
@@ -233,18 +231,61 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		});
 	}
 
+	public VulnerabilitiesStatus getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
+
+
+		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem,this.pluginServices.getServerInfo().getSSCURL(),
+				this.pluginServices.getServerInfo().getSSCBaseAuthToken());
+		//check connection to ssc server
+		if(sscHandler!=null && !sscHandler.isConnected()){
+			logger.warn("ssc is not connected, need to check all ssc configurations in order to continue with this task ");
+			return new VulnerabilitiesStatus(VulnerabilitiesStatus.Polling.ContinuePolling, null);
+		}
+		//check if scan already exists
+		InputStream result = null;
+
+		result = tryGetVulnerabilitiesScanFile(vulnerabilitiesQueueItem.targetFolder);
+		if(result!=null){
+			return new VulnerabilitiesStatus(VulnerabilitiesStatus.Polling.ScanIsCompleted, result);
+		}
+		//if file not exists yet , check if scan is finished and handle accordingly
+		VulnerabilitiesStatus.Polling scanFinishStatus = sscHandler.getScanFinishStatus();
+		if(!scanFinishStatus.equals(VulnerabilitiesStatus.Polling.ScanIsCompleted)){
+			return new VulnerabilitiesStatus(scanFinishStatus,null);
+		}
+		//scan finished :
+		//process scan
+		//save scan results inside build
+		sscHandler.getLatestScan();
+		return new VulnerabilitiesStatus(scanFinishStatus ,tryGetVulnerabilitiesScanFile(vulnerabilitiesQueueItem.targetFolder));
+	}
+
+	private InputStream tryGetVulnerabilitiesScanFile(String runRootDir) {
+		InputStream result = null;
+		String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
+		File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
+		if (!vulnerabilitiesScanFile.exists()) {
+			return null;
+		}
+		try {
+			result = new FileInputStream(vulnerabilitiesScanFilePath);
+		} catch (IOException ioe) {
+			logger.error("failed to obtain  vulnerabilities Scan File in " + runRootDir);
+		}
+		return result;
+	}
 	public int getPollingIntervalMillies() {
 		return (int)sscPollingInterval;
 	}
 
-	private static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
-		private String jobId;
-		private String buildId;
-		private String projectName;
-		private String projectVersionSymbol;
-		private String targetFolder;
+	public static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
+		public String jobId;
+		public String buildId;
+		public String projectName;
+		public String projectVersionSymbol;
+		public String targetFolder;
 
-		private Long startTime;
+		public Long startTime;
 		private int retryTimes=0;
 
 		public int getRetryTimes() {

@@ -82,5 +82,11 @@ public interface CIServerInfo extends DTOBase {
 	CIServerInfo setSuspended(boolean suspended);
 
 	long getSSCPollingIntervalSeconds();
-	void setSSCPollingIntervalSeconds(long interval);
+	CIServerInfo setSSCPollingIntervalSeconds(long interval);
+
+	String getSSCURL();
+	CIServerInfo setSSCURL(String sscUrl);
+	String getSSCBaseAuthToken();
+	CIServerInfo setSSCBaseAuthToken(String sscBaseAuthToken);
 }
+
