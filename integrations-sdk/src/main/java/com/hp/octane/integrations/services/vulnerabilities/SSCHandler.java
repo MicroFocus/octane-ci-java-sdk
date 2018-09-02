@@ -211,9 +211,6 @@ public class SSCHandler {
                 octaneIssue.setState(createListNodeEntity(dtoFactory, listNodeId));
             }
         }
-        if(issue.removed != null && issue.removed){
-            octaneIssue.setState(createListNodeEntity(dtoFactory, "list_node.issue_state_node.closed"));
-        }
     }
 
     private boolean isLegalOctaneState(String scanStatus) {
