@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.squareup.tape.ObjectQueue;
 
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
 
 public interface QueueService {
 

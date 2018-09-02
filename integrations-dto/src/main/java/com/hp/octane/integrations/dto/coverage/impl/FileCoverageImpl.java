@@ -18,7 +18,6 @@ package com.hp.octane.integrations.dto.coverage.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.coverage.FileCoverage;
-import com.hp.octane.integrations.dto.coverage.LineCoverage;
 
 /**
  * FileCoverage DTO implementation.

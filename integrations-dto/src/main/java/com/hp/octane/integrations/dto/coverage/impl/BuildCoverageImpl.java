@@ -39,8 +39,6 @@ public class BuildCoverageImpl implements BuildCoverage {
     private Integer totalCoverableLines;
     private String projectName;
 
-    private static ObjectMapper objectMapper = new ObjectMapper();
-
     public BuildCoverageImpl() {
         fileCoverageList = new ArrayList<>();
     }
