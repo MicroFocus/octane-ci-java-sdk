@@ -1,25 +1,26 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 
-import com.hp.octane.integrations.api.ConfigurationService;
 import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
+import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.*;
-import com.hp.octane.integrations.spi.VulnerabilitiesStatus;
-//import com.hpe.application.automation.tools.ssc.*;
-//import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
-//import com.microfocus.application.automation.tools.sse.common.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+//import com.hpe.application.automation.tools.ssc.*;
+//import com.microfocus.application.automation.tools.octane.configuration.ConfigurationService;
+//import com.microfocus.application.automation.tools.sse.common.StringUtils;
 
 /**
  * Created by hijaziy on 7/23/2018.
@@ -44,25 +45,25 @@ public class SSCHandler {
 
 
 
-    public VulnerabilitiesStatus.Polling getScanFinishStatus() {
-        logger.debug("enter getScanFinishStatus");
+    public boolean isScanProcessFinished() {
+        logger.debug("enter isScanProcessFinished");
 
         Artifacts artifacts = sscProjectConnector.getArtifactsOfProjectVersion(this.projectVersion.id, 10);
         Artifacts.Artifact closestArtifact = getClosestArtifact(artifacts);
         if(closestArtifact == null){
             logger.debug("Cannot find artifact of the run");
-            return VulnerabilitiesStatus.Polling.ContinuePolling;
+            return false;
         }
         if(closestArtifact.status.equals(ARTIFACT_STATUS_COMPLETE)){
             logger.debug("artifact of the run is in completed");
-            return VulnerabilitiesStatus.Polling.ScanIsCompleted;
+            return true;
         }
         if(closestArtifact.status.equals(ARTIFACT_ERROR_PROCESSING)){
-            logger.debug("artifact of the run faced error, polling should stop");
-            return VulnerabilitiesStatus.Polling.StopPolling;
+            throw new PermanentException("artifact of the run faced error, polling should stop");
         }
+        //todo , if there are more cases need to handle separately
         logger.debug("artifact of the run is not complete, polling should continue");
-        return VulnerabilitiesStatus.Polling.ContinuePolling;
+        return false;
     }
 
 
@@ -101,27 +102,29 @@ public class SSCHandler {
                 StringUtils.isNullOrEmpty(sscFortifyConfigurations.projectName)||
                 StringUtils.isNullOrEmpty(sscFortifyConfigurations.projectVersion)||
                 StringUtils.isNullOrEmpty(sscFortifyConfigurations.serverURL)){
-            logger.warn("missing one of the SSC configuration fields (baseToken\\project\\version\\serverUrl) will not continue connecting to the server");
+            throw new PermanentException("missing one of the SSC configuration fields (baseToken\\project\\version\\serverUrl) will not continue connecting to the server");
         }else {
             sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClient);
             if (sscProjectConnector != null) {
                 projectVersion = sscProjectConnector.getProjectVersion();
+            }else {
+                throw new PermanentException("fail to connect with SSC server and get project");
             }
         }
 
     }
 
-    public boolean isConnected(){
-        return sscProjectConnector !=null;
-    }
 
-    public void getLatestScan() {
+
+    public InputStream getLatestScan() {
+        if(!isScanProcessFinished()){
+            return null;
+    }
         logger.warn("entered getLatestScan, read issues and serialize to:" + this.targetDir);
         Issues issues = sscProjectConnector.readNewIssuesOfLastestScan(projectVersion.id);
         List<OctaneIssue> octaneIssues = createOctaneIssues(issues);
         IssuesFileSerializer issuesFileSerializer = new IssuesFileSerializer(targetDir, octaneIssues);
-        issuesFileSerializer.doSerialize();
-        logger.warn("exit getLatestScan");
+        return issuesFileSerializer.doSerializeAndCache();
     }
 
     private List<OctaneIssue> createOctaneIssues(Issues issues) {
