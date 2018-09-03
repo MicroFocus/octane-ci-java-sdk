@@ -2,6 +2,7 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 
 import com.hp.octane.integrations.api.ConfigurationService;
+import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
@@ -83,7 +84,8 @@ public class SSCHandler {
 
     }
 
-    public SSCHandler(VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem, String sscUrl, String sscBaseToken) {
+    public SSCHandler(VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem, String sscUrl, String sscBaseToken,
+                      SSCClient sscClient) {
 
         //"Basic QWRtaW46ZGV2c2Vjb3Bz"
         SSCFortifyConfigurations sscFortifyConfigurations = new SSCFortifyConfigurations();
@@ -101,7 +103,7 @@ public class SSCHandler {
                 StringUtils.isNullOrEmpty(sscFortifyConfigurations.serverURL)){
             logger.warn("missing one of the SSC configuration fields (baseToken\\project\\version\\serverUrl) will not continue connecting to the server");
         }else {
-            sscProjectConnector = SSCClientManager.instance().getProjectConnector(sscFortifyConfigurations);
+            sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClient);
             if (sscProjectConnector != null) {
                 projectVersion = sscProjectConnector.getProjectVersion();
             }

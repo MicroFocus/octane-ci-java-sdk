@@ -24,9 +24,9 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
+import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queue.QueueService;
-import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
 import com.hp.octane.integrations.spi.VulnerabilitiesStatus;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -179,11 +179,11 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 								}
 								logger.debug("successfully processed " + vulnerabilitiesQueueItem);
 							}
-						} catch (TemporaryQueueItemException tque) {
+						} catch (TemporaryException tque) {
 							logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
-						} catch (PermanentQueueItemException pqie) {
+						} catch (PermanentException pqie) {
 							logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
 							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 						} catch (Throwable t) {
@@ -212,7 +212,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 
 		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem,this.pluginServices.getServerInfo().getSSCURL(),
-				this.pluginServices.getServerInfo().getSSCBaseAuthToken());
+				this.pluginServices.getServerInfo().getSSCBaseAuthToken(), this.restService.obtainSSCClient());
 		//check connection to ssc server
 		if(sscHandler!=null && !sscHandler.isConnected()){
 			logger.warn("ssc is not connected, need to check all ssc configurations in order to continue with this task ");

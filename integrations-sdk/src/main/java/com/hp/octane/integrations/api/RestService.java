@@ -36,6 +36,8 @@ public interface RestService {
 	 */
 	RestClient obtainClient();
 
+	SSCClient obtainSSCClient();
+
 	/**
 	 * Creates new REST client pre-configured with the specified configuration
 	 *
