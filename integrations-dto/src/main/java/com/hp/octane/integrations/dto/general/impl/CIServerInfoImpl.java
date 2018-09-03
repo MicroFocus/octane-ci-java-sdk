@@ -34,6 +34,8 @@ class CIServerInfoImpl implements CIServerInfo {
 	private Long instanceIdFrom;
 	private String impersonatedUser;
 	private Long sendingTime = System.currentTimeMillis();
+	volatile String sscURL;
+	volatile String sscBaseAuthToken;
 
 	public CIServerInfoImpl() {
 	}
@@ -121,6 +123,30 @@ class CIServerInfoImpl implements CIServerInfo {
 		this.suspended = suspended;
 		return this;
 	}
+
+
+    @Override
+    public String getSSCURL() {
+		return sscURL;
+    }
+
+	@Override
+	public CIServerInfo setSSCURL(String sscUrl) {
+		this.sscURL = sscUrl;
+		return this;
+	}
+
+	@Override
+	public String getSSCBaseAuthToken() {
+		return sscBaseAuthToken;
+	}
+
+	@Override
+	public CIServerInfo setSSCBaseAuthToken(String sscBaseAuthToken) {
+		this.sscBaseAuthToken = sscBaseAuthToken;
+		return this;
+	}
+
 
 	private String normalizeURL(String input) {
 		String result;

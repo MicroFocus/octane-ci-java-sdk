@@ -136,14 +136,6 @@ public interface CIPluginServices {
 	TestsResult getTestsResult(String jobCiId, String buildCiId);
 
 	/**
-	 * Retrieves vulnerabilities scan result for the specific build
-	 *
-	 * @param projectName   The name of the project in the SSC server.
-	 * @param projectVersion The version of the project.
-	 * @return InputStream; NULL if no Vulnerabilities result available
-	 */
-	InputStream getVulnerabilitiesScanResultStream(String projectName, String projectVersion, String runRootDir, long startRunTime);
-	/**
 	 * Retrieves build's log as an InputStream
 	 *
 	 * @param jobCiId   job CI ID of the specific build to get log for

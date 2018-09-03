@@ -27,12 +27,15 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
+import com.hp.octane.integrations.spi.VulnerabilitiesStatus;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -155,12 +158,10 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							}else{
 								vulnerabilitiesQueueItem.increaseRetry();
 							}
-							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem.projectName,
-									vulnerabilitiesQueueItem.projectVersionSymbol,
-									vulnerabilitiesQueueItem.targetFolder,
-									vulnerabilitiesQueueItem.startTime);
+							VulnerabilitiesStatus scanResultStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem);
+							InputStream vulnerabilitiesStream = scanResultStream.issuesStream;
 							if(vulnerabilitiesStream==null) {
-								handleQueueItem(vulnerabilitiesQueueItem);
+								handleQueueItem(vulnerabilitiesQueueItem, scanResultStream.polling);
 							}else{
 								OctaneResponse response = pushVulnerabilities(vulnerabilitiesStream,vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
 								if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
@@ -170,35 +171,34 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 								} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 									logger.info("vulnerabilities push FAILED, service unavailable; retrying after a breathe...");
 									breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-									handleQueueItem(vulnerabilitiesQueueItem);
+									handleQueueItem(vulnerabilitiesQueueItem, scanResultStream.polling);
 								} else {
 									//  case of any other fatal error
-									logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n"+response.getBody());
-									vulnerabilitiesQueue.remove();
+									logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
+									handleQueueItem(vulnerabilitiesQueueItem, scanResultStream.polling);
 								}
 								logger.debug("successfully processed " + vulnerabilitiesQueueItem);
 							}
 						} catch (TemporaryQueueItemException tque) {
 							logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
-							handleQueueItem(vulnerabilitiesQueueItem);
+							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
 						} catch (PermanentQueueItemException pqie) {
 							logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
-							handleQueueItem(vulnerabilitiesQueueItem);
+							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 						} catch (Throwable t) {
 							logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
-							handleQueueItem(vulnerabilitiesQueueItem);
+							handleQueueItem(vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling.ContinuePolling);
 						}
 					} else {
 						breathe(LIST_EMPTY_INTERVAL);
 					}
 				}
 			}
-
-			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+			private void handleQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, VulnerabilitiesStatus.Polling polling) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.getStartTime();
 				vulnerabilitiesQueue.remove();
-				if(timePass<TIME_OUT_FOR_QUEUE_ITEM) {
+				if(timePass<TIME_OUT_FOR_QUEUE_ITEM && polling.equals(VulnerabilitiesStatus.Polling.ContinuePolling)) {
 					vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 				}else{
 					logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue after timeout in queue is over");
@@ -208,14 +208,58 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		});
 	}
 
-	private static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
-		private String jobId;
-		private String buildId;
-		private String projectName;
-		private String projectVersionSymbol;
-		private String targetFolder;
+	public VulnerabilitiesStatus getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
 
-		private Long startTime;
+
+		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem,this.pluginServices.getServerInfo().getSSCURL(),
+				this.pluginServices.getServerInfo().getSSCBaseAuthToken());
+		//check connection to ssc server
+		if(sscHandler!=null && !sscHandler.isConnected()){
+			logger.warn("ssc is not connected, need to check all ssc configurations in order to continue with this task ");
+			return new VulnerabilitiesStatus(VulnerabilitiesStatus.Polling.ContinuePolling, null);
+		}
+		//check if scan already exists
+		InputStream result = null;
+
+		result = tryGetVulnerabilitiesScanFile(vulnerabilitiesQueueItem.targetFolder);
+		if(result!=null){
+			return new VulnerabilitiesStatus(VulnerabilitiesStatus.Polling.ScanIsCompleted, result);
+		}
+		//if file not exists yet , check if scan is finished and handle accordingly
+		VulnerabilitiesStatus.Polling scanFinishStatus = sscHandler.getScanFinishStatus();
+		if(!scanFinishStatus.equals(VulnerabilitiesStatus.Polling.ScanIsCompleted)){
+			return new VulnerabilitiesStatus(scanFinishStatus,null);
+		}
+		//scan finished :
+		//process scan
+		//save scan results inside build
+		sscHandler.getLatestScan();
+		return new VulnerabilitiesStatus(scanFinishStatus ,tryGetVulnerabilitiesScanFile(vulnerabilitiesQueueItem.targetFolder));
+	}
+
+	private InputStream tryGetVulnerabilitiesScanFile(String runRootDir) {
+		InputStream result = null;
+		String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
+		File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
+		if (!vulnerabilitiesScanFile.exists()) {
+			return null;
+		}
+		try {
+			result = new FileInputStream(vulnerabilitiesScanFilePath);
+		} catch (IOException ioe) {
+			logger.error("failed to obtain  vulnerabilities Scan File in " + runRootDir);
+		}
+		return result;
+	}
+
+	public static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
+		public String jobId;
+		public String buildId;
+		public String projectName;
+		public String projectVersionSymbol;
+		public String targetFolder;
+
+		public Long startTime;
 		private int retryTimes=0;
 
 		public int getRetryTimes() {

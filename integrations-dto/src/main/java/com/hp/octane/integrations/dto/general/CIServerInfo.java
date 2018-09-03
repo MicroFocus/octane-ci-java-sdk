@@ -80,4 +80,10 @@ public interface CIServerInfo extends DTOBase {
 	 * Set CI server's suspension status
 	 */
 	CIServerInfo setSuspended(boolean suspended);
+
+	String getSSCURL();
+	CIServerInfo setSSCURL(String sscUrl);
+	String getSSCBaseAuthToken();
+	CIServerInfo setSSCBaseAuthToken(String sscBaseAuthToken);
 }
+
