@@ -84,14 +84,15 @@ public final class OctaneSDK {
 	 *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 	 */
 	synchronized public static void init(CIPluginServices ciPluginServices) {
+		if (ciPluginServices == null) {
+			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
+		}
+
 		if (instance == null) {
-			if (ciPluginServices == null) {
-				throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
-			}
 			new OctaneSDK(ciPluginServices);
 			logger.info("initialized SUCCESSFULLY");
 		} else {
-			logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
+			throw new IllegalStateException("SDK may be initialized only once, secondary initialization attempt encountered");
 		}
 	}
 
@@ -99,7 +100,7 @@ public final class OctaneSDK {
 		if (instance != null) {
 			return instance;
 		} else {
-			throw new IllegalStateException("SDK MUST be initialized prior to any usage");
+			throw new IllegalStateException("SDK MUST be initialized prior to any usage, see OctaneSDK.init(..) method");
 		}
 	}
 

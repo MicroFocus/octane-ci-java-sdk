@@ -14,18 +14,15 @@
  *
  */
 
-package com.hp.octane.integrations;
+package com.hp.octane.integrations.exceptions;
 
-import org.junit.Test;
+public class TemporaryException extends RuntimeException {
 
-/**
- * Octane SDK tests
- */
+	public TemporaryException(Throwable throwable) {
+		super(throwable);
+	}
 
-public class OctaneSDKTest {
-
-	@Test(expected = IllegalArgumentException.class)
-	public void sdkTestANegative() {
-		OctaneSDK.init(null);
+	public TemporaryException(String message) {
+		super(message);
 	}
 }

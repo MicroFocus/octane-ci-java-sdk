@@ -1,27 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <artifactId>java-sdk</artifactId>
-        <groupId>com.hpe.adm.octane.ciplugins</groupId>
-        <version>1.5-SNAPSHOT</version>
-    </parent>
-
+	<parent>
+		<artifactId>java-sdk</artifactId>
+		<groupId>com.hpe.adm.octane.ciplugins</groupId>
+		<version>1.5-SNAPSHOT</version>
+	</parent>
 
 	<artifactId>integrations-dto</artifactId>
 
 	<properties>
-		<jackson.version>2.6.4</jackson.version>
+		<jackson.version>2.9.5</jackson.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<artifactId>jackson-databind</artifactId>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<version>${jackson.version}</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>jackson-annotations</artifactId>
+						<groupId>com.fasterxml.jackson.core</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<artifactId>jackson-annotations</artifactId>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<version>${jackson.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 
 		<!-- EXTERNAL -->
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.version}</version>
+			<groupId>com.fasterxml.jackson.core</groupId>
+		</dependency>
+		<dependency>
+			<artifactId>jackson-annotations</artifactId>
+			<groupId>com.fasterxml.jackson.core</groupId>
 		</dependency>
 
 		<!-- TESTING -->
@@ -32,12 +56,6 @@
 		</dependency>
 
 	</dependencies>
-
-	<build>
-		<plugins>
-
-		</plugins>
-	</build>
 
 	<profiles>
 		<profile>
