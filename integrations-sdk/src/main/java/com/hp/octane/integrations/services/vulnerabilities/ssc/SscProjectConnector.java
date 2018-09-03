@@ -2,18 +2,18 @@ package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.hp.octane.integrations.api.SSCClient;
+import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
-
-import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCClientManager.getNetHost;
-import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCClientManager.isToString;
-import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCClientManager.succeeded;
+import static com.hp.octane.integrations.services.rest.SSCClientImpl.isToString;
 
 
 /**
@@ -22,49 +22,31 @@ import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCClientM
 public class SscProjectConnector {
 
     private SSCFortifyConfigurations sscFortifyConfigurations;
-    private CloseableHttpClient httpClient;
+    private SSCClient sscClient;
 
-    SscProjectConnector(SSCFortifyConfigurations sscFortifyConfigurations,
-                                CloseableHttpClient httpClient){
+    public SscProjectConnector(SSCFortifyConfigurations sscFortifyConfigurations,
+                        SSCClient sscClient){
         this.sscFortifyConfigurations = sscFortifyConfigurations;
-        this.httpClient = httpClient;
+        this.sscClient = sscClient;
     }
     private String sendGetEntity(String urlSuffix) {
         String url = sscFortifyConfigurations.serverURL + "/api/v1/" + urlSuffix;
-        return sendGetRequest(url);
-    }
+        CloseableHttpResponse response = sscClient.sendGetRequest(sscFortifyConfigurations, url);
 
-    private String sendGetRequest(String url) {
-
-        HttpGet request = new HttpGet(url);
-        request.addHeader("Authorization", "FortifyToken " +
-                SSCClientManager.instance().getToken(sscFortifyConfigurations,false));
-        request.addHeader("Accept", "application/json");
-        request.addHeader("Host", getNetHost(sscFortifyConfigurations.serverURL));
-
-        CloseableHttpResponse response = null;
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+            throw new TemporaryException("SSC Server is not available:" + response.getStatusLine().getStatusCode());
+        } else if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            throw new PermanentException("Error from SSC:" + response.getStatusLine().getStatusCode());
+        }
         try {
-            response = httpClient.execute(request);
-            //401. Access..
-            if(!succeeded(response.getStatusLine().getStatusCode())){
-                request.removeHeaders("Authorization");
-                request.addHeader("Authorization", "FortifyToken " +
-                        SSCClientManager.instance().getToken(sscFortifyConfigurations,false));
-                response = httpClient.execute(request);
-            }
-            String toString = isToString(response.getEntity().getContent());
-            return toString;
+            return isToString(response.getEntity().getContent());
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (Exception e) {
-
+            throw new PermanentException(e);
         } finally {
-            if (response != null) {
-                EntityUtils.consumeQuietly(response.getEntity());
-                HttpClientUtils.closeQuietly(response);
-            }
+            EntityUtils.consumeQuietly(response.getEntity());
+            HttpClientUtils.closeQuietly(response);
         }
-        return null;
     }
 
     public ProjectVersions.ProjectVersion getProjectVersion() {

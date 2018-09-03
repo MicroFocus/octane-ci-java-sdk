@@ -99,7 +99,7 @@ final class RestClientImpl implements RestClient {
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
-	private static final int MAX_TOTAL_CONNECTIONS = 20;
+	public static final int MAX_TOTAL_CONNECTIONS = 20;
 
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
@@ -377,7 +377,7 @@ final class RestClientImpl implements RestClient {
 		}
 	}
 
-	private static final class CustomHostnameVerifier implements HostnameVerifier {
+	public static final class CustomHostnameVerifier implements HostnameVerifier {
 		private final HostnameVerifier defaultVerifier = new DefaultHostnameVerifier();
 
 		public boolean verify(String host, SSLSession sslSession) {

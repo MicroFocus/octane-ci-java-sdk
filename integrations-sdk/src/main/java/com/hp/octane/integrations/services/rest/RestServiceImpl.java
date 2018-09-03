@@ -19,6 +19,7 @@ package com.hp.octane.integrations.services.rest;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,8 +31,11 @@ import org.apache.logging.log4j.Logger;
 public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements RestService {
 	private static final Logger logger = LogManager.getLogger(RestServiceImpl.class);
 	private static final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
+	private static final Object SSC_CLIENT_INIT_LOCK = new Object();
 
 	private RestClientImpl defaultClient;
+	private SSCClient sscClient;
+
 
 	public RestServiceImpl(Object internalUsageValidator) {
 		super(internalUsageValidator);
@@ -54,6 +58,22 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 			}
 		}
 		return defaultClient;
+	}
+
+	@Override
+	public SSCClient obtainSSCClient() {
+		if (sscClient == null) {
+			synchronized (SSC_CLIENT_INIT_LOCK) {
+				if (sscClient == null) {
+					try {
+						sscClient = new SSCClientImpl();
+					} catch (Exception e) {
+						logger.error("failed to initialize Octane's REST client");
+					}
+				}
+			}
+		}
+		return sscClient;
 	}
 
 	public RestClient createClient(CIProxyConfiguration proxyConfiguration) {
