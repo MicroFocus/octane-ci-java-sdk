@@ -85,7 +85,10 @@ public class SSCHandler {
 
     }
 
-    public SSCHandler(VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem, String sscUrl, String sscBaseToken,
+    public SSCHandler(VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
+                      String sscUrl,
+                      String sscBaseToken,
+                      String targetDir,
                       SSCClient sscClient) {
 
         //"Basic QWRtaW46ZGV2c2Vjb3Bz"
@@ -95,7 +98,7 @@ public class SSCHandler {
         sscFortifyConfigurations.projectVersion = vulnerabilitiesQueueItem.projectVersionSymbol;
         sscFortifyConfigurations.serverURL = sscUrl;
 
-        this.targetDir = vulnerabilitiesQueueItem.targetFolder;
+        this.targetDir = targetDir;
         this.runStartTime = vulnerabilitiesQueueItem.startTime;
 
         if(StringUtils.isNullOrEmpty(sscFortifyConfigurations.baseToken)||

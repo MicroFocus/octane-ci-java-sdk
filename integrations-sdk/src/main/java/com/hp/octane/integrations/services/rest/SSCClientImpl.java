@@ -118,6 +118,7 @@ public class SSCClientImpl implements SSCClient {
                         TypeFactory.defaultInstance().constructType(AuthToken.class));
                 return authToken.data;
             }
+            throw new PermanentException("Error getting Authenticatiion data from SSC server.");
 
         } catch (IOException e) {
             e.printStackTrace();

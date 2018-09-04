@@ -108,7 +108,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 			logger.info( "vulnerabilities push SUCCEED"+jobId + "/" + buildId + " was removed from vulnerabilities queue");
 		}
-		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+		else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("\"vulnerabilities push FAILED, service unavailable");
 		} else {
 			throw new PermanentException("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
@@ -118,10 +118,8 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	@Override
 	public void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
 													 String projectName, String projectVersion,
-													 String outDir,
 													 long startRunTime) {
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
-		vulnerabilitiesQueueItem.targetFolder = outDir;
 		vulnerabilitiesQueueItem.projectName = projectName;
 		vulnerabilitiesQueueItem.projectVersionSymbol = projectVersion;
 		vulnerabilitiesQueueItem.startTime = startRunTime;
@@ -225,16 +223,23 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	}
 
 	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
-
-		InputStream result = getCachedScanResult(vulnerabilitiesQueueItem.targetFolder);
+		String targetDir = getTargetDir(vulnerabilitiesQueueItem);
+		InputStream result = getCachedScanResult(targetDir);
 		if(result!=null){
 			return result;
 		}
 		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem,this.pluginServices.getServerInfo().getSSCURL(),
-				this.pluginServices.getServerInfo().getSSCBaseAuthToken(), this.restService.obtainSSCClient());
+				this.pluginServices.getServerInfo().getSSCBaseAuthToken(),
+				targetDir,
+				this.restService.obtainSSCClient()
+				);
 		return sscHandler.getLatestScan();
 	}
 
+	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
+		File allowedOctaneStorage = this.pluginServices.getAllowedOctaneStorage();
+		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
+	}
 	private InputStream getCachedScanResult(String runRootDir) {
 		InputStream result = null;
 		String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
@@ -255,7 +260,6 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		public String buildId;
 		public String projectName;
 		public String projectVersionSymbol;
-		public String targetFolder;
 		public Long startTime;
 		public boolean isRelevant = false;
 
