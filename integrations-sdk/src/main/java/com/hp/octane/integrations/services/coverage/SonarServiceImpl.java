@@ -147,13 +147,12 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
                 setTokenInHttpRequest(request, sonarToken);
                 HttpResponse response = httpClient.execute(request);
 
-                JsonNode jsonResponse = objectMapper.readTree(response.getEntity().getContent());
                 if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-                    String errorMessage = new StringBuilder()
-                            .append("exception during webhook registration for  ciNotificationUrl: ").append(ciCallbackUrl)
-                            .append(" with status code: ").append(response.getStatusLine().getStatusCode())
-                            .append(" with errors: ").append(jsonResponse.get("errors").toString()).toString();
-                    throw new OctaneSDKSonarException(errorMessage);
+                        // error can sometimes return empty results
+                        String errorMessage = new StringBuilder()
+                                .append("exception during webhook registration for  ciNotificationUrl: ").append(ciCallbackUrl)
+                                .append(" with status code: ").append(response.getStatusLine().getStatusCode()).toString();
+                        throw new OctaneSDKSonarException(errorMessage);
                 }
             }
 
@@ -319,28 +318,32 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
             setTokenInHttpRequest(request, token);
 
             HttpResponse response = httpClient.execute(request);
-            JsonNode jsonResponse = objectMapper.readTree(response.getEntity().getContent());
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                ArrayNode webhooksListJson = (ArrayNode) jsonResponse.get("webhooks");
-                if (webhooksListJson.size() > 0) {
-                    for (JsonNode webhookNode : webhooksListJson) {
-                        String entryURL = webhookNode.get("url").textValue();
-                        if (entryURL.equals(ciNotificationUrl)) {
-                            return webhookNode.get("key").textValue();
+            InputStream content = response.getEntity().getContent();
+            // if webhooks exist
+            if (content.available() != 0) {
+                JsonNode jsonResponse = objectMapper.readTree(content);
+                if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                    ArrayNode webhooksListJson = (ArrayNode) jsonResponse.get("webhooks");
+                    if (webhooksListJson.size() > 0) {
+                        for (JsonNode webhookNode : webhooksListJson) {
+                            String entryURL = webhookNode.get("url").textValue();
+                            if (entryURL.equals(ciNotificationUrl)) {
+                                return webhookNode.get("key").textValue();
+                            }
                         }
                     }
+                    return null;
+                } else {
+                    String errorMessage = new StringBuilder()
+                            .append("failed to get webhook key from soanrqube with notification URL: ")
+                            .append(ciNotificationUrl)
+                            .append(" with status code: ").append(response.getStatusLine().getStatusCode())
+                            .append(" with errors: ").append(jsonResponse.get("errors").toString()).toString();
+                    throw new OctaneSDKSonarException(errorMessage);
+
                 }
-                return null;
-
-            } else {
-                String errorMessage = new StringBuilder()
-                        .append("failed to get webhook key from soanrqube with notification URL: ")
-                        .append(ciNotificationUrl)
-                        .append(" with status code: ").append(response.getStatusLine().getStatusCode())
-                        .append(" with errors: ").append(jsonResponse.get("errors").toString()).toString();
-                throw new OctaneSDKSonarException(errorMessage);
-
             }
+            return null;
         } catch (OctaneSDKSonarException e) {
             logger.error(e.getMessage(), e);
             throw e;
