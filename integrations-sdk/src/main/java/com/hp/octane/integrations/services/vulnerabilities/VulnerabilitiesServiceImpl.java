@@ -250,6 +250,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
 		File allowedOctaneStorage = this.pluginServices.getAllowedOctaneStorage();
 		if(allowedOctaneStorage == null){
+			logger.info("Issues of :" + vulnerabilitiesQueueItem.jobId +"," + vulnerabilitiesQueueItem.buildId + " cannot be cached in the file system.");
 			return null;
 		}
 		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
