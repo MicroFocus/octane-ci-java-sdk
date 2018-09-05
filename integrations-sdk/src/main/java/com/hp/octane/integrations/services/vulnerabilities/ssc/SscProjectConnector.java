@@ -6,9 +6,9 @@ import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.util.EntityUtils;
 
@@ -54,7 +54,7 @@ public class SscProjectConnector {
         if (projectId == null) {
             return null;
         }
-        String suffix = "projects/" + projectId + "/versions?q=name:" + this.sscFortifyConfigurations.projectVersion;
+        String suffix = "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectVersion);
         String rawResponse = sendGetEntity(suffix);
         ProjectVersions projectVersions = responseToObject(rawResponse, ProjectVersions.class);
         if (projectVersions.data.length == 0) {
@@ -64,7 +64,7 @@ public class SscProjectConnector {
     }
 
     public Integer getProjectId() {
-        String rawResponse = sendGetEntity("projects?q=name:" + this.sscFortifyConfigurations.projectName);
+        String rawResponse = sendGetEntity("projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectName));
         Projects projects = responseToObject(rawResponse, Projects.class);
         if (projects.data.length == 0) {
             return null;

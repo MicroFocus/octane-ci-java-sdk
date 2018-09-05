@@ -88,6 +88,14 @@ public class SSCHandler {
     public SSCHandler(VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem, String sscUrl, String sscBaseToken,
                       SSCClient sscClient) {
 
+        if (sscClient == null) {
+            throw new PermanentException("sscClient MUST NOT be null");
+        }
+        if (vulnerabilitiesQueueItem == null) {
+            throw new PermanentException("vulnerabilitiesQueueItem MUST NOT be null");
+        }
+
+
         //"Basic QWRtaW46ZGV2c2Vjb3Bz"
         SSCFortifyConfigurations sscFortifyConfigurations = new SSCFortifyConfigurations();
         sscFortifyConfigurations.baseToken = sscBaseToken;
