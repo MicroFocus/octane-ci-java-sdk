@@ -249,9 +249,15 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
 		File allowedOctaneStorage = this.pluginServices.getAllowedOctaneStorage();
+		if(allowedOctaneStorage == null){
+			return null;
+		}
 		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
 	}
 	private InputStream getCachedScanResult(String runRootDir) {
+		if(runRootDir == null){
+			return null;
+		}
 		InputStream result = null;
 		String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
 		File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
