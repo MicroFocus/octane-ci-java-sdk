@@ -117,9 +117,10 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 			logger.info( "vulnerabilities push SUCCEED"+jobId + "/" + buildId + " was removed from vulnerabilities queue");
 		}
-		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+		else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("\"vulnerabilities push FAILED, service unavailable");
-		} else {
+		}
+		else {
 			throw new PermanentException("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
 		}
 	}
