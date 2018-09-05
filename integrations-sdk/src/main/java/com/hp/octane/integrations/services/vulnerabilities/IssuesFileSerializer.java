@@ -28,10 +28,7 @@ public class IssuesFileSerializer {
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(mapper);
-            oos.flush();
-            oos.close();
+            mapper.writeValue(baos,dataFormat);
             InputStream is = new ByteArrayInputStream(baos.toByteArray());
 
             //send to cache
