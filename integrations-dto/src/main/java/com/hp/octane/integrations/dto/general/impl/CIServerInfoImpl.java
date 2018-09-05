@@ -36,6 +36,7 @@ class CIServerInfoImpl implements CIServerInfo {
 	private Long sendingTime = System.currentTimeMillis();
 	volatile String sscURL;
 	volatile String sscBaseAuthToken;
+	volatile long maxPollingTimeoutHours;
 
 	public CIServerInfoImpl() {
 	}
@@ -144,6 +145,17 @@ class CIServerInfoImpl implements CIServerInfo {
 	@Override
 	public CIServerInfo setSSCBaseAuthToken(String sscBaseAuthToken) {
 		this.sscBaseAuthToken = sscBaseAuthToken;
+		return this;
+	}
+
+	@Override
+	public long getMaxPollingTimeoutHours() {
+		return maxPollingTimeoutHours;
+	}
+
+	@Override
+	public CIServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours) {
+		this.maxPollingTimeoutHours = maxPollingTimeoutHours;
 		return this;
 	}
 

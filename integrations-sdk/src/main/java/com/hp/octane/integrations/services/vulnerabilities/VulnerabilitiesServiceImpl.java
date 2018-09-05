@@ -64,6 +64,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	private int LIST_EMPTY_INTERVAL = 10000;
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long TIME_OUT_FOR_QUEUE_ITEM = 3*60*60*1000L; //3 hours
+	private volatile Long actualTimout = 3*60*60*1000L;;
 
 	public VulnerabilitiesServiceImpl(Object internalUsageValidator,QueueService queueService, RestService restService) {
 		super(internalUsageValidator);
@@ -124,7 +125,17 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		vulnerabilitiesQueueItem.projectVersionSymbol = projectVersion;
 		vulnerabilitiesQueueItem.startTime = startRunTime;
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
+		updateTimeout();
 		logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was added to vulnerabilities queue");
+	}
+
+	private void updateTimeout() {
+		long timeoutConfig = pluginServices.getServerInfo().getMaxPollingTimeoutHours();
+		if(timeoutConfig <= 0){
+			actualTimout = TIME_OUT_FOR_QUEUE_ITEM;
+		}else{
+			actualTimout = timeoutConfig * 60*60*1000;
+		}
 	}
 
 
@@ -212,7 +223,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 			private void ReEnqueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.startTime;
 				vulnerabilitiesQueue.remove();
-				if(timePass<TIME_OUT_FOR_QUEUE_ITEM) {
+				if(timePass < actualTimout) {
 					vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 				}else{
 					logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue after timeout in queue is over");

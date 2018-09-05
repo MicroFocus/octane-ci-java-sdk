@@ -85,5 +85,8 @@ public interface CIServerInfo extends DTOBase {
 	CIServerInfo setSSCURL(String sscUrl);
 	String getSSCBaseAuthToken();
 	CIServerInfo setSSCBaseAuthToken(String sscBaseAuthToken);
+
+    long getMaxPollingTimeoutHours();
+	CIServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours);
 }
 
