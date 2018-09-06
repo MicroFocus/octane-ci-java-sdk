@@ -20,6 +20,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.RestClient;
 import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -27,14 +28,19 @@ import org.apache.logging.log4j.Logger;
  * REST Service - default implementation
  */
 
-public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements RestService {
+public final class RestServiceImpl implements RestService {
 	private static final Logger logger = LogManager.getLogger(RestServiceImpl.class);
 	private final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
 
+	private final CIPluginServices pluginServices;
 	private RestClientImpl defaultClient;
 
-	public RestServiceImpl(Object internalUsageValidator) {
-		super(internalUsageValidator);
+	public RestServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
+
+		pluginServices = configurer.pluginServices;
 
 		logger.info("initializing a default Octane REST client...");
 		obtainClient();

@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -51,10 +52,11 @@ import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_A
  * EventsService implementation
  */
 
-public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {
+public final class EventsServiceImpl implements EventsService {
 	private final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private final CIPluginServices pluginServices;
 	private final RestService restService;
 	private final List<CIEvent> events;
 
@@ -65,13 +67,15 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
 	private final long TEMPORARY_FAILURE_PAUSE = 15000;
 
-	public EventsServiceImpl(Object internalUsageValidator, RestService restService) {
-		super(internalUsageValidator);
-
+	public EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
+		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 		this.events = new LinkedList<>();
 

@@ -34,6 +34,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -49,7 +50,7 @@ import java.util.regex.Pattern;
  * Tasks routing service handles ALM Octane tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implements TasksProcessor {
+public final class TasksProcessorImpl implements TasksProcessor {
 	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA_API = "nga/api/v1";
@@ -65,8 +66,13 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 
-	public TasksProcessorImpl(Object internalUsageValidator) {
-		super(internalUsageValidator);
+	private final CIPluginServices pluginServices;
+
+	public TasksProcessorImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
+		pluginServices = configurer.pluginServices;
 	}
 
 	public OctaneResultAbridged execute(OctaneTaskAbridged task) {
@@ -84,7 +90,7 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 		OctaneResultAbridged result = DTOFactory.getInstance().newDTO(OctaneResultAbridged.class);
 		result.setId(task.getId());
 		result.setStatus(200);
-		result.setHeaders(new HashMap<String, String>());
+		result.setHeaders(new HashMap<>());
 		String[] path = pathTokenizer(task.getUrl());
 		try {
 			if (path.length == 1 && STATUS.equals(path[0])) {
@@ -100,11 +106,10 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 					executePipelineRunRequest(result, path[1], task.getBody());
 				} else if (path.length == 4 && BUILDS.equals(path[2])) {
 					//TODO: in the future should take the last parameter from the request
-					boolean subTree = false;
 					if (LATEST.equals(path[3])) {
-						executeLatestSnapshotRequest(result, path[1], subTree);
+						executeLatestSnapshotRequest(result, path[1]);
 					} else {
-						executeSnapshotByNumberRequest(result, path[1], path[3], subTree);
+						executeSnapshotByNumberRequest(result, path[1], path[3]);
 					}
 				} else {
 					result.setStatus(404);
@@ -220,13 +225,13 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 	}
 
 	private void suspendCiEvents(OctaneResultAbridged result, String suspend) {
-		Boolean toSuspend = Boolean.parseBoolean(suspend);
+		boolean toSuspend = Boolean.parseBoolean(suspend);
 		pluginServices.suspendCIEvents(toSuspend);
 		result.setStatus(201);
 	}
 
-	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId, boolean subTree) {
-		SnapshotNode data = pluginServices.getSnapshotLatest(jobId, subTree);
+	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId) {
+		SnapshotNode data = pluginServices.getSnapshotLatest(jobId, false);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
@@ -235,8 +240,8 @@ public final class TasksProcessorImpl extends OctaneSDK.SDKServiceBase implement
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
-	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId, boolean subTree) {
-		SnapshotNode data = pluginServices.getSnapshotByNumber(jobCiId, buildCiId, subTree);
+	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId) {
+		SnapshotNode data = pluginServices.getSnapshotByNumber(jobCiId, buildCiId, false);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {

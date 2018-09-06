@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -42,20 +43,22 @@ import java.util.concurrent.ThreadFactory;
  * Default implementation of build logs dispatching service
  */
 
-public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements LogsService {
+public final class LogsServiceImpl implements LogsService {
 	private static final Logger logger = LogManager.getLogger(LogsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
+	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public LogsServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {
-		super(internalUsageValidator);
-
+	public LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (queueService == null) {
 			throw new IllegalArgumentException("queue service MUST NOT be null");
 		}
@@ -69,6 +72,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 			buildLogsQueue = queueService.initMemoQueue();
 		}
 
+		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 
 		logger.info("starting background worker...");
@@ -86,7 +90,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
 	//  TODO: consider moving the overall queue managing logic to some generic location
-	//  this should be infallible everlasting worker
+	//  infallible everlasting background worker
 	private void worker() {
 		while (true) {
 			if (buildLogsQueue.size() > 0) {
@@ -140,8 +144,8 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		for (String workspaceId : workspaceIDs) {
 			request = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.POST)
-					.setUrl(octaneConfiguration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-							"/workspaces/" + workspaceId + ANALYTICS_CI_PATH_PART +
+					.setUrl(octaneConfiguration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+							"/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART +
 							encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs");
 			try {
 				log = pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
@@ -219,7 +223,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 	}
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
+		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
 	}
 
 	private static final class BuildLogQueueItem implements QueueService.QueueItem {

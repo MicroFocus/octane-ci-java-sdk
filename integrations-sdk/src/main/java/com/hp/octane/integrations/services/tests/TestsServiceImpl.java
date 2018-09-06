@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -43,21 +44,23 @@ import java.util.concurrent.ThreadFactory;
  * Default implementation of tests service
  */
 
-public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements TestsService {
+public final class TestsServiceImpl implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 //	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
 
 	//private final ObjectQueue<TestsResultQueueEntry> testsQueue;
+	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
 	private List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<>());
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public TestsServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {
-		super(internalUsageValidator);
-
+	public TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (queueService == null) {
 			throw new IllegalArgumentException("queue service MUST NOT be null");
 		}
@@ -71,6 +74,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 //			testsQueue = queueService.initMemoQueue();
 //		}
 
+		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 
 		logger.info("starting background worker...");

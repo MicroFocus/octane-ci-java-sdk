@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -44,19 +45,21 @@ import java.util.concurrent.ThreadFactory;
  * Bridge Service meant to provide an abridged connection functionality
  */
 
-public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
+public final class BridgeServiceImpl {
 	private static final Logger logger = LogManager.getLogger(BridgeServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private final ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 
+	private final CIPluginServices pluginServices;
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 
-	public BridgeServiceImpl(Object internalUsageValidator, RestService restService, TasksProcessor tasksProcessor) {
-		super(internalUsageValidator);
-
+	public BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
@@ -64,6 +67,7 @@ public final class BridgeServiceImpl extends OctaneSDK.SDKServiceBase {
 			throw new IllegalArgumentException("task processor MUST NOT be null");
 		}
 
+		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
 

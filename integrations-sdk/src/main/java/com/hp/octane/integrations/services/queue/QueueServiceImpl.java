@@ -16,15 +16,17 @@ import java.io.OutputStream;
  * Queue Service provides a common queue infrastructure, initialization and maintenance
  */
 
-public final class QueueServiceImpl extends OctaneSDK.SDKServiceBase implements QueueService {
+public final class QueueServiceImpl implements QueueService {
 	private static final Logger logger = LogManager.getLogger(QueueServiceImpl.class);
 	private final File storageDirectory;
 
-	public QueueServiceImpl(Object internalUsageValidator) {
-		super(internalUsageValidator);
+	public QueueServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 
 		//  check persistence availability
-		File availableStorage = pluginServices.getAllowedOctaneStorage();
+		File availableStorage = configurer.pluginServices.getAllowedOctaneStorage();
 		if (availableStorage != null && availableStorage.isDirectory() && availableStorage.canWrite() && availableStorage.canRead()) {
 			storageDirectory = availableStorage;
 			logger.info("hosting plugin PROVIDE available storage, queues persistence enabled");

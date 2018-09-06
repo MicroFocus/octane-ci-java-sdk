@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -40,23 +41,26 @@ import java.util.concurrent.ThreadFactory;
  * Default implementation of vulnerabilities service
  */
 
-public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase implements VulnerabilitiesService {
+public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
 	private List<VulnerabilitiesQueueEntry> buildList = Collections.synchronizedList(new LinkedList<>());
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public VulnerabilitiesServiceImpl(Object internalUsageValidator, RestService restService) {
-		super(internalUsageValidator);
-
+	public VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
+		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 
 		logger.info("starting background worker...");

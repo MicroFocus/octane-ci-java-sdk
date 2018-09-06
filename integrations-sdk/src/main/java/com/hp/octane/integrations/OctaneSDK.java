@@ -16,24 +16,11 @@
 
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.api.*;
-import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
-import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
-import com.hp.octane.integrations.services.entities.EntitiesServiceImpl;
-import com.hp.octane.integrations.services.events.EventsServiceImpl;
-import com.hp.octane.integrations.services.logging.LoggingServiceImpl;
-import com.hp.octane.integrations.services.logs.LogsServiceImpl;
-import com.hp.octane.integrations.services.queue.QueueService;
-import com.hp.octane.integrations.services.queue.QueueServiceImpl;
-import com.hp.octane.integrations.services.rest.RestServiceImpl;
-import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
-import com.hp.octane.integrations.services.tests.TestsServiceImpl;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
+import com.hp.octane.integrations.api.OctaneClient;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,148 +28,77 @@ import java.util.Map;
 import java.util.Properties;
 
 /**
- * This class provides main entry point of interaction between SDK and it's services,
- * and interaction between concrete plugin and it's services.
+ * OctaneSDK serves initialization phase when hosting plugin configures OctaneClient/s to work with
  */
 
 public final class OctaneSDK {
 	private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
-	private static final Map<String, OctaneSDK> instances = new LinkedHashMap<>();
+	private static final Map<CIPluginServices, OctaneClient> instances = new LinkedHashMap<>();
 
-	public static Integer API_VERSION;
-	public static String SDK_VERSION;
+	public static final Integer API_VERSION;
+	public static final String SDK_VERSION;
 
-	private final Object INTERNAL_USAGE_VALIDATOR = new Object();
-	private final CIPluginServices pluginServices;
-	private final QueueService queueService;
-	private final RestService restService;
-	private final ConfigurationService configurationService;
-	private final TasksProcessor tasksProcessor;
-	private final EventsService eventsService;
-	private final TestsService testsService;
-	private final LogsService logsService;
-	private final VulnerabilitiesService vulnerabilitiesService;
-	private final EntitiesService entitiesService;
-
-	private OctaneSDK(CIPluginServices ciPluginServices) {
-		initSDKProperties();
-		pluginServices = ciPluginServices;
-		new LoggingServiceImpl(INTERNAL_USAGE_VALIDATOR);
-		queueService = new QueueServiceImpl(INTERNAL_USAGE_VALIDATOR);
-		restService = new RestServiceImpl(INTERNAL_USAGE_VALIDATOR);
-		tasksProcessor = new TasksProcessorImpl(INTERNAL_USAGE_VALIDATOR);
-		configurationService = new ConfigurationServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
-		logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
-		vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-		entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
+	static {
+		Properties p = new Properties();
+		try {
+			p.load(OctaneSDK.class.getClassLoader().getResourceAsStream("sdk.properties"));
+			if (!p.isEmpty()) {
+				API_VERSION = Integer.parseInt(p.getProperty("api.version"));
+				SDK_VERSION = p.getProperty("sdk.version");
+			} else {
+				throw new IllegalStateException("SDK properties found to be empty (someone tampered with the binary? 'sdk.properties' resource has been overrode?)");
+			}
+		} catch (Throwable t) {
+			logger.error("initialization failed: failed to load SDK properties", t);
+			throw new IllegalStateException("OctaneSDK initialization failed: failed to load SDK properties", t);
+		}
 	}
 
 	/**
-	 * To start using the CI Plugin SDK, first initialize an OctaneSDK instance/s
+	 * gateway to initialize an OctaneSDK instance/s
 	 *
 	 * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
 	 *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 	 */
-	synchronized public static void initInstance(CIPluginServices ciPluginServices) {
+	synchronized public static OctaneClient newInstance(CIPluginServices ciPluginServices) {
 		if (ciPluginServices == null) {
 			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
 		}
 		if (ciPluginServices.getServerInfo() == null) {
-			throw new IllegalArgumentException("CI plugin services MUST provide server info");
+			throw new IllegalArgumentException("plugin services MUST provide server info (found to be NULL)");
 		}
-
 		String instanceId = ciPluginServices.getServerInfo().getInstanceId();
 		if (instanceId == null || instanceId.isEmpty()) {
-			throw new IllegalArgumentException("CI plugin services' instance ID (taken from server info) MUST NOT be null nor empty");
+			throw new IllegalArgumentException("plugin services's server info MUST provide instance ID which is not NULL nor empty");
 		}
-		if (instances.containsKey(instanceId)) {
-			throw new IllegalStateException("SDK instance with ID '" + instanceId + "' already present and MAY NOT be initialized anew");
+		if (instances.containsKey(ciPluginServices)) {
+			throw new IllegalStateException("SDK instance configured with this ci plugin services instance is already present");
+		}
+		if (instances.values().stream().anyMatch(sdk -> instanceId.equals(sdk.getEffectiveInstanceId()))) {
+			throw new IllegalStateException("SDK instance claiming for this instance ID ('" + instanceId + "') is already present");
 		}
 
-		instances.put(instanceId, new OctaneSDK(ciPluginServices));
-		logger.info("SDK instance '" + instanceId + "' initialized SUCCESSFULLY");
+		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(ciPluginServices));
+		instances.put(ciPluginServices, newInstance);
+		logger.info("SDK instance initialized SUCCESSFULLY");
+
+		return newInstance;
 	}
 
-	public static List<OctaneSDK> getInstances() {
+	/**
+	 * provides all initialized OctaneClients
+	 *
+	 * @return OctaneClients' list; MAY NOT be NULL
+	 */
+	public static List<OctaneClient> getInstances() {
 		return new ArrayList<>(instances.values());
 	}
 
-	public static OctaneSDK getInstance(String instanceId) {
-		if (instanceId == null || instanceId.isEmpty()) {
-			throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
-		}
-		if (!instances.containsKey(instanceId)) {
-			throw new IllegalStateException("SDK instance '" + instanceId + "' has not yet been initialized, see OctaneSDK.initInstance(...)");
-		} else {
-			return instances.get(instanceId);
-		}
-	}
+	public static final class SDKServicesConfigurer {
+		public final CIPluginServices pluginServices;
 
-	public CIPluginServices getPluginServices() {
-		return pluginServices;
-	}
-
-	public RestService getRestService() {
-		return restService;
-	}
-
-	public TasksProcessor getTasksProcessor() {
-		return tasksProcessor;
-	}
-
-	public ConfigurationService getConfigurationService() {
-		return configurationService;
-	}
-
-	public EventsService getEventsService() {
-		return eventsService;
-	}
-
-	public TestsService getTestsService() {
-		return testsService;
-	}
-
-	public LogsService getLogsService() {
-		return logsService;
-	}
-
-	public VulnerabilitiesService getVulnerabilitiesService() {
-		return vulnerabilitiesService;
-	}
-
-	public EntitiesService getEntitiesService() {
-		return entitiesService;
-	}
-
-	private void initSDKProperties() {
-		Properties p = new Properties();
-		try {
-			p.load(OctaneSDK.class.getClassLoader().getResourceAsStream("sdk.properties"));
-		} catch (IOException ioe) {
-			logger.error("initialization failed: failed to load SDK properties", ioe);
-			throw new IllegalStateException("SDK initialization failed: failed to load SDK properties", ioe);
-		}
-		if (!p.isEmpty()) {
-			API_VERSION = Integer.parseInt(p.getProperty("api.version"));
-			SDK_VERSION = p.getProperty("sdk.version");
-		}
-	}
-
-	//  the below base class used ONLY for the correct initiation enforcement of an SDK services
-	public static abstract class SDKServiceBase {
-		protected final CIPluginServices pluginServices;
-
-		protected SDKServiceBase(Object internalUsageValidator) {
-			if (instance == null || instance.pluginServices == null) {
-				throw new IllegalStateException("Octane SDK has not yet been initialized, do that first");
-			}
-			if (internalUsageValidator == null || internalUsageValidator != instance.INTERNAL_USAGE_VALIDATOR) {
-				throw new IllegalStateException("SDK's own services MAY NOT be initialized on themselves, use OctaneSDK instance to get reference to pre-initialized services");
-			}
-			pluginServices = instance.pluginServices;
+		private SDKServicesConfigurer(CIPluginServices pluginServices) {
+			this.pluginServices = pluginServices;
 		}
 	}
 }

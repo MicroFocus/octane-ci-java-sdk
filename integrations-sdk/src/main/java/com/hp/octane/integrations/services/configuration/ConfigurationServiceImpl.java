@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -45,22 +46,25 @@ import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_A
  * Base implementation of Configuration Service API
  */
 
-public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase implements ConfigurationService {
+public final class ConfigurationServiceImpl implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String AUTHORIZATION_URI = "/analytics/ci/servers/connectivity/status";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
 
+	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
-	public ConfigurationServiceImpl(Object internalUsageValidator, RestService restService) {
-		super(internalUsageValidator);
-
+	public ConfigurationServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
+		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 		logger.info("initialized SUCCESSFULLY");
 	}

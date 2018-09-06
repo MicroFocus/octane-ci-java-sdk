@@ -16,6 +16,7 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.api.OctaneClient;
 import org.junit.Test;
 
 /**
@@ -25,7 +26,7 @@ import org.junit.Test;
 public class OctaneSDKTest {
 
 	@Test(expected = IllegalArgumentException.class)
-	public void sdkTestANegative() {
-		OctaneSDK.init(null);
+	public void sdkTestANegativeA() {
+		OctaneClient newOne = OctaneSDK.newInstance(null);
 	}
 }
