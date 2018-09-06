@@ -26,24 +26,26 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
 import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
 import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
-import static com.hp.octane.integrations.util.CIPluginSDKUtils.doWait;
 
 /**
  * EventsService implementation
@@ -53,17 +55,15 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private final ExecutorService worker = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
-	private final List<CIEvent> events = Collections.synchronizedList(new ArrayList<CIEvent>());
-	private final WaitMonitor WAIT_MONITOR = new WaitMonitor();
 	private final RestService restService;
+	private final List<CIEvent> events;
 
-	private int MAX_SEND_RETRIES = 7;
-	private int INITIAL_RETRY_PAUSE = 1739;
-	private int DATA_SEND_INTERVAL = 1373;
-	private int DATA_SEND_INTERVAL_IN_SUSPEND = 10 * 60 * 2;
-	private int failedRetries;
-	private int pauseInterval;
+	private final Object NO_EVENTS_MONITOR = new Object();
+	private final int EVENTS_CHUNK_SIZE = System.getProperty("octane.sdk.events.chunk-size") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.chunk-size")) : 10;
+	private final int MAX_EVENTS_TO_KEEP = System.getProperty("octane.sdk.events.max-to-keep") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.max-to-keep")) : 3000;
+	private final long NO_EVENTS_PAUSE = System.getProperty("octane.sdk.events.empty-list-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.empty-list-pause")) : 15000;
+	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
+	private final long TEMPORARY_FAILURE_PAUSE = 15000;
 
 	public EventsServiceImpl(Object internalUsageValidator, RestService restService) {
 		super(internalUsageValidator);
@@ -73,138 +73,136 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 		}
 
 		this.restService = restService;
+		this.events = new LinkedList<>();
 
 		logger.info("starting background worker...");
-		startBackgroundWorker();
+		Executors
+				.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory())
+				.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY");
 	}
 
+	@Override
 	public void publishEvent(CIEvent event) {
-		events.add(event);
-	}
-
-	//  this should be infallible everlasting worker
-	private void startBackgroundWorker() {
-		resetCounters();
-		worker.execute(new Runnable() {
-			public void run() {
-				while (true) {
-					try {
-						if (events.size() > 0) {
-							if (!sendData()) suspend();
-						}
-						doWait(DATA_SEND_INTERVAL);
-					} catch (Throwable t) {
-						logger.error("failed to send events", t);
-					}
+		synchronized (events) {
+			events.add(event);
+			if (events.size() > MAX_EVENTS_TO_KEEP) {
+				logger.warn("reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + events.size() + "), capping the head");
+				while (events.size() > MAX_EVENTS_TO_KEEP) {
+					events.remove(0);
 				}
 			}
-		});
+		}
+		synchronized (NO_EVENTS_MONITOR) {
+			NO_EVENTS_MONITOR.notify();
+		}
 	}
 
-	private void suspend() {
-		events.clear();
-		failedRetries = MAX_SEND_RETRIES - 1;
-		doBreakableWait(DATA_SEND_INTERVAL_IN_SUSPEND);
-	}
-
-	private void resetCounters() {
-		failedRetries = 0;
-		pauseInterval = INITIAL_RETRY_PAUSE;
-		synchronized (WAIT_MONITOR) {
-			if (worker != null) {
-				WAIT_MONITOR.released = true;
-				WAIT_MONITOR.notify();
+	private void removeEvents(List<CIEvent> eventsToRemove) {
+		if (eventsToRemove != null && !eventsToRemove.isEmpty()) {
+			synchronized (events) {
+				events.removeAll(eventsToRemove);
 			}
 		}
 	}
 
-	private boolean sendData() {
-		boolean result = true;
+	//  infallible everlasting worker function
+	private void worker() {
+		while (true) {
+			//  have any events to send?
+			if (events.isEmpty()) {
+				CIPluginSDKUtils.doBreakableWait(NO_EVENTS_PAUSE, NO_EVENTS_MONITOR);
+				continue;
+			}
 
-		OctaneConfiguration octaneConfig = pluginServices.getOctaneConfiguration();
-		if (octaneConfig == null || !octaneConfig.isValid()) {
-			logger.warn("no (valid) Octane configuration found, bypassing dispatching events");
-			return true;
+			//  get and validate Octane configuration
+			OctaneConfiguration octaneConfiguration;
+			try {
+				octaneConfiguration = pluginServices.getOctaneConfiguration();
+				if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
+					logger.info("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...");
+					CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
+					logger.info("back from pause");
+					continue;
+				}
+			} catch (Throwable t) {
+				logger.error("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...", t);
+				CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
+				logger.info("back from pause");
+				continue;
+			}
+
+			//  build events list to be sent
+			List<CIEvent> eventsChunk = null;
+			CIEventsList eventsSnapshot;
+			try {
+				synchronized (events) {
+					eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
+				}
+				eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
+						.setServer(pluginServices.getServerInfo())
+						.setEvents(eventsChunk);
+			} catch (Throwable t) {
+				logger.error("failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
+				if (eventsChunk != null && !eventsChunk.isEmpty()) {
+					removeEvents(eventsChunk);
+				}
+				continue;
+			}
+
+			//  send the data to Octane
+			try {
+				logEventsToBeSent(octaneConfiguration, eventsSnapshot);
+				sendEventsData(octaneConfiguration, eventsSnapshot);
+				removeEvents(eventsChunk);
+				logger.info("... done, left to send " + events.size() + " events");
+			} catch (TemporaryException tqie) {
+				logger.error("failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
+				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
+			} catch (PermanentException pqie) {
+				logger.error("failed to send events with permanent error, dropping this chunk and continue", pqie);
+				removeEvents(eventsChunk);
+			} catch (Throwable t) {
+				logger.error("failed to send events with unexpected error, dropping this chunk and continue", t);
+				removeEvents(eventsChunk);
+			}
 		}
+	}
 
-		CIEventsList eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-				.setServer(pluginServices.getServerInfo())
-				.setEvents(new ArrayList<>(events));
-		String targetOctane = octaneConfig.getUrl() + ", SP: " + octaneConfig.getSharedSpace();
+	private void logEventsToBeSent(OctaneConfiguration configuration, CIEventsList eventsList) {
 		try {
-			//  prepare some data for logging
-			StringBuilder eventsSummary = new StringBuilder();
-			for (CIEvent event : eventsSnapshot.getEvents()) {
-				eventsSummary.append(event.getProject()).append(":").append(event.getBuildCiId()).append(":").append(event.getEventType());
-				if (eventsSnapshot.getEvents().indexOf(event) < eventsSnapshot.getEvents().size() - 1) {
-					eventsSummary.append(", ");
-				}
+			String targetOctane = configuration.getUrl() + ", SP: " + configuration.getSharedSpace();
+			List<String> eventsStringified = new LinkedList<>();
+			for (CIEvent event : eventsList.getEvents()) {
+				eventsStringified.add(event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType());
 			}
-
-			logger.info("sending [" + eventsSummary + "] event/s to [" + targetOctane + "]...");
-			OctaneRequest request = createEventsRequest(eventsSnapshot);
-			OctaneResponse response;
-			while (failedRetries < MAX_SEND_RETRIES) {
-				response = restService.obtainClient().execute(request);
-				if (response.getStatus() == 200) {
-					events.removeAll(eventsSnapshot.getEvents());
-					logger.info("... done, left to send " + events.size() + " events");
-					resetCounters();
-					break;
-				} else {
-					failedRetries++;
-
-					if (failedRetries < MAX_SEND_RETRIES) {
-						doBreakableWait(pauseInterval *= 2);
-					}
-				}
-			}
-			if (failedRetries == MAX_SEND_RETRIES) {
-				logger.error("max number of retries reached");
-				result = false;
-			}
+			logger.info("sending [" + String.join(", ", eventsStringified) + "] event/s to [" + targetOctane + "]...");
 		} catch (Exception e) {
-			logger.error("failed to send snapshot of " + eventsSnapshot.getEvents().size() + " events: " + e.getMessage() + "; dropping them all", e);
-			events.removeAll(eventsSnapshot.getEvents());
+			logger.error("failed to log events to be sent", e);
 		}
-		return result;
 	}
 
-	private OctaneRequest createEventsRequest(CIEventsList events) {
+	private void sendEventsData(OctaneConfiguration configuration, CIEventsList eventsList) {
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-		return dtoFactory.newDTO(OctaneRequest.class)
+		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(pluginServices.getOctaneConfiguration().getUrl() +
-						SHARED_SPACE_INTERNAL_API_PATH_PART + pluginServices.getOctaneConfiguration().getSharedSpace() +
+				.setUrl(configuration.getUrl() +
+						SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() +
 						ANALYTICS_CI_PATH_PART + "events")
 				.setHeaders(headers)
-				.setBody(dtoFactory.dtoToJsonStream(events));
-	}
-
-	private void doBreakableWait(long timeout) {
-		logger.info("entering waiting period of " + timeout + "ms");
-		long waitStart = new Date().getTime();
-		synchronized (WAIT_MONITOR) {
-			WAIT_MONITOR.released = false;
-			while (!WAIT_MONITOR.released && new Date().getTime() - waitStart < timeout) {
-				try {
-					WAIT_MONITOR.wait(timeout);
-				} catch (InterruptedException ie) {
-					logger.info("waiting period was interrupted", ie);
-				}
-			}
-			if (WAIT_MONITOR.released) {
-				logger.info("pause finished on demand");
-			} else {
-				logger.info("pause finished timely");
-			}
+				.setBody(dtoFactory.dtoToJsonStream(eventsList));
+		OctaneResponse octaneResponse;
+		try {
+			octaneResponse = restService.obtainClient().execute(octaneRequest);
+		} catch (IOException ioe) {
+			throw new TemporaryException(ioe);
 		}
-	}
-
-	private static final class WaitMonitor {
-		volatile boolean released;
+		if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+			throw new TemporaryException("PUT events failed with status " + octaneResponse.getStatus());
+		} else if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
+			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());
+		}
 	}
 
 	private static final class EventsServiceWorkerThreadFactory implements ThreadFactory {

@@ -171,5 +171,5 @@ public interface CIPluginServices {
 
 	OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo);
 
-
+	PipelineNode createExecutor(DiscoveryInfo discoveryInfo);
 }

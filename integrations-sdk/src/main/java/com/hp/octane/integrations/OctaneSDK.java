@@ -82,31 +82,32 @@ public final class OctaneSDK {
         new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
     }
 
-    /**
-     * To start using the CI Plugin SDK, first initialize an OctaneSDK instance.
-     *
-     * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
-     *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
-     */
-    synchronized public static void init(CIPluginServices ciPluginServices) {
-        if (instance == null) {
-            if (ciPluginServices == null) {
-                throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
-            }
-            new OctaneSDK(ciPluginServices);
-            logger.info("initialized SUCCESSFULLY");
-        } else {
-            logger.error("SDK may be initialized only once, secondary initialization attempt encountered");
-        }
-    }
+	/**
+	 * To start using the CI Plugin SDK, first initialize an OctaneSDK instance.
+	 *
+	 * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
+	 *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
+	 */
+	synchronized public static void init(CIPluginServices ciPluginServices) {
+		if (ciPluginServices == null) {
+			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
+		}
 
-    public static OctaneSDK getInstance() {
-        if (instance != null) {
-            return instance;
-        } else {
-            throw new IllegalStateException("SDK MUST be initialized prior to any usage");
-        }
-    }
+		if (instance == null) {
+			new OctaneSDK(ciPluginServices);
+			logger.info("initialized SUCCESSFULLY");
+		} else {
+			throw new IllegalStateException("SDK may be initialized only once, secondary initialization attempt encountered");
+		}
+	}
+
+	public static OctaneSDK getInstance() {
+		if (instance != null) {
+			return instance;
+		} else {
+			throw new IllegalStateException("SDK MUST be initialized prior to any usage, see OctaneSDK.init(..) method");
+		}
+	}
 
     public CIPluginServices getPluginServices() {
         return pluginServices;

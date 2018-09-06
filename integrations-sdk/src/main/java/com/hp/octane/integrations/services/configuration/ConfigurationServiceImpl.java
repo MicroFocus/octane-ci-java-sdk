@@ -65,6 +65,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		logger.info("initialized SUCCESSFULLY");
 	}
 
+	@Override
 	public OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {
 		OctaneConfiguration result = null;
 		try {
@@ -103,6 +104,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		}
 	}
 
+	@Override
 	public boolean isConfigurationValid() {
 		try {
 			OctaneResponse response = validateConfiguration(pluginServices.getOctaneConfiguration());
@@ -112,6 +114,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		}
 	}
 
+	@Override
 	public OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException {
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration MUST not be null");
@@ -129,6 +132,7 @@ public final class ConfigurationServiceImpl extends OctaneSDK.SDKServiceBase imp
 		return restClientImpl.execute(request, configuration);
 	}
 
+	@Override
 	public void notifyChange() {
 		logger.info("notified about Octane Server configuration change, propagating to RestService");
 		restService.notifyConfigurationChange();

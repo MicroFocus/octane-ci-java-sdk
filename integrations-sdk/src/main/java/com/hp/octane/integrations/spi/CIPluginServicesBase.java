@@ -136,4 +136,9 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
 		return null;
 	}
+
+	@Override
+	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
+		return null;
+	}
 }

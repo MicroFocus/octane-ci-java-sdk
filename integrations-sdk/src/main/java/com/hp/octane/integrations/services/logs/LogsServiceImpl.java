@@ -24,9 +24,9 @@ import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.services.queue.PermanentQueueItemException;
+import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queue.QueueService;
-import com.hp.octane.integrations.services.queue.TemporaryQueueItemException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -35,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -51,7 +50,6 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 
-	private final ExecutorService worker = Executors.newSingleThreadExecutor(new BuildLogsPushWorkerThreadFactory());
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
 	private final RestService restService;
 
@@ -77,7 +75,9 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 		this.restService = restService;
 
 		logger.info("starting background worker...");
-		startBackgroundWorker();
+		Executors
+				.newSingleThreadExecutor(new BuildLogsPushWorkerThreadFactory())
+				.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
 	}
 
@@ -90,33 +90,29 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
 	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  this should be infallible everlasting worker
-	private void startBackgroundWorker() {
-		worker.execute(new Runnable() {
-			public void run() {
-				while (true) {
-					if (buildLogsQueue.size() > 0) {
-						BuildLogQueueItem buildLogQueueItem = null;
-						try {
-							buildLogQueueItem = buildLogsQueue.peek();
-							pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
-							logger.debug("successfully processed " + buildLogQueueItem);
-							buildLogsQueue.remove();
-						} catch (TemporaryQueueItemException tque) {
-							logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
-							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
-						} catch (PermanentQueueItemException pqie) {
-							logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
-							buildLogsQueue.remove();
-						} catch (Throwable t) {
-							logger.error("unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
-							buildLogsQueue.remove();
-						}
-					} else {
-						breathe(LIST_EMPTY_INTERVAL);
-					}
+	private void worker() {
+		while (true) {
+			if (buildLogsQueue.size() > 0) {
+				BuildLogQueueItem buildLogQueueItem = null;
+				try {
+					buildLogQueueItem = buildLogsQueue.peek();
+					pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
+					logger.debug("successfully processed " + buildLogQueueItem);
+					buildLogsQueue.remove();
+				} catch (TemporaryException tque) {
+					logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+					breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+				} catch (PermanentException pqie) {
+					logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
+					buildLogsQueue.remove();
+				} catch (Throwable t) {
+					logger.error("unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
+					buildLogsQueue.remove();
 				}
+			} else {
+				breathe(LIST_EMPTY_INTERVAL);
 			}
-		});
+		}
 	}
 
 	private void pushBuildLog(String serverId, BuildLogQueueItem queueItem) {
@@ -198,12 +194,12 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
 			response = restService.obtainClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-				throw new TemporaryQueueItemException("preflight request failed with status " + response.getStatus());
+				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
-				throw new PermanentQueueItemException("preflight request failed with status " + response.getStatus());
+				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			}
 		} catch (IOException ioe) {
-			throw new TemporaryQueueItemException(ioe);
+			throw new TemporaryException(ioe);
 		}
 
 		//  parse result
@@ -211,7 +207,7 @@ public final class LogsServiceImpl extends OctaneSDK.SDKServiceBase implements L
 			try {
 				result = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
 			} catch (IOException ioe) {
-				throw new PermanentQueueItemException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
+				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
 			}
 		}
 		return result;
