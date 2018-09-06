@@ -27,9 +27,9 @@ import org.xml.sax.InputSource;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class UftTestDiscoveryUtils {
 
@@ -38,7 +38,7 @@ public class UftTestDiscoveryUtils {
     private static final String XLSXExtention = ".xlsx";//excel file
     private static final String XLSExtention = ".xls";//excel file
 
-    private static final Set<String> SKIP_FOLDERS = new HashSet<>(Arrays.asList("_discovery_results"));
+    private static final Set<String> SKIP_FOLDERS = Stream.of("_discovery_results").collect(Collectors.toSet());
 
     public static UftTestDiscoveryResult doFullDiscovery(File root) {
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();

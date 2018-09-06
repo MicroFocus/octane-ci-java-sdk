@@ -34,6 +34,10 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -43,7 +47,7 @@ import java.util.Properties;
 
 public final class OctaneSDK {
 	private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
-	private static volatile OctaneSDK instance;
+	private static final Map<String, OctaneSDK> instances = new LinkedHashMap<>();
 
 	public static Integer API_VERSION;
 	public static String SDK_VERSION;
@@ -61,7 +65,6 @@ public final class OctaneSDK {
 	private final EntitiesService entitiesService;
 
 	private OctaneSDK(CIPluginServices ciPluginServices) {
-		instance = this;
 		initSDKProperties();
 		pluginServices = ciPluginServices;
 		new LoggingServiceImpl(INTERNAL_USAGE_VALIDATOR);
@@ -78,29 +81,43 @@ public final class OctaneSDK {
 	}
 
 	/**
-	 * To start using the CI Plugin SDK, first initialize an OctaneSDK instance.
+	 * To start using the CI Plugin SDK, first initialize an OctaneSDK instance/s
 	 *
 	 * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
 	 *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 	 */
-	synchronized public static void init(CIPluginServices ciPluginServices) {
+	synchronized public static void initInstance(CIPluginServices ciPluginServices) {
 		if (ciPluginServices == null) {
 			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
 		}
-
-		if (instance == null) {
-			new OctaneSDK(ciPluginServices);
-			logger.info("initialized SUCCESSFULLY");
-		} else {
-			throw new IllegalStateException("SDK may be initialized only once, secondary initialization attempt encountered");
+		if (ciPluginServices.getServerInfo() == null) {
+			throw new IllegalArgumentException("CI plugin services MUST provide server info");
 		}
+
+		String instanceId = ciPluginServices.getServerInfo().getInstanceId();
+		if (instanceId == null || instanceId.isEmpty()) {
+			throw new IllegalArgumentException("CI plugin services' instance ID (taken from server info) MUST NOT be null nor empty");
+		}
+		if (instances.containsKey(instanceId)) {
+			throw new IllegalStateException("SDK instance with ID '" + instanceId + "' already present and MAY NOT be initialized anew");
+		}
+
+		instances.put(instanceId, new OctaneSDK(ciPluginServices));
+		logger.info("SDK instance '" + instanceId + "' initialized SUCCESSFULLY");
 	}
 
-	public static OctaneSDK getInstance() {
-		if (instance != null) {
-			return instance;
+	public static List<OctaneSDK> getInstances() {
+		return new ArrayList<>(instances.values());
+	}
+
+	public static OctaneSDK getInstance(String instanceId) {
+		if (instanceId == null || instanceId.isEmpty()) {
+			throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
+		}
+		if (!instances.containsKey(instanceId)) {
+			throw new IllegalStateException("SDK instance '" + instanceId + "' has not yet been initialized, see OctaneSDK.initInstance(...)");
 		} else {
-			throw new IllegalStateException("SDK MUST be initialized prior to any usage, see OctaneSDK.init(..) method");
+			return instances.get(instanceId);
 		}
 	}
 

@@ -80,11 +80,12 @@ import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * REST Client default implementation
@@ -92,9 +93,9 @@ import java.util.Set;
 
 final class RestClientImpl implements RestClient {
 	private static final Logger logger = LogManager.getLogger(RestClientImpl.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private static final Object REQUESTS_LIST_LOCK = new Object();
-	private static final Set<Integer> AUTHENTICATION_ERROR_CODES;
+	private static final Set<Integer> AUTHENTICATION_ERROR_CODES = Stream.of(HttpStatus.SC_UNAUTHORIZED).collect(Collectors.toSet());
 	private static final String CLIENT_TYPE_HEADER = "HPECLIENTTYPE";
 	private static final String CLIENT_TYPE_VALUE = "HPE_CI_CLIENT";
 	private static final String LWSSO_COOKIE_NAME = "LWSSO_COOKIE_KEY";
@@ -104,13 +105,9 @@ final class RestClientImpl implements RestClient {
 	private final CIPluginServices pluginServices;
 	private final CloseableHttpClient httpClient;
 	private final List<HttpUriRequest> ongoingRequests = new LinkedList<>();
+	private final Object REQUESTS_LIST_LOCK = new Object();
 
 	private Cookie LWSSO_TOKEN = null;
-
-	static {
-		AUTHENTICATION_ERROR_CODES = new HashSet<>();
-		AUTHENTICATION_ERROR_CODES.add(HttpStatus.SC_UNAUTHORIZED);
-	}
 
 	RestClientImpl(CIPluginServices pluginServices) {
 		this.pluginServices = pluginServices;
@@ -309,7 +306,7 @@ final class RestClientImpl implements RestClient {
 	}
 
 	private OctaneResponse createNGAResponse(HttpResponse response) throws IOException {
-		OctaneResponse octaneResponse = DTOFactory.getInstance().newDTO(OctaneResponse.class)
+		OctaneResponse octaneResponse = dtoFactory.newDTO(OctaneResponse.class)
 				.setStatus(response.getStatusLine().getStatusCode());
 		if (response.getEntity() != null) {
 			octaneResponse.setBody(readResponseBody(response.getEntity().getContent()));

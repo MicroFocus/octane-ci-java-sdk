@@ -36,13 +36,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
-import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
-import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 
 /**
  * Default implementation of tests service
@@ -53,11 +48,10 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 //	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
 
-	private final ExecutorService worker = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
 	//private final ObjectQueue<TestsResultQueueEntry> testsQueue;
 	private final RestService restService;
 
-	private static List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<TestsResultQueueEntry>());
+	private List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<>());
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
@@ -80,7 +74,8 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 		this.restService = restService;
 
 		logger.info("starting background worker...");
-		startBackgroundWorker();
+		Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory())
+				.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY");
 	}
 
@@ -121,7 +116,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 
 		RestClient restClient = restService.obtainClient();
 		Map<String, String> headers = new HashMap<>();
-		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
+		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
@@ -140,41 +135,37 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
-	//  this should be infallible everlasting worker
-	private void startBackgroundWorker() {
-		worker.execute(new Runnable() {
-			public void run() {
-				while (true) {
-					if (!buildList.isEmpty()) {
-						try {
-							TestsResultQueueEntry testsResultQueueEntry = buildList.get(0);
-							TestsResult testsResult = pluginServices.getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
-							OctaneResponse response = pushTestsResult(testsResult);
-							if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-								logger.info("tests result push SUCCEED");
-								buildList.remove(0);
-							} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-								logger.info("tests result push FAILED, service unavailable; retrying after a breathe...");
-								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-							} else {
-								//  case of any other fatal error
-								logger.error("tests result push FAILED, status " + response.getStatus() + "; dropping this item from the queue");
-								buildList.remove(0);
-							}
-
-						} catch (IOException e) {
-							logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
-							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-						} catch (Throwable t) {
-							logger.error("tests result push failed; dropping this item from the queue ", t);
-							buildList.remove(0);
-						}
+	//  infallible everlasting background worker
+	private void worker() {
+		while (true) {
+			if (!buildList.isEmpty()) {
+				try {
+					TestsResultQueueEntry testsResultQueueEntry = buildList.get(0);
+					TestsResult testsResult = pluginServices.getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
+					OctaneResponse response = pushTestsResult(testsResult);
+					if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+						logger.info("tests result push SUCCEED");
+						buildList.remove(0);
+					} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+						logger.info("tests result push FAILED, service unavailable; retrying after a breathe...");
+						breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
 					} else {
-						breathe(LIST_EMPTY_INTERVAL);
+						//  case of any other fatal error
+						logger.error("tests result push FAILED, status " + response.getStatus() + "; dropping this item from the queue");
+						buildList.remove(0);
 					}
+
+				} catch (IOException e) {
+					logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
+					breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
+				} catch (Throwable t) {
+					logger.error("tests result push failed; dropping this item from the queue ", t);
+					buildList.remove(0);
 				}
+			} else {
+				breathe(LIST_EMPTY_INTERVAL);
 			}
-		});
+		}
 	}
 
 	//  TODO: turn to be breakable wait with timeout and notifier
@@ -187,7 +178,7 @@ public final class TestsServiceImpl extends OctaneSDK.SDKServiceBase implements 
 	}
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
+		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
 	}
 
 	private static final class TestsResultQueueEntry implements QueueService.QueueItem {

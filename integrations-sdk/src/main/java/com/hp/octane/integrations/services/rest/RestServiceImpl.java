@@ -29,7 +29,7 @@ import org.apache.logging.log4j.Logger;
 
 public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements RestService {
 	private static final Logger logger = LogManager.getLogger(RestServiceImpl.class);
-	private static final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
+	private final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
 
 	private RestClientImpl defaultClient;
 

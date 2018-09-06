@@ -27,8 +27,8 @@ import java.io.File;
  */
 
 public final class LoggingServiceImpl extends OctaneSDK.SDKServiceBase {
-	private static final Object INIT_LOCKER = new Object();
 	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
+	private final Object INIT_LOCKER = new Object();
 
 	public LoggingServiceImpl(Object internalUsageValidator) {
 		super(internalUsageValidator);

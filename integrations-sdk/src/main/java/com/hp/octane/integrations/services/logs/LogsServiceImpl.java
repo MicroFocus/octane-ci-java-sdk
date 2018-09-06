@@ -38,9 +38,6 @@ import java.io.InputStream;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
-import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
-
 /**
  * Default implementation of build logs dispatching service
  */

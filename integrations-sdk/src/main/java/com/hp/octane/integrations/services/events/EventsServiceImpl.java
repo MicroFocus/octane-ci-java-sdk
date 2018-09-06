@@ -52,8 +52,8 @@ import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_A
  */
 
 public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {
-	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
+	private final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final RestService restService;
 	private final List<CIEvent> events;

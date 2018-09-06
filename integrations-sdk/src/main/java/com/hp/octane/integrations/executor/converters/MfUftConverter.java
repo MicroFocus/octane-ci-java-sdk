@@ -31,7 +31,7 @@ import java.util.List;
 public class MfUftConverter extends TestsToRunConverter {
 
     public static final String DATA_TABLE_PARAMETER = "dataTable";
-    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
@@ -46,6 +46,5 @@ public class MfUftConverter extends TestsToRunConverter {
 
         }
         return UftExecutionUtils.convertToMtbxContent(result, executionDirectory);
-
     }
 }
