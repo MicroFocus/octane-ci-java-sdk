@@ -18,7 +18,7 @@ package com.hp.octane.integrations.executor.converters;
 
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.List;
 import java.util.Map;

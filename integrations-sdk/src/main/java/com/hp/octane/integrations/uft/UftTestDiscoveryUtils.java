@@ -17,8 +17,8 @@
 package com.hp.octane.integrations.uft;
 
 import com.hp.octane.integrations.uft.items.*;
-import com.hp.octane.integrations.util.SdkConstants;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkConstants;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.poi.poifs.filesystem.*;
 import org.apache.poi.util.StringUtil;
 import org.w3c.dom.Document;

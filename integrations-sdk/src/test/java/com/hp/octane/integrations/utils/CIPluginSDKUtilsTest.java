@@ -16,7 +16,6 @@
 
 package com.hp.octane.integrations.utils;
 
-import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import org.junit.Assert;
 import org.junit.Test;
 

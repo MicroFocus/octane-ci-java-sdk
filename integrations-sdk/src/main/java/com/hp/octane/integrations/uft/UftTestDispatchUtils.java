@@ -26,7 +26,7 @@ import com.hp.octane.integrations.dto.entities.OctaneRestExceptionData;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.*;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

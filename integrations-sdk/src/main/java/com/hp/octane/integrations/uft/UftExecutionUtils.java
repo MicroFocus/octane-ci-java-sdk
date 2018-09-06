@@ -1,8 +1,8 @@
 package com.hp.octane.integrations.uft;
 
 import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
-import com.hp.octane.integrations.util.SdkConstants;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkConstants;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;

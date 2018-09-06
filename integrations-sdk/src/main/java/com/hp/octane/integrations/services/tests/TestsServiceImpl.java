@@ -26,7 +26,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.spi.CIPluginServices;
-import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;

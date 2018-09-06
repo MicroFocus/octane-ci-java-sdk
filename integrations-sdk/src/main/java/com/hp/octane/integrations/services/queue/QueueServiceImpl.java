@@ -1,7 +1,7 @@
 package com.hp.octane.integrations.services.queue;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.FileObjectQueue;
 import com.squareup.tape.InMemoryObjectQueue;
 import com.squareup.tape.ObjectQueue;

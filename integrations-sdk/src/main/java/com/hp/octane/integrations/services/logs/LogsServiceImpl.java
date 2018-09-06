@@ -27,7 +27,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.spi.CIPluginServices;
-import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;

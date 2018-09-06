@@ -14,7 +14,7 @@
  *
  */
 
-package com.hp.octane.integrations.util;
+package com.hp.octane.integrations.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;

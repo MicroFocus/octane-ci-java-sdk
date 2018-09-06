@@ -14,7 +14,7 @@
  *
  */
 
-package com.hp.octane.integrations.util;
+package com.hp.octane.integrations.utils;
 
 public class SdkConstants {
 

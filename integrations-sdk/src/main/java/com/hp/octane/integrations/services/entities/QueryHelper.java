@@ -17,7 +17,7 @@
 package com.hp.octane.integrations.services.entities;
 
 
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.Collection;
 

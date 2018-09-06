@@ -14,7 +14,7 @@
  *
  */
 
-package com.hp.octane.integrations.util;
+package com.hp.octane.integrations.utils;
 
 import java.util.Arrays;
 import java.util.Collection;
