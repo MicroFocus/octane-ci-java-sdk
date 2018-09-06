@@ -14,8 +14,9 @@
  *
  */
 
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.tasking;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 
@@ -25,6 +26,16 @@ import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
  */
 
 public interface TasksProcessor {
+
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer SDK services configurer object
+	 * @return initialized service
+	 */
+	static TasksProcessor newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
+		return new TasksProcessorImpl(configurer);
+	}
 
 	/**
 	 * Initiates execution of Octane logic oriented task

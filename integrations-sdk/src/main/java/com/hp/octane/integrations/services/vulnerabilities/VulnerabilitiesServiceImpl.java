@@ -17,9 +17,8 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.RestClient;
-import com.hp.octane.integrations.api.RestService;
-import com.hp.octane.integrations.api.VulnerabilitiesService;
+import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
@@ -41,7 +40,7 @@ import java.util.concurrent.ThreadFactory;
  * Default implementation of vulnerabilities service
  */
 
-public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
+final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
@@ -52,7 +51,7 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

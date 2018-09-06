@@ -17,7 +17,6 @@
 package com.hp.octane.integrations.services.tasking;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
@@ -50,7 +49,7 @@ import java.util.regex.Pattern;
  * Tasks routing service handles ALM Octane tasks, both coming from abridged logic as well as plugin's REST call delegation
  */
 
-public final class TasksProcessorImpl implements TasksProcessor {
+final class TasksProcessorImpl implements TasksProcessor {
 	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String NGA_API = "nga/api/v1";
@@ -68,7 +67,7 @@ public final class TasksProcessorImpl implements TasksProcessor {
 
 	private final CIPluginServices pluginServices;
 
-	public TasksProcessorImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+	TasksProcessorImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

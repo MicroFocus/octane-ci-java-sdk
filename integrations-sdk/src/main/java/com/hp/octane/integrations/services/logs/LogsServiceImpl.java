@@ -17,8 +17,7 @@
 package com.hp.octane.integrations.services.logs;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.LogsService;
-import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -43,7 +42,7 @@ import java.util.concurrent.ThreadFactory;
  * Default implementation of build logs dispatching service
  */
 
-public final class LogsServiceImpl implements LogsService {
+final class LogsServiceImpl implements LogsService {
 	private static final Logger logger = LogManager.getLogger(LogsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
@@ -55,7 +54,7 @@ public final class LogsServiceImpl implements LogsService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

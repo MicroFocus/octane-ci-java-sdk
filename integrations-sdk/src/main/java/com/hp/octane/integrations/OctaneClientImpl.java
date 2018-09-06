@@ -1,26 +1,31 @@
+/*
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
+
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.api.ConfigurationService;
-import com.hp.octane.integrations.api.EntitiesService;
-import com.hp.octane.integrations.api.EventsService;
-import com.hp.octane.integrations.api.LogsService;
-import com.hp.octane.integrations.api.OctaneClient;
-import com.hp.octane.integrations.api.RestService;
-import com.hp.octane.integrations.api.TasksProcessor;
-import com.hp.octane.integrations.api.TestsService;
-import com.hp.octane.integrations.api.VulnerabilitiesService;
-import com.hp.octane.integrations.services.bridge.BridgeServiceImpl;
-import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
-import com.hp.octane.integrations.services.entities.EntitiesServiceImpl;
-import com.hp.octane.integrations.services.events.EventsServiceImpl;
-import com.hp.octane.integrations.services.logging.LoggingServiceImpl;
-import com.hp.octane.integrations.services.logs.LogsServiceImpl;
+import com.hp.octane.integrations.services.bridge.BridgeService;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.entities.EntitiesService;
+import com.hp.octane.integrations.services.events.EventsService;
+import com.hp.octane.integrations.services.logging.LoggingService;
+import com.hp.octane.integrations.services.logs.LogsService;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.tasking.TasksProcessor;
+import com.hp.octane.integrations.services.tests.TestsService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 import com.hp.octane.integrations.services.queue.QueueService;
-import com.hp.octane.integrations.services.queue.QueueServiceImpl;
-import com.hp.octane.integrations.services.rest.RestServiceImpl;
-import com.hp.octane.integrations.services.tasking.TasksProcessorImpl;
-import com.hp.octane.integrations.services.tests.TestsServiceImpl;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,17 +55,17 @@ class OctaneClientImpl implements OctaneClient {
 			throw new IllegalArgumentException("services configurer MUST NOT be null nor empty");
 		}
 		this.pluginServices = configurer.pluginServices;
-		new LoggingServiceImpl(configurer);
-		queueService = new QueueServiceImpl(configurer);
-		restService = new RestServiceImpl(configurer);
-		tasksProcessor = new TasksProcessorImpl(configurer);
-		configurationService = new ConfigurationServiceImpl(configurer, restService);
-		eventsService = new EventsServiceImpl(configurer, restService);
-		testsService = new TestsServiceImpl(configurer, queueService, restService);
-		logsService = new LogsServiceImpl(configurer, queueService, restService);
-		vulnerabilitiesService = new VulnerabilitiesServiceImpl(configurer, restService);
-		entitiesService = new EntitiesServiceImpl(configurer, restService);
-		new BridgeServiceImpl(configurer, restService, tasksProcessor);
+		LoggingService.newInstance(configurer);
+		queueService = QueueService.newInstance(configurer);
+		restService = RestService.newInstance(configurer);
+		tasksProcessor = TasksProcessor.newInstance(configurer);
+		configurationService = ConfigurationService.newInstance(configurer, restService);
+		eventsService = EventsService.newInstance(configurer, restService);
+		testsService = TestsService.newInstance(configurer, queueService, restService);
+		logsService = LogsService.newInstance(configurer, queueService, restService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, restService);
+		entitiesService = EntitiesService.newInstance(configurer, restService);
+		BridgeService.newInstance(configurer, restService, tasksProcessor);
 		logger.info("OctaneClient initialized with currently effective instance ID '" + getEffectiveInstanceId() + "' (remember, instance ID is not owned by SDK and may change on the fly)");
 	}
 

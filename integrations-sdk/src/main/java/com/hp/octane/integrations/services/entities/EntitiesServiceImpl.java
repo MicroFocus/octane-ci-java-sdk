@@ -17,9 +17,8 @@
 package com.hp.octane.integrations.services.entities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.EntitiesService;
-import com.hp.octane.integrations.api.RestClient;
-import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
@@ -40,14 +39,14 @@ import java.net.URLEncoder;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static com.hp.octane.integrations.api.RestService.ACCEPT_HEADER;
-import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.services.rest.RestService.ACCEPT_HEADER;
+import static com.hp.octane.integrations.services.rest.RestService.CONTENT_TYPE_HEADER;
 
 /**
  * Default implementation of tests service
  */
 
-public final class EntitiesServiceImpl implements EntitiesService {
+final class EntitiesServiceImpl implements EntitiesService {
 	private static final Logger logger = LogManager.getLogger(EntitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
@@ -61,7 +60,7 @@ public final class EntitiesServiceImpl implements EntitiesService {
 	private static final String URI_PARAM_ENCODING = "UTF-8";
 	private static final int MAX_GET_LIMIT = 1000;
 
-	public EntitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+	EntitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

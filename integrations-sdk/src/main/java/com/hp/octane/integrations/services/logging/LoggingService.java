@@ -11,21 +11,21 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
-package com.hp.octane.integrations;
+package com.hp.octane.integrations.services.logging;
 
-import org.junit.Test;
+import com.hp.octane.integrations.OctaneSDK;
 
-/**
- * Octane SDK tests
- */
+public interface LoggingService {
 
-public class OctaneSDKTest {
-
-	@Test(expected = IllegalArgumentException.class)
-	public void sdkTestANegativeA() {
-		OctaneClient newOne = OctaneSDK.newInstance(null);
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer SDK services configurer object
+	 * @return initialized service
+	 */
+	static LoggingService newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
+		return new LoggingServiceImpl(configurer);
 	}
 }

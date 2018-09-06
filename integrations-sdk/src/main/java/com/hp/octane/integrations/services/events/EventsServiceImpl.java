@@ -17,8 +17,7 @@
 package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.EventsService;
-import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -44,15 +43,15 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
-import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
+import static com.hp.octane.integrations.services.rest.RestService.ANALYTICS_CI_PATH_PART;
+import static com.hp.octane.integrations.services.rest.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 
 /**
  * EventsService implementation
  */
 
-public final class EventsServiceImpl implements EventsService {
+final class EventsServiceImpl implements EventsService {
 	private final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private final DTOFactory dtoFactory = DTOFactory.getInstance();
 
@@ -67,7 +66,7 @@ public final class EventsServiceImpl implements EventsService {
 	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
 	private final long TEMPORARY_FAILURE_PAUSE = 15000;
 
-	public EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

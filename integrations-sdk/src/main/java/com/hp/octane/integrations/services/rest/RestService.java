@@ -14,8 +14,9 @@
  *
  */
 
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.rest;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
 public interface RestService {
@@ -28,6 +29,16 @@ public interface RestService {
 	String CONTENT_TYPE_HEADER = "content-type";
 	String CONTENT_ENCODING_HEADER = "content-encoding";
 	String GZIP_ENCODING = "gzip";
+
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer SDK services configurer object
+	 * @return initialized service
+	 */
+	static RestService newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
+		return new RestServiceImpl(configurer);
+	}
 
 	/**
 	 * Retrieves default REST client: the one initialized with plugin's provided configuration and listening on it changes

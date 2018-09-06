@@ -2,9 +2,20 @@ package com.hp.octane.integrations.services.queue;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.octane.integrations.OctaneSDK;
 import com.squareup.tape.ObjectQueue;
 
 public interface QueueService {
+
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer SDK services configurer object
+	 * @return initialized service
+	 */
+	static QueueService newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
+		return new QueueServiceImpl(configurer);
+	}
 
 	/**
 	 * Checks if the persistence of the queues is enabled in this system (hosting plugin provided storage etc)

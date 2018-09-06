@@ -16,11 +16,11 @@ import java.io.OutputStream;
  * Queue Service provides a common queue infrastructure, initialization and maintenance
  */
 
-public final class QueueServiceImpl implements QueueService {
+final class QueueServiceImpl implements QueueService {
 	private static final Logger logger = LogManager.getLogger(QueueServiceImpl.class);
 	private final File storageDirectory;
 
-	public QueueServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+	QueueServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

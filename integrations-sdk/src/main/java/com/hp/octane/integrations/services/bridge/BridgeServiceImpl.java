@@ -17,9 +17,9 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.RestClient;
-import com.hp.octane.integrations.api.RestService;
-import com.hp.octane.integrations.api.TasksProcessor;
+import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.*;
@@ -45,7 +45,7 @@ import java.util.concurrent.ThreadFactory;
  * Bridge Service meant to provide an abridged connection functionality
  */
 
-public final class BridgeServiceImpl {
+final class BridgeServiceImpl implements BridgeService {
 	private static final Logger logger = LogManager.getLogger(BridgeServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
@@ -56,7 +56,7 @@ public final class BridgeServiceImpl {
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 
-	public BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
+	BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -89,8 +89,6 @@ public final class BridgeServiceImpl {
 					serverInfo.getInstanceId(),
 					serverInfo.getType(),
 					serverInfo.getUrl(),
-					OctaneSDK.API_VERSION,
-					OctaneSDK.SDK_VERSION,
 					pluginInfo == null ? "" : pluginInfo.getVersion(),
 					apiKey,
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
@@ -110,7 +108,7 @@ public final class BridgeServiceImpl {
 		}
 	}
 
-	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, Integer apiVersion, String sdkVersion, String pluginVersion, String octaneUser, String ciServerUser) {
+	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, String pluginVersion, String octaneUser, String ciServerUser) {
 		String responseBody = null;
 		RestClient restClient = restService.obtainClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
@@ -123,8 +121,8 @@ public final class BridgeServiceImpl {
 							RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
 							RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + CIPluginSDKUtils.urlEncodeQueryParam(selfType) +
 							"&self-url=" + CIPluginSDKUtils.urlEncodeQueryParam(selfUrl) +
-							"&api-version=" + apiVersion +
-							"&sdk-version=" + CIPluginSDKUtils.urlEncodeQueryParam(sdkVersion) +
+							"&api-version=" + OctaneSDK.API_VERSION +
+							"&sdk-version=" + CIPluginSDKUtils.urlEncodeQueryParam(OctaneSDK.SDK_VERSION) +
 							"&plugin-version=" + CIPluginSDKUtils.urlEncodeQueryParam(pluginVersion) +
 							"&client-id=" + CIPluginSDKUtils.urlEncodeQueryParam(octaneUser) +
 							"&ci-server-user=" + CIPluginSDKUtils.urlEncodeQueryParam(ciServerUser))

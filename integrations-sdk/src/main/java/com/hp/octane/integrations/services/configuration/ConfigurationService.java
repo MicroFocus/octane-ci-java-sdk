@@ -11,17 +11,29 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.configuration;
 
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 
 import java.io.IOException;
 
 public interface ConfigurationService {
+
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer  SDK services configurer object
+	 * @param restService Rest Service
+	 * @return initialized service
+	 */
+	static ConfigurationService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		return new ConfigurationServiceImpl(configurer, restService);
+	}
 
 	/**
 	 * Builds configuration object from raw data, usually supplied from UI or storage
@@ -44,7 +56,6 @@ public interface ConfigurationService {
 
 	/**
 	 * Check if current configuration is valid
-	 *
 	 */
 	boolean isConfigurationValid();
 

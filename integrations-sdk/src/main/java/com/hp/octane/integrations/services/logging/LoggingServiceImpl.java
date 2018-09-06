@@ -27,12 +27,12 @@ import java.io.File;
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
  */
 
-public final class LoggingServiceImpl {
+final class LoggingServiceImpl implements LoggingService {
 	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
 	private final Object INIT_LOCKER = new Object();
 	private final CIPluginServices pluginServices;
 
-	public LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+	LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

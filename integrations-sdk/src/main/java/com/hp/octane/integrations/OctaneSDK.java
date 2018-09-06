@@ -11,12 +11,10 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.api.OctaneClient;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -88,12 +86,15 @@ public final class OctaneSDK {
 	/**
 	 * provides all initialized OctaneClients
 	 *
-	 * @return OctaneClients' list; MAY NOT be NULL
+	 * @return OctaneClients; MAY NOT be NULL
 	 */
 	public static List<OctaneClient> getInstances() {
 		return new ArrayList<>(instances.values());
 	}
 
+	/**
+	 * This class designed for internal usage only and effectively non-usable / should not be used for any other purpose
+	 */
 	public static final class SDKServicesConfigurer {
 		public final CIPluginServices pluginServices;
 

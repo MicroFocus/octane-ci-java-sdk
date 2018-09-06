@@ -17,9 +17,8 @@
 package com.hp.octane.integrations.services.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.RestClient;
-import com.hp.octane.integrations.api.RestService;
-import com.hp.octane.integrations.api.TestsService;
+import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
@@ -44,7 +43,7 @@ import java.util.concurrent.ThreadFactory;
  * Default implementation of tests service
  */
 
-public final class TestsServiceImpl implements TestsService {
+final class TestsServiceImpl implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 //	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
@@ -57,7 +56,7 @@ public final class TestsServiceImpl implements TestsService {
 	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

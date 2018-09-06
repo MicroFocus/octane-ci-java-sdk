@@ -14,9 +14,25 @@
  *
  */
 
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.logs;
+
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.queue.QueueService;
 
 public interface LogsService {
+
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer   SDK services configurer object
+	 * @param queueService Queue service
+	 * @param restService  Rest Service
+	 * @return initialized service
+	 */
+	static LogsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+		return new LogsServiceImpl(configurer, queueService, restService);
+	}
 
 	/**
 	 * Enqueue push build log by submitting build reference for future log retrieval

@@ -14,34 +14,36 @@
  *
  */
 
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.vulnerabilities;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface TestsService {
+public interface VulnerabilitiesService {
 
 	/**
-	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer  SDK services configurer object
+	 * @param restService Rest Service
+	 * @return initialized service
 	 */
-	boolean isTestsResultRelevant(String serverCiId, String jobCiId) throws IOException;
+	static VulnerabilitiesService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		return new VulnerabilitiesServiceImpl(configurer, restService);
+	}
 
 	/**
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
 	 *
-	 * @param testsResult ready-to-be-pushed TestsResult object, having a collection of tests results with the relevant build context
+	 * @param vulnerabilities ready-to-be-pushed TestsResult resource given as an InputStream
+	 * @param jobId
+	 * @param buildId
 	 */
-	OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException;
-
-	/**
-	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
-	 *
-	 * @param testsResult ready-to-be-pushed TestsResult resource given as an InputStream
-	 */
-	OctaneResponse pushTestsResult(InputStream testsResult) throws IOException;
+	OctaneResponse pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException;
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval.
@@ -51,5 +53,15 @@ public interface TestsService {
 	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 */
-	void enqueuePushTestsResult(String jobId, String buildId);
+	void enqueuePushVulnerabilitiesScanResult(String jobId, String buildId);
+
+	/**
+	 * check if the corresponding pipeline in octane is exists and is type of security
+	 *
+	 * @param jobId
+	 * @param buildId
+	 * @return
+	 * @throws IOException
+	 */
+	boolean isVulnerabilitiesRelevant(String jobId, String buildId) throws IOException;
 }

@@ -17,9 +17,8 @@
 package com.hp.octane.integrations.services.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.ConfigurationService;
-import com.hp.octane.integrations.api.RestClient;
-import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
@@ -40,13 +39,13 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
-import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
+import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 
 /**
  * Base implementation of Configuration Service API
  */
 
-public final class ConfigurationServiceImpl implements ConfigurationService {
+final class ConfigurationServiceImpl implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String AUTHORIZATION_URI = "/analytics/ci/servers/connectivity/status";
@@ -56,7 +55,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
-	public ConfigurationServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+	ConfigurationServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

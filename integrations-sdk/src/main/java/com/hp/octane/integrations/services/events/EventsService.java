@@ -14,11 +14,25 @@
  *
  */
 
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.events;
 
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.events.CIEvent;
 
 public interface EventsService {
+
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer  SDK services configurer object
+	 * @param restService Rest Service
+	 * @return initialized service
+	 */
+	static EventsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		return new EventsServiceImpl(configurer, restService);
+	}
+
 
 	/**
 	 * Publishes CI Event to the Octane server
