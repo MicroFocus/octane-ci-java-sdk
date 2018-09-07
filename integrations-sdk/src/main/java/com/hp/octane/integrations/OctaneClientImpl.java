@@ -104,10 +104,10 @@ final class OctaneClientImpl implements OctaneClient {
 	@Override
 	public String getEffectiveInstanceId() throws IllegalStateException {
 		if (pluginServices.getServerInfo() == null) {
-			throw new IllegalStateException("plugin services resolved CIServerInfo to be NULL");
+			throw new IllegalStateException("plugin services resolved CIServerInfo to be NULL; this was not the case when client was initially created");
 		}
 		if (pluginServices.getServerInfo().getInstanceId() == null || pluginServices.getServerInfo().getInstanceId().isEmpty()) {
-			throw new IllegalStateException("plugin services resolved instance ID to be NULL or empty");
+			throw new IllegalStateException("plugin services resolved instance ID to be NULL or empty; this was not the case when client was initially created");
 		}
 		return pluginServices.getServerInfo().getInstanceId();
 	}
