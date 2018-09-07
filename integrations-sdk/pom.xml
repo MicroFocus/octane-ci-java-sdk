@@ -93,6 +93,16 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<configuration>
+					<sourcepath>${basedir}/src/main/java/com/hp/octane/integrations</sourcepath>
+					<sourceFileExcludes>
+						<sourceFileExclude>*Impl.java</sourceFileExclude>
+					</sourceFileExcludes>
+				</configuration>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>
@@ -116,8 +126,8 @@
 						<artifactId>maven-source-plugin</artifactId>
 					</plugin>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
+						<groupId>org.apache.maven.plugins</groupId>
 					</plugin>
 				</plugins>
 			</build>
