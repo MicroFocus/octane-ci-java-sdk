@@ -36,7 +36,7 @@ import org.apache.logging.log4j.Logger;
  * refer to OctaneClient API definition for a function specification
  */
 
-class OctaneClientImpl implements OctaneClient {
+final class OctaneClientImpl implements OctaneClient {
 	private static final Logger logger = LogManager.getLogger(OctaneClientImpl.class);
 
 	private final CIPluginServices pluginServices;
@@ -110,5 +110,11 @@ class OctaneClientImpl implements OctaneClient {
 			throw new IllegalStateException("plugin services resolved instance ID to be NULL or empty");
 		}
 		return pluginServices.getServerInfo().getInstanceId();
+	}
+
+	@Override
+	public void close() {
+		//  TODO: perform any closing actions on the services (Rest Service is a good candidate here)
+		OctaneSDK.removeClient(this);
 	}
 }

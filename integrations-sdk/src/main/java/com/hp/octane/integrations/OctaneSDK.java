@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -31,7 +32,7 @@ import java.util.Properties;
 
 public final class OctaneSDK {
 	private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
-	private static final Map<CIPluginServices, OctaneClient> instances = new LinkedHashMap<>();
+	private static final Map<CIPluginServices, OctaneClient> clients = new LinkedHashMap<>();
 
 	public static final Integer API_VERSION;
 	public static final String SDK_VERSION;
@@ -55,29 +56,29 @@ public final class OctaneSDK {
 	/**
 	 * gateway to initialize an OctaneSDK instance/s
 	 *
-	 * @param ciPluginServices Object that implements the CIPluginServices interface. This object is actually a composite
-	 *                         API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
+	 * @param pluginServices Object that implements the CIPluginServices interface. This object is actually a composite
+	 *                       API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 	 */
-	synchronized public static OctaneClient newInstance(CIPluginServices ciPluginServices) {
-		if (ciPluginServices == null) {
+	synchronized public static OctaneClient newClient(CIPluginServices pluginServices) {
+		if (pluginServices == null) {
 			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
 		}
-		if (ciPluginServices.getServerInfo() == null) {
+		if (pluginServices.getServerInfo() == null) {
 			throw new IllegalArgumentException("plugin services MUST provide server info (found to be NULL)");
 		}
-		String instanceId = ciPluginServices.getServerInfo().getInstanceId();
+		String instanceId = pluginServices.getServerInfo().getInstanceId();
 		if (instanceId == null || instanceId.isEmpty()) {
 			throw new IllegalArgumentException("plugin services's server info MUST provide instance ID which is not NULL nor empty");
 		}
-		if (instances.containsKey(ciPluginServices)) {
+		if (clients.containsKey(pluginServices)) {
 			throw new IllegalStateException("SDK instance configured with this ci plugin services instance is already present");
 		}
-		if (instances.values().stream().anyMatch(sdk -> instanceId.equals(sdk.getEffectiveInstanceId()))) {
-			throw new IllegalStateException("SDK instance claiming for this instance ID ('" + instanceId + "') is already present");
+		if (clients.values().stream().anyMatch(sdk -> instanceId.equals(sdk.getEffectiveInstanceId()))) {
+			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
 		}
 
-		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(ciPluginServices));
-		instances.put(ciPluginServices, newInstance);
+		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(pluginServices));
+		clients.put(pluginServices, newInstance);
 		logger.info("SDK instance initialized SUCCESSFULLY");
 
 		return newInstance;
@@ -88,8 +89,77 @@ public final class OctaneSDK {
 	 *
 	 * @return OctaneClients; MAY NOT be NULL
 	 */
-	public static List<OctaneClient> getInstances() {
-		return new ArrayList<>(instances.values());
+	public static List<OctaneClient> getClients() {
+		return new ArrayList<>(clients.values());
+	}
+
+	/**
+	 * provides specific OctaneClient (the first one found) - claiming for specified instance ID
+	 * attentions: since instance ID is not owned by OctaneClient and may be changed after the initialization, we may effectively have duplicate instance ID at some point of time
+	 * if no instance found for the specified instance ID - IllegalStateException will be thrown
+	 *
+	 * @param instanceId instance ID of the desired client
+	 * @return OctaneClient; MAY NOT be NULL
+	 */
+	public static OctaneClient getClient(String instanceId) throws IllegalStateException {
+		if (instanceId == null || instanceId.isEmpty()) {
+			throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
+		}
+
+		List<OctaneClient> result = new LinkedList<>();
+		for (OctaneClient client : clients.values()) {
+			if (instanceId.equals(client.getEffectiveInstanceId())) {
+				result.add(client);
+			}
+		}
+
+		if (result.size() == 1) {
+			return result.get(0);
+		} else if (result.isEmpty()) {
+			throw new IllegalStateException("no client with instance ID [" + instanceId + "] present");
+		} else {
+			logger.warn("found more than 1 OctaneClient claiming for instance ID [" + instanceId + "], someone of them will be returned by this API");
+			return result.get(0);
+		}
+	}
+
+	/**
+	 * provides specific OctaneClient - claiming for specified instance ID
+	 * if no instance found for the specified instance ID - IllegalStateException will be thrown
+	 *
+	 * @param pluginServices instance of PluginServices
+	 * @return OctaneClient; MAY NOT be NULL
+	 */
+	public static OctaneClient getClient(CIPluginServices pluginServices) throws IllegalStateException {
+		if (pluginServices == null) {
+			throw new IllegalArgumentException("plugin services parameter MUST NOT be null");
+		}
+
+		if (clients.containsKey(pluginServices)) {
+			return clients.get(pluginServices);
+		} else {
+			throw new IllegalStateException("no client initialized with specified CIPluginServices instance present");
+		}
+	}
+
+	synchronized static OctaneClient removeClient(OctaneClient client) {
+		if (client == null) {
+			throw new IllegalArgumentException("client MUST NOT be null");
+		}
+
+		Map.Entry<CIPluginServices, OctaneClient> targetEntry = null;
+		for (Map.Entry<CIPluginServices, OctaneClient> entry : clients.entrySet()) {
+			if (entry.getValue() == client) {
+				targetEntry = entry;
+				break;
+			}
+		}
+
+		if (targetEntry != null) {
+			return clients.remove(targetEntry.getKey());
+		} else {
+			throw new IllegalStateException("client specified for removal is not present");
+		}
 	}
 
 	/**
