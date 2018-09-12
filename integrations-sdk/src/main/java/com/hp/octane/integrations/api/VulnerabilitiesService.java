@@ -27,7 +27,6 @@ public interface VulnerabilitiesService {
 	 */
 	void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
 											  String projectName, String projectVersion,
-											  String dir,
 											  long startRunTime);
 
 }

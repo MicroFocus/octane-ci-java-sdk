@@ -21,17 +21,14 @@ public class IssuesFileSerializer {
     public InputStream doSerializeAndCache() {
         try{
 
-
+            validateFolderExists();
             Map dataFormat = new HashMap<>();
             dataFormat.put("data",octaneIssues);
             ObjectMapper mapper = new ObjectMapper();
             mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(mapper);
-            oos.flush();
-            oos.close();
+            mapper.writeValue(baos,dataFormat);
             InputStream is = new ByteArrayInputStream(baos.toByteArray());
 
             //send to cache
@@ -47,5 +44,12 @@ public class IssuesFileSerializer {
             throw new PermanentException(e);
         }
 
+    }
+
+    private void validateFolderExists() {
+        File file = new File(this.targetDir);
+        if(!file.exists()){
+            file.mkdirs();
+        }
     }
 }

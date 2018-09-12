@@ -65,6 +65,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	private int LIST_EMPTY_INTERVAL = 10000;
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long TIME_OUT_FOR_QUEUE_ITEM = 3*60*60*1000L; //3 hours
+	private volatile Long actualTimout = 3*60*60*1000L;;
 
 	public VulnerabilitiesServiceImpl(Object internalUsageValidator,QueueService queueService, RestService restService) {
 		super(internalUsageValidator);
@@ -128,15 +129,23 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	@Override
 	public void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
 													 String projectName, String projectVersion,
-													 String outDir,
 													 long startRunTime) {
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
-		vulnerabilitiesQueueItem.targetFolder = outDir;
 		vulnerabilitiesQueueItem.projectName = projectName;
 		vulnerabilitiesQueueItem.projectVersionSymbol = projectVersion;
 		vulnerabilitiesQueueItem.startTime = startRunTime;
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
+		updateTimeout();
 		logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was added to vulnerabilities queue");
+	}
+
+	private void updateTimeout() {
+		long timeoutConfig = pluginServices.getServerInfo().getMaxPollingTimeoutHours();
+		if(timeoutConfig <= 0){
+			actualTimout = TIME_OUT_FOR_QUEUE_ITEM;
+		}else{
+			actualTimout = timeoutConfig * 60*60*1000;
+		}
 	}
 
 
@@ -227,7 +236,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 			private void ReEnqueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.startTime;
 				vulnerabilitiesQueue.remove();
-				if(timePass<TIME_OUT_FOR_QUEUE_ITEM) {
+				if(timePass < actualTimout) {
 					vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 				}else{
 					logger.info(vulnerabilitiesQueueItem.buildId+"/"+vulnerabilitiesQueueItem.jobId+" was removed from queue after timeout in queue is over");
@@ -238,17 +247,31 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 	}
 
 	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
-
-		InputStream result = getCachedScanResult(vulnerabilitiesQueueItem.targetFolder);
+		String targetDir = getTargetDir(vulnerabilitiesQueueItem);
+		InputStream result = getCachedScanResult(targetDir);
 		if(result!=null){
 			return result;
 		}
 		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem,this.pluginServices.getServerInfo().getSSCURL(),
-				this.pluginServices.getServerInfo().getSSCBaseAuthToken(), this.restService.obtainSSCClient());
+				this.pluginServices.getServerInfo().getSSCBaseAuthToken(),
+				targetDir,
+				this.restService.obtainSSCClient()
+				);
 		return sscHandler.getLatestScan();
 	}
 
+	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
+		File allowedOctaneStorage = this.pluginServices.getAllowedOctaneStorage();
+		if(allowedOctaneStorage == null){
+			logger.info("Issues of :" + vulnerabilitiesQueueItem.jobId +"," + vulnerabilitiesQueueItem.buildId + " cannot be cached in the file system.");
+			return null;
+		}
+		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
+	}
 	private InputStream getCachedScanResult(String runRootDir) {
+		if(runRootDir == null){
+			return null;
+		}
 		InputStream result = null;
 		String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
 		File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
@@ -268,7 +291,6 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		public String buildId;
 		public String projectName;
 		public String projectVersionSymbol;
-		public String targetFolder;
 		public Long startTime;
 		public boolean isRelevant = false;
 
