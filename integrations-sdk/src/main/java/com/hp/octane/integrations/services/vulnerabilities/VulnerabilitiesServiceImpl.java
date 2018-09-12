@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -95,13 +96,21 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		if (vulnerabilities == null) {
 			throw new PermanentException("tests result MUST NOT be null");
 		}
+		if (buildId == null || buildId.isEmpty()) {
+			throw new PermanentException("build CI ID MUST NOT be null nor empty");
+		}
+		if (jobId == null || jobId.isEmpty()) {
+			throw new PermanentException("job CI ID MUST NOT be null nor empty");
+		}
 		RestClient restClient = restService.obtainClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(getVulnerabilitiesContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'")
+						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+encodedJobId+"'&build-ci-id='"+encodedBuildId+"'")
 				.setHeaders(headers)
 				.setBody(vulnerabilities);
 		OctaneResponse response = restClient.execute(request);
@@ -111,7 +120,8 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 		}
 		else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("\"vulnerabilities push FAILED, service unavailable");
-		} else {
+		}
+		else {
 			throw new PermanentException("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
 		}
 	}
@@ -147,10 +157,13 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 			throw new PermanentException("job CI ID MUST NOT be null nor empty");
 		}
 
+		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
+
 		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
 				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'");
+						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+encodedJobId+"'&build-ci-id='"+encodedBuildId+"'");
 
 		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
 		if (response.getStatus() == HttpStatus.SC_OK) {
