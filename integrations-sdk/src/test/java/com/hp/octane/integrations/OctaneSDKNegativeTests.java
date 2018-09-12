@@ -111,8 +111,13 @@ public class OctaneSDKNegativeTests {
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeM() {
 		OctaneClient successfulOne = OctaneSDK.newClient(new PluginServices4());
+		OctaneClient successfulTwo = OctaneSDK.newClient(new PluginServices4());
 		OctaneClient removed = OctaneSDK.removeClient(successfulOne);
-		OctaneSDK.removeClient(removed);
+		try {
+			OctaneSDK.removeClient(removed);
+		} finally {
+			OctaneSDK.removeClient(successfulTwo);
+		}
 	}
 
 	@Test(expected = IllegalStateException.class)

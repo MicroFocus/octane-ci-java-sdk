@@ -52,6 +52,8 @@ public class OctaneSDKPositiveTests {
 		client = OctaneSDK.getClient(instance2);
 		Assert.assertNotNull(client);
 		Assert.assertEquals(instance2, client.getEffectiveInstanceId());
+
+		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
 	}
 
 	@Test
@@ -67,6 +69,8 @@ public class OctaneSDKPositiveTests {
 
 		Assert.assertNotNull(client);
 		Assert.assertEquals(instance2, client.getEffectiveInstanceId());
+
+		OctaneSDK.removeClient(client);
 	}
 
 	@Test
@@ -77,6 +81,49 @@ public class OctaneSDKPositiveTests {
 
 		Assert.assertNotNull(client);
 		Assert.assertEquals(PluginServices4.instanceId, client.getEffectiveInstanceId());
+
+		OctaneSDK.removeClient(client);
+	}
+
+	@Test
+	public void sdkTestD() {
+		OctaneClient clientA = OctaneSDK.newClient(new PluginServices4());
+		OctaneClient clientB = OctaneSDK.newClient(new PluginServices5());
+
+		Assert.assertNotNull(clientA);
+		Assert.assertNotNull(clientB);
+		Assert.assertEquals(PluginServices4.instanceId, clientA.getEffectiveInstanceId());
+		Assert.assertEquals(PluginServices5.instanceId, clientB.getEffectiveInstanceId());
+
+		Assert.assertNotNull(clientA.getConfigurationService());
+		Assert.assertNotNull(clientA.getEntitiesService());
+		Assert.assertNotNull(clientA.getEventsService());
+		Assert.assertNotNull(clientA.getLogsService());
+		Assert.assertNotNull(clientA.getRestService());
+		Assert.assertNotNull(clientA.getTasksProcessor());
+		Assert.assertNotNull(clientA.getTestsService());
+		Assert.assertNotNull(clientA.getRestService());
+		Assert.assertNotNull(clientA.getVulnerabilitiesService());
+
+		Assert.assertNotNull(clientB.getConfigurationService());
+		Assert.assertNotNull(clientB.getEntitiesService());
+		Assert.assertNotNull(clientB.getEventsService());
+		Assert.assertNotNull(clientB.getLogsService());
+		Assert.assertNotNull(clientB.getRestService());
+		Assert.assertNotNull(clientB.getTasksProcessor());
+		Assert.assertNotNull(clientB.getTestsService());
+		Assert.assertNotNull(clientB.getRestService());
+		Assert.assertNotNull(clientB.getVulnerabilitiesService());
+
+		Assert.assertNotEquals(clientA.getConfigurationService(), clientB.getConfigurationService());
+		Assert.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
+		Assert.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
+		Assert.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());
+		Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
+		Assert.assertNotEquals(clientA.getTasksProcessor(), clientB.getTasksProcessor());
+		Assert.assertNotEquals(clientA.getTestsService(), clientB.getTestsService());
+		Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
+		Assert.assertNotEquals(clientA.getVulnerabilitiesService(), clientB.getVulnerabilitiesService());
 	}
 
 	private static class PluginServices1 extends CIPluginServicesBase {
@@ -106,6 +153,16 @@ public class OctaneSDKPositiveTests {
 	}
 
 	private static class PluginServices4 extends CIPluginServicesBase {
+		private static String instanceId = UUID.randomUUID().toString();
+
+		@Override
+		public CIServerInfo getServerInfo() {
+			return dtoFactory.newDTO(CIServerInfo.class)
+					.setInstanceId(instanceId);
+		}
+	}
+
+	private static class PluginServices5 extends CIPluginServicesBase {
 		private static String instanceId = UUID.randomUUID().toString();
 
 		@Override
