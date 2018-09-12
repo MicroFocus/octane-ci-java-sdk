@@ -1,4 +1,4 @@
-package com.hp.octane.integrations;/*
+/*
  *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
@@ -11,8 +11,9 @@ package com.hp.octane.integrations;/*
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
+
+package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
@@ -38,8 +39,8 @@ public class OctaneSDKPositiveTests {
 		List<OctaneClient> octaneClients = OctaneSDK.getClients();
 		Assert.assertNotNull(octaneClients);
 
-		OctaneSDK.newClient(new PluginServices1());
-		OctaneSDK.newClient(new PluginServices2());
+		OctaneSDK.addClient(new PluginServices1());
+		OctaneSDK.addClient(new PluginServices2());
 
 		octaneClients = OctaneSDK.getClients();
 		Assert.assertNotNull(octaneClients);
@@ -58,7 +59,7 @@ public class OctaneSDKPositiveTests {
 
 	@Test
 	public void sdkTestB() {
-		OctaneSDK.newClient(new PluginServices3());
+		OctaneSDK.addClient(new PluginServices3());
 		OctaneClient client = OctaneSDK.getClient(PluginServices3.dynamicInstance);
 
 		Assert.assertNotNull(client);
@@ -76,7 +77,7 @@ public class OctaneSDKPositiveTests {
 	@Test
 	public void sdkTestC() {
 		CIPluginServices pluginServices = new PluginServices4();
-		OctaneSDK.newClient(pluginServices);
+		OctaneSDK.addClient(pluginServices);
 		OctaneClient client = OctaneSDK.getClient(pluginServices);
 
 		Assert.assertNotNull(client);
@@ -87,8 +88,8 @@ public class OctaneSDKPositiveTests {
 
 	@Test
 	public void sdkTestD() {
-		OctaneClient clientA = OctaneSDK.newClient(new PluginServices4());
-		OctaneClient clientB = OctaneSDK.newClient(new PluginServices5());
+		OctaneClient clientA = OctaneSDK.addClient(new PluginServices4());
+		OctaneClient clientB = OctaneSDK.addClient(new PluginServices5());
 
 		Assert.assertNotNull(clientA);
 		Assert.assertNotNull(clientB);

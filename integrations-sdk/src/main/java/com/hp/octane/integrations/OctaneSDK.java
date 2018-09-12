@@ -59,7 +59,7 @@ public final class OctaneSDK {
 	 * @param pluginServices Object that implements the CIPluginServices interface. This object is actually a composite
 	 *                       API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
 	 */
-	synchronized public static OctaneClient newClient(CIPluginServices pluginServices) {
+	synchronized public static OctaneClient addClient(CIPluginServices pluginServices) {
 		if (pluginServices == null) {
 			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
 		}

@@ -16,6 +16,8 @@
 		<commons-logging.version>1.2</commons-logging.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<squareup-tape.version>1.2.3</squareup-tape.version>
+
+		<jetty-server.version>9.4.12.v20180830</jetty-server.version>
 	</properties>
 
 	<dependencies>
@@ -68,6 +70,11 @@
 			<artifactId>easymock</artifactId>
 			<groupId>org.easymock</groupId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>jetty-server</artifactId>
+			<groupId>org.eclipse.jetty</groupId>
+			<version>${jetty-server.version}</version>
 		</dependency>
 
 	</dependencies>

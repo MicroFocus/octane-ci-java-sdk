@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations;
@@ -34,31 +33,31 @@ public class OctaneSDKNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeA() {
-		OctaneSDK.newClient(null);
+		OctaneSDK.addClient(null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeB() {
-		OctaneSDK.newClient(new PluginServices1());
+		OctaneSDK.addClient(new PluginServices1());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeC() {
-		OctaneSDK.newClient(new PluginServices2());
+		OctaneSDK.addClient(new PluginServices2());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeD() {
-		OctaneSDK.newClient(new PluginServices3());
+		OctaneSDK.addClient(new PluginServices3());
 	}
 
 	//  duplicate CIPluginServices instance
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeE() {
 		CIPluginServices pluginServices = new PluginServices4();
-		OctaneClient successfulOne = OctaneSDK.newClient(pluginServices);
+		OctaneClient successfulOne = OctaneSDK.addClient(pluginServices);
 		try {
-			OctaneSDK.newClient(pluginServices);
+			OctaneSDK.addClient(pluginServices);
 		} finally {
 			OctaneSDK.removeClient(successfulOne);
 		}
@@ -67,9 +66,9 @@ public class OctaneSDKNegativeTests {
 	//  duplicate instance ID
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeF() {
-		OctaneClient successfulOne = OctaneSDK.newClient(new PluginServices4());
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices4());
 		try {
-			OctaneSDK.newClient(new PluginServices4());
+			OctaneSDK.addClient(new PluginServices4());
 		} finally {
 			successfulOne.close();
 		}
@@ -110,8 +109,8 @@ public class OctaneSDKNegativeTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeM() {
-		OctaneClient successfulOne = OctaneSDK.newClient(new PluginServices4());
-		OctaneClient successfulTwo = OctaneSDK.newClient(new PluginServices4());
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices4());
+		OctaneClient successfulTwo = OctaneSDK.addClient(new PluginServices4());
 		OctaneClient removed = OctaneSDK.removeClient(successfulOne);
 		try {
 			OctaneSDK.removeClient(removed);
@@ -122,7 +121,7 @@ public class OctaneSDKNegativeTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeN() {
-		OctaneClient successfulOne = OctaneSDK.newClient(new PluginServices4());
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices4());
 		successfulOne.close();
 		successfulOne.close();
 	}
@@ -130,7 +129,7 @@ public class OctaneSDKNegativeTests {
 	//  client dynamically breaks serverInfo/instanceId contract
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeO() {
-		OctaneClient successfulOne = OctaneSDK.newClient(new PluginServices5());
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices5());
 		Assert.assertNotNull(successfulOne);
 		Assert.assertEquals(PluginServices5.instanceId, successfulOne.getEffectiveInstanceId());
 
@@ -145,7 +144,7 @@ public class OctaneSDKNegativeTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeP() {
-		OctaneClient successfulOne = OctaneSDK.newClient(new PluginServices5());
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices5());
 		Assert.assertNotNull(successfulOne);
 		Assert.assertEquals(PluginServices5.instanceId, successfulOne.getEffectiveInstanceId());
 
@@ -160,7 +159,7 @@ public class OctaneSDKNegativeTests {
 
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeQ() {
-		OctaneClient successfulOne = OctaneSDK.newClient(new PluginServices5());
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices5());
 		Assert.assertNotNull(successfulOne);
 		Assert.assertEquals(PluginServices5.instanceId, successfulOne.getEffectiveInstanceId());
 
