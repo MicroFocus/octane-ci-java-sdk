@@ -26,8 +26,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
@@ -39,7 +37,6 @@ import static com.hp.octane.integrations.services.rest.SSCClientImpl.isToString;
  */
 public class SscProjectConnector {
 
-    private static final Logger logger = LogManager.getLogger(SscProjectConnector.class);
     private SSCFortifyConfigurations sscFortifyConfigurations;
     private SSCClient sscClient;
 

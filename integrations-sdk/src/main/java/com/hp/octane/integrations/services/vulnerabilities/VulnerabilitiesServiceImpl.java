@@ -60,7 +60,6 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 
     private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 
-    private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
     private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
     private int LIST_EMPTY_INTERVAL = 10000;
     private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
