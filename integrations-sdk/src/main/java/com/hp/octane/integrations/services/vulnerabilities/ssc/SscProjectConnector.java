@@ -1,3 +1,18 @@
+/*
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
 package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,8 +26,11 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+
 import static com.hp.octane.integrations.services.rest.SSCClientImpl.isToString;
 
 
@@ -21,14 +39,16 @@ import static com.hp.octane.integrations.services.rest.SSCClientImpl.isToString;
  */
 public class SscProjectConnector {
 
+    private static final Logger logger = LogManager.getLogger(SscProjectConnector.class);
     private SSCFortifyConfigurations sscFortifyConfigurations;
     private SSCClient sscClient;
 
     public SscProjectConnector(SSCFortifyConfigurations sscFortifyConfigurations,
-                        SSCClient sscClient){
+                               SSCClient sscClient) {
         this.sscFortifyConfigurations = sscFortifyConfigurations;
         this.sscClient = sscClient;
     }
+
     private String sendGetEntity(String urlSuffix) {
         String url = sscFortifyConfigurations.serverURL + "/api/v1/" + urlSuffix;
         CloseableHttpResponse response = sscClient.sendGetRequest(sscFortifyConfigurations, url);
@@ -41,7 +61,6 @@ public class SscProjectConnector {
         try {
             return isToString(response.getEntity().getContent());
         } catch (IOException e) {
-            e.printStackTrace();
             throw new PermanentException(e);
         } finally {
             EntityUtils.consumeQuietly(response.getEntity());
@@ -71,6 +90,7 @@ public class SscProjectConnector {
         }
         return projects.data[0].id;
     }
+
     public <T> T responseToObject(String response, Class<T> type) {
         if (response == null) {
             return null;
@@ -79,10 +99,10 @@ public class SscProjectConnector {
             return new ObjectMapper().readValue(response,
                     TypeFactory.defaultInstance().constructType(type));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new PermanentException(e);
         }
-        return null;
     }
+
     public Issues readNewIssuesOfLastestScan(int projectVersionId) {
         String urlSuffix = String.format("projectVersions/%d/issues?showremoved=false", projectVersionId);
         String rawResponse = sendGetEntity(urlSuffix);

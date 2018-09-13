@@ -1,3 +1,18 @@
+/*
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
 package com.hp.octane.integrations.services.vulnerabilities;
 
 
@@ -38,10 +53,9 @@ public class SSCHandler {
     public static String SEVERITY_LG_NAME_MEDIUM = "list_node.severity.medium";
     public static String SEVERITY_LG_NAME_HIGH = "list_node.severity.high";
     public static String SEVERITY_LG_NAME_CRITICAL = "list_node.severity.urgent";
-    public static String EXTERNAL_TOOL_NAME =  "Fortify SSC";
+    public static String EXTERNAL_TOOL_NAME = "Fortify SSC";
     public static String ARTIFACT_STATUS_COMPLETE = "PROCESS_COMPLETE";
     public static String ARTIFACT_ERROR_PROCESSING = "ERROR_PROCESSING";
-
 
 
     public boolean isScanProcessFinished() {
@@ -49,15 +63,15 @@ public class SSCHandler {
 
         Artifacts artifacts = sscProjectConnector.getArtifactsOfProjectVersion(this.projectVersion.id, 10);
         Artifacts.Artifact closestArtifact = getClosestArtifact(artifacts);
-        if(closestArtifact == null){
+        if (closestArtifact == null) {
             logger.debug("Cannot find artifact of the run");
             return false;
         }
-        if(closestArtifact.status.equals(ARTIFACT_STATUS_COMPLETE)){
+        if (closestArtifact.status.equals(ARTIFACT_STATUS_COMPLETE)) {
             logger.debug("artifact of the run is in completed");
             return true;
         }
-        if(closestArtifact.status.equals(ARTIFACT_ERROR_PROCESSING)){
+        if (closestArtifact.status.equals(ARTIFACT_ERROR_PROCESSING)) {
             throw new PermanentException("artifact of the run faced error, polling should stop");
         }
         //todo , if there are more cases need to handle separately
@@ -68,15 +82,15 @@ public class SSCHandler {
 
     private Artifacts.Artifact getClosestArtifact(Artifacts artifacts) {
         Artifacts.Artifact theCloset = null;
-        if(artifacts == null ||
-                artifacts.data == null){
+        if (artifacts == null ||
+                artifacts.data == null) {
             return null;
         }
         Date startRunDate = new Date(this.runStartTime);
 
         for (Artifacts.Artifact artifact : artifacts.data) {
             Date uploadDate = SSCDateUtils.getDateFromUTCString(artifact.uploadDate, SSCDateUtils.sscFormat);
-            if(uploadDate.after(startRunDate)){
+            if (uploadDate.after(startRunDate)) {
                 theCloset = artifact;
             }
         }
@@ -108,16 +122,16 @@ public class SSCHandler {
         this.targetDir = targetDir;
         this.runStartTime = vulnerabilitiesQueueItem.startTime;
 
-        if(SdkStringUtils.isEmpty(sscFortifyConfigurations.baseToken)||
-                SdkStringUtils.isEmpty(sscFortifyConfigurations.projectName)||
-                SdkStringUtils.isEmpty(sscFortifyConfigurations.projectVersion)||
-                SdkStringUtils.isEmpty(sscFortifyConfigurations.serverURL)){
+        if (SdkStringUtils.isEmpty(sscFortifyConfigurations.baseToken) ||
+                SdkStringUtils.isEmpty(sscFortifyConfigurations.projectName) ||
+                SdkStringUtils.isEmpty(sscFortifyConfigurations.projectVersion) ||
+                SdkStringUtils.isEmpty(sscFortifyConfigurations.serverURL)) {
             throw new PermanentException("missing one of the SSC configuration fields (baseToken\\project\\version\\serverUrl) will not continue connecting to the server");
-        }else {
+        } else {
             sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClient);
             if (sscProjectConnector != null) {
                 projectVersion = sscProjectConnector.getProjectVersion();
-            }else {
+            } else {
                 throw new PermanentException("fail to connect with SSC server and get project");
             }
         }
@@ -125,11 +139,10 @@ public class SSCHandler {
     }
 
 
-
     public InputStream getLatestScan() {
-        if(!isScanProcessFinished()){
+        if (!isScanProcessFinished()) {
             return null;
-    }
+        }
         logger.warn("entered getLatestScan, read issues and serialize to:" + this.targetDir);
         Issues issues = sscProjectConnector.readNewIssuesOfLastestScan(projectVersion.id);
         List<OctaneIssue> octaneIssues = createOctaneIssues(issues);
@@ -138,7 +151,7 @@ public class SSCHandler {
     }
 
     private List<OctaneIssue> createOctaneIssues(Issues issues) {
-        if(issues == null){
+        if (issues == null) {
             return new ArrayList<>();
         }
         DTOFactory dtoFactory = DTOFactory.getInstance();
@@ -170,7 +183,7 @@ public class SSCHandler {
     }
 
     static private String convertDates(String inputFoundDate) {
-        if(inputFoundDate == null){
+        if (inputFoundDate == null) {
             return null;
         }
         //"2017-02-12T12:31:44.000+0000"
@@ -216,16 +229,13 @@ public class SSCHandler {
     private void setOctaneStatus(DTOFactory dtoFactory, Issues.Issue issue, OctaneIssue octaneIssue) {
         if (issue.scanStatus != null) {
             String listNodeId = null;
-            if(issue.scanStatus.equalsIgnoreCase("updated")) {
+            if (issue.scanStatus.equalsIgnoreCase("UPDATED")) {
                 listNodeId = "list_node.issue_state_node.existing";
-            }
-            else if(issue.scanStatus.equalsIgnoreCase("new")) {
+            } else if (issue.scanStatus.equalsIgnoreCase("NEW")) {
                 listNodeId = "list_node.issue_state_node.new";
-            }
-            else if(issue.scanStatus.equalsIgnoreCase("REINTRODUCED")) {
+            } else if (issue.scanStatus.equalsIgnoreCase("REINTRODUCED")) {
                 listNodeId = "list_node.issue_state_node.reopen";
-            }
-            else if(issue.scanStatus.equalsIgnoreCase("REMOVED")) {
+            } else if (issue.scanStatus.equalsIgnoreCase("REMOVED")) {
                 listNodeId = "list_node.issue_state_node.closed";
             }
             if (isLegalOctaneState(listNodeId)) {
@@ -259,6 +269,7 @@ public class SSCHandler {
             octaneIssue.setSeverity(createListNodeEntity(dtoFactory, octaneSeverity));
         }
     }
+
     private String getOctaneSeverityFromSSCValue(String severity) {
         if (severity == null) {
             return null;
@@ -266,22 +277,20 @@ public class SSCHandler {
         String logicalNameForSeverity = null;
         if (severity.startsWith("4")) {
             logicalNameForSeverity = SEVERITY_LG_NAME_CRITICAL;
-        }
-        if (severity.startsWith("3")) {
+        } else if (severity.startsWith("3")) {
             logicalNameForSeverity = SEVERITY_LG_NAME_HIGH;
-        }
-        if (severity.startsWith("2")) {
+        } else if (severity.startsWith("2")) {
             logicalNameForSeverity = SEVERITY_LG_NAME_MEDIUM;
-        }
-        if (severity.startsWith("1")) {
+        } else if (severity.startsWith("1")) {
             logicalNameForSeverity = SEVERITY_LG_NAME_LOW;
         }
 
         return logicalNameForSeverity;
 
     }
+
     private static Entity createListNodeEntity(DTOFactory dtoFactory, String id) {
-        if(id == null){
+        if (id == null) {
             return null;
         }
         return dtoFactory.newDTO(Entity.class).setType("list_node").setId(id);

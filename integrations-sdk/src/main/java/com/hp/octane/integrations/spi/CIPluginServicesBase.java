@@ -40,93 +40,93 @@ import java.net.URL;
 
 public abstract class CIPluginServicesBase implements CIPluginServices {
 
-	@Override
-	public CIServerInfo getServerInfo() {
-		return null;
-	}
+    @Override
+    public CIServerInfo getServerInfo() {
+        return null;
+    }
 
-	@Override
-	public CIPluginInfo getPluginInfo() {
-		return null;
-	}
+    @Override
+    public CIPluginInfo getPluginInfo() {
+        return null;
+    }
 
-	@Override
-	public File getAllowedOctaneStorage() {
-		return null;
-	}
+    @Override
+    public File getAllowedOctaneStorage() {
+        return null;
+    }
 
-	@Override
-	public OctaneConfiguration getOctaneConfiguration() {
-		return null;
-	}
+    @Override
+    public OctaneConfiguration getOctaneConfiguration() {
+        return null;
+    }
 
-	@Override
-	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
-		return null;
-	}
+    @Override
+    public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
+        return null;
+    }
 
-	@Override
-	public CIJobsList getJobsList(boolean includeParameters) {
-		return null;
-	}
+    @Override
+    public CIJobsList getJobsList(boolean includeParameters) {
+        return null;
+    }
 
-	@Override
-	public PipelineNode getPipeline(String rootCIJobId) {
-		return null;
-	}
+    @Override
+    public PipelineNode getPipeline(String rootCIJobId) {
+        return null;
+    }
 
-	@Override
-	public void runPipeline(String ciJobId, String originalBody) {
-	}
+    @Override
+    public void runPipeline(String ciJobId, String originalBody) {
+    }
 
-	@Override
-	public void suspendCIEvents(boolean suspend) {
-	}
+    @Override
+    public void suspendCIEvents(boolean suspend) {
+    }
 
-	@Override
-	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
-		return null;
-	}
+    @Override
+    public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
+        return null;
+    }
 
-	@Override
-	public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
-		return null;
-	}
+    @Override
+    public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
+        return null;
+    }
 
-	@Override
-	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
-		return null;
-	}
+    @Override
+    public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+        return null;
+    }
 
-	@Override
-	public InputStream getBuildLog(String jobCiId, String buildCiId) {
-		return null;
-	}
+    @Override
+    public InputStream getBuildLog(String jobCiId, String buildCiId) {
+        return null;
+    }
 
-	@Override
-	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-	}
+    @Override
+    public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
+    }
 
-	@Override
-	public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
-	}
+    @Override
+    public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
+    }
 
-	@Override
-	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
-		return null;
-	}
+    @Override
+    public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
+        return null;
+    }
 
-	@Override
-	public void deleteExecutor(String id) {
-	}
+    @Override
+    public void deleteExecutor(String id) {
+    }
 
-	@Override
-	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
-		return null;
-	}
+    @Override
+    public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
+        return null;
+    }
 
-	@Override
-	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
-		return null;
-	}
+    @Override
+    public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
+        return null;
+    }
 }

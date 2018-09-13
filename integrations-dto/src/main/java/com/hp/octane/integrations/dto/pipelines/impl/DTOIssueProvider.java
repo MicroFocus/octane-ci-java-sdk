@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 
-public class DTOIssueProvider  extends DTOInternalProviderBase {
+public class DTOIssueProvider extends DTOInternalProviderBase {
 
     public DTOIssueProvider(DTOFactory.DTOConfiguration configuration) {
         super(configuration);

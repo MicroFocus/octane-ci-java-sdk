@@ -1,3 +1,18 @@
+/*
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ *
+ */
 package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -65,7 +80,7 @@ public class SSCClientImpl implements SSCClient {
 
         HttpGet request = new HttpGet(url);
         request.addHeader("Authorization", "FortifyToken " +
-                getToken(sscFortifyConfigurations,false));
+                getToken(sscFortifyConfigurations, false));
         request.addHeader("Accept", "application/json");
         request.addHeader("Host", getNetHost(sscFortifyConfigurations.serverURL));
 
@@ -73,10 +88,10 @@ public class SSCClientImpl implements SSCClient {
         try {
             response = httpClient.execute(request);
             //401. Access..
-            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED){
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
                 request.removeHeaders("Authorization");
                 request.addHeader("Authorization", "FortifyToken " +
-                        getToken(sscFortifyConfigurations,true));
+                        getToken(sscFortifyConfigurations, true));
                 response = httpClient.execute(request);
             }
             return response;
@@ -86,6 +101,7 @@ public class SSCClientImpl implements SSCClient {
             throw new PermanentException(e);
         }
     }
+
     private String getToken(SSCFortifyConfigurations sscCfgs, boolean forceRenew) {
         if (forceRenew || authTokenData == null) {
             authTokenData = sendReqAuth(sscCfgs);
@@ -116,7 +132,7 @@ public class SSCClientImpl implements SSCClient {
                 AuthToken authToken = new ObjectMapper().readValue(toString,
                         TypeFactory.defaultInstance().constructType(AuthToken.class));
                 return authToken.data;
-            }else{
+            } else {
                 throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");
             }
 
@@ -131,6 +147,7 @@ public class SSCClientImpl implements SSCClient {
         }
         return null;
     }
+
     public static String getNetHost(String serverURL) {
         //http://myd-vma00564.swinfra.net:8180/ssc
         String prefix = "http://";
@@ -145,6 +162,7 @@ public class SSCClientImpl implements SSCClient {
     public static boolean succeeded(int statusCode) {
         return statusCode == 200 || statusCode == 201;
     }
+
     public static String isToString(InputStream is) throws IOException {
         ByteArrayOutputStream result = new ByteArrayOutputStream();
         byte[] buffer = new byte[1024];

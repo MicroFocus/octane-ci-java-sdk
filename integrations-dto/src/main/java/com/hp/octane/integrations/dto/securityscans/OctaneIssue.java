@@ -22,23 +22,42 @@ import java.util.Map;
 
 public interface OctaneIssue extends DTOBase {
     void setExtendedData(Map extendedData);
+
     void setPrimaryLocationFull(String primaryLocationFull);
+
     void setLine(Integer line);
+
     void setAnalysis(Entity analysis);
+
     void setState(Entity state);
+
     void setSeverity(Entity severity);
+
     Map getExtendedData();
+
     String getPrimaryLocationFull();
+
     Integer getLine();
+
     Entity getAnalysis();
+
     Entity getState();
+
     Entity getSeverity();
+
     String getRemoteId();
+
     void setRemoteId(String remote_id);
+
     String getIntroducedDate();
+
     void setIntroducedDate(String introducedDate);
+
     String getExternalLink();
+
     void setExternalLink(String external_link);
+
     String getToolName();
+
     void setToolName(String toolName);
 }

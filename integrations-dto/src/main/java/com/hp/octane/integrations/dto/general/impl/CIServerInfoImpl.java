@@ -25,147 +25,147 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIServerInfoImpl implements CIServerInfo {
-	private String type;
-	private boolean suspended;
-	private String version;
-	private String url;
-	private String instanceId;
-	private Long instanceIdFrom;
-	private String impersonatedUser;
-	private Long sendingTime = System.currentTimeMillis();
-	private volatile String sscURL;
-	private volatile String sscBaseAuthToken;
-	private volatile long maxPollingTimeoutHours;
+    private String type;
+    private boolean suspended;
+    private String version;
+    private String url;
+    private String instanceId;
+    private Long instanceIdFrom;
+    private String impersonatedUser;
+    private Long sendingTime = System.currentTimeMillis();
+    private volatile String sscURL;
+    private volatile String sscBaseAuthToken;
+    private volatile long maxPollingTimeoutHours;
 
-	public CIServerInfoImpl() {
-	}
+    public CIServerInfoImpl() {
+    }
 
-	public CIServerInfoImpl(String type, String version, String url, String instanceId, Long instanceIdFrom) {
-		this.type = type;
-		this.version = version;
-		this.url = normalizeURL(url);
-		this.instanceId = instanceId;
-		this.instanceIdFrom = instanceIdFrom;
-	}
+    public CIServerInfoImpl(String type, String version, String url, String instanceId, Long instanceIdFrom) {
+        this.type = type;
+        this.version = version;
+        this.url = normalizeURL(url);
+        this.instanceId = instanceId;
+        this.instanceIdFrom = instanceIdFrom;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public CIServerInfo setType(String type) {
-		this.type = type;
-		return this;
-	}
+    public CIServerInfo setType(String type) {
+        this.type = type;
+        return this;
+    }
 
-	public String getVersion() {
-		return version;
-	}
+    public String getVersion() {
+        return version;
+    }
 
-	public CIServerInfo setVersion(String version) {
-		this.version = version;
-		return this;
-	}
+    public CIServerInfo setVersion(String version) {
+        this.version = version;
+        return this;
+    }
 
-	public String getUrl() {
-		return url;
-	}
+    public String getUrl() {
+        return url;
+    }
 
-	public CIServerInfo setUrl(String url) {
-		this.url = normalizeURL(url);
-		return this;
-	}
+    public CIServerInfo setUrl(String url) {
+        this.url = normalizeURL(url);
+        return this;
+    }
 
-	public String getInstanceId() {
-		return instanceId;
-	}
+    public String getInstanceId() {
+        return instanceId;
+    }
 
-	public CIServerInfo setInstanceId(String instanceId) {
-		this.instanceId = instanceId;
-		return this;
-	}
+    public CIServerInfo setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+        return this;
+    }
 
-	public Long getInstanceIdFrom() {
-		return instanceIdFrom;
-	}
+    public Long getInstanceIdFrom() {
+        return instanceIdFrom;
+    }
 
-	public CIServerInfo setInstanceIdFrom(Long instanceIdFrom) {
-		this.instanceIdFrom = instanceIdFrom;
-		return this;
-	}
+    public CIServerInfo setInstanceIdFrom(Long instanceIdFrom) {
+        this.instanceIdFrom = instanceIdFrom;
+        return this;
+    }
 
-	public Long getSendingTime() {
-		return sendingTime;
-	}
+    public Long getSendingTime() {
+        return sendingTime;
+    }
 
-	public CIServerInfo setSendingTime(Long sendingTime) {
-		this.sendingTime = sendingTime;
-		return this;
-	}
+    public CIServerInfo setSendingTime(Long sendingTime) {
+        this.sendingTime = sendingTime;
+        return this;
+    }
 
-	@Override
-	public String getImpersonatedUser() {
-		return impersonatedUser;
-	}
+    @Override
+    public String getImpersonatedUser() {
+        return impersonatedUser;
+    }
 
-	@Override
-	public CIServerInfo setImpersonatedUser(String impersonatedUser) {
-		this.impersonatedUser = impersonatedUser;
-		return this;
-	}
+    @Override
+    public CIServerInfo setImpersonatedUser(String impersonatedUser) {
+        this.impersonatedUser = impersonatedUser;
+        return this;
+    }
 
-	@Override
-	public boolean isSuspended() {
-		return this.suspended;
-	}
+    @Override
+    public boolean isSuspended() {
+        return this.suspended;
+    }
 
-	@Override
-	public CIServerInfo setSuspended(boolean suspended) {
-		this.suspended = suspended;
-		return this;
-	}
+    @Override
+    public CIServerInfo setSuspended(boolean suspended) {
+        this.suspended = suspended;
+        return this;
+    }
 
 
     @Override
     public String getSSCURL() {
-		return sscURL;
+        return sscURL;
     }
 
-	@Override
-	public CIServerInfo setSSCURL(String sscUrl) {
-		this.sscURL = sscUrl;
-		return this;
-	}
+    @Override
+    public CIServerInfo setSSCURL(String sscUrl) {
+        this.sscURL = sscUrl;
+        return this;
+    }
 
-	@Override
-	public String getSSCBaseAuthToken() {
-		return sscBaseAuthToken;
-	}
+    @Override
+    public String getSSCBaseAuthToken() {
+        return sscBaseAuthToken;
+    }
 
-	@Override
-	public CIServerInfo setSSCBaseAuthToken(String sscBaseAuthToken) {
-		this.sscBaseAuthToken = sscBaseAuthToken;
-		return this;
-	}
+    @Override
+    public CIServerInfo setSSCBaseAuthToken(String sscBaseAuthToken) {
+        this.sscBaseAuthToken = sscBaseAuthToken;
+        return this;
+    }
 
-	@Override
-	public long getMaxPollingTimeoutHours() {
-		return maxPollingTimeoutHours;
-	}
+    @Override
+    public long getMaxPollingTimeoutHours() {
+        return maxPollingTimeoutHours;
+    }
 
-	@Override
-	public CIServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours) {
-		this.maxPollingTimeoutHours = maxPollingTimeoutHours;
-		return this;
-	}
+    @Override
+    public CIServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours) {
+        this.maxPollingTimeoutHours = maxPollingTimeoutHours;
+        return this;
+    }
 
 
-	private String normalizeURL(String input) {
-		String result;
-		if (input != null && input.endsWith("/")) {
-			result = input.substring(0, input.length() - 1);
-		} else {
-			result = input;
-		}
-		return result;
-	}
+    private String normalizeURL(String input) {
+        String result;
+        if (input != null && input.endsWith("/")) {
+            result = input.substring(0, input.length() - 1);
+        } else {
+            result = input;
+        }
+        return result;
+    }
 }

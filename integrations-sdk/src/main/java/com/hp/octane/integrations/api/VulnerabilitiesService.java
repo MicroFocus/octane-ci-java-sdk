@@ -18,15 +18,15 @@ package com.hp.octane.integrations.api;
 
 public interface VulnerabilitiesService {
 
-	/**
-	 * Enqueue retrieve and push vulnerabilities scan
-	 * This is the preferred way to push vulnerabilities scan results to Octane. This method provides facilities of queue, non-main thread execution and retry.
-	 *
-	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
-	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
-	 */
-	void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
-											  String projectName, String projectVersion,
-											  long startRunTime);
+    /**
+     * Enqueue retrieve and push vulnerabilities scan
+     * This is the preferred way to push vulnerabilities scan results to Octane. This method provides facilities of queue, non-main thread execution and retry.
+     *
+     * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+     * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+     */
+    void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
+                                               String projectName, String projectVersion,
+                                               long startRunTime);
 
 }
