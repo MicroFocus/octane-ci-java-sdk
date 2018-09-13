@@ -7,7 +7,6 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.AuthToken;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -117,11 +116,12 @@ public class SSCClientImpl implements SSCClient {
                 AuthToken authToken = new ObjectMapper().readValue(toString,
                         TypeFactory.defaultInstance().constructType(AuthToken.class));
                 return authToken.data;
+            }else{
+                throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");
             }
-            throw new PermanentException("Error getting Authenticatiion data from SSC server.");
 
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new PermanentException(e);
         } catch (Exception e) {
         } finally {
             if (response != null) {
