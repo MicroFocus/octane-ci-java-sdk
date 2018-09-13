@@ -28,6 +28,8 @@ import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Created by hijaziy on 7/12/2018.
@@ -53,7 +55,7 @@ public class SscProjectConnector {
 			throw new PermanentException("Error from SSC:" + response.getStatusLine().getStatusCode());
 		}
 		try {
-			return CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent());
+			return CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent(), Charset.defaultCharset());
 		} catch (IOException e) {
 			throw new PermanentException(e);
 		} finally {

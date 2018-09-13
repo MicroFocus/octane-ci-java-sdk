@@ -33,7 +33,7 @@ class OctaneSecuritySimulationUtils {
 	}
 
 	static void signIn(Request request) throws IOException {
-		String body = CIPluginSDKUtils.inputStreamToString(request.getInputStream());
+		String body = CIPluginSDKUtils.inputStreamToUTF8String(request.getInputStream());
 		Map json = CIPluginSDKUtils.getObjectMapper().readValue(body, Map.class);
 		String client = (String) json.get("client_id");
 		String secret = (String) json.get("client_secret");

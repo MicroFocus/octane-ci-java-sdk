@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class CIPluginSDKUtilsTest {
@@ -113,28 +114,47 @@ public class CIPluginSDKUtilsTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testInputStreamToStringA() throws IOException {
-		CIPluginSDKUtils.inputStreamToString(null);
+		CIPluginSDKUtils.inputStreamToUTF8String(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testInputStreamToStringB() throws IOException {
+		CIPluginSDKUtils.inputStreamToString(null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testInputStreamToStringC() throws IOException {
+		CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream("some text".getBytes()), null);
 	}
 
 	@Test
-	public void testInputStreamToStringB() throws IOException {
+	public void testInputStreamToStringD() throws IOException {
 		String text = "some text to test";
 
-		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())));
+		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())), StandardCharsets.UTF_8);
 		Assert.assertEquals(text, test);
 
-		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()));
+		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()), StandardCharsets.UTF_8);
 		Assert.assertEquals(text, test);
 	}
 
 	@Test
-	public void testInputStreamToStringC() throws IOException {
+	public void testInputStreamToStringE() throws IOException {
 		String text = "some text to test וגם בעברית и по русски чуток";
 
-		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())));
+		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())), StandardCharsets.UTF_8);
 		Assert.assertEquals(text, test);
 
-		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()));
+//		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()), Charset.defaultCharset());
+//		Assert.assertEquals(text, test);
+	}
+
+
+	@Test
+	public void testInputStreamToStringF() throws IOException {
+		String text = "some text to test וגם בעברית и по русски чуток";
+
+		String test = CIPluginSDKUtils.inputStreamToUTF8String(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())));
 		Assert.assertEquals(text, test);
 	}
 

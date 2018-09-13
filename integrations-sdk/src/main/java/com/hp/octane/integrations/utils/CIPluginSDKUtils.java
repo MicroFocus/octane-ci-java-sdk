@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.utils;
@@ -28,6 +27,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
@@ -149,9 +149,16 @@ public class CIPluginSDKUtils {
 		return result;
 	}
 
-	public static String inputStreamToString(InputStream is) throws IOException {
+	public static String inputStreamToUTF8String(InputStream is) throws IOException {
+		return inputStreamToString(is, StandardCharsets.UTF_8);
+	}
+
+	public static String inputStreamToString(InputStream is, Charset charset) throws IOException {
 		if (is == null) {
 			throw new IllegalArgumentException("input stream MUST NOT be null");
+		}
+		if (charset == null) {
+			throw new IllegalArgumentException("charset MUST NOT be null");
 		}
 
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
@@ -159,7 +166,7 @@ public class CIPluginSDKUtils {
 		byte[] buffer = new byte[4096];
 		while ((readLen = is.read(buffer)) != -1) result.write(buffer, 0, readLen);
 		result.flush();
-		return result.toString(StandardCharsets.UTF_8.name());
+		return result.toString(charset.name());
 	}
 }
 

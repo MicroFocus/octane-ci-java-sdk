@@ -46,6 +46,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class SSCClientImpl implements SSCClient {
@@ -123,10 +124,8 @@ public class SSCClientImpl implements SSCClient {
 			request.setEntity(entity);
 			response = httpClient.execute(request);
 			if (succeeded(response.getStatusLine().getStatusCode())) {
-
-				String toString = CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent());
-				AuthToken authToken = new ObjectMapper().readValue(toString,
-						TypeFactory.defaultInstance().constructType(AuthToken.class));
+				String toString = CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent(), Charset.defaultCharset());
+				AuthToken authToken = new ObjectMapper().readValue(toString, TypeFactory.defaultInstance().constructType(AuthToken.class));
 				return authToken.data;
 			} else {
 				throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");
