@@ -67,7 +67,9 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneClient clientB = OctaneSDK.addClient(new PluginServicesBFB(spIdB));
 			//  TODO: verification
 
-			CompletableFuture.allOf(promises.values().toArray(new CompletableFuture[0])).get();
+			//CompletableFuture.allOf(promises.values().toArray(new CompletableFuture[0])).get();
+
+			CIPluginSDKUtils.doWait(9000);
 
 			//  remove one client and verify it is shut indeed and the second continue to work okay
 			OctaneSDK.removeClient(clientA);
@@ -89,13 +91,7 @@ public class OctaneSDKBasicFunctionalityTest {
 
 		for (String spID : spIDs) {
 			OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
-			simulator.installApiHandler("^.*tasks$", request -> {
-				System.out.println("get tasks A...");
-				CIPluginSDKUtils.doWait(3000);
-				promises.get(spID).complete(true);
-				request.getResponse().setStatus(HttpStatus.SC_NO_CONTENT);
-				request.setHandled(true);
-			});
+			simulator.installNOOPTasksApiHandler(3000);
 			result.put(spID, simulator);
 		}
 

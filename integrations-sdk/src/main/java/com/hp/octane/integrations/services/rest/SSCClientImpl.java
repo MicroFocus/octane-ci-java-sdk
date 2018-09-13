@@ -22,6 +22,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.AuthToken;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -44,9 +45,7 @@ import org.apache.http.util.EntityUtils;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 public class SSCClientImpl implements SSCClient {
@@ -125,7 +124,7 @@ public class SSCClientImpl implements SSCClient {
 			response = httpClient.execute(request);
 			if (succeeded(response.getStatusLine().getStatusCode())) {
 
-				String toString = isToString(response.getEntity().getContent());
+				String toString = CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent());
 				AuthToken authToken = new ObjectMapper().readValue(toString,
 						TypeFactory.defaultInstance().constructType(AuthToken.class));
 				return authToken.data;
@@ -155,17 +154,5 @@ public class SSCClientImpl implements SSCClient {
 
 	private boolean succeeded(int statusCode) {
 		return statusCode == 200 || statusCode == 201;
-	}
-
-	//  [YG] TODO: this method should not be here, since it is used as a utility in other, not related places
-	//  or it should do its work transparently and consumer should get the final result
-	public static String isToString(InputStream is) throws IOException {
-		ByteArrayOutputStream result = new ByteArrayOutputStream();
-		byte[] buffer = new byte[1024];
-		int length;
-		while ((length = is.read(buffer)) != -1) {
-			result.write(buffer, 0, length);
-		}
-		return result.toString();
 	}
 }

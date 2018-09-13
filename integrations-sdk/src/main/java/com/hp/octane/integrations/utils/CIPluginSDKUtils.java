@@ -21,6 +21,9 @@ import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -144,6 +147,19 @@ public class CIPluginSDKUtils {
 			logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
 		}
 		return result;
+	}
+
+	public static String inputStreamToString(InputStream is) throws IOException {
+		if (is == null) {
+			throw new IllegalArgumentException("input stream MUST NOT be null");
+		}
+
+		ByteArrayOutputStream result = new ByteArrayOutputStream();
+		int readLen;
+		byte[] buffer = new byte[4096];
+		while ((readLen = is.read(buffer)) != -1) result.write(buffer, 0, readLen);
+		result.flush();
+		return result.toString(StandardCharsets.UTF_8.name());
 	}
 }
 

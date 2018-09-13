@@ -29,8 +29,6 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.IOException;
 
-import static com.hp.octane.integrations.services.rest.SSCClientImpl.isToString;
-
 /**
  * Created by hijaziy on 7/12/2018.
  */
@@ -55,7 +53,7 @@ public class SscProjectConnector {
 			throw new PermanentException("Error from SSC:" + response.getStatusLine().getStatusCode());
 		}
 		try {
-			return isToString(response.getEntity().getContent());
+			return CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent());
 		} catch (IOException e) {
 			throw new PermanentException(e);
 		} finally {

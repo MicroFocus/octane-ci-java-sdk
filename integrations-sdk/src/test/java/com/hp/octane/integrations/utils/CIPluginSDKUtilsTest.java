@@ -11,13 +11,16 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.utils;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class CIPluginSDKUtilsTest {
 
@@ -106,6 +109,33 @@ public class CIPluginSDKUtilsTest {
 		long ended = System.currentTimeMillis();
 		Assert.assertTrue(ended - started > timeToWait / 2);
 		Assert.assertTrue(ended - started < timeToWait);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testInputStreamToStringA() throws IOException {
+		CIPluginSDKUtils.inputStreamToString(null);
+	}
+
+	@Test
+	public void testInputStreamToStringB() throws IOException {
+		String text = "some text to test";
+
+		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())));
+		Assert.assertEquals(text, test);
+
+		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()));
+		Assert.assertEquals(text, test);
+	}
+
+	@Test
+	public void testInputStreamToStringC() throws IOException {
+		String text = "some text to test וגם בעברית и по русски чуток";
+
+		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())));
+		Assert.assertEquals(text, test);
+
+		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()));
+		Assert.assertEquals(text, test);
 	}
 
 	private Object objectFromForeignThread() {

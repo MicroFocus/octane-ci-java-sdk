@@ -25,12 +25,9 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -132,17 +129,17 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	}
 
 	@Override
-	public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException, ServletException {
+	public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
 		if (request.isHandled()) {
 			return;
 		}
 
 		if (signInApiPattern.matcher(s).matches()) {
-			signIn(request);
+			OctaneSecuritySimulationUtils.signIn(request);
 			return;
 		}
 
-		if (!authenticate(request)) {
+		if (!OctaneSecuritySimulationUtils.authenticate(request)) {
 			return;
 		}
 
@@ -163,7 +160,7 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 
 	public void installApiHandler(String pattern, Consumer<Request> apiHandler) {
 		if (apiHandlersRegistry.containsKey(pattern)) {
-			throw new IllegalArgumentException("api handler for '" + pattern + "' already installed");
+			logger.warn("api handler for '" + pattern + "' already installed and will be replaced");
 		}
 		apiHandlersRegistry.put(pattern, apiHandler);
 	}
@@ -172,34 +169,11 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 		apiHandlersRegistry.remove(pattern);
 	}
 
-	private void signIn(Request request) throws IOException {
-		String body = isToString(request.getInputStream());
-		Map json = CIPluginSDKUtils.getObjectMapper().readValue(body, Map.class);
-		String client = (String) json.get("client_id");
-		String secret = (String) json.get("client_secret");
-		Cookie securityCookie = new Cookie("LWSSO_COOKIE_KEY", client + ":" + secret);
-		securityCookie.setHttpOnly(true);
-		securityCookie.setDomain(".localhost");
-		request.getResponse().addCookie(securityCookie);
-		request.setHandled(true);
-	}
-
-	private boolean authenticate(Request request) {
-		for (Cookie cookie : request.getCookies()) {
-			if ("LWSSO_COOKIE_KEY".equals(cookie.getName())) {
-				return true;
-			}
-		}
-		request.getResponse().setStatus(HttpStatus.SC_UNAUTHORIZED);
-		request.setHandled(true);
-		return false;
-	}
-
-	private String isToString(InputStream is) throws IOException {
-		byte[] buffer = new byte[4096];
-		int readLen;
-		StringBuilder result = new StringBuilder();
-		while ((readLen = is.read(buffer, 0, buffer.length)) > 0) result.append(new String(buffer, 0, readLen));
-		return result.toString();
+	public void installNOOPTasksApiHandler(long waitPeriod) {
+		installApiHandler("^.*tasks$", request -> {
+			CIPluginSDKUtils.doWait(waitPeriod);
+			request.getResponse().setStatus(HttpStatus.SC_NO_CONTENT);
+			request.setHandled(true);
+		});
 	}
 }
