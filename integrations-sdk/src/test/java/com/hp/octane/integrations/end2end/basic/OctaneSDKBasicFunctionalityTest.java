@@ -19,6 +19,7 @@ import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,16 +45,16 @@ public class OctaneSDKBasicFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private static CompletableFuture<Boolean> resolvedA = new CompletableFuture<>();
-	private static CompletableFuture<Boolean> resolvedB = new CompletableFuture<>();
+	private Map<String, CompletableFuture<Boolean>> promises = new LinkedHashMap<>();
 
 	@Test(timeout = 20000)
 	public void testA() throws Exception {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		try {
-
 			String spIdA = UUID.randomUUID().toString();
 			String spIdB = UUID.randomUUID().toString();
+			promises.put(spIdA, new CompletableFuture<>());
+			promises.put(spIdB, new CompletableFuture<>());
 
 			//  init 2 shared space endpoints simulators
 			simulators = initSPEPSimulators(Stream.of(spIdA, spIdB).collect(Collectors.toSet()));
@@ -66,7 +67,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneClient clientB = OctaneSDK.addClient(new PluginServicesBFB(spIdB));
 			//  TODO: verification
 
-			CompletableFuture.allOf(resolvedA).get();
+			CompletableFuture.allOf(promises.values().toArray(new CompletableFuture[0])).get();
 
 			//  remove one client and verify it is shut indeed and the second continue to work okay
 			OctaneSDK.removeClient(clientA);
@@ -90,12 +91,8 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
 			simulator.installApiHandler("^.*tasks$", request -> {
 				System.out.println("get tasks A...");
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException ie) {
-
-				}
-				resolvedA.complete(true);
+				CIPluginSDKUtils.doWait(3000);
+				promises.get(spID).complete(true);
 				request.getResponse().setStatus(HttpStatus.SC_NO_CONTENT);
 				request.setHandled(true);
 			});
