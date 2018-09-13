@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
@@ -106,8 +107,12 @@ final class RestClientImpl implements RestClient {
 
 	private Cookie LWSSO_TOKEN = null;
 
-	RestClientImpl(CIPluginServices pluginServices) {
-		this.pluginServices = pluginServices;
+	RestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
+
+		pluginServices = configurer.pluginServices;
 
 		SSLContext sslContext = SSLContexts.createSystemDefault();
 		HostnameVerifier hostnameVerifier = new CustomHostnameVerifier();

@@ -18,7 +18,6 @@ package com.hp.octane.integrations.services.rest;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -31,7 +30,7 @@ final class RestServiceImpl implements RestService {
 	private final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
 	private final Object SSC_CLIENT_INIT_LOCK = new Object();
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private RestClientImpl defaultClient;
 	private SSCClient sscClient;
 
@@ -40,7 +39,7 @@ final class RestServiceImpl implements RestService {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 
-		pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 
 		logger.info("initializing a default Octane REST client...");
 		obtainOctaneRestClient();
@@ -53,7 +52,7 @@ final class RestServiceImpl implements RestService {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
 				if (defaultClient == null) {
 					try {
-						defaultClient = new RestClientImpl(pluginServices);
+						defaultClient = new RestClientImpl(configurer);
 					} catch (Exception e) {
 						logger.error("failed to initialize Octane's REST client");
 					}
@@ -81,7 +80,7 @@ final class RestServiceImpl implements RestService {
 
 	@Override
 	public RestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration) {
-		return new RestClientImpl(pluginServices);
+		return new RestClientImpl(configurer);
 	}
 
 	@Override

@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.events;
@@ -36,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,12 +52,12 @@ import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_
  */
 
 final class EventsServiceImpl implements EventsService {
-	private final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
-	private final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
-	private final List<CIEvent> events;
+	private final List<CIEvent> events = Collections.synchronizedList(new LinkedList<>());
 
 	private final Object NO_EVENTS_MONITOR = new Object();
 	private final int EVENTS_CHUNK_SIZE = System.getProperty("octane.sdk.events.chunk-size") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.chunk-size")) : 10;
@@ -76,7 +76,6 @@ final class EventsServiceImpl implements EventsService {
 
 		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
-		this.events = new LinkedList<>();
 
 		logger.info("starting background worker...");
 		Executors
@@ -87,13 +86,12 @@ final class EventsServiceImpl implements EventsService {
 
 	@Override
 	public void publishEvent(CIEvent event) {
-		synchronized (events) {
-			events.add(event);
-			if (events.size() > MAX_EVENTS_TO_KEEP) {
-				logger.warn("reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + events.size() + "), capping the head");
-				while (events.size() > MAX_EVENTS_TO_KEEP) {
-					events.remove(0);
-				}
+		events.add(event);
+		int eventsSize = events.size();
+		if (eventsSize > MAX_EVENTS_TO_KEEP) {
+			logger.warn("reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
+			while (events.size() > MAX_EVENTS_TO_KEEP) {        //  in this case we need to read the real-time size of the list
+				events.remove(0);
 			}
 		}
 		synchronized (NO_EVENTS_MONITOR) {
@@ -103,9 +101,7 @@ final class EventsServiceImpl implements EventsService {
 
 	private void removeEvents(List<CIEvent> eventsToRemove) {
 		if (eventsToRemove != null && !eventsToRemove.isEmpty()) {
-			synchronized (events) {
-				events.removeAll(eventsToRemove);
-			}
+			events.removeAll(eventsToRemove);
 		}
 	}
 
@@ -139,17 +135,13 @@ final class EventsServiceImpl implements EventsService {
 			List<CIEvent> eventsChunk = null;
 			CIEventsList eventsSnapshot;
 			try {
-				synchronized (events) {
-					eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
-				}
+				eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
 				eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
 						.setServer(pluginServices.getServerInfo())
 						.setEvents(eventsChunk);
 			} catch (Throwable t) {
 				logger.error("failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
-				if (eventsChunk != null && !eventsChunk.isEmpty()) {
-					removeEvents(eventsChunk);
-				}
+				removeEvents(eventsChunk);
 				continue;
 			}
 

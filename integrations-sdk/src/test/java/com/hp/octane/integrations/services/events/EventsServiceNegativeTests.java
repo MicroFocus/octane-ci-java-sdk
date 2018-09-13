@@ -16,27 +16,27 @@
 package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.dto.events.CIEvent;
+import org.junit.Test;
 
-public interface EventsService {
+public class EventsServiceNegativeTests {
 
-	/**
-	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
-	 *
-	 * @param configurer  SDK services configurer object
-	 * @param restService Rest Service
-	 * @return initialized service
-	 */
-	static EventsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		return new EventsServiceImpl(configurer, restService);
+	@Test(expected = IllegalArgumentException.class)
+	public void testA() {
+		new EventsServiceImpl(null, null);
 	}
 
+	@Test(expected = ClassCastException.class)
+	public void testB() {
+		new EventsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
+	}
 
-	/**
-	 * Publishes CI Event to the Octane server
-	 *
-	 * @param event CI event that will be published
-	 */
-	void publishEvent(CIEvent event);
+	@Test(expected = IllegalArgumentException.class)
+	public void testC() {
+		EventsService.newInstance(null, null);
+	}
+
+	@Test(expected = ClassCastException.class)
+	public void testD() {
+		EventsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null);
+	}
 }

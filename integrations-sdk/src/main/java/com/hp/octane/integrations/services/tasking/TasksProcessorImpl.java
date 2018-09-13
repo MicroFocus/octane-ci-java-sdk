@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.tasking;
@@ -52,6 +51,7 @@ import java.util.regex.Pattern;
 final class TasksProcessorImpl implements TasksProcessor {
 	private static final Logger logger = LogManager.getLogger(TasksProcessorImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
 	private static final String NGA_API = "nga/api/v1";
 	private static final String STATUS = "status";
 	private static final String SUSPEND_STATUS = "suspend_status";
@@ -74,6 +74,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		pluginServices = configurer.pluginServices;
 	}
 
+	@Override
 	public OctaneResultAbridged execute(OctaneTaskAbridged task) {
 		if (task == null) {
 			throw new IllegalArgumentException("task MUST NOT be null");
@@ -165,7 +166,6 @@ final class TasksProcessorImpl implements TasksProcessor {
 		logger.info("result for task '" + task.getId() + "' available with status " + result.getStatus());
 		return result;
 	}
-
 
 	private String[] pathTokenizer(String url) {
 		Map<Integer, String> params = new HashMap<>();

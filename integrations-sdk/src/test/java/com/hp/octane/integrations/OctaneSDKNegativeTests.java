@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.spi.CIPluginServices;
@@ -22,6 +23,7 @@ import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.UUID;
 
 /**
@@ -176,6 +178,15 @@ public class OctaneSDKNegativeTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeR() {
 		new OctaneClientImpl(null);
+	}
+
+	@Test
+	public void sdkTestNegativeS() {
+		try {
+			OctaneSDK.SDKServicesConfigurer.class.getConstructor(CIPluginServices.class).newInstance(null);
+			Assert.fail("should not be able to create");
+		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+		}
 	}
 
 	private static class PluginServices1 extends CIPluginServicesBase {

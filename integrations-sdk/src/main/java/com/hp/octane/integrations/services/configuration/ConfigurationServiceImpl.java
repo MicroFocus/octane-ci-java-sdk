@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.configuration;
@@ -39,8 +38,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 
-import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
-
 /**
  * Base implementation of Configuration Service API
  */
@@ -48,6 +45,7 @@ import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_
 final class ConfigurationServiceImpl implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+
 	private static final String AUTHORIZATION_URI = "/analytics/ci/servers/connectivity/status";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
@@ -131,7 +129,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		RestClient restClientImpl = restService.createOctaneRestClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(configuration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + AUTHORIZATION_URI);
+				.setUrl(configuration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + AUTHORIZATION_URI);
 		return restClientImpl.execute(request, configuration);
 	}
 
