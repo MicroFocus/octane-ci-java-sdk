@@ -56,7 +56,7 @@ public class UftTestDispatchUtils {
         //post new tests
         List<AutomatedTest> tests = result.getNewTests();
         if (!tests.isEmpty()) {
-            boolean posted = postTests(entitiesService, tests, result.getWorkspaceId(), result.getScmRepositoryId());
+            boolean posted = postTests(entitiesService, tests, result.getWorkspaceId(), result.getScmRepositoryId(), result.getTestRunnerId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  new tests posted successfully = " + posted;
             logMessage(Level.INFO, customLogger, msg);
         }
@@ -263,7 +263,7 @@ public class UftTestDispatchUtils {
         return SdkStringUtils.join(values, "#");
     }
 
-    private static boolean postTests(EntitiesService entitiesService, List<AutomatedTest> tests, String workspaceId, String scmRepositoryId) {
+    private static boolean postTests(EntitiesService entitiesService, List<AutomatedTest> tests, String workspaceId, String scmRepositoryId, String testRunnerId) {
 
         if (!tests.isEmpty()) {
             //convert to DTO
@@ -274,6 +274,7 @@ public class UftTestDispatchUtils {
             Entity apiTestType = createListNodeEntity("list_node.test_type.api");
 
             Entity scmRepository = dtoFactory.newDTO(Entity.class).setType(EntityConstants.ScmRepository.ENTITY_NAME).setId(scmRepositoryId);
+            Entity testRunner = SdkStringUtils.isNotEmpty(testRunnerId) ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.TestRunner.ENTITY_NAME).setId(testRunnerId) : null;
             for (AutomatedTest test : tests) {
                 Entity testType = UftTestType.API.equals(test.getUftTestType()) ? apiTestType : guiTestType;
                 EntityList testTypeList = dtoFactory.newDTO(EntityList.class).addEntity(testType);
@@ -289,6 +290,10 @@ public class UftTestDispatchUtils {
                         .setField(EntityConstants.AutomatedTest.DESCRIPTION_FIELD, test.getDescription())
                         .setField(EntityConstants.AutomatedTest.EXECUTABLE_FIELD, test.getExecutable());
                 testsForPost.add(octaneTest);
+
+                if (testRunner != null) {
+                    octaneTest.setField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD, testRunner);
+                }
             }
 
             //POST
