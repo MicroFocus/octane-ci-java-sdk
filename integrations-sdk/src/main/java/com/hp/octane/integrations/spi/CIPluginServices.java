@@ -137,25 +137,16 @@ public interface CIPluginServices {
 	TestsResult getTestsResult(String jobCiId, String buildCiId);
 
 	/**
-	 * Retrieves vulnerabilities scan result for the specific build
-	 *
-	 * @param jobCiId   Job CI ID to get tests results of
-	 * @param buildCiId Build CI ID to get tests results of
-	 * @return InputStream; NULL if no Vulnerabilities result available
-	 */
-	InputStream getVulnerabilitiesScanResultStream(String jobCiId, String buildCiId);
-	/**
 	 * Retrieves build's log as an InputStream
 	 *
 	 * @param jobCiId   job CI ID of the specific build to get log for
 	 * @param buildCiId build CI ID to get log for
 	 * @return build's log as an InputStream; NULL if no log available
-	 * 	 */
+	 */
 	InputStream getBuildLog(String jobCiId, String buildCiId);
 
 	/**
 	 * Retrieves sonarQube info from CI
-	 *
 	 *
 	 * @return sonarQube
 	 */

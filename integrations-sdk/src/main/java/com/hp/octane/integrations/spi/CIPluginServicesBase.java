@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.spi;
@@ -100,20 +99,14 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public InputStream getVulnerabilitiesScanResultStream(String jobCiId, String buildCiId){
-		return null;
-	}
-
-	@Override
 	public InputStream getBuildLog(String jobCiId, String buildCiId) {
 		return null;
 	}
 
 	@Override
-	public SonarInfo getSonarInfo(){
+	public SonarInfo getSonarInfo() {
 		return null;
 	}
-
 
 	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {

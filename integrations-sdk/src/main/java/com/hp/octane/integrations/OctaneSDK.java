@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations;
@@ -43,44 +42,42 @@ import java.util.Properties;
  */
 
 public final class OctaneSDK {
-    private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
-    private static volatile OctaneSDK instance;
+	private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
+	private static volatile OctaneSDK instance;
 
-    public static Integer API_VERSION;
-    public static String SDK_VERSION;
+	public static Integer API_VERSION;
+	public static String SDK_VERSION;
 
-    private final Object INTERNAL_USAGE_VALIDATOR = new Object();
-    private final CIPluginServices pluginServices;
-    private final QueueService queueService;
-    private final RestService restService;
-    private final ConfigurationService configurationService;
-    private final TasksProcessor tasksProcessor;
+	private final Object INTERNAL_USAGE_VALIDATOR = new Object();
+	private final CIPluginServices pluginServices;
+	private final QueueService queueService;
+	private final RestService restService;
+	private final ConfigurationService configurationService;
+	private final TasksProcessor tasksProcessor;
+	private final SonarService sonarService;
+	private final EventsService eventsService;
+	private final TestsService testsService;
+	private final LogsService logsService;
+	private final VulnerabilitiesService vulnerabilitiesService;
+	private final EntitiesService entitiesService;
 
-
-    private final SonarService sonarService;
-    private final EventsService eventsService;
-    private final TestsService testsService;
-    private final LogsService logsService;
-    private final VulnerabilitiesService vulnerabilitiesService;
-    private final EntitiesService entitiesService;
-
-    private OctaneSDK(CIPluginServices ciPluginServices) {
-        instance = this;
-        initSDKProperties();
-        pluginServices = ciPluginServices;
-        new LoggingServiceImpl(INTERNAL_USAGE_VALIDATOR);
-        queueService = new QueueServiceImpl(INTERNAL_USAGE_VALIDATOR);
-        restService = new RestServiceImpl(INTERNAL_USAGE_VALIDATOR);
-        tasksProcessor = new TasksProcessorImpl(INTERNAL_USAGE_VALIDATOR);
-        configurationService = new ConfigurationServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-        eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-        testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
-        logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
-        vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-        entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
-        sonarService = new SonarServiceImpl(INTERNAL_USAGE_VALIDATOR,queueService, restService);
-        new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
-    }
+	private OctaneSDK(CIPluginServices ciPluginServices) {
+		instance = this;
+		initSDKProperties();
+		pluginServices = ciPluginServices;
+		new LoggingServiceImpl(INTERNAL_USAGE_VALIDATOR);
+		queueService = new QueueServiceImpl(INTERNAL_USAGE_VALIDATOR);
+		restService = new RestServiceImpl(INTERNAL_USAGE_VALIDATOR);
+		tasksProcessor = new TasksProcessorImpl(INTERNAL_USAGE_VALIDATOR);
+		sonarService = new SonarServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		configurationService = new ConfigurationServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		eventsService = new EventsServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		testsService = new TestsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		logsService = new LogsServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		vulnerabilitiesService = new VulnerabilitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, queueService, restService);
+		entitiesService = new EntitiesServiceImpl(INTERNAL_USAGE_VALIDATOR, restService);
+		new BridgeServiceImpl(INTERNAL_USAGE_VALIDATOR, restService, tasksProcessor);
+	}
 
 	/**
 	 * To start using the CI Plugin SDK, first initialize an OctaneSDK instance.
@@ -109,72 +106,72 @@ public final class OctaneSDK {
 		}
 	}
 
-    public CIPluginServices getPluginServices() {
-        return pluginServices;
-    }
+	public CIPluginServices getPluginServices() {
+		return pluginServices;
+	}
 
-    public RestService getRestService() {
-        return restService;
-    }
+	public RestService getRestService() {
+		return restService;
+	}
 
-    public SonarService getSonarService() {
-        return sonarService;
-    }
+	public SonarService getSonarService() {
+		return sonarService;
+	}
 
-    public TasksProcessor getTasksProcessor() {
-        return tasksProcessor;
-    }
+	public TasksProcessor getTasksProcessor() {
+		return tasksProcessor;
+	}
 
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
-    }
+	public ConfigurationService getConfigurationService() {
+		return configurationService;
+	}
 
-    public EventsService getEventsService() {
-        return eventsService;
-    }
+	public EventsService getEventsService() {
+		return eventsService;
+	}
 
-    public TestsService getTestsService() {
-        return testsService;
-    }
+	public TestsService getTestsService() {
+		return testsService;
+	}
 
-    public LogsService getLogsService() {
-        return logsService;
-    }
+	public LogsService getLogsService() {
+		return logsService;
+	}
 
-    public VulnerabilitiesService getVulnerabilitiesService() {
-        return vulnerabilitiesService;
-    }
+	public VulnerabilitiesService getVulnerabilitiesService() {
+		return vulnerabilitiesService;
+	}
 
-    public EntitiesService getEntitiesService() {
-        return entitiesService;
-    }
+	public EntitiesService getEntitiesService() {
+		return entitiesService;
+	}
 
-    private void initSDKProperties() {
-        Properties p = new Properties();
-        try {
-            p.load(OctaneSDK.class.getClassLoader().getResourceAsStream("sdk.properties"));
-        } catch (IOException ioe) {
-            logger.error("initialization failed: failed to load SDK properties", ioe);
-            throw new IllegalStateException("SDK initialization failed: failed to load SDK properties", ioe);
-        }
-        if (!p.isEmpty()) {
-            API_VERSION = Integer.parseInt(p.getProperty("api.version"));
-            SDK_VERSION = p.getProperty("sdk.version");
-        }
-    }
+	private void initSDKProperties() {
+		Properties p = new Properties();
+		try {
+			p.load(OctaneSDK.class.getClassLoader().getResourceAsStream("sdk.properties"));
+		} catch (IOException ioe) {
+			logger.error("initialization failed: failed to load SDK properties", ioe);
+			throw new IllegalStateException("SDK initialization failed: failed to load SDK properties", ioe);
+		}
+		if (!p.isEmpty()) {
+			API_VERSION = Integer.parseInt(p.getProperty("api.version"));
+			SDK_VERSION = p.getProperty("sdk.version");
+		}
+	}
 
-    //  the below base class used ONLY for the correct initiation enforcement of an SDK services
-    public static abstract class SDKServiceBase {
-        protected final CIPluginServices pluginServices;
+	//  the below base class used ONLY for the correct initiation enforcement of an SDK services
+	public static abstract class SDKServiceBase {
+		protected final CIPluginServices pluginServices;
 
-        protected SDKServiceBase(Object internalUsageValidator) {
-            if (instance == null || instance.pluginServices == null) {
-                throw new IllegalStateException("Octane SDK has not yet been initialized, do that first");
-            }
-            if (internalUsageValidator == null || internalUsageValidator != instance.INTERNAL_USAGE_VALIDATOR) {
-                throw new IllegalStateException("SDK's own services MAY NOT be initialized on themselves, use OctaneSDK instance to get reference to pre-initialized services");
-            }
-            pluginServices = instance.pluginServices;
-        }
-    }
+		protected SDKServiceBase(Object internalUsageValidator) {
+			if (instance == null || instance.pluginServices == null) {
+				throw new IllegalStateException("Octane SDK has not yet been initialized, do that first");
+			}
+			if (internalUsageValidator == null || internalUsageValidator != instance.INTERNAL_USAGE_VALIDATOR) {
+				throw new IllegalStateException("SDK's own services MAY NOT be initialized on themselves, use OctaneSDK instance to get reference to pre-initialized services");
+			}
+			pluginServices = instance.pluginServices;
+		}
+	}
 }
