@@ -128,7 +128,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 
 		URL octaneUrl = CIPluginSDKUtils.parseURL(configuration.getUrl());
 		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneUrl);
-		RestClient restClientImpl = restService.createClient(proxyConfiguration);
+		RestClient restClientImpl = restService.createOctaneRestClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
 				.setUrl(configuration.getUrl() + SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + AUTHORIZATION_URI);

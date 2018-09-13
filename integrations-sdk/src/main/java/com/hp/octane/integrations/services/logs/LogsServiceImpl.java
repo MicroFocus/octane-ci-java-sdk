@@ -45,8 +45,8 @@ import java.util.concurrent.ThreadFactory;
 final class LogsServiceImpl implements LogsService {
 	private static final Logger logger = LogManager.getLogger(LogsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 
+	private final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
@@ -153,7 +153,7 @@ final class LogsServiceImpl implements LogsService {
 					break;
 				}
 				request.setBody(log);
-				response = restService.obtainClient().execute(request);
+				response = restService.obtainOctaneRestClient().execute(request);
 				if (response.getStatus() == HttpStatus.SC_OK) {
 					logger.info("successfully pushed log of " + queueItem + " to WS " + workspaceId);
 				} else {
@@ -169,7 +169,7 @@ final class LogsServiceImpl implements LogsService {
 				}
 				request.setBody(log);
 				try {
-					response = restService.obtainClient().execute(request);
+					response = restService.obtainOctaneRestClient().execute(request);
 					if (response.getStatus() == HttpStatus.SC_OK) {
 						logger.info("successfully pushed log of " + queueItem + " to WS " + workspaceId);
 					} else {
@@ -192,7 +192,7 @@ final class LogsServiceImpl implements LogsService {
 					.setMethod(HttpMethod.GET)
 					.setUrl(getAnalyticsContextPath(octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
-			response = restService.obtainClient().execute(preflightRequest);
+			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {

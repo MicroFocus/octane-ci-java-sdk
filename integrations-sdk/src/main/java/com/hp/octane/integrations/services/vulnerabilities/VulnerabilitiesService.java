@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.services.rest.RestService;
 
 public interface VulnerabilitiesService {
@@ -27,8 +28,8 @@ public interface VulnerabilitiesService {
 	 * @param restService Rest Service
 	 * @return initialized service
 	 */
-	static VulnerabilitiesService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		return new VulnerabilitiesServiceImpl(configurer, restService);
+	static VulnerabilitiesService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+		return new VulnerabilitiesServiceImpl(configurer, queueService, restService);
 	}
 
 	/**

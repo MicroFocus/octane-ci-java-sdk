@@ -97,7 +97,7 @@ final class TestsServiceImpl implements TestsService {
 						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
 						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobCiId) + "/tests-result-preflight");
 
-		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
+		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
 		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
 	}
 
@@ -117,7 +117,7 @@ final class TestsServiceImpl implements TestsService {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
 		}
 
-		RestClient restClient = restService.obtainClient();
+		RestClient restClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)

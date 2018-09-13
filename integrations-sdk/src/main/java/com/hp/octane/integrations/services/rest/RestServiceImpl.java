@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.rest;
@@ -44,12 +43,12 @@ final class RestServiceImpl implements RestService {
 		pluginServices = configurer.pluginServices;
 
 		logger.info("initializing a default Octane REST client...");
-		obtainClient();
+		obtainOctaneRestClient();
 		logger.info("...default Octane REST client initialized");
 	}
 
 	@Override
-	public RestClient obtainClient() {
+	public RestClient obtainOctaneRestClient() {
 		if (defaultClient == null) {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
 				if (defaultClient == null) {
@@ -65,7 +64,7 @@ final class RestServiceImpl implements RestService {
 	}
 
 	@Override
-	public SSCClient obtainSSCClient() {
+	public SSCClient obtainSSCRestClient() {
 		if (sscClient == null) {
 			synchronized (SSC_CLIENT_INIT_LOCK) {
 				if (sscClient == null) {
@@ -81,7 +80,7 @@ final class RestServiceImpl implements RestService {
 	}
 
 	@Override
-	public RestClient createClient(CIProxyConfiguration proxyConfiguration) {
+	public RestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration) {
 		return new RestClientImpl(pluginServices);
 	}
 

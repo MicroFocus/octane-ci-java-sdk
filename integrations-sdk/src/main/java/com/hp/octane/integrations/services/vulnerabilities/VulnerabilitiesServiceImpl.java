@@ -50,11 +50,10 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
+	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
-	private static final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
-
-	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 10000;
@@ -62,7 +61,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private Long TIME_OUT_FOR_QUEUE_ITEM = 3 * 60 * 60 * 1000L; //3 hours
 	private volatile Long actualTimeout = 3 * 60 * 60 * 1000L;
 
-	public VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -98,7 +97,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new PermanentException("job CI ID MUST NOT be null nor empty");
 		}
-		RestClient restClient = restService.obtainClient();
+		RestClient restClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
@@ -158,7 +157,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
 						"?instance-id='" + pluginServices.getServerInfo().getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'");
 
-		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
+		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
 		if (response.getStatus() == HttpStatus.SC_OK) {
 			if (String.valueOf(true).equals(response.getBody())) {
 				logger.info("vulnerabilities preflightRequest SUCCEED");
@@ -245,7 +244,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, this.pluginServices.getServerInfo().getSSCURL(),
 				this.pluginServices.getServerInfo().getSSCBaseAuthToken(),
 				targetDir,
-				this.restService.obtainSSCClient()
+				this.restService.obtainSSCRestClient()
 		);
 		return sscHandler.getLatestScan();
 	}

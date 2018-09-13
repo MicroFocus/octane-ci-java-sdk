@@ -11,8 +11,8 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
+
 package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,130 +47,125 @@ import javax.net.ssl.SSLContext;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static com.hp.octane.integrations.services.rest.RestClientImpl.MAX_TOTAL_CONNECTIONS;
+import java.nio.charset.StandardCharsets;
 
 public class SSCClientImpl implements SSCClient {
 
+	private static final int MAX_TOTAL_CONNECTIONS = 20;
 
-    private final CloseableHttpClient httpClient;
-    private AuthToken.AuthTokenData authTokenData;
+	private final CloseableHttpClient httpClient;
+	private AuthToken.AuthTokenData authTokenData;
 
-    public SSCClientImpl() {
+	SSCClientImpl() {
+		SSLContext sslContext = SSLContexts.createSystemDefault();
+		HostnameVerifier hostnameVerifier = new RestClientImpl.CustomHostnameVerifier();
+		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+				.register("http", PlainConnectionSocketFactory.getSocketFactory())
+				.register("https", sslSocketFactory)
+				.build();
+		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
+		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
 
+		HttpClientBuilder clientBuilder = HttpClients.custom()
+				.setConnectionManager(connectionManager);
 
-        SSLContext sslContext = SSLContexts.createSystemDefault();
-        HostnameVerifier hostnameVerifier = new RestClientImpl.CustomHostnameVerifier();
-        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
-        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                .register("http", PlainConnectionSocketFactory.getSocketFactory())
-                .register("https", sslSocketFactory)
-                .build();
-        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-        connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
-        connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
+		httpClient = clientBuilder.build();
+	}
 
-        HttpClientBuilder clientBuilder = HttpClients.custom()
-                .setConnectionManager(connectionManager);
+	public CloseableHttpResponse sendGetRequest(SSCFortifyConfigurations sscFortifyConfigurations, String url) {
+		HttpGet request = new HttpGet(url);
+		request.addHeader("Authorization", "FortifyToken " +
+				getToken(sscFortifyConfigurations, false));
+		request.addHeader("Accept", "application/json");
+		request.addHeader("Host", getNetHost(sscFortifyConfigurations.serverURL));
 
-        httpClient = clientBuilder.build();
-    }
+		CloseableHttpResponse response;
+		try {
+			response = httpClient.execute(request);
+			//401. Access..
+			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+				request.removeHeaders("Authorization");
+				request.addHeader("Authorization", "FortifyToken " +
+						getToken(sscFortifyConfigurations, true));
+				response = httpClient.execute(request);
+			}
+			return response;
+		} catch (IOException e) {
+			throw new TemporaryException(e);
+		} catch (Exception e) {
+			throw new PermanentException(e);
+		}
+	}
 
-    public CloseableHttpResponse sendGetRequest(SSCFortifyConfigurations sscFortifyConfigurations, String url) {
-
-        HttpGet request = new HttpGet(url);
-        request.addHeader("Authorization", "FortifyToken " +
-                getToken(sscFortifyConfigurations, false));
-        request.addHeader("Accept", "application/json");
-        request.addHeader("Host", getNetHost(sscFortifyConfigurations.serverURL));
-
-        CloseableHttpResponse response = null;
-        try {
-            response = httpClient.execute(request);
-            //401. Access..
-            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-                request.removeHeaders("Authorization");
-                request.addHeader("Authorization", "FortifyToken " +
-                        getToken(sscFortifyConfigurations, true));
-                response = httpClient.execute(request);
-            }
-            return response;
-        } catch (IOException e) {
-            throw new TemporaryException(e);
-        } catch (Exception e) {
-            throw new PermanentException(e);
-        }
-    }
-
-    private String getToken(SSCFortifyConfigurations sscCfgs, boolean forceRenew) {
-        if (forceRenew || authTokenData == null) {
-            authTokenData = sendReqAuth(sscCfgs);
-        }
-        return this.authTokenData.token;
-    }
+	private String getToken(SSCFortifyConfigurations sscCfgs, boolean forceRenew) {
+		if (forceRenew || authTokenData == null) {
+			authTokenData = sendReqAuth(sscCfgs);
+		}
+		return authTokenData.token;
+	}
 
 
-    private AuthToken.AuthTokenData sendReqAuth(SSCFortifyConfigurations sscCfgs) {
-        //"/{SSC Server Context}/api/v1"
-        //String url = "http://" + serverURL + "/ssc/api/v1/projects?q=id:2743&fulltextsearch=true";
-        String url = sscCfgs.serverURL + "/api/v1/tokens";
-        HttpPost request = new HttpPost(url);
-        request.addHeader("Authorization", sscCfgs.baseToken);
-        request.addHeader("Accept", "application/json");
-        request.addHeader("Host", getNetHost(sscCfgs.serverURL));
-        request.addHeader("Content-Type", "application/json;charset=UTF-8");
+	private AuthToken.AuthTokenData sendReqAuth(SSCFortifyConfigurations sscCfgs) {
+		//"/{SSC Server Context}/api/v1"
+		//String url = "http://" + serverURL + "/ssc/api/v1/projects?q=id:2743&fulltextsearch=true";
+		String url = sscCfgs.serverURL + "/api/v1/tokens";
+		HttpPost request = new HttpPost(url);
+		request.addHeader("Authorization", sscCfgs.baseToken);
+		request.addHeader("Accept", "application/json");
+		request.addHeader("Host", getNetHost(sscCfgs.serverURL));
+		request.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-        String body = "{\"type\": \"UnifiedLoginToken\"}";
-        CloseableHttpResponse response = null;
-        try {
-            HttpEntity entity = new ByteArrayEntity(body.getBytes("UTF-8"));
-            request.setEntity(entity);
-            response = httpClient.execute(request);
-            if (succeeded(response.getStatusLine().getStatusCode())) {
+		String body = "{\"type\": \"UnifiedLoginToken\"}";
+		CloseableHttpResponse response = null;
+		try {
+			HttpEntity entity = new ByteArrayEntity(body.getBytes(StandardCharsets.UTF_8));
+			request.setEntity(entity);
+			response = httpClient.execute(request);
+			if (succeeded(response.getStatusLine().getStatusCode())) {
 
-                String toString = isToString(response.getEntity().getContent());
-                AuthToken authToken = new ObjectMapper().readValue(toString,
-                        TypeFactory.defaultInstance().constructType(AuthToken.class));
-                return authToken.data;
-            } else {
-                throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");
-            }
+				String toString = isToString(response.getEntity().getContent());
+				AuthToken authToken = new ObjectMapper().readValue(toString,
+						TypeFactory.defaultInstance().constructType(AuthToken.class));
+				return authToken.data;
+			} else {
+				throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");
+			}
+		} catch (Throwable t) {
+			throw new PermanentException(t);
+		} finally {
+			if (response != null) {
+				EntityUtils.consumeQuietly(response.getEntity());
+				HttpClientUtils.closeQuietly(response);
+			}
+		}
+	}
 
-        } catch (IOException e) {
-            throw new PermanentException(e);
-        } catch (Exception e) {
-        } finally {
-            if (response != null) {
-                EntityUtils.consumeQuietly(response.getEntity());
-                HttpClientUtils.closeQuietly(response);
-            }
-        }
-        return null;
-    }
+	private String getNetHost(String serverURL) {
+		//http://myd-vma00564.swinfra.net:8180/ssc
+		String prefix = "http://";
+		int indexOfStart = serverURL.toLowerCase().indexOf(prefix) + prefix.length();
+		int indexOfEnd = serverURL.lastIndexOf("/");
+		if (indexOfEnd < 0) {
+			return serverURL.substring(indexOfStart);
+		}
+		return serverURL.substring(indexOfStart, indexOfEnd);
+	}
 
-    public static String getNetHost(String serverURL) {
-        //http://myd-vma00564.swinfra.net:8180/ssc
-        String prefix = "http://";
-        int indexOfStart = serverURL.toLowerCase().indexOf(prefix) + prefix.length();
-        int indexOfEnd = serverURL.lastIndexOf("/");
-        if (indexOfEnd < 0) {
-            return serverURL.substring(indexOfStart);
-        }
-        return serverURL.substring(indexOfStart, indexOfEnd);
-    }
+	private boolean succeeded(int statusCode) {
+		return statusCode == 200 || statusCode == 201;
+	}
 
-    public static boolean succeeded(int statusCode) {
-        return statusCode == 200 || statusCode == 201;
-    }
-
-    public static String isToString(InputStream is) throws IOException {
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        int length;
-        while ((length = is.read(buffer)) != -1) {
-            result.write(buffer, 0, length);
-        }
-        return result.toString();
-    }
-
+	//  [YG] TODO: this method should not be here, since it is used as a utility in other, not related places
+	//  or it should do its work transparently and consumer should get the final result
+	public static String isToString(InputStream is) throws IOException {
+		ByteArrayOutputStream result = new ByteArrayOutputStream();
+		byte[] buffer = new byte[1024];
+		int length;
+		while ((length = is.read(buffer)) != -1) {
+			result.write(buffer, 0, length);
+		}
+		return result.toString();
+	}
 }

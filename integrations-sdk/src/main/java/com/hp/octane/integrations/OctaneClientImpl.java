@@ -63,7 +63,7 @@ final class OctaneClientImpl implements OctaneClient {
 		eventsService = EventsService.newInstance(configurer, restService);
 		testsService = TestsService.newInstance(configurer, queueService, restService);
 		logsService = LogsService.newInstance(configurer, queueService, restService);
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, restService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueService, restService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		BridgeService.newInstance(configurer, restService, tasksProcessor);
 		logger.info("OctaneClient initialized with currently effective instance ID '" + getEffectiveInstanceId() + "' (remember, instance ID is not owned by SDK and may change on the fly)");

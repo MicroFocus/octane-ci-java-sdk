@@ -86,7 +86,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 	@Override
 	public List<Entity> deleteEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions) {
 		//SEND REQUEST
-		RestClient restClient = restService.obtainClient();
+		RestClient restClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		String url = getEntityUrl(workspaceId, entityCollectionName, conditions, null, null, null, null);
@@ -110,7 +110,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 
 	@Override
 	public List<Entity> updateEntities(Long workspaceId, String entityCollectionName, String jsonData) {
-		RestClient restClient = restService.obtainClient();
+		RestClient restClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -137,7 +137,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 
 	@Override
 	public List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData) {
-		RestClient restClient = restService.obtainClient();
+		RestClient restClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -156,7 +156,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 	@Override
 	public List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, Collection<String> fields) {
 
-		RestClient restClient = restService.obtainClient();
+		RestClient restClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 

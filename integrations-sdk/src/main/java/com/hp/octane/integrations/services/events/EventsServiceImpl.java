@@ -197,7 +197,7 @@ final class EventsServiceImpl implements EventsService {
 				.setBody(dtoFactory.dtoToJsonStream(eventsList));
 		OctaneResponse octaneResponse;
 		try {
-			octaneResponse = restService.obtainClient().execute(octaneRequest);
+			octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
 		}

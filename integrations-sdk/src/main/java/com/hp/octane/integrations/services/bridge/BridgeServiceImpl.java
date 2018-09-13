@@ -110,7 +110,7 @@ final class BridgeServiceImpl implements BridgeService {
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, String pluginVersion, String octaneUser, String ciServerUser) {
 		String responseBody = null;
-		RestClient restClient = restService.obtainClient();
+		RestClient restClient = restService.obtainOctaneRestClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<>();
@@ -186,7 +186,7 @@ final class BridgeServiceImpl implements BridgeService {
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
-		RestClient restClientImpl = restService.obtainClient();
+		RestClient restClientImpl = restService.obtainOctaneRestClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());

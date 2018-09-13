@@ -96,5 +96,8 @@ public interface OctaneClient {
 	 */
 	String getEffectiveInstanceId() throws IllegalStateException;
 
+	/**
+	 * closes this OctaneClient instance, while shutting down all of its services/tasks/rest calls
+	 */
 	void close();
 }
