@@ -16,29 +16,29 @@
 
 package com.hp.octane.integrations.dto.parameters.impl;
 
-import com.hp.octane.integrations.dto.DTOBase;
-import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.DTOInternalProviderBase;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 
+import java.util.List;
+
 /**
- * Job/Build parameters DTOs definitions provider
+ * Default implementation of CI Parameters DTO
  */
 
-public final class DTOParametersProvider extends DTOInternalProviderBase {
+@JsonIgnoreProperties(ignoreUnknown = true)
+class CIParametersImpl implements CIParameters {
 
-	public DTOParametersProvider(DTOFactory.DTOConfiguration configuration) {
-		super(configuration);
-		dtoPairs.put(CIParameter.class, CIParameterImpl.class);
-		dtoPairs.put(CIParameters.class, CIParametersImpl.class);
-	}
+    private List<CIParameter> parameters;
 
-	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
-		T result = null;
-		if (dtoPairs.containsKey(targetType)) {
-			result = (T) dtoPairs.get(targetType).newInstance();
-		}
-		return result;
-	}
+
+    @Override
+    public List<CIParameter> getParameters() {
+        return parameters;
+    }
+
+    public CIParameters setParameters(List<CIParameter> parameters) {
+        this.parameters = parameters;
+        return this;
+    }
 }

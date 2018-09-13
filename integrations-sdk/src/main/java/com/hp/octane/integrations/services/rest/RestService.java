@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.services.rest;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
 public interface RestService {
@@ -46,6 +47,8 @@ public interface RestService {
 	 * @return pre-configured RestClient
 	 */
 	RestClient obtainClient();
+
+	SSCClient obtainSSCClient();
 
 	/**
 	 * Creates new REST client pre-configured with the specified configuration

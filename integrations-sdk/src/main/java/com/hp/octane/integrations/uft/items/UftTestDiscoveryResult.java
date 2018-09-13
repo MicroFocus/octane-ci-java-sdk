@@ -54,6 +54,9 @@ public class UftTestDiscoveryResult {
     private String scmRepositoryId;
 
     @XmlAttribute
+    private String testRunnerId;
+
+    @XmlAttribute
     private String workspaceId;
 
     @XmlAttribute
@@ -199,5 +202,13 @@ public class UftTestDiscoveryResult {
                 return o1.getRelativePath().compareTo(o2.getRelativePath());
             }
         });
+    }
+
+    public String getTestRunnerId() {
+        return testRunnerId;
+    }
+
+    public void setTestRunnerId(String testRunnerId) {
+        this.testRunnerId = testRunnerId;
     }
 }
