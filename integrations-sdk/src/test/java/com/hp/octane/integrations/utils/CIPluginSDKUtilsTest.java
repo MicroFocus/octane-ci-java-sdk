@@ -20,7 +20,6 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class CIPluginSDKUtilsTest {
@@ -145,6 +144,7 @@ public class CIPluginSDKUtilsTest {
 		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())), StandardCharsets.UTF_8);
 		Assert.assertEquals(text, test);
 
+		//  the case below may fail on unpredictable default charset in different environments, temporary disabled
 //		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()), Charset.defaultCharset());
 //		Assert.assertEquals(text, test);
 	}

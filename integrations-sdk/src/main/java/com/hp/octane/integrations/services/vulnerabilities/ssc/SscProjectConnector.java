@@ -55,7 +55,7 @@ public class SscProjectConnector {
 			throw new PermanentException("Error from SSC:" + response.getStatusLine().getStatusCode());
 		}
 		try {
-			return CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent(), Charset.defaultCharset());
+			return CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent());
 		} catch (IOException e) {
 			throw new PermanentException(e);
 		} finally {

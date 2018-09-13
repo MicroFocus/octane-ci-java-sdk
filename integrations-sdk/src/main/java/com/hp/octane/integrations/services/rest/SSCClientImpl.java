@@ -124,7 +124,7 @@ public class SSCClientImpl implements SSCClient {
 			request.setEntity(entity);
 			response = httpClient.execute(request);
 			if (succeeded(response.getStatusLine().getStatusCode())) {
-				String toString = CIPluginSDKUtils.inputStreamToString(response.getEntity().getContent(), Charset.defaultCharset());
+				String toString = CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent());
 				AuthToken authToken = new ObjectMapper().readValue(toString, TypeFactory.defaultInstance().constructType(AuthToken.class));
 				return authToken.data;
 			} else {

@@ -67,12 +67,9 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import java.io.InputStream;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -311,7 +308,7 @@ final class RestClientImpl implements RestClient {
 		OctaneResponse octaneResponse = dtoFactory.newDTO(OctaneResponse.class)
 				.setStatus(response.getStatusLine().getStatusCode());
 		if (response.getEntity() != null) {
-			octaneResponse.setBody(readResponseBody(response.getEntity().getContent()));
+			octaneResponse.setBody(CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent()));
 		}
 		if (response.getAllHeaders() != null && response.getAllHeaders().length > 0) {
 			Map<String, String> mapHeaders = new HashMap<>();
@@ -321,16 +318,6 @@ final class RestClientImpl implements RestClient {
 			octaneResponse.setHeaders(mapHeaders);
 		}
 		return octaneResponse;
-	}
-
-	private String readResponseBody(InputStream is) throws IOException {
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		byte[] buffer = new byte[4096];
-		int length;
-		while ((length = is.read(buffer)) != -1) {
-			baos.write(buffer, 0, length);
-		}
-		return baos.toString(StandardCharsets.UTF_8.toString());
 	}
 
 	private OctaneResponse login(OctaneConfiguration config) throws IOException {
