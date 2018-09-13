@@ -8,7 +8,7 @@ import java.util.TimeZone;
 
 public class SSCDateUtils {
     //"2017-02-12T12:31:44.000+0000"
-    public static final String sscFormat =  "yyyy-MM-dd'T'hh:mm:ss";
+    public static final String sscFormat =  "yyyy-MM-dd'T'HH:mm:ss";
     public static final String octaneFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     public static String convertDateSSCToOctane(String inputFoundDate) {
