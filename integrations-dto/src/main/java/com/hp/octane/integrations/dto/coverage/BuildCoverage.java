@@ -11,11 +11,9 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.dto.coverage;
-
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hp.octane.integrations.dto.DTOBase;
@@ -28,22 +26,21 @@ import java.util.List;
 
 public interface BuildCoverage extends DTOBase {
 
-    Integer getSumOfCoveredLines();
+	List<FileCoverage> getFileCoverageList();
 
-    BuildCoverage setSumOfCoveredLines(Integer sumOfCoveredLines);
+	BuildCoverage setFileCoverageList(List<FileCoverage> fileCoverageList);
 
-    Integer getTotalCoverableLines();
+	Integer getSumOfCoveredLines();
 
-    BuildCoverage setTotalCoverableLines(Integer totalCoverableLines);
+	BuildCoverage setSumOfCoveredLines(Integer sumOfCoveredLines);
 
-    String getProjectName();
+	Integer getTotalCoverableLines();
 
-    BuildCoverage setProjectName(String projectName);
+	BuildCoverage setTotalCoverableLines(Integer totalCoverableLines);
 
-    List<FileCoverage> getFileCoverageList();
+	String getProjectName();
 
-    BuildCoverage setFileCoverageList(List<FileCoverage> fileCoverageList);
+	BuildCoverage setProjectName(String projectName);
 
-    BuildCoverage mergeSonarCoverageReport(JsonNode report);
-
+	BuildCoverage mergeSonarCoverageReport(JsonNode report);
 }

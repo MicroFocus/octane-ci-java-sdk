@@ -114,12 +114,12 @@ public final class OctaneSDK {
 		return restService;
 	}
 
-	public SonarService getSonarService() {
-		return sonarService;
-	}
-
 	public TasksProcessor getTasksProcessor() {
 		return tasksProcessor;
+	}
+
+	public SonarService getSonarService() {
+		return sonarService;
 	}
 
 	public ConfigurationService getConfigurationService() {

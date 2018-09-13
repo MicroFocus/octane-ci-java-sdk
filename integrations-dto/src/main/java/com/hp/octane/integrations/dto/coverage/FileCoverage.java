@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.dto.coverage;
@@ -24,15 +23,15 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface FileCoverage extends DTOBase {
 
-    String getPath();
+	String getPath();
 
-    FileCoverage setPath(String path);
+	FileCoverage setPath(String path);
 
-    Integer getSumOfCoveredLines();
+	Integer getSumOfCoveredLines();
 
-    FileCoverage setSumOfCoveredLines(Integer sumOfCoveredLines);
+	FileCoverage setSumOfCoveredLines(Integer sumOfCoveredLines);
 
-    Integer getTotalCoverableLines();
+	Integer getTotalCoverableLines();
 
-    FileCoverage setTotalCoverableLines(Integer totalCodeLinesInFile);
+	FileCoverage setTotalCoverableLines(Integer totalCodeLinesInFile);
 }

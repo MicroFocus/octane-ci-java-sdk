@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.dto.coverage.impl;
@@ -29,98 +28,89 @@ import java.util.List;
  * BuildCoverage DTO implementation.
  */
 
-
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BuildCoverageImpl implements BuildCoverage {
+	private List<FileCoverage> fileCoverageList = new ArrayList<>();
+	private Integer sumOfCoveredLines;
+	private Integer totalCoverableLines;
+	private String projectName;
 
-    private List<FileCoverage> fileCoverageList;
-    private Integer sumOfCoveredLines;
-    private Integer totalCoverableLines;
-    private String projectName;
+	public List<FileCoverage> getFileCoverageList() {
+		return fileCoverageList;
+	}
 
-    public BuildCoverageImpl() {
-        fileCoverageList = new ArrayList<>();
-    }
+	public BuildCoverage setFileCoverageList(List<FileCoverage> fileCoverageList) {
+		this.fileCoverageList = fileCoverageList;
+		return this;
+	}
 
-    public Integer getSumOfCoveredLines() {
-        return sumOfCoveredLines;
-    }
+	public Integer getSumOfCoveredLines() {
+		return sumOfCoveredLines;
+	}
 
-    public BuildCoverage setSumOfCoveredLines(Integer sumOfCoveredLines) {
-        this.sumOfCoveredLines = sumOfCoveredLines;
-        return this;
-    }
+	public BuildCoverage setSumOfCoveredLines(Integer sumOfCoveredLines) {
+		this.sumOfCoveredLines = sumOfCoveredLines;
+		return this;
+	}
 
-    public Integer getTotalCoverableLines() {
-        return totalCoverableLines;
-    }
+	public Integer getTotalCoverableLines() {
+		return totalCoverableLines;
+	}
 
-    public BuildCoverage setTotalCoverableLines(Integer totalCoverableLines) {
-        this.totalCoverableLines = totalCoverableLines;
-        return this;
-    }
+	public BuildCoverage setTotalCoverableLines(Integer totalCoverableLines) {
+		this.totalCoverableLines = totalCoverableLines;
+		return this;
+	}
 
-    public String getProjectName() {
-        return projectName;
-    }
+	public String getProjectName() {
+		return projectName;
+	}
 
-    public BuildCoverage setProjectName(String projectName) {
-        this.projectName = projectName;
-        return this;
-    }
+	public BuildCoverage setProjectName(String projectName) {
+		this.projectName = projectName;
+		return this;
+	}
 
+	public BuildCoverage mergeSonarCoverageReport(JsonNode jsonReport) {
+		if (projectName == null) {
+			JsonNode baseComponentJson = jsonReport.get("baseComponent");
+			projectName = baseComponentJson.get("name").textValue();
+			//add measures
+			JsonNode measuresArray = baseComponentJson.get("measures");
+			totalCoverableLines = getIntegerValueFromMeasuresArray("lines_to_cover", measuresArray);
+			Integer uncoveredLines = getIntegerValueFromMeasuresArray("uncovered_lines", measuresArray);
+			sumOfCoveredLines = totalCoverableLines - uncoveredLines;
+		}
 
-    public List<FileCoverage> getFileCoverageList() {
-        return fileCoverageList;
-    }
+		ArrayNode componentsArray = (ArrayNode) jsonReport.get("components");
+		for (JsonNode component : componentsArray) {
+			FileCoverage fileCoverage = getFileCoverageFromJson(component);
+			fileCoverageList.add(fileCoverage);
+		}
 
-    public BuildCoverage setFileCoverageList(List<FileCoverage> fileCoverageList) {
-        this.fileCoverageList = fileCoverageList;
-        return this;
-    }
+		return this;
+	}
 
-    public BuildCoverage mergeSonarCoverageReport(JsonNode jsonReport) {
-        if (this.projectName == null) {
+	private FileCoverage getFileCoverageFromJson(JsonNode fileComponent) {
+		Integer uncoveredLines;
+		Integer linesToCover;
 
-            JsonNode baseComponentJson = jsonReport.get("baseComponent");
-            this.projectName = baseComponentJson.get("name").textValue();
-            //add measures
-            JsonNode measuresArray = baseComponentJson.get("measures");
-            this.totalCoverableLines = getIntegerValueFromMeasuresArray("lines_to_cover", measuresArray);
-            Integer uncoveredLines = getIntegerValueFromMeasuresArray("uncovered_lines", measuresArray);
-            this.sumOfCoveredLines = this.totalCoverableLines - uncoveredLines;
+		JsonNode measuresArray = fileComponent.get("measures");
+		linesToCover = getIntegerValueFromMeasuresArray("lines_to_cover", measuresArray);
+		uncoveredLines = getIntegerValueFromMeasuresArray("uncovered_lines", measuresArray);
 
-        }
-        ArrayNode componentsArray = (ArrayNode) jsonReport.get("components");
-        for (JsonNode component : componentsArray) {
-            FileCoverage fileCoverage = getFileCoverageFromJson(component);
-            this.fileCoverageList.add(fileCoverage);
-        }
+		return new FileCoverageImpl()
+				.setPath(fileComponent.get("path").textValue())
+				.setSumOfCoveredLines(linesToCover - uncoveredLines)
+				.setTotalCoverableLines(linesToCover);
+	}
 
-        return this;
-
-    }
-
-    private FileCoverage getFileCoverageFromJson(JsonNode fileComponent) {
-        Integer uncoveredLines = 0;
-        Integer linesToCover = 0;
-
-        JsonNode measuresArray = fileComponent.get("measures");
-        linesToCover = getIntegerValueFromMeasuresArray("lines_to_cover", measuresArray);
-        uncoveredLines = getIntegerValueFromMeasuresArray("uncovered_lines", measuresArray);
-
-        return new FileCoverageImpl()
-                .setPath(fileComponent.get("path").textValue())
-                .setSumOfCoveredLines(linesToCover - uncoveredLines)
-                .setTotalCoverableLines(linesToCover);
-    }
-
-    private Integer getIntegerValueFromMeasuresArray(String metric, JsonNode measures) {
-        for (JsonNode measure : measures) {
-            if (measure.get("metric").textValue().equals(metric)) {
-                return Integer.parseInt(measure.get("value").textValue());
-            }
-        }
-        return 0;
-    }
+	private Integer getIntegerValueFromMeasuresArray(String metric, JsonNode measures) {
+		for (JsonNode measure : measures) {
+			if (measure.get("metric").textValue().equals(metric)) {
+				return Integer.parseInt(measure.get("value").textValue());
+			}
+		}
+		return 0;
+	}
 }

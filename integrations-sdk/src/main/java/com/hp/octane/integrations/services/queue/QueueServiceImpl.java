@@ -1,3 +1,18 @@
+/*
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
+
 package com.hp.octane.integrations.services.queue;
 
 import com.hp.octane.integrations.OctaneSDK;
@@ -11,9 +26,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Queue Service provides a common queue infrastructure, initialization and maintenance
@@ -77,28 +89,4 @@ public final class QueueServiceImpl extends OctaneSDK.SDKServiceBase implements 
 			CIPluginSDKUtils.getObjectMapper().writeValue(outputStream, t);
 		}
 	}
-
-	public  ExecutorService getNewPushWorker(String name){
-		return Executors.newSingleThreadExecutor(new PushWorkerThreadFactory(name));
-	}
-
-	private static final class PushWorkerThreadFactory implements ThreadFactory {
-
-		private String name;
-
-		PushWorkerThreadFactory(String name){
-			super();
-			this.name = name;
-		}
-
-
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread result = new Thread(runnable);
-			result.setName(this.name + result.getId());
-			result.setDaemon(true);
-			return result;
-		}
-	}
-
 }
