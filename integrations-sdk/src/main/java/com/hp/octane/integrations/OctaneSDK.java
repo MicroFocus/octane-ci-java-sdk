@@ -142,7 +142,13 @@ public final class OctaneSDK {
 		}
 	}
 
-	synchronized static OctaneClient removeClient(OctaneClient client) {
+	/**
+	 * removes client while shutting down all of its services
+	 *
+	 * @param client client to be shut down and removed
+	 * @return invalidated client
+	 */
+	synchronized public static OctaneClient removeClient(OctaneClient client) {
 		if (client == null) {
 			throw new IllegalArgumentException("client MUST NOT be null");
 		}

@@ -81,14 +81,13 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 		if (sharedSpaceId == null || sharedSpaceId.isEmpty()) {
 			throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
 		}
-		if (!serverSimulators.containsKey(sharedSpaceId)) {
-			throw new IllegalStateException("no simulator by ID '" + sharedSpaceId + "' found");
-		}
 
 		Handler ossAsHandler = serverSimulators.get(sharedSpaceId);
-		ossAsHandler.destroy();
-		handlers.removeHandler(ossAsHandler);
-		serverSimulators.remove(sharedSpaceId);
+		if (ossAsHandler != null) {
+			ossAsHandler.destroy();
+			handlers.removeHandler(ossAsHandler);
+			serverSimulators.remove(sharedSpaceId);
+		}
 	}
 
 	/**
