@@ -24,15 +24,22 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -44,156 +51,309 @@ import static com.hp.octane.integrations.api.RestService.*;
  */
 
 public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase implements VulnerabilitiesService {
-	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
+    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private final ExecutorService worker = Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory());
-	private final RestService restService;
+    private final ExecutorService worker = Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory());
+    private final RestService restService;
+    private static final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
 
-	private static List<VulnerabilitiesQueueEntry> buildList = Collections.synchronizedList(new LinkedList<VulnerabilitiesQueueEntry>());
-	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
-	private int LIST_EMPTY_INTERVAL = 3000;
+    private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 
-	public VulnerabilitiesServiceImpl(Object internalUsageValidator, RestService restService) {
-		super(internalUsageValidator);
+    private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
+    private int LIST_EMPTY_INTERVAL = 10000;
+    private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
+    private Long TIME_OUT_FOR_QUEUE_ITEM = 3 * 60 * 60 * 1000L; //3 hours
+    private volatile Long actualTimeout = 3 * 60 * 60 * 1000L;
+    ;
 
-		if (restService == null) {
-			throw new IllegalArgumentException("rest service MUST NOT be null");
-		}
+    public VulnerabilitiesServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {
+        super(internalUsageValidator);
 
-		this.restService = restService;
+        if (restService == null) {
+            throw new IllegalArgumentException("rest service MUST NOT be null");
+        }
+        if (queueService == null) {
+            throw new IllegalArgumentException("queue Service MUST NOT be null");
+        }
 
-		logger.info("starting background worker...");
-		startBackgroundWorker();
-		logger.info("initialized SUCCESSFULLY");
-	}
+        if (queueService.isPersistenceEnabled()) {
+            vulnerabilitiesQueue = queueService.initFileQueue(VULNERABILITIES_QUEUE_FILE, VulnerabilitiesQueueItem.class);
+        } else {
+            vulnerabilitiesQueue = queueService.initMemoQueue();
+        }
+
+        this.restService = restService;
+
+        logger.info("starting background worker...");
+        startBackgroundWorker();
+        logger.info("initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
+    }
 
 
-	@Override
-	public OctaneResponse pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
-		if (vulnerabilities == null) {
-			throw new IllegalArgumentException("tests result MUST NOT be null");
-		}
+    private void pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
+        if (vulnerabilities == null) {
+            throw new PermanentException("tests result MUST NOT be null");
+        }
+        if (buildId == null || buildId.isEmpty()) {
+            throw new PermanentException("build CI ID MUST NOT be null nor empty");
+        }
+        if (jobId == null || jobId.isEmpty()) {
+            throw new PermanentException("job CI ID MUST NOT be null nor empty");
+        }
+        RestClient restClient = restService.obtainClient();
+        Map<String, String> headers = new HashMap<>();
+        headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+        String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+        String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
+        OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+                .setMethod(HttpMethod.POST)
+                .setUrl(getVulnerabilitiesContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
+                        "?instance-id='" + pluginServices.getServerInfo().getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'")
+                .setHeaders(headers)
+                .setBody(vulnerabilities);
+        OctaneResponse response = restClient.execute(request);
+        logger.info("vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
+        if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+            logger.info("vulnerabilities push SUCCEED" + jobId + "/" + buildId + " was removed from vulnerabilities queue");
+        } else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+            throw new TemporaryException("\"vulnerabilities push FAILED, service unavailable");
+        } else {
+            throw new PermanentException("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
+        }
+    }
 
-		RestClient restClient = restService.obtainClient();
-		Map<String, String> headers = new HashMap<>();
-		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.POST)
-				.setUrl(getVulnerabilitiesContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'")
-				.setHeaders(headers)
-				.setBody(vulnerabilities);
-		OctaneResponse response = restClient.execute(request);
-		logger.info("vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
-		return response;
-	}
+    @Override
+    public void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
+                                                      String projectName, String projectVersion,
+                                                      long startRunTime) {
+        VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
+        vulnerabilitiesQueueItem.projectName = projectName;
+        vulnerabilitiesQueueItem.projectVersionSymbol = projectVersion;
+        vulnerabilitiesQueueItem.startTime = startRunTime;
+        vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
+        updateTimeout();
+        logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was added to vulnerabilities queue");
+    }
 
-	@Override
-	public void enqueuePushVulnerabilitiesScanResult(String jobCiId, String buildCiId) {
-		buildList.add(new VulnerabilitiesQueueEntry(jobCiId, buildCiId));
-	}
+    private void updateTimeout() {
+        long timeoutConfig = pluginServices.getServerInfo().getMaxPollingTimeoutHours();
+        if (timeoutConfig <= 0) {
+            actualTimeout = TIME_OUT_FOR_QUEUE_ITEM;
+        } else {
+            actualTimeout = timeoutConfig * 60 * 60 * 1000;
+        }
+    }
 
-	@Override
-	public boolean isVulnerabilitiesRelevant( String jobId, String buildId) throws IOException {
-		if (buildId == null || buildId.isEmpty()) {
-			throw new IllegalArgumentException("build CI ID MUST NOT be null nor empty");
-		}
-		if (jobId == null || jobId.isEmpty()) {
-			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
-		}
 
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"?instance-id='"+pluginServices.getServerInfo().getInstanceId()+"'&job-ci-id='"+jobId+"'&build-ci-id='"+buildId+"'");
+    private void preflightRequest(String jobId, String buildId) throws IOException {
+        if (buildId == null || buildId.isEmpty()) {
+            throw new PermanentException("build CI ID MUST NOT be null nor empty");
+        }
+        if (jobId == null || jobId.isEmpty()) {
+            throw new PermanentException("job CI ID MUST NOT be null nor empty");
+        }
 
-		OctaneResponse response = restService.obtainClient().execute(preflightRequest);
-		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
-	}
-	//  TODO: implement retries counter per item and strategy of discard
-	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
-	//  this should be infallible everlasting worker
-	private void startBackgroundWorker() {
-		worker.execute(new Runnable() {
-			public void run() {
-				while (true) {
-					if (!buildList.isEmpty()) {
-						try {
-							VulnerabilitiesQueueEntry vulnerabilitiesQueueEntry = buildList.get(0);
-							InputStream vulnerabilitiesStream = pluginServices.getVulnerabilitiesScanResultStream(vulnerabilitiesQueueEntry.jobId, vulnerabilitiesQueueEntry.buildId);
-							OctaneResponse response = pushVulnerabilities(vulnerabilitiesStream,vulnerabilitiesQueueEntry.jobId, vulnerabilitiesQueueEntry.buildId);
-							if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-								logger.info("vulnerabilities push SUCCEED");
-								buildList.remove(0);
-							} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-								logger.info("vulnerabilities push FAILED, service unavailable; retrying after a breathe...");
-								breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-							} else {
-								//  case of any other fatal error
-								logger.error("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n"+response.getBody());
-								buildList.remove(0);
-							}
+        String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+        String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 
-						} catch (IOException e) {
-							logger.error("vulnerabilities push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
-							breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-						} catch (Throwable t) {
-							logger.error("vulnerabilities push failed; dropping this item from the queue ", t);
-							buildList.remove(0);
-						}
-					} else {
-						breathe(LIST_EMPTY_INTERVAL);
-					}
-				}
-			}
-		});
-	}
+        OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
+                .setMethod(HttpMethod.GET)
+                .setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
+                        "?instance-id='" + pluginServices.getServerInfo().getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'");
 
-	//  TODO: turn to be breakable wait with timeout and notifier
-	private void breathe(int period) {
-		try {
-			Thread.sleep(period);
-		} catch (InterruptedException ie) {
-			logger.error("interrupted while breathing", ie);
-		}
-	}
+        OctaneResponse response = restService.obtainClient().execute(preflightRequest);
+        if (response.getStatus() == HttpStatus.SC_OK) {
+            if (String.valueOf(true).equals(response.getBody())) {
+                logger.info("vulnerabilities preflightRequest SUCCEED");
+                return;
+            } else {
+                throw new PermanentException("vulnerabilities preflightRequest is not relevant to any workspace in Octane");
+            }
+        }
+        if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+            throw new TemporaryException("vulnerabilities preflightRequest FAILED, service unavailable");
+        } else {
+            throw new PermanentException("vulnerabilities preflightRequest FAILED with " + response.getStatus() + "");
+        }
+    }
 
-	private String getVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + SHARED_SPACE_API_PATH_PART + sharedSpaceId + VULNERABILITIES;
-	}
+    //  TODO: implement retries counter per item and strategy of discard
+    //  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
+    //  TODO: consider moving the overall queue managing logic to some generic location
+    //  this should be infallible everlasting worker
+    private void startBackgroundWorker() {
+        worker.execute(new Runnable() {
+            public void run() {
+                while (true) {
+                    if (vulnerabilitiesQueue.size() > 0) {
+                        VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem = null;
+                        try {
+                            vulnerabilitiesQueueItem = vulnerabilitiesQueue.peek();
+                            if (processPushVulnerabilitiesQueueItem(vulnerabilitiesQueueItem)) {
+                                vulnerabilitiesQueue.remove();
+                            } else {
+                                reEnqueueItem(vulnerabilitiesQueueItem);
+                            }
+                        } catch (TemporaryException tque) {
+                            logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+                            reEnqueueItem(vulnerabilitiesQueueItem);
+                            breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+                        } catch (PermanentException pqie) {
+                            logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
+                            vulnerabilitiesQueue.remove();
+                        } catch (Throwable t) {
+                            logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
+                            vulnerabilitiesQueue.remove();
+                        }
+                    } else {
+                        breathe(LIST_EMPTY_INTERVAL);
+                    }
+                }
+            }
 
-	private String getVulnerabilitiesPreFlightContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + SHARED_SPACE_API_PATH_PART + sharedSpaceId + VULNERABILITIES_PRE_FLIGHT;
-	}
+            private boolean processPushVulnerabilitiesQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+                try {
+                    //if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
+                    if (!vulnerabilitiesQueueItem.isRelevant) {
+                        preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+                        vulnerabilitiesQueueItem.isRelevant = true;
+                    }
+                    InputStream vulnerabilitiesStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem);
+                    if (vulnerabilitiesStream == null) {
+                        return false;
+                    } else {
+                        pushVulnerabilities(vulnerabilitiesStream, vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+                        return true;
+                    }
+                } catch (IOException e) {
+                    throw new PermanentException(e);
+                }
+            }
 
-	private static final class VulnerabilitiesQueueEntry implements QueueService.QueueItem {
-		private String jobId;
-		private String buildId;
+            private void reEnqueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+                Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.startTime;
+                vulnerabilitiesQueue.remove();
+                if (timePass < actualTimeout) {
+                    vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
+                } else {
+                    logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was removed from queue after timeout in queue is over");
+                }
+                breathe(SKIP_QUEUE_ITEM_INTERVAL);
+            }
+        });
+    }
 
-		//  [YG] this constructor MUST be present
-		private VulnerabilitiesQueueEntry() {
-		}
+    private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+        String targetDir = getTargetDir(vulnerabilitiesQueueItem);
+        InputStream result = getCachedScanResult(targetDir);
+        if (result != null) {
+            return result;
+        }
+        SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, this.pluginServices.getServerInfo().getSSCURL(),
+                this.pluginServices.getServerInfo().getSSCBaseAuthToken(),
+                targetDir,
+                this.restService.obtainSSCClient()
+        );
+        return sscHandler.getLatestScan();
+    }
 
-		private VulnerabilitiesQueueEntry(String jobId, String buildId) {
-			this.jobId = jobId;
-			this.buildId = buildId;
-		}
+    private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+        File allowedOctaneStorage = this.pluginServices.getAllowedOctaneStorage();
+        if (allowedOctaneStorage == null) {
+            logger.info("Issues of :" + vulnerabilitiesQueueItem.jobId + "," + vulnerabilitiesQueueItem.buildId + " cannot be cached in the file system.");
+            return null;
+        }
+        return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
+    }
 
-		@Override
-		public String toString() {
-			return "'" + jobId + " #" + buildId + "'";
-		}
-	}
+    private InputStream getCachedScanResult(String runRootDir) {
+        if (runRootDir == null) {
+            return null;
+        }
+        InputStream result = null;
+        String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
+        File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
+        if (!vulnerabilitiesScanFile.exists()) {
+            return null;
+        }
+        try {
+            result = new FileInputStream(vulnerabilitiesScanFilePath);
+        } catch (IOException ioe) {
+            logger.error("failed to obtain  vulnerabilities Scan File in " + runRootDir);
+        }
+        return result;
+    }
 
-	private static final class VulnerabilitiesPushWorkerThreadFactory implements ThreadFactory {
+    public static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
+        public String jobId;
+        public String buildId;
+        public String projectName;
+        public String projectVersionSymbol;
+        public Long startTime;
+        public boolean isRelevant = false;
 
-		@Override
-		public Thread newThread(Runnable runnable) {
-			Thread result = new Thread(runnable);
-			result.setName("VulnerabilitiesPushWorker-" + result.getId());
-			result.setDaemon(true);
-			return result;
-		}
-	}
+
+        //  [YG] this constructor MUST be present, don't remove
+        private VulnerabilitiesQueueItem() {
+        }
+
+        private VulnerabilitiesQueueItem(String jobId, String buildId) {
+            this.jobId = jobId;
+            this.buildId = buildId;
+        }
+
+        @Override
+        public String toString() {
+            return "'" + jobId + " #" + buildId + "'";
+        }
+    }
+
+
+    //  TODO: turn to be breakable wait with timeout and notifier
+    private void breathe(int period) {
+        try {
+            Thread.sleep(period);
+        } catch (InterruptedException ie) {
+            logger.error("interrupted while breathing", ie);
+        }
+    }
+
+    private String getVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {
+        return octaneBaseUrl + SHARED_SPACE_API_PATH_PART + sharedSpaceId + VULNERABILITIES;
+    }
+
+    private String getVulnerabilitiesPreFlightContextPath(String octaneBaseUrl, String sharedSpaceId) {
+        return octaneBaseUrl + SHARED_SPACE_API_PATH_PART + sharedSpaceId + VULNERABILITIES_PRE_FLIGHT;
+    }
+
+    private static final class VulnerabilitiesQueueEntry implements QueueService.QueueItem {
+        private String jobId;
+        private String buildId;
+
+        //  [YG] this constructor MUST be present
+        private VulnerabilitiesQueueEntry() {
+        }
+
+        private VulnerabilitiesQueueEntry(String jobId, String buildId) {
+            this.jobId = jobId;
+            this.buildId = buildId;
+        }
+
+        @Override
+        public String toString() {
+            return "'" + jobId + " #" + buildId + "'";
+        }
+    }
+
+    private static final class VulnerabilitiesPushWorkerThreadFactory implements ThreadFactory {
+
+        @Override
+        public Thread newThread(Runnable runnable) {
+            Thread result = new Thread(runnable);
+            result.setName("VulnerabilitiesPushWorker-" + result.getId());
+            result.setDaemon(true);
+            return result;
+        }
+    }
 }
