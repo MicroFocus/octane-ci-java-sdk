@@ -195,11 +195,11 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 							if(processPushVulnerabilitiesQueueItem(vulnerabilitiesQueueItem)){
 									vulnerabilitiesQueue.remove();
 							}else{
-								ReEnqueueItem(vulnerabilitiesQueueItem);
+								reEnqueueItem(vulnerabilitiesQueueItem);
 							}
 						} catch (TemporaryException tque) {
 							logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
-							ReEnqueueItem(vulnerabilitiesQueueItem);
+							reEnqueueItem(vulnerabilitiesQueueItem);
 							breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
 						} catch (PermanentException pqie) {
 							logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
@@ -233,7 +233,7 @@ public final class VulnerabilitiesServiceImpl extends OctaneSDK.SDKServiceBase i
 				}
 			}
 
-			private void ReEnqueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+			private void reEnqueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 				Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.startTime;
 				vulnerabilitiesQueue.remove();
 				if(timePass < actualTimout) {

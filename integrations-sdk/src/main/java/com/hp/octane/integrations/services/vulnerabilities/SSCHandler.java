@@ -7,12 +7,11 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.*;
+import com.hp.octane.integrations.util.SdkStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -109,10 +108,10 @@ public class SSCHandler {
         this.targetDir = targetDir;
         this.runStartTime = vulnerabilitiesQueueItem.startTime;
 
-        if(StringUtils.isNullOrEmpty(sscFortifyConfigurations.baseToken)||
-                StringUtils.isNullOrEmpty(sscFortifyConfigurations.projectName)||
-                StringUtils.isNullOrEmpty(sscFortifyConfigurations.projectVersion)||
-                StringUtils.isNullOrEmpty(sscFortifyConfigurations.serverURL)){
+        if(SdkStringUtils.isEmpty(sscFortifyConfigurations.baseToken)||
+                SdkStringUtils.isEmpty(sscFortifyConfigurations.projectName)||
+                SdkStringUtils.isEmpty(sscFortifyConfigurations.projectVersion)||
+                SdkStringUtils.isEmpty(sscFortifyConfigurations.serverURL)){
             throw new PermanentException("missing one of the SSC configuration fields (baseToken\\project\\version\\serverUrl) will not continue connecting to the server");
         }else {
             sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClient);
@@ -217,16 +216,16 @@ public class SSCHandler {
     private void setOctaneStatus(DTOFactory dtoFactory, Issues.Issue issue, OctaneIssue octaneIssue) {
         if (issue.scanStatus != null) {
             String listNodeId = null;
-            if(issue.scanStatus.toLowerCase().equalsIgnoreCase("updated")) {
+            if(issue.scanStatus.equalsIgnoreCase("updated")) {
                 listNodeId = "list_node.issue_state_node.existing";
             }
-            else if(issue.scanStatus.toLowerCase().equalsIgnoreCase("new")) {
+            else if(issue.scanStatus.equalsIgnoreCase("new")) {
                 listNodeId = "list_node.issue_state_node.new";
             }
-            else if(issue.scanStatus.toLowerCase().equalsIgnoreCase("REINTRODUCED")) {
+            else if(issue.scanStatus.equalsIgnoreCase("REINTRODUCED")) {
                 listNodeId = "list_node.issue_state_node.reopen";
             }
-            else if(issue.scanStatus.toLowerCase().equalsIgnoreCase("REMOVED")) {
+            else if(issue.scanStatus.equalsIgnoreCase("REMOVED")) {
                 listNodeId = "list_node.issue_state_node.closed";
             }
             if (isLegalOctaneState(listNodeId)) {
@@ -286,130 +285,6 @@ public class SSCHandler {
             return null;
         }
         return dtoFactory.newDTO(Entity.class).setType("list_node").setId(id);
-    }
-
-
-    private void saveReport() {
-
-        String vulnerabilitiesScanFilePath = new File(this.targetDir, SCAN_RESULT_FILE).getPath();
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime());
-        System.out.println(timeStamp+" : working on : "+vulnerabilitiesScanFilePath);
-        try {
-            Thread.sleep(10000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        String yamin = getYaminVul();
-        try (PrintWriter out = new PrintWriter(vulnerabilitiesScanFilePath)) {
-//            out.write(yamin);
-            out.write(getVulString());
-
-            out.flush();
-            out.close();
-//        } catch (com.hp.mqm.client.exception.FileNotFoundException e) {
-//            e.printStackTrace();
-        } catch (java.io.FileNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String getYaminVul() {
-        return "{\n" +
-                "\t\"data\": [{\n" +
-                "\t\t\"primary_location_full\": \"hellow.java\",\n" +
-                "\t\t\"line\": 5,\n" +
-                "\t\t\"analysis\": {\n" +
-                "\t\t\t\"id\": \"list_node.issue_analysis_node.reviewed\",\n" +
-                "\t\t\t\"type\": \"list_node\"\n" +
-                "\t\t},\n" +
-                "\t\t\"state\": {\n" +
-                "\t\t\t\"id\": \"list_node.issue_state_node.new\",\n" +
-                "\t\t\t\"type\": \"list_node\"\n" +
-                "\t\t},\n" +
-                "\t\t\"severity\": {\n" +
-                "\t\t\t\"id\": \"list_node.severity.medium\",\n" +
-                "\t\t\t\"type\": \"list_node\"\n" +
-                "\t\t},\n" +
-                "\t\t\"remote_id\": \"98F2CC18089300065BC94822FC4AD02B\",\n" +
-                "\t\t\"introduced_date\": \"2017-02-12T12:31:44.000+0000\",\n" +
-                "\t\t\"external_link\": \"http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/8/issues/2743\",\n" +
-                "\t\t\"extended_data\": {\n" +
-                "\t\t\t\"issueName\": \"J2EE Bad Practices: Leftover Debug Code\",\n" +
-                "\t\t\t\"likelihood\": \"0.8\",\n" +
-                "\t\t\t\"impact\": \"2.0\",\n" +
-                "\t\t\t\"confidence\": \"5.0\",\n" +
-                "\t\t\t\"kingdom\": \"Encapsulation\",\n" +
-                "\t\t\t\"removedDate\": null\n" +
-                "\t\t},\n" +
-                "\t\t\"tool_name\": \"external tool\"\n" +
-                "\t},\n" +
-                "\t{\n" +
-                "\t\t\"primary_location_full\": \"hellow.java\",\n" +
-                "\t\t\"line\": 6,\n" +
-                "\t\t\"analysis\": {\n" +
-                "\t\t\t\"id\": \"list_node.issue_analysis_node.reviewed\",\n" +
-                "\t\t\t\"type\": \"list_node\"\n" +
-                "\t\t},\n" +
-                "\t\t\"state\": {\n" +
-                "\t\t\t\"id\": \"list_node.issue_state_node.new\",\n" +
-                "\t\t\t\"type\": \"list_node\"\n" +
-                "\t\t},\n" +
-                "\t\t\"severity\": {\n" +
-                "\t\t\t\"id\": \"list_node.severity.medium\",\n" +
-                "\t\t\t\"type\": \"list_node\"\n" +
-                "\t\t},\n" +
-                "\t\t\"remote_id\": \"9793D70459978170AD8DF473412298C2\",\n" +
-                "\t\t\"introduced_date\": \"2017-02-12T12:31:44.000+0000\",\n" +
-                "\t\t\"external_link\": \"http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/8/issues/2742\",\n" +
-                "\t\t\"extended_data\": {\n" +
-                "\t\t\t\"issueName\": \"Poor Logging Practice: Use of a System Output Stream\",\n" +
-                "\t\t\t\"likelihood\": \"1.0\",\n" +
-                "\t\t\t\"impact\": \"1.0\",\n" +
-                "\t\t\t\"confidence\": \"5.0\",\n" +
-                "\t\t\t\"kingdom\": \"Encapsulation\",\n" +
-                "\t\t\t\"removedDate\": null\n" +
-                "\t\t},\n" +
-                "\t\t\"tool_name\": \"external tool\"\n" +
-                "\t}]\n" +
-                "}";
-    }
-
-    private String getVulString() {
-        return "{\n" +
-                "  \"data\": [\n" +
-                "    {\n" +
-                "      \"severity\": {        \"type\": \"list_node\",        \"id\": \"list_node.severity.low\"      },\n" +
-                "      \"package\": \"hp.com\",\n" +
-                "      \"line\": 10,\n" +
-                "      \"remote_id\": \"10341\",\n" +
-                "      \"primary_location_full\": null,\n" +
-                "      \"introduced_date\": \"2018-06-03T14:06:58Z\",\n" +
-                "      \"owner_email\":\"daniel.shmaya@hpe.com\",\n" +
-                "      \"state\": {        \"type\": \"list_node\",        \"id\": \"list_node.issue_state_node.closed\"      },\n" +
-                "      \"tool_type\": {        \"type\": \"list_node\",        \"id\": \"list_node.securityTool.fod\"      },\n" +
-                "      \"tool_name\": \"external tool\",\n" +
-                "      \"external_link\":\"some url here\",\n" +
-                "       \"analysis\": {        \"type\": \"list_node\",        \"id\": \"list_node.issue_analysis_node.maybe_an_issue\"      },\n" +
-                "       \"extended_data\" : {\"key\":\"value\",\"key\":\"value\"},\n" +
-                "      \"category\": \"category\"\n" +
-                "    }, {\n" +
-                "      \"severity\": {        \"type\": \"list_node\",        \"id\": \"list_node.severity.high\"      },\n" +
-                "      \"package\": \"hp.com.com\",\n" +
-                "      \"line\": 11,\n" +
-                "      \"remote_id\": \"10321\",\n" +
-                "      \"primary_location_full\": \"entities-factory.html\",\n" +
-                "      \"introduced_date\": \"2018-06-03T14:06:58Z\",\n" +
-                "      \"owner_email\":\"sa@nga\",\n" +
-                "      \"state\": {        \"type\": \"list_node\",        \"id\": \"list_node.issue_state_node.new\"      },\n" +
-                "      \"tool_type\": {        \"type\": \"list_node\",        \"id\": \"list_node.securityTool.fod\"      },\n" +
-                "      \"tool_name\": \"external too 2\",\n" +
-                "      \"external_link\":\"some url here 2\",\n" +
-                "       \"analysis\": {        \"type\": \"list_node\",        \"id\": \"list_node.issue_analysis_node.reviewed\"      },\n" +
-                "       \"extended_data\" : {\"key1\":\"value1\",\"key2\":\"value2\"},\n" +
-                "      \"category\": \"category 2\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}";
     }
 }
 

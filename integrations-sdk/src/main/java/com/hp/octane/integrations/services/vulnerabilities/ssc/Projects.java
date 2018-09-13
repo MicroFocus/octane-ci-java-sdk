@@ -11,8 +11,8 @@ public class Projects extends SscBaseEntityArray<Projects.Project> {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Project {
         @JsonProperty("id")
-        Integer id;
+        public Integer id;
         @JsonProperty("name")
-        String name;
+        public String name;
     }
 }

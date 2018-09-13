@@ -17,7 +17,6 @@
 package com.hp.octane.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 /**
@@ -34,9 +33,9 @@ class CIServerInfoImpl implements CIServerInfo {
 	private Long instanceIdFrom;
 	private String impersonatedUser;
 	private Long sendingTime = System.currentTimeMillis();
-	volatile String sscURL;
-	volatile String sscBaseAuthToken;
-	volatile long maxPollingTimeoutHours;
+	private volatile String sscURL;
+	private volatile String sscBaseAuthToken;
+	private volatile long maxPollingTimeoutHours;
 
 	public CIServerInfoImpl() {
 	}
