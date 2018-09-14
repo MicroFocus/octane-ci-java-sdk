@@ -38,4 +38,9 @@ public interface OctaneRestClient {
 	 * @throws IOException exception during connectivity or (de)serialization
 	 */
 	OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) throws IOException;
+
+	/**
+	 * Shuts down the REST client
+	 */
+	void shutdown();
 }

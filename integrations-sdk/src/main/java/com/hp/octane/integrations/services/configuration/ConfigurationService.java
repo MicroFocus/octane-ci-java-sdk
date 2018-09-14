@@ -46,6 +46,11 @@ public interface ConfigurationService {
 	OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
 
 	/**
+	 * Check if current configuration is valid
+	 */
+	boolean isConfigurationValid();
+
+	/**
 	 * Tests connectivity to the Octane server with the supplied configuration
 	 *
 	 * @param configuration Octane configuration
@@ -53,11 +58,6 @@ public interface ConfigurationService {
 	 * @throws IOException in case of connection failure
 	 */
 	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
-
-	/**
-	 * Check if current configuration is valid
-	 */
-	boolean isConfigurationValid();
 
 	/**
 	 * Notify SDK upon Octane configuration change

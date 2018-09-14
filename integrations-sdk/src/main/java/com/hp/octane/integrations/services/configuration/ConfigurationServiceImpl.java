@@ -46,7 +46,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private static final String AUTHORIZATION_URI = "/analytics/ci/servers/connectivity/status";
+	private static final String CONNECTIVITY_STATUS_URL = "/analytics/ci/servers/connectivity/status";
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
 
@@ -111,6 +111,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 			OctaneResponse response = validateConfiguration(pluginServices.getOctaneConfiguration());
 			return response.getStatus() == HttpStatus.SC_OK;
 		} catch (Exception e) {
+			logger.error("failed to validate Octane server configuration, resolving isConfigurationValid to FALSE", e);
 			return false;
 		}
 	}
@@ -129,7 +130,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		OctaneRestClient octaneRestClientImpl = restService.createOctaneRestClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(configuration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + AUTHORIZATION_URI);
+				.setUrl(configuration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + CONNECTIVITY_STATUS_URL);
 		return octaneRestClientImpl.execute(request, configuration);
 	}
 

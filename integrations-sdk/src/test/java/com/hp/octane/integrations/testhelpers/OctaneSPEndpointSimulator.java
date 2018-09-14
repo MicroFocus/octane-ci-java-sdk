@@ -19,6 +19,7 @@ import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -44,11 +45,11 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 
 	//  simulator's factory static content
 	//
+	private static final int DEFAULT_PORT = 3333;
+	private static final Map<String, OctaneSPEndpointSimulator> serverSimulators = new LinkedHashMap<>();
 	private static Server server;
 	private static HandlerCollection handlers;
-	private static int DEFAULT_PORT = 3333;
 	private static Integer selectedPort;
-	private static final Map<String, OctaneSPEndpointSimulator> serverSimulators = new LinkedHashMap<>();
 
 	/**
 	 * Entry point to obtain Octane Server Simulator dedicated instance
@@ -115,12 +116,18 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	//  particular simulator instance's logic
 	//  each instance will add its own request handler (self), which will work in a specific shared space context
 	//
-	private final String sp;
+	private final String API_HANDLER_KEY_JOINER = " # ";
 	private final Pattern signInApiPattern = Pattern.compile("/authentication/sign_in");
 	private final Map<String, Consumer<Request>> apiHandlersRegistry = new LinkedHashMap<>();
+	private final String sp;
 
 	private OctaneSPEndpointSimulator(String sp) {
 		this.sp = sp;
+
+		//  install default API handlers
+		installNOOPTasksApiHandler();
+		installDefaultConnectivityStatusApiHandler();
+
 		handlers.addHandler(this);
 	}
 
@@ -148,9 +155,15 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 		}
 
 		apiHandlersRegistry.keySet().stream()
-				.filter(p -> Pattern.compile(p).matcher(s).matches())
+				.filter(apiHandlerKey -> {
+					String[] keyParts = apiHandlerKey.split(API_HANDLER_KEY_JOINER);
+					return request.getMethod().compareTo(keyParts[0]) == 0 && Pattern.compile(keyParts[1]).matcher(s).matches();
+				})
 				.findFirst()
-				.ifPresent(apiPattern -> apiHandlersRegistry.get(apiPattern).accept(request));
+				.ifPresent(apiPattern -> {
+					apiHandlersRegistry.get(apiPattern).accept(request);
+					request.setHandled(true);
+				});
 
 		if (!request.isHandled()) {
 			request.getResponse().setStatus(HttpStatus.SC_NOT_FOUND);
@@ -158,20 +171,28 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 		}
 	}
 
-	public void installApiHandler(String pattern, Consumer<Request> apiHandler) {
-		if (apiHandlersRegistry.containsKey(pattern)) {
-			logger.warn("api handler for '" + pattern + "' already installed and will be replaced");
+	public void installApiHandler(HttpMethod method, String pattern, Consumer<Request> apiHandler) {
+		String handlerKey = method + API_HANDLER_KEY_JOINER + pattern;
+		if (apiHandlersRegistry.containsKey(handlerKey)) {
+			logger.warn("api handler for '" + handlerKey + "' already installed and will be replaced");
 		}
-		apiHandlersRegistry.put(pattern, apiHandler);
+		apiHandlersRegistry.put(handlerKey, apiHandler);
 	}
 
-	public void removeApiHandler(String pattern) {
-		apiHandlersRegistry.remove(pattern);
+	public void removeApiHandler(HttpMethod method, String pattern) {
+		apiHandlersRegistry.remove(method + API_HANDLER_KEY_JOINER + pattern);
 	}
 
-	public void installNOOPTasksApiHandler(long waitPeriod) {
-		installApiHandler("^.*tasks$", request -> {
-			CIPluginSDKUtils.doWait(waitPeriod);
+	private void installDefaultConnectivityStatusApiHandler() {
+		installApiHandler(HttpMethod.GET, "^.*/analytics/ci/servers/connectivity/status$", request -> {
+			request.getResponse().setStatus(HttpStatus.SC_OK);
+			request.setHandled(true);
+		});
+	}
+
+	private void installNOOPTasksApiHandler() {
+		installApiHandler(HttpMethod.GET, "^.*tasks$", request -> {
+			CIPluginSDKUtils.doWait(3000);
 			request.getResponse().setStatus(HttpStatus.SC_NO_CONTENT);
 			request.setHandled(true);
 		});

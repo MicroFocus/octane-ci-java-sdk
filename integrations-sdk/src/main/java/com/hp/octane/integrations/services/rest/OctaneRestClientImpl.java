@@ -128,23 +128,38 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		httpClient = clientBuilder.build();
 	}
 
-	void notifyConfigurationChange() {
-		logger.info("going to abort " + ongoingRequests.size() + " request/s due to configuration change notification...");
-		synchronized (REQUESTS_LIST_LOCK) {
-			LWSSO_TOKEN = null;
-			for (HttpUriRequest request : ongoingRequests) {
-				logger.info("aborting " + request);
-				request.abort();
-			}
-		}
-	}
-
+	@Override
 	public OctaneResponse execute(OctaneRequest request) throws IOException {
 		return executeRequest(request, pluginServices.getOctaneConfiguration());
 	}
 
+	@Override
 	public OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
 		return executeRequest(request, configuration);
+	}
+
+	@Override
+	public void shutdown() {
+		logger.info("starting REST client shutdown sequence...");
+		abortAllRequests();
+		logger.info("closing the client...");
+		HttpClientUtils.closeQuietly(httpClient);
+		logger.info("REST client shutdown done");
+	}
+
+	void notifyConfigurationChange() {
+		abortAllRequests();
+	}
+
+	private void abortAllRequests() {
+		logger.info("aborting " + ongoingRequests.size() + " request/s...");
+		synchronized (REQUESTS_LIST_LOCK) {
+			LWSSO_TOKEN = null;
+			for (HttpUriRequest request : ongoingRequests) {
+				logger.info("\taborting " + request);
+				request.abort();
+			}
+		}
 	}
 
 	private OctaneResponse executeRequest(OctaneRequest request, OctaneConfiguration configuration) throws IOException {

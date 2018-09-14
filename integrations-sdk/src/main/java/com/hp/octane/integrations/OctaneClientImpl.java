@@ -46,7 +46,6 @@ final class OctaneClientImpl implements OctaneClient {
 	private final EntitiesService entitiesService;
 	private final EventsService eventsService;
 	private final LogsService logsService;
-	private final QueueService queueService;
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 	private final TestsService testsService;
@@ -56,11 +55,13 @@ final class OctaneClientImpl implements OctaneClient {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("services configurer MUST NOT be null nor empty");
 		}
+
+		//  internals init
 		pluginServices = configurer.pluginServices;
 		LoggingService.newInstance(configurer);
+		QueueService queueService = QueueService.newInstance(configurer);
 
 		//  independent services init
-		queueService = QueueService.newInstance(configurer);
 		restService = RestService.newInstance(configurer);
 		tasksProcessor = TasksProcessor.newInstance(configurer);
 
@@ -128,7 +129,12 @@ final class OctaneClientImpl implements OctaneClient {
 
 	@Override
 	public void close() {
-		//  TODO: perform any closing actions on the services (Rest Service is a good candidate here)
+		restService.obtainOctaneRestClient().shutdown();
 		OctaneSDK.removeClient(this);
+	}
+
+	@Override
+	public String toString() {
+		return "OctaneClientImpl{ instanceId: " + getEffectiveInstanceId() + " }";
 	}
 }
