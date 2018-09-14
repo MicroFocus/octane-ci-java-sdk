@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
@@ -47,14 +48,18 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class SSCClientImpl implements SSCClient {
+class SSCRestClientImpl implements SSCRestClient {
 
 	private static final int MAX_TOTAL_CONNECTIONS = 20;
 
 	private final CloseableHttpClient httpClient;
 	private AuthToken.AuthTokenData authTokenData;
 
-	SSCClientImpl() {
+	SSCRestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
+
 		SSLContext sslContext = SSLContexts.createSystemDefault();
 		HostnameVerifier hostnameVerifier = new OctaneRestClientImpl.CustomHostnameVerifier();
 		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
@@ -72,6 +77,7 @@ public class SSCClientImpl implements SSCClient {
 		httpClient = clientBuilder.build();
 	}
 
+	@Override
 	public CloseableHttpResponse sendGetRequest(SSCFortifyConfigurations sscFortifyConfigurations, String url) {
 		HttpGet request = new HttpGet(url);
 		request.addHeader("Authorization", "FortifyToken " +
@@ -103,7 +109,6 @@ public class SSCClientImpl implements SSCClient {
 		}
 		return authTokenData.token;
 	}
-
 
 	private AuthToken.AuthTokenData sendReqAuth(SSCFortifyConfigurations sscCfgs) {
 		//"/{SSC Server Context}/api/v1"

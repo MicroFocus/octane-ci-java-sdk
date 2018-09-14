@@ -11,20 +11,18 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.exceptions;
 
-
 public class OctaneSDKGeneralException extends RuntimeException {
-
-	public OctaneSDKGeneralException(Throwable throwable) {
-		super(throwable);
-	}
 
 	public OctaneSDKGeneralException(String message) {
 		super(message);
+	}
+
+	public OctaneSDKGeneralException(Throwable throwable) {
+		super(throwable);
 	}
 
 	public OctaneSDKGeneralException(String message, Throwable throwable) {

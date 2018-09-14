@@ -17,7 +17,7 @@ package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.hp.octane.integrations.services.rest.SSCClient;
+import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
@@ -35,17 +35,17 @@ import java.io.IOException;
 public class SscProjectConnector {
 
 	private SSCFortifyConfigurations sscFortifyConfigurations;
-	private SSCClient sscClient;
+	private SSCRestClient sscRestClient;
 
 	public SscProjectConnector(SSCFortifyConfigurations sscFortifyConfigurations,
-	                           SSCClient sscClient) {
+	                           SSCRestClient sscRestClient) {
 		this.sscFortifyConfigurations = sscFortifyConfigurations;
-		this.sscClient = sscClient;
+		this.sscRestClient = sscRestClient;
 	}
 
 	private String sendGetEntity(String urlSuffix) {
 		String url = sscFortifyConfigurations.serverURL + "/api/v1/" + urlSuffix;
-		CloseableHttpResponse response = sscClient.sendGetRequest(sscFortifyConfigurations, url);
+		CloseableHttpResponse response = sscRestClient.sendGetRequest(sscFortifyConfigurations, url);
 
 		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("SSC Server is not available:" + response.getStatusLine().getStatusCode());

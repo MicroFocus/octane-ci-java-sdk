@@ -31,7 +31,7 @@ final class RestServiceImpl implements RestService {
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private OctaneRestClientImpl defaultClient;
-	private SSCClient sscClient;
+	private SSCRestClient sscRestClient;
 
 	RestServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null || configurer.pluginServices == null) {
@@ -62,19 +62,19 @@ final class RestServiceImpl implements RestService {
 	}
 
 	@Override
-	public SSCClient obtainSSCRestClient() {
-		if (sscClient == null) {
+	public SSCRestClient obtainSSCRestClient() {
+		if (sscRestClient == null) {
 			synchronized (SSC_CLIENT_INIT_LOCK) {
-				if (sscClient == null) {
+				if (sscRestClient == null) {
 					try {
-						sscClient = new SSCClientImpl();
+						sscRestClient = new SSCRestClientImpl(configurer);
 					} catch (Exception e) {
 						logger.error("failed to initialize Octane's REST client");
 					}
 				}
 			}
 		}
-		return sscClient;
+		return sscRestClient;
 	}
 
 	@Override

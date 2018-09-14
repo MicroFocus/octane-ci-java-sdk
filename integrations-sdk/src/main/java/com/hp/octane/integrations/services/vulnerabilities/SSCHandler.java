@@ -15,7 +15,7 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.hp.octane.integrations.services.rest.SSCClient;
+import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
@@ -93,8 +93,8 @@ public class SSCHandler {
 	                  String sscUrl,
 	                  String sscBaseToken,
 	                  String targetDir,
-	                  SSCClient sscClient) {
-		if (sscClient == null) {
+	                  SSCRestClient sscRestClient) {
+		if (sscRestClient == null) {
 			throw new PermanentException("sscClient MUST NOT be null");
 		}
 		if (vulnerabilitiesQueueItem == null) {
@@ -117,7 +117,7 @@ public class SSCHandler {
 				SdkStringUtils.isEmpty(sscFortifyConfigurations.serverURL)) {
 			throw new PermanentException("missing one of the SSC configuration fields (baseToken\\project\\version\\serverUrl) will not continue connecting to the server");
 		} else {
-			sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClient);
+			sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscRestClient);
 			projectVersion = sscProjectConnector.getProjectVersion();
 		}
 	}

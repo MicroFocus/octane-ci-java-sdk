@@ -13,56 +13,30 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.services.rest;
+package com.hp.octane.integrations.services.coverage;
 
 import com.hp.octane.integrations.OctaneSDK;
 import org.junit.Test;
 
-public class RestServiceNegativeTests {
+public class CoverageServiceNegativeTests {
 
-	//  REST Service
-	//
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new RestServiceImpl(null);
+		new SonarServiceImpl(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new RestServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+		new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		RestService.newInstance(null);
+		SonarService.newInstance(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		RestService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
-
-	//  Octane REST Client
-	//
-	@Test(expected = IllegalArgumentException.class)
-	public void testE() {
-		new OctaneRestClientImpl(null);
-	}
-
-	@Test(expected = ClassCastException.class)
-	public void testF() {
-		new OctaneRestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
-
-	//  SSC (Fortify OP) REST Client
-	//
-	@Test(expected = IllegalArgumentException.class)
-	public void testG() {
-		new SSCRestClientImpl(null);
-	}
-
-	@Test(expected = ClassCastException.class)
-	public void testH() {
-		new SSCRestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+		SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 }

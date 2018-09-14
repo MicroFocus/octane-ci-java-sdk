@@ -17,11 +17,15 @@ package com.hp.octane.integrations.exceptions;
 
 public class TemporaryException extends RuntimeException {
 
+	public TemporaryException(String message) {
+		super(message);
+	}
+
 	public TemporaryException(Throwable throwable) {
 		super(throwable);
 	}
 
-	public TemporaryException(String message) {
-		super(message);
+	public TemporaryException(String message, Throwable throwable) {
+		super(message, throwable);
 	}
 }

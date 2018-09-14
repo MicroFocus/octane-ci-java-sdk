@@ -16,7 +16,7 @@
 package com.hp.octane.integrations.services.coverage;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
+import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.services.queue.QueueService;
 import com.hp.octane.integrations.services.rest.RestService;
 
@@ -24,7 +24,7 @@ public interface SonarService {
 	String SONAR_REPORT = "SONAR_REPORT";
 
 	/**
-	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 * Coverage Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
@@ -64,13 +64,13 @@ public interface SonarService {
 	void enqueueFetchAndPushSonarCoverageToOctane(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken);
 
 	/**
-	 * ensure that webhook with the ciCallbackUrl exist in the soanr server listen to sonarURL, and create new webhook
-	 * if no webhook with ciCallbackUrl is found
+	 * ensure that webhook with the ciCallbackUrl exist in the Sonar server
+	 * if no webhook with ciCallbackUrl is found, new webhook will be created
 	 *
 	 * @param ciCallbackUrl URL of an endpoint in CI Server that will receive the callback
 	 * @param sonarURL      Sonar server URL
 	 * @param sonarToken    Sonar server authentication token
-	 * @throws OctaneSDKSonarException integration exception
+	 * @throws SonarIntegrationException Sonar integration exception
 	 */
-	void ensureWebhookExist(String ciCallbackUrl, String sonarURL, String sonarToken) throws OctaneSDKSonarException;
+	void ensureSonarWebhookExist(String ciCallbackUrl, String sonarURL, String sonarToken) throws SonarIntegrationException;
 }

@@ -25,7 +25,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.coverage.BuildCoverage;
-import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
+import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queue.QueueService;
@@ -125,7 +125,7 @@ class SonarServiceImpl implements SonarService {
 	}
 
 	@Override
-	public synchronized void ensureWebhookExist(String ciCallbackUrl, String sonarURL, String sonarToken) throws OctaneSDKSonarException {
+	public synchronized void ensureSonarWebhookExist(String ciCallbackUrl, String sonarURL, String sonarToken) throws SonarIntegrationException {
 		//problem in sonar project key in new project
 		try {
 			String webhookKey = getWebhookKey(ciCallbackUrl, sonarURL, sonarToken);
@@ -146,17 +146,17 @@ class SonarServiceImpl implements SonarService {
 							.concat(ciCallbackUrl)
 							.concat(" with status code: ")
 							.concat(String.valueOf(response.getStatusLine().getStatusCode()));
-					throw new OctaneSDKSonarException(errorMessage);
+					throw new SonarIntegrationException(errorMessage);
 				}
 			}
 
-		} catch (OctaneSDKSonarException e) {
+		} catch (SonarIntegrationException e) {
 			logger.error(e.getMessage(), e);
 			throw e;
 		} catch (Exception e) {
 			String errorMessage = "exception during webhook registration for ciNotificationUrl: " + ciCallbackUrl;
 			logger.error(errorMessage, e);
-			throw new OctaneSDKSonarException(errorMessage, e);
+			throw new SonarIntegrationException(errorMessage, e);
 		}
 	}
 
@@ -283,7 +283,7 @@ class SonarServiceImpl implements SonarService {
 	}
 
 
-	private String getWebhookKey(String ciNotificationUrl, String sonarURL, String token) throws OctaneSDKSonarException {
+	private String getWebhookKey(String ciNotificationUrl, String sonarURL, String token) throws SonarIntegrationException {
 		try {
 			URIBuilder uriBuilder = new URIBuilder(sonarURL + WEBHOOK_LIST_URI);
 			HttpClient httpClient = HttpClientBuilder.create().build();
@@ -312,19 +312,19 @@ class SonarServiceImpl implements SonarService {
 							.concat(ciNotificationUrl)
 							.concat(" with status code: ").concat(String.valueOf(response.getStatusLine().getStatusCode()))
 							.concat(" with errors: ").concat(jsonResponse.get("errors").toString());
-					throw new OctaneSDKSonarException(errorMessage);
+					throw new SonarIntegrationException(errorMessage);
 
 				}
 			}
 			return null;
-		} catch (OctaneSDKSonarException e) {
+		} catch (SonarIntegrationException e) {
 			logger.error(e.getMessage(), e);
 			throw e;
 		} catch (Exception e) {
 			String errorMessage = ""
 					.concat("failed to get webhook key from soanrqube with notification URL: ").concat(ciNotificationUrl);
 			logger.error(errorMessage, e);
-			throw new OctaneSDKSonarException(errorMessage, e);
+			throw new SonarIntegrationException(errorMessage, e);
 		}
 	}
 

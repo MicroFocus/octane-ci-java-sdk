@@ -11,13 +11,14 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
+
 package com.hp.octane.integrations.services.rest;
 
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
-public interface SSCClient {
-    CloseableHttpResponse sendGetRequest(SSCFortifyConfigurations sscFortifyConfigurations, String url);
+public interface SSCRestClient {
+
+	CloseableHttpResponse sendGetRequest(SSCFortifyConfigurations sscFortifyConfigurations, String url);
 }
