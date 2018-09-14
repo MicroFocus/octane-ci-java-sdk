@@ -16,7 +16,7 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -97,7 +97,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new PermanentException("job CI ID MUST NOT be null nor empty");
 		}
-		RestClient restClient = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
@@ -108,7 +108,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 						"?instance-id='" + pluginServices.getServerInfo().getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'")
 				.setHeaders(headers)
 				.setBody(vulnerabilities);
-		OctaneResponse response = restClient.execute(request);
+		OctaneResponse response = octaneRestClient.execute(request);
 		logger.info("vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 			logger.info("vulnerabilities push SUCCEED" + jobId + "/" + buildId + " was removed from vulnerabilities queue");

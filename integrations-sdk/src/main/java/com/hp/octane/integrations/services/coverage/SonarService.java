@@ -13,12 +13,25 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.coverage;
 
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
+import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.rest.RestService;
 
 public interface SonarService {
 	String SONAR_REPORT = "SONAR_REPORT";
+
+	/**
+	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 *
+	 * @param configurer SDK services configurer object
+	 * @return initialized service
+	 */
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+		return new SonarServiceImpl(configurer, queueService, restService);
+	}
 
 	/**
 	 * get status object from a SonarQube server listens to sonarURL, as specified in sonar documentation :

@@ -13,7 +13,7 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.api;
+package com.hp.octane.integrations.services.rest;
 
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import org.apache.http.client.methods.CloseableHttpResponse;

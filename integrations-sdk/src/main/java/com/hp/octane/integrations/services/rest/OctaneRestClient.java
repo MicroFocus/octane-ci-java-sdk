@@ -21,7 +21,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 
 import java.io.IOException;
 
-public interface RestClient {
+public interface OctaneRestClient {
 
 	/**
 	 * Executes Octane server oriented request based on the pre-configuration

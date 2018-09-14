@@ -16,7 +16,7 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -109,7 +109,7 @@ final class BridgeServiceImpl implements BridgeService {
 
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, String pluginVersion, String octaneUser, String ciServerUser) {
 		String responseBody = null;
-		RestClient restClient = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
 			Map<String, String> headers = new HashMap<>();
@@ -127,7 +127,7 @@ final class BridgeServiceImpl implements BridgeService {
 							"&ci-server-user=" + CIPluginSDKUtils.urlEncodeQueryParam(ciServerUser))
 					.setHeaders(headers);
 			try {
-				OctaneResponse octaneResponse = restClient.execute(octaneRequest);
+				OctaneResponse octaneResponse = octaneRestClient.execute(octaneRequest);
 				if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
 					responseBody = octaneResponse.getBody();
 				} else {
@@ -185,7 +185,7 @@ final class BridgeServiceImpl implements BridgeService {
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
-		RestClient restClientImpl = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClientImpl = restService.obtainOctaneRestClient();
 		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -197,7 +197,7 @@ final class BridgeServiceImpl implements BridgeService {
 				.setHeaders(headers)
 				.setBody(contentJSON);
 		try {
-			OctaneResponse octaneResponse = restClientImpl.execute(octaneRequest);
+			OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
 			return octaneResponse.getStatus();
 		} catch (IOException ioe) {
 			logger.error("failed to submit abridged task's result", ioe);

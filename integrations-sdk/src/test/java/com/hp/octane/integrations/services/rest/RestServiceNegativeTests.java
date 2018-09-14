@@ -46,11 +46,11 @@ public class RestServiceNegativeTests {
 	//
 	@Test(expected = IllegalArgumentException.class)
 	public void testE() {
-		new RestClientImpl(null);
+		new OctaneRestClientImpl(null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testF() {
-		new RestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+		new OctaneRestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
 	}
 }

@@ -15,7 +15,7 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.hp.octane.integrations.api.SSCClient;
+import com.hp.octane.integrations.services.rest.SSCClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;

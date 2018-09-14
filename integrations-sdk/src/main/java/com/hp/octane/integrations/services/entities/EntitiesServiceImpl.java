@@ -17,7 +17,7 @@
 package com.hp.octane.integrations.services.entities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -86,7 +86,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 	@Override
 	public List<Entity> deleteEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions) {
 		//SEND REQUEST
-		RestClient restClient = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		String url = getEntityUrl(workspaceId, entityCollectionName, conditions, null, null, null, null);
@@ -94,7 +94,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 				.setMethod(HttpMethod.DELETE)
 				.setUrl(url)
 				.setHeaders(headers);
-		OctaneResponse response = executeRequest(restClient, request);
+		OctaneResponse response = executeRequest(octaneRestClient, request);
 		ResponseEntityList responseEntityList = parseBody(HttpStatus.SC_OK, response);
 		return responseEntityList.getData();
 	}
@@ -110,7 +110,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 
 	@Override
 	public List<Entity> updateEntities(Long workspaceId, String entityCollectionName, String jsonData) {
-		RestClient restClient = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -122,7 +122,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 				.setUrl(url)
 				.setBody(jsonData)
 				.setHeaders(headers);
-		OctaneResponse response = executeRequest(restClient, request);
+		OctaneResponse response = executeRequest(octaneRestClient, request);
 		ResponseEntityList responseEntityList = parseBody(HttpStatus.SC_OK, response);
 		return responseEntityList.getData();
 	}
@@ -137,7 +137,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 
 	@Override
 	public List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData) {
-		RestClient restClient = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -148,7 +148,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 				.setUrl(url)
 				.setBody(jsonData)
 				.setHeaders(headers);
-		OctaneResponse response = executeRequest(restClient, request);
+		OctaneResponse response = executeRequest(octaneRestClient, request);
 		ResponseEntityList responseEntityList = parseBody(HttpStatus.SC_CREATED, response);
 		return responseEntityList.getData();
 	}
@@ -156,7 +156,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 	@Override
 	public List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, Collection<String> fields) {
 
-		RestClient restClient = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 
@@ -168,7 +168,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 					.setMethod(HttpMethod.GET)
 					.setUrl(url)
 					.setHeaders(headers);
-			OctaneResponse response = executeRequest(restClient, request);
+			OctaneResponse response = executeRequest(octaneRestClient, request);
 
 			ResponseEntityList responseEntityList = parseBody(HttpStatus.SC_OK, response);
 
@@ -180,9 +180,9 @@ final class EntitiesServiceImpl implements EntitiesService {
 		return result;
 	}
 
-	private OctaneResponse executeRequest(RestClient restClient, OctaneRequest request) {
+	private OctaneResponse executeRequest(OctaneRestClient octaneRestClient, OctaneRequest request) {
 		try {
-			return restClient.execute(request);
+			return octaneRestClient.execute(request);
 		} catch (IOException e) {
 			throw new RuntimeException(e.getMessage(), e);
 		}

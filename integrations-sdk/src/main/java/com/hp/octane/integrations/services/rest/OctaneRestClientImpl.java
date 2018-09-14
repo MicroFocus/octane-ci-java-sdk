@@ -86,8 +86,8 @@ import java.util.stream.Stream;
  * REST Client default implementation
  */
 
-final class RestClientImpl implements RestClient {
-	private static final Logger logger = LogManager.getLogger(RestClientImpl.class);
+final class OctaneRestClientImpl implements OctaneRestClient {
+	private static final Logger logger = LogManager.getLogger(OctaneRestClientImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private static final Set<Integer> AUTHENTICATION_ERROR_CODES = Stream.of(HttpStatus.SC_UNAUTHORIZED).collect(Collectors.toSet());
@@ -104,7 +104,7 @@ final class RestClientImpl implements RestClient {
 
 	private Cookie LWSSO_TOKEN = null;
 
-	RestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+	OctaneRestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}

@@ -17,7 +17,6 @@ package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
@@ -46,7 +45,6 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class SSCClientImpl implements SSCClient {
@@ -58,7 +56,7 @@ public class SSCClientImpl implements SSCClient {
 
 	SSCClientImpl() {
 		SSLContext sslContext = SSLContexts.createSystemDefault();
-		HostnameVerifier hostnameVerifier = new RestClientImpl.CustomHostnameVerifier();
+		HostnameVerifier hostnameVerifier = new OctaneRestClientImpl.CustomHostnameVerifier();
 		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
 				.register("http", PlainConnectionSocketFactory.getSocketFactory())

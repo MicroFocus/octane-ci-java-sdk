@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
@@ -40,33 +41,62 @@ final class OctaneClientImpl implements OctaneClient {
 	private static final Logger logger = LogManager.getLogger(OctaneClientImpl.class);
 
 	private final CIPluginServices pluginServices;
+	private final ConfigurationService configurationService;
+	private final SonarService sonarService;
+	private final EntitiesService entitiesService;
+	private final EventsService eventsService;
+	private final LogsService logsService;
 	private final QueueService queueService;
 	private final RestService restService;
-	private final ConfigurationService configurationService;
 	private final TasksProcessor tasksProcessor;
-	private final EventsService eventsService;
 	private final TestsService testsService;
-	private final LogsService logsService;
 	private final VulnerabilitiesService vulnerabilitiesService;
-	private final EntitiesService entitiesService;
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("services configurer MUST NOT be null nor empty");
 		}
-		this.pluginServices = configurer.pluginServices;
+		pluginServices = configurer.pluginServices;
 		LoggingService.newInstance(configurer);
+
+		//  independent services init
 		queueService = QueueService.newInstance(configurer);
 		restService = RestService.newInstance(configurer);
 		tasksProcessor = TasksProcessor.newInstance(configurer);
+
+		//  dependent services init
 		configurationService = ConfigurationService.newInstance(configurer, restService);
-		eventsService = EventsService.newInstance(configurer, restService);
-		testsService = TestsService.newInstance(configurer, queueService, restService);
-		logsService = LogsService.newInstance(configurer, queueService, restService);
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueService, restService);
+		sonarService = SonarService.newInstance(configurer, queueService, restService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
+		eventsService = EventsService.newInstance(configurer, restService);
+		logsService = LogsService.newInstance(configurer, queueService, restService);
+		testsService = TestsService.newInstance(configurer, queueService, restService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueService, restService);
+
+		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		BridgeService.newInstance(configurer, restService, tasksProcessor);
+
 		logger.info("OctaneClient initialized with currently effective instance ID '" + getEffectiveInstanceId() + "' (remember, instance ID is not owned by SDK and may change on the fly)");
+	}
+
+	public ConfigurationService getConfigurationService() {
+		return configurationService;
+	}
+
+	public SonarService getSonarService() {
+		return sonarService;
+	}
+
+	public EntitiesService getEntitiesService() {
+		return entitiesService;
+	}
+
+	public EventsService getEventsService() {
+		return eventsService;
+	}
+
+	public LogsService getLogsService() {
+		return logsService;
 	}
 
 	public RestService getRestService() {
@@ -77,28 +107,12 @@ final class OctaneClientImpl implements OctaneClient {
 		return tasksProcessor;
 	}
 
-	public ConfigurationService getConfigurationService() {
-		return configurationService;
-	}
-
-	public EventsService getEventsService() {
-		return eventsService;
-	}
-
 	public TestsService getTestsService() {
 		return testsService;
 	}
 
-	public LogsService getLogsService() {
-		return logsService;
-	}
-
 	public VulnerabilitiesService getVulnerabilitiesService() {
 		return vulnerabilitiesService;
-	}
-
-	public EntitiesService getEntitiesService() {
-		return entitiesService;
 	}
 
 	@Override

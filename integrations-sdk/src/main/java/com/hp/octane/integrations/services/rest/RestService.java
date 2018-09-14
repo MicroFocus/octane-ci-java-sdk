@@ -16,7 +16,6 @@
 package com.hp.octane.integrations.services.rest;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
 public interface RestService {
@@ -45,7 +44,7 @@ public interface RestService {
 	 *
 	 * @return pre-configured RestClient
 	 */
-	RestClient obtainOctaneRestClient();
+	OctaneRestClient obtainOctaneRestClient();
 
 	SSCClient obtainSSCRestClient();
 
@@ -55,7 +54,7 @@ public interface RestService {
 	 * @param proxyConfiguration optional proxy configuration, if relevant
 	 * @return pre-configured RestClient
 	 */
-	RestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration);
+	OctaneRestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration);
 
 	/**
 	 * Notifies the service that configuration has been changed

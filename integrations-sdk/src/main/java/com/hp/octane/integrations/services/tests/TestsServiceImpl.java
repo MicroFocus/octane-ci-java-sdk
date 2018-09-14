@@ -17,7 +17,7 @@
 package com.hp.octane.integrations.services.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -117,7 +117,7 @@ final class TestsServiceImpl implements TestsService {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
 		}
 
-		RestClient restClient = restService.obtainOctaneRestClient();
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
@@ -126,7 +126,7 @@ final class TestsServiceImpl implements TestsService {
 						"test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(testsResult);
-		OctaneResponse response = restClient.execute(request);
+		OctaneResponse response = octaneRestClient.execute(request);
 		logger.info("tests result pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		return response;
 	}

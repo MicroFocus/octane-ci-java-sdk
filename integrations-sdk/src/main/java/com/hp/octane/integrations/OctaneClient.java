@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
@@ -40,6 +41,34 @@ public interface OctaneClient {
 	ConfigurationService getConfigurationService();
 
 	/**
+	 * provides Sonar service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	SonarService getSonarService();
+
+	/**
+	 * provides Entities service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	EntitiesService getEntitiesService();
+
+	/**
+	 * provides Events service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	EventsService getEventsService();
+
+	/**
+	 * provides Logs service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	LogsService getLogsService();
+
+	/**
 	 * provides REST service
 	 *
 	 * @return service, MUST NOT be null
@@ -54,13 +83,6 @@ public interface OctaneClient {
 	TasksProcessor getTasksProcessor();
 
 	/**
-	 * provides Events service
-	 *
-	 * @return service, MUST NOT be null
-	 */
-	EventsService getEventsService();
-
-	/**
 	 * provides Tests service
 	 *
 	 * @return service, MUST NOT be null
@@ -68,25 +90,11 @@ public interface OctaneClient {
 	TestsService getTestsService();
 
 	/**
-	 * provides Logs service
-	 *
-	 * @return service, MUST NOT be null
-	 */
-	LogsService getLogsService();
-
-	/**
 	 * provides Vulnerabilities service
 	 *
 	 * @return service, MUST NOT be null
 	 */
 	VulnerabilitiesService getVulnerabilitiesService();
-
-	/**
-	 * provides Entities service
-	 *
-	 * @return service, MUST NOT be null
-	 */
-	EntitiesService getEntitiesService();
 
 	/**
 	 * resolves instance ID from the plugin services

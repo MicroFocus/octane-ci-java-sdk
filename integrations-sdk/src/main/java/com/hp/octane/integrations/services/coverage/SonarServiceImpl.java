@@ -19,8 +19,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.RestService;
-import com.hp.octane.integrations.api.SonarService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -31,7 +29,9 @@ import com.hp.octane.integrations.exceptions.OctaneSDKSonarException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queue.QueueService;
-import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.spi.CIPluginServices;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -53,9 +53,7 @@ import java.net.URISyntaxException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import static com.hp.octane.integrations.api.RestService.*;
-
-public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarService {
+class SonarServiceImpl implements SonarService {
 	private static final Logger logger = LogManager.getLogger(SonarServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
@@ -66,15 +64,17 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 	private static String COMPONENT_TREE_URI = "/api/measures/component_tree";
 
 	private final String BUILD_COVERAGE_QUEUE_FILE = "build-coverage-queue.dat";
-	private final ObjectQueue<SonarServiceImpl.BuildCoverageQueueItem> buildCoverageQueue;
-	private RestService restService;
+	private final ObjectQueue<SonarServiceImpl.BuildCoverageQueueItem> sonarIntegrationQueue;
+	private final CIPluginServices pluginServices;
+	private final RestService restService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public SonarServiceImpl(Object internalUsageValidator, QueueService queueService, RestService restService) {
-		super(internalUsageValidator);
-
+	SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (queueService == null) {
 			throw new IllegalArgumentException("queue service MUST NOT be null");
 		}
@@ -82,40 +82,41 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		if (queueService.isPersistenceEnabled()) {
-			buildCoverageQueue = queueService.initFileQueue(BUILD_COVERAGE_QUEUE_FILE, SonarServiceImpl.BuildCoverageQueueItem.class);
-		} else {
-			buildCoverageQueue = queueService.initMemoQueue();
-		}
-
+		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
+
+		if (queueService.isPersistenceEnabled()) {
+			sonarIntegrationQueue = queueService.initFileQueue(BUILD_COVERAGE_QUEUE_FILE, SonarServiceImpl.BuildCoverageQueueItem.class);
+		} else {
+			sonarIntegrationQueue = queueService.initMemoQueue();
+		}
 
 		logger.info("starting background worker...");
 		Executors
 				.newSingleThreadExecutor(new SonarIntegrationWorkerThreadFactory())
 				.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY (backed by " + buildCoverageQueue.getClass().getSimpleName() + ")");
+		logger.info("initialized SUCCESSFULLY (backed by " + sonarIntegrationQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
 	private void worker() {
 		while (true) {
-			if (buildCoverageQueue.size() > 0) {
+			if (sonarIntegrationQueue.size() > 0) {
 				SonarServiceImpl.BuildCoverageQueueItem buildCoverageQueueItem = null;
 				try {
-					buildCoverageQueueItem = buildCoverageQueue.peek();
+					buildCoverageQueueItem = sonarIntegrationQueue.peek();
 					pushSonarDataToOctane(pluginServices.getServerInfo().getInstanceId(), buildCoverageQueueItem);
 					logger.debug("successfully processed " + buildCoverageQueueItem);
-					buildCoverageQueue.remove();
-				} catch (TemporaryException tque) {
-					logger.error("temporary error on " + buildCoverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+					sonarIntegrationQueue.remove();
+				} catch (TemporaryException te) {
+					logger.error("temporary error on " + buildCoverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
 					CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
-				} catch (PermanentException pqie) {
-					logger.error("permanent error on " + buildCoverageQueueItem + ", passing over", pqie);
-					buildCoverageQueue.remove();
+				} catch (PermanentException pe) {
+					logger.error("permanent error on " + buildCoverageQueueItem + ", passing over", pe);
+					sonarIntegrationQueue.remove();
 				} catch (Throwable t) {
 					logger.error("unexpected error on build coverage item '" + buildCoverageQueueItem + "', passing over", t);
-					buildCoverageQueue.remove();
+					sonarIntegrationQueue.remove();
 				}
 			} else {
 				CIPluginSDKUtils.doWait(LIST_EMPTY_INTERVAL);
@@ -161,7 +162,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 
 	@Override
 	public void enqueueFetchAndPushSonarCoverageToOctane(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken) {
-		buildCoverageQueue.add(new SonarServiceImpl.BuildCoverageQueueItem(jobId, buildId, projectKey, sonarURL, sonarToken));
+		sonarIntegrationQueue.add(new SonarServiceImpl.BuildCoverageQueueItem(jobId, buildId, projectKey, sonarURL, sonarToken));
 	}
 
 	@Override
@@ -217,7 +218,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 			} while (coverageReportHasAnotherPage(pageIndex, jsonReport));
 
 			OctaneRequest coveragePutRequest = buildCoveragePutRequest(buildCoverageReport, serverId, queueItem.jobId, queueItem.buildId);
-			OctaneResponse response = restService.obtainClient().execute(coveragePutRequest);
+			OctaneResponse response = restService.obtainOctaneRestClient().execute(coveragePutRequest);
 
 			if (response.getStatus() != HttpStatus.SC_OK) {
 				errorMessage.append(" with status code: ").append(response.getStatus())
@@ -240,7 +241,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 					.setMethod(HttpMethod.GET)
 					.setUrl(getAnalyticsContextPath(octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
-			response = restService.obtainClient().execute(preflightRequest);
+			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
@@ -362,7 +363,7 @@ public class SonarServiceImpl extends OctaneSDK.SDKServiceBase implements SonarS
 	}
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + ANALYTICS_CI_PATH_PART;
+		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
 	}
 
 	private static final class BuildCoverageQueueItem implements QueueService.QueueItem {

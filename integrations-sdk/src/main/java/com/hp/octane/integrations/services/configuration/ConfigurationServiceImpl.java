@@ -16,7 +16,7 @@
 package com.hp.octane.integrations.services.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestClient;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
@@ -126,11 +126,11 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 
 		URL octaneUrl = CIPluginSDKUtils.parseURL(configuration.getUrl());
 		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneUrl);
-		RestClient restClientImpl = restService.createOctaneRestClient(proxyConfiguration);
+		OctaneRestClient octaneRestClientImpl = restService.createOctaneRestClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
 				.setUrl(configuration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + AUTHORIZATION_URI);
-		return restClientImpl.execute(request, configuration);
+		return octaneRestClientImpl.execute(request, configuration);
 	}
 
 	@Override
