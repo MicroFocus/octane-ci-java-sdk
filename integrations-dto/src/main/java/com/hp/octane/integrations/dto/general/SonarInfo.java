@@ -13,19 +13,21 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.exceptions;
+package com.hp.octane.integrations.dto.general;
 
-public class PermanentException extends RuntimeException {
+import com.hp.octane.integrations.dto.DTOBase;
 
-	public PermanentException(Throwable throwable) {
-		super(throwable);
-	}
+public interface SonarInfo extends DTOBase {
 
-	public PermanentException(String message) {
-		super(message);
-	}
+	String getServerUrl();
 
-	public PermanentException(String message, Throwable throwable) {
-		super(message, throwable);
-	}
+	SonarInfo setServerUrl(String serverUrl);
+
+	String getServerVersion();
+
+	SonarInfo setServerVersion(String serverVersion);
+
+	String getServerAuthenticationToken();
+
+	SonarInfo setServerAuthenticationToken(String serverAuthenticationToken);
 }

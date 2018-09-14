@@ -15,17 +15,18 @@
 
 package com.hp.octane.integrations.exceptions;
 
-public class PermanentException extends RuntimeException {
 
-	public PermanentException(Throwable throwable) {
+public class OctaneSDKSonarException extends Exception {
+
+	public OctaneSDKSonarException(Throwable throwable) {
 		super(throwable);
 	}
 
-	public PermanentException(String message) {
+	public OctaneSDKSonarException(String message) {
 		super(message);
 	}
 
-	public PermanentException(String message, Throwable throwable) {
+	public OctaneSDKSonarException(String message, Throwable throwable) {
 		super(message, throwable);
 	}
 }
