@@ -86,6 +86,10 @@ final class EventsServiceImpl implements EventsService {
 
 	@Override
 	public void publishEvent(CIEvent event) {
+		if (event == null) {
+			throw new IllegalArgumentException("event MUST NOT be null");
+		}
+
 		events.add(event);
 		int eventsSize = events.size();
 		if (eventsSize > MAX_EVENTS_TO_KEEP) {

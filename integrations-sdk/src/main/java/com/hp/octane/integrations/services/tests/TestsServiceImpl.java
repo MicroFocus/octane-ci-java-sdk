@@ -138,8 +138,15 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	@Override
-	public void enqueuePushTestsResult(String jobCiId, String buildCiId) {
-		testResultsQueue.add(new TestsResultQueueItem(jobCiId, buildCiId));
+	public void enqueuePushTestsResult(String jobId, String buildId) {
+		if (jobId == null || jobId.isEmpty()) {
+			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+		}
+		if (buildId == null || buildId.isEmpty()) {
+			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
+		}
+
+		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId));
 		synchronized (NO_TEST_RESULTS_MONITOR) {
 			NO_TEST_RESULTS_MONITOR.notify();
 		}

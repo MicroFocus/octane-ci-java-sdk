@@ -83,6 +83,13 @@ final class LogsServiceImpl implements LogsService {
 
 	@Override
 	public void enqueuePushBuildLog(String jobId, String buildId) {
+		if (jobId == null || jobId.isEmpty()) {
+			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+		}
+		if (buildId == null || buildId.isEmpty()) {
+			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
+		}
+
 		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId));
 		synchronized (NO_LOGS_MONITOR) {
 			NO_LOGS_MONITOR.notify();

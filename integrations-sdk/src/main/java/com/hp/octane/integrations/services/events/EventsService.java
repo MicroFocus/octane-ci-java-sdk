@@ -32,7 +32,6 @@ public interface EventsService {
 		return new EventsServiceImpl(configurer, restService);
 	}
 
-
 	/**
 	 * Publishes CI Event to the Octane server
 	 *
