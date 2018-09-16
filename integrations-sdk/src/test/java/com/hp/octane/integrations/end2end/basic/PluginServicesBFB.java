@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 
+import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -65,6 +66,11 @@ class PluginServicesBFB extends CIPluginServicesBase {
 				.setSharedSpace(sharedSpaceID)
 				.setApiKey(client)
 				.setSecret(secret);
+	}
+
+	@Override
+	public File getAllowedOctaneStorage() {
+		return new File("temp");
 	}
 
 	@Override
