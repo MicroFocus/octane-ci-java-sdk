@@ -46,6 +46,7 @@ final class LogsServiceImpl implements LogsService {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 
+	private final Object NO_LOGS_MONITOR = new Object();
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
@@ -83,32 +84,34 @@ final class LogsServiceImpl implements LogsService {
 	@Override
 	public void enqueuePushBuildLog(String jobId, String buildId) {
 		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId));
+		synchronized (NO_LOGS_MONITOR) {
+			NO_LOGS_MONITOR.notify();
+		}
 	}
 
-	//  TODO: implement retries counter per item and strategy of discard
-	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
 	//  infallible everlasting background worker
 	private void worker() {
 		while (true) {
-			if (buildLogsQueue.size() > 0) {
-				BuildLogQueueItem buildLogQueueItem = null;
-				try {
-					buildLogQueueItem = buildLogsQueue.peek();
-					pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
-					logger.debug("successfully processed " + buildLogQueueItem);
-					buildLogsQueue.remove();
-				} catch (TemporaryException tque) {
-					logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
-					breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
-				} catch (PermanentException pqie) {
-					logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
-					buildLogsQueue.remove();
-				} catch (Throwable t) {
-					logger.error("unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
-					buildLogsQueue.remove();
-				}
-			} else {
-				breathe(LIST_EMPTY_INTERVAL);
+			if (buildLogsQueue.size() == 0) {
+				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_LOGS_MONITOR);
+				continue;
+			}
+
+			BuildLogQueueItem buildLogQueueItem = null;
+			try {
+				buildLogQueueItem = buildLogsQueue.peek();
+				pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
+				logger.debug("successfully processed " + buildLogQueueItem);
+				buildLogsQueue.remove();
+			} catch (TemporaryException tque) {
+				logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+			} catch (PermanentException pqie) {
+				logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
+				buildLogsQueue.remove();
+			} catch (Throwable t) {
+				logger.error("unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
+				buildLogsQueue.remove();
 			}
 		}
 	}

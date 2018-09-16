@@ -31,8 +31,6 @@ import java.util.UUID;
 
 public class OctaneSDKPositiveTests {
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static String instance1 = UUID.randomUUID().toString();
-	private static String instance2 = UUID.randomUUID().toString();
 
 	@Test
 	public void sdkTestA() {
@@ -46,13 +44,13 @@ public class OctaneSDKPositiveTests {
 		Assert.assertNotNull(octaneClients);
 		Assert.assertFalse(octaneClients.isEmpty());
 
-		OctaneClient client = OctaneSDK.getClient(instance1);
+		OctaneClient client = OctaneSDK.getClient(PluginServices1.instanceId);
 		Assert.assertNotNull(client);
-		Assert.assertEquals(instance1, client.getEffectiveInstanceId());
+		Assert.assertEquals(PluginServices1.instanceId, client.getEffectiveInstanceId());
 
-		client = OctaneSDK.getClient(instance2);
+		client = OctaneSDK.getClient(PluginServices2.instanceId);
 		Assert.assertNotNull(client);
-		Assert.assertEquals(instance2, client.getEffectiveInstanceId());
+		Assert.assertEquals(PluginServices2.instanceId, client.getEffectiveInstanceId());
 
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
 	}
@@ -65,11 +63,11 @@ public class OctaneSDKPositiveTests {
 		Assert.assertNotNull(client);
 		Assert.assertEquals(PluginServices3.dynamicInstance, client.getEffectiveInstanceId());
 
-		PluginServices3.dynamicInstance = instance2;
-		client = OctaneSDK.getClient(instance2);
+		PluginServices3.dynamicInstance = PluginServices2.instanceId;
+		client = OctaneSDK.getClient(PluginServices2.instanceId);
 
 		Assert.assertNotNull(client);
-		Assert.assertEquals(instance2, client.getEffectiveInstanceId());
+		Assert.assertEquals(PluginServices2.instanceId, client.getEffectiveInstanceId());
 
 		OctaneSDK.removeClient(client);
 	}
@@ -91,55 +89,95 @@ public class OctaneSDKPositiveTests {
 		OctaneClient clientA = OctaneSDK.addClient(new PluginServices4());
 		OctaneClient clientB = OctaneSDK.addClient(new PluginServices5());
 
-		Assert.assertNotNull(clientA);
-		Assert.assertNotNull(clientB);
-		Assert.assertEquals(PluginServices4.instanceId, clientA.getEffectiveInstanceId());
-		Assert.assertEquals(PluginServices5.instanceId, clientB.getEffectiveInstanceId());
+		try {
+			Assert.assertNotNull(clientA);
+			Assert.assertNotNull(clientB);
+			Assert.assertEquals(PluginServices4.instanceId, clientA.getEffectiveInstanceId());
+			Assert.assertEquals(PluginServices5.instanceId, clientB.getEffectiveInstanceId());
 
-		Assert.assertNotNull(clientA.getConfigurationService());
-		Assert.assertNotNull(clientA.getEntitiesService());
-		Assert.assertNotNull(clientA.getEventsService());
-		Assert.assertNotNull(clientA.getLogsService());
-		Assert.assertNotNull(clientA.getRestService());
-		Assert.assertNotNull(clientA.getTasksProcessor());
-		Assert.assertNotNull(clientA.getTestsService());
-		Assert.assertNotNull(clientA.getRestService());
-		Assert.assertNotNull(clientA.getVulnerabilitiesService());
+			Assert.assertNotNull(clientA.getConfigurationService());
+			Assert.assertNotNull(clientA.getEntitiesService());
+			Assert.assertNotNull(clientA.getEventsService());
+			Assert.assertNotNull(clientA.getLogsService());
+			Assert.assertNotNull(clientA.getRestService());
+			Assert.assertNotNull(clientA.getTasksProcessor());
+			Assert.assertNotNull(clientA.getTestsService());
+			Assert.assertNotNull(clientA.getRestService());
+			Assert.assertNotNull(clientA.getVulnerabilitiesService());
 
-		Assert.assertNotNull(clientB.getConfigurationService());
-		Assert.assertNotNull(clientB.getEntitiesService());
-		Assert.assertNotNull(clientB.getEventsService());
-		Assert.assertNotNull(clientB.getLogsService());
-		Assert.assertNotNull(clientB.getRestService());
-		Assert.assertNotNull(clientB.getTasksProcessor());
-		Assert.assertNotNull(clientB.getTestsService());
-		Assert.assertNotNull(clientB.getRestService());
-		Assert.assertNotNull(clientB.getVulnerabilitiesService());
+			Assert.assertNotNull(clientB.getConfigurationService());
+			Assert.assertNotNull(clientB.getEntitiesService());
+			Assert.assertNotNull(clientB.getEventsService());
+			Assert.assertNotNull(clientB.getLogsService());
+			Assert.assertNotNull(clientB.getRestService());
+			Assert.assertNotNull(clientB.getTasksProcessor());
+			Assert.assertNotNull(clientB.getTestsService());
+			Assert.assertNotNull(clientB.getRestService());
+			Assert.assertNotNull(clientB.getVulnerabilitiesService());
 
-		Assert.assertNotEquals(clientA.getConfigurationService(), clientB.getConfigurationService());
-		Assert.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
-		Assert.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
-		Assert.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());
-		Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
-		Assert.assertNotEquals(clientA.getTasksProcessor(), clientB.getTasksProcessor());
-		Assert.assertNotEquals(clientA.getTestsService(), clientB.getTestsService());
-		Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
-		Assert.assertNotEquals(clientA.getVulnerabilitiesService(), clientB.getVulnerabilitiesService());
+			Assert.assertNotEquals(clientA.getConfigurationService(), clientB.getConfigurationService());
+			Assert.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
+			Assert.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
+			Assert.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());
+			Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
+			Assert.assertNotEquals(clientA.getTasksProcessor(), clientB.getTasksProcessor());
+			Assert.assertNotEquals(clientA.getTestsService(), clientB.getTestsService());
+			Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
+			Assert.assertNotEquals(clientA.getVulnerabilitiesService(), clientB.getVulnerabilitiesService());
+		} finally {
+			OctaneSDK.removeClient(clientA);
+			OctaneSDK.removeClient(clientB);
+		}
+	}
+
+	@Test
+	public void sdkTestE() {
+		CIPluginServices pluginServices = new PluginServices5();
+		OctaneClient client = OctaneSDK.addClient(pluginServices);
+
+		Assert.assertEquals("OctaneClientImpl{ instanceId: " + PluginServices5.instanceId + " }", client.toString());
+
+		OctaneSDK.removeClient(client);
+	}
+
+	@Test
+	public void sdkTestF() {
+		OctaneClient clientA = null;
+		OctaneClient clientB = null;
+		PluginServices3.dynamicInstance = UUID.randomUUID().toString();
+
+		try {
+			clientA = OctaneSDK.addClient(new PluginServices1());
+			clientB = OctaneSDK.addClient(new PluginServices3());
+
+			PluginServices3.dynamicInstance = PluginServices1.instanceId;
+
+			OctaneClient client = OctaneSDK.getClient(PluginServices1.instanceId);
+			Assert.assertNotNull(client);
+			Assert.assertEquals(PluginServices1.instanceId, client.getEffectiveInstanceId());
+		} finally {
+			OctaneSDK.removeClient(clientA);
+			OctaneSDK.removeClient(clientB);
+		}
 	}
 
 	private static class PluginServices1 extends CIPluginServicesBase {
+		private static String instanceId = UUID.randomUUID().toString();
+
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class)
-					.setInstanceId(instance1);
+					.setInstanceId(instanceId);
 		}
 	}
 
 	private static class PluginServices2 extends CIPluginServicesBase {
+		private static String instanceId = UUID.randomUUID().toString();
+
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class)
-					.setInstanceId(instance2);
+					.setInstanceId(instanceId);
 		}
 	}
 

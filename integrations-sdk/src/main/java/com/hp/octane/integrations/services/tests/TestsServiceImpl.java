@@ -145,8 +145,6 @@ final class TestsServiceImpl implements TestsService {
 		}
 	}
 
-	//  TODO: implement retries counter per item and strategy of discard
-	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
 	//  infallible everlasting background worker
 	private void worker() {
 		while (true) {

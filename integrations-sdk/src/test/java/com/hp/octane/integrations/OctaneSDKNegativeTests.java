@@ -16,6 +16,8 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.entities.OctaneBulkExceptionData;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
@@ -111,11 +113,12 @@ public class OctaneSDKNegativeTests {
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeM() {
 		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices4());
-		OctaneClient successfulTwo = OctaneSDK.addClient(new PluginServices4());
+		OctaneClient successfulTwo = OctaneSDK.addClient(new PluginServices5());
 		OctaneClient removed = OctaneSDK.removeClient(successfulOne);
 		try {
 			OctaneSDK.removeClient(removed);
 		} finally {
+			OctaneSDK.removeClient(successfulOne);
 			OctaneSDK.removeClient(successfulTwo);
 		}
 	}

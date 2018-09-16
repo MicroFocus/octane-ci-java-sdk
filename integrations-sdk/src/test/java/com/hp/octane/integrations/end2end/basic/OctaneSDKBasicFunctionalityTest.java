@@ -75,13 +75,17 @@ public class OctaneSDKBasicFunctionalityTest {
 					testResultsCollectors,
 					logsCollectors);
 
+			//
 			//  I
 			//  add one client and verify it works okay
+			//
 			OctaneClient clientA = OctaneSDK.addClient(new PluginServicesBFA(spIdA));
 			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
-
-			//  events
 			simulateEventsCycleAllClients();
+			simulatePushTestResultsCycleAllClients();
+			simulatePushLogsCycleAllClients();
+
+			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).size() == 3) {
 					//  TODO: add deeper verification
@@ -91,8 +95,7 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  tests
-			simulatePushTestResultsCycleAllClients();
+			//  validate tests
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
@@ -102,17 +105,30 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  logs
+			//  validate logs
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
 
+			//
 			//  II
 			//  add one more client and verify they are both works okay
+			//
 			OctaneClient clientB = OctaneSDK.addClient(new PluginServicesBFB(spIdB));
 			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
 			eventsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdA).clear();
-
-			//  events
+			logsCollectors.get(spIdA).clear();
 			simulateEventsCycleAllClients();
+			simulatePushTestResultsCycleAllClients();
+			simulatePushLogsCycleAllClients();
+
+			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).size() == 3 &&
 						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).size() == 3) {
@@ -123,8 +139,7 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  tests
-			simulatePushTestResultsCycleAllClients();
+			//  validate tests
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1 &&
 						testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
@@ -135,19 +150,33 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  logs
+			//  validate logs
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1 &&
+						logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
 
-
+			//
 			//  III
 			//  remove one client and verify it is shut indeed and the second continue to work okay
+			//
 			OctaneSDK.removeClient(clientA);
 			eventsCollectors.get(spIdA).clear();
 			eventsCollectors.get(spIdB).clear();
 			testResultsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdB).clear();
-
-			//  events
+			logsCollectors.get(spIdA).clear();
+			logsCollectors.get(spIdB).clear();
 			simulateEventsCycleAllClients();
+			simulatePushTestResultsCycleAllClients();
+			simulatePushLogsCycleAllClients();
+
+			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).size() == 3) {
 					Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
@@ -158,8 +187,7 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  tests
-			simulatePushTestResultsCycleAllClients();
+			//  validate tests
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
 					Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
@@ -170,10 +198,21 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  logs
+			//  validate logs
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
+					Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
 
+			//
 			//  IV
 			//  remove second client and ensure no interactions anymore
+			//
 			OctaneSDK.removeClient(clientB);
 			eventsCollectors.get(spIdB).clear();
 			testResultsCollectors.get(spIdB).clear();
@@ -181,8 +220,9 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  events, tests, logs
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
+			simulatePushLogsCycleAllClients();
 
-			CIPluginSDKUtils.doWait(3000);
+			CIPluginSDKUtils.doWait(4000);
 
 			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
 			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
@@ -239,8 +279,8 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  test results push API
 			simulator.installApiHandler(HttpMethod.POST, "^.*test-results$", request -> {
 				try {
-					String rawEventsBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
-					TestsResult testsResult = dtoFactory.dtoFromXml(rawEventsBody, TestsResult.class);
+					String rawTestResultBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					TestsResult testsResult = dtoFactory.dtoFromXml(rawTestResultBody, TestsResult.class);
 					testResultsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(testsResult);
@@ -253,8 +293,28 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  logs preflight API
+			simulator.installApiHandler(HttpMethod.GET, "^.*workspaceId$", request -> {
+				try {
+					request.getResponse().setStatus(HttpStatus.SC_OK);
+					request.getResponse().getWriter().write("[\"1001\"]");
+					request.getResponse().getWriter().flush();
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			});
 
 			//  logs push API
+			simulator.installApiHandler(HttpMethod.POST, "^.*logs$", request -> {
+				try {
+					String rawLogBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					logsCollectors
+							.computeIfAbsent(spID, sp -> new LinkedList<>())
+							.add(rawLogBody);
+					request.getResponse().setStatus(HttpStatus.SC_OK);
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			});
 
 			result.put(spID, simulator);
 		}
@@ -298,6 +358,10 @@ public class OctaneSDKBasicFunctionalityTest {
 
 	private void simulatePushTestResultsCycleAllClients() {
 		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1"));
+	}
+
+	private void simulatePushLogsCycleAllClients() {
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1"));
 	}
 
 	private void removeSPEPSimulators(Collection<OctaneSPEndpointSimulator> simulators) {

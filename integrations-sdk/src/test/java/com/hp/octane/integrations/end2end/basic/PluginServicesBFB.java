@@ -27,7 +27,9 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -95,5 +97,10 @@ class PluginServicesBFB extends CIPluginServicesBase {
 								.setBuildId("1")
 				)
 				.setTestRuns(testRuns);
+	}
+
+	@Override
+	public InputStream getBuildLog(String jobCiId, String buildCiId) {
+		return new ByteArrayInputStream("some log line".getBytes());
 	}
 }
