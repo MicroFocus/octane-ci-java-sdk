@@ -17,7 +17,7 @@ package com.hp.octane.integrations.services.coverage;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
-import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 
 public interface SonarService {
@@ -29,8 +29,8 @@ public interface SonarService {
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
-		return new SonarServiceImpl(configurer, queueService, restService);
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
+		return new SonarServiceImpl(configurer, queueingService, restService);
 	}
 
 	/**

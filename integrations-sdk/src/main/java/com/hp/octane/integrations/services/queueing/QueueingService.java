@@ -13,14 +13,14 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.services.queue;
+package com.hp.octane.integrations.services.queueing;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.OctaneSDK;
 import com.squareup.tape.ObjectQueue;
 
-public interface QueueService {
+public interface QueueingService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
@@ -28,8 +28,8 @@ public interface QueueService {
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static QueueService newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
-		return new QueueServiceImpl(configurer);
+	static QueueingService newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
+		return new QueueingServiceImpl(configurer);
 	}
 
 	/**

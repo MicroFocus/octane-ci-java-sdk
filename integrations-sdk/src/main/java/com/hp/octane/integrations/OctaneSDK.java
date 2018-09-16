@@ -73,7 +73,7 @@ public final class OctaneSDK {
 		if (clients.containsKey(pluginServices)) {
 			throw new IllegalStateException("SDK instance configured with this ci plugin services instance is already present");
 		}
-		if (clients.values().stream().anyMatch(sdk -> instanceId.equals(sdk.getEffectiveInstanceId()))) {
+		if (clients.values().stream().anyMatch(client -> instanceId.equals(client.getEffectiveInstanceId()))) {
 			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
 		}
 

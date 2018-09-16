@@ -24,9 +24,11 @@ import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
@@ -60,6 +62,8 @@ public class OctaneSDKBasicFunctionalityTest {
 	public void testA() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		Map<String, List<CIEvent>> eventsCollectors = new LinkedHashMap<>();
+		Map<String, List<TestsResult>> testResultsCollectors = new LinkedHashMap<>();
+		Map<String, List<String>> logsCollectors = new LinkedHashMap<>();
 		try {
 			String spIdA = UUID.randomUUID().toString();
 			String spIdB = UUID.randomUUID().toString();
@@ -67,11 +71,16 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  init 2 shared space endpoints simulators
 			simulators = initSPEPSimulators(
 					Stream.of(spIdA, spIdB).collect(Collectors.toSet()),
-					eventsCollectors);
+					eventsCollectors,
+					testResultsCollectors,
+					logsCollectors);
 
+			//  I
 			//  add one client and verify it works okay
 			OctaneClient clientA = OctaneSDK.addClient(new PluginServicesBFA(spIdA));
 			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
+
+			//  events
 			simulateEventsCycleAllClients();
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).size() == 3) {
@@ -82,16 +91,10 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  add one more client and verify they are both works okay
-			OctaneClient clientB = OctaneSDK.addClient(new PluginServicesBFB(spIdB));
-			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
-			eventsCollectors.get(spIdA).clear();
-			simulateEventsCycleAllClients();
+			//  tests
+			simulatePushTestResultsCycleAllClients();
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
-				if (eventsCollectors.containsKey(spIdA) &&
-						eventsCollectors.get(spIdA).size() == 3 &&
-						eventsCollectors.containsKey(spIdB) &&
-						eventsCollectors.get(spIdB).size() == 3) {
+				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -99,20 +102,54 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  publish test results
-			//  TODO
+			//  logs
 
-			//  publish logs
-			//  TODO
+			//  II
+			//  add one more client and verify they are both works okay
+			OctaneClient clientB = OctaneSDK.addClient(new PluginServicesBFB(spIdB));
+			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
+			eventsCollectors.get(spIdA).clear();
+			testResultsCollectors.get(spIdA).clear();
 
+			//  events
+			simulateEventsCycleAllClients();
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).size() == 3 &&
+						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).size() == 3) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
+			//  tests
+			simulatePushTestResultsCycleAllClients();
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1 &&
+						testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
+			//  logs
+
+
+			//  III
 			//  remove one client and verify it is shut indeed and the second continue to work okay
 			OctaneSDK.removeClient(clientA);
 			eventsCollectors.get(spIdA).clear();
 			eventsCollectors.get(spIdB).clear();
+			testResultsCollectors.get(spIdA).clear();
+			testResultsCollectors.get(spIdB).clear();
+
+			//  events
 			simulateEventsCycleAllClients();
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
-				if (eventsCollectors.containsKey(spIdB) &&
-						eventsCollectors.get(spIdB).size() == 3) {
+				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).size() == 3) {
 					Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
 					return true;
@@ -121,13 +158,37 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
+			//  tests
+			simulatePushTestResultsCycleAllClients();
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
+					Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
+			//  logs
+
+			//  IV
 			//  remove second client and ensure no interactions anymore
 			OctaneSDK.removeClient(clientB);
 			eventsCollectors.get(spIdB).clear();
+			testResultsCollectors.get(spIdB).clear();
+
+			//  events, tests, logs
 			simulateEventsCycleAllClients();
-			CIPluginSDKUtils.doWait(2000);
+			simulatePushTestResultsCycleAllClients();
+
+			CIPluginSDKUtils.doWait(3000);
+
 			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
 			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+
 		} finally {
 			//  remove simulators
 			if (simulators != null) removeSPEPSimulators(simulators.values());
@@ -135,7 +196,11 @@ public class OctaneSDKBasicFunctionalityTest {
 
 	}
 
-	private Map<String, OctaneSPEndpointSimulator> initSPEPSimulators(Set<String> spIDs, Map<String, List<CIEvent>> eventsCollectors) {
+	private Map<String, OctaneSPEndpointSimulator> initSPEPSimulators(
+			Set<String> spIDs,
+			Map<String, List<CIEvent>> eventsCollectors,
+			Map<String, List<TestsResult>> testResultsCollectors,
+			Map<String, List<String>> logsCollectors) {
 		Map<String, OctaneSPEndpointSimulator> result = new LinkedHashMap<>();
 
 		for (String spID : spIDs) {
@@ -154,10 +219,42 @@ public class OctaneSDKBasicFunctionalityTest {
 								.computeIfAbsent(spID, sp -> new LinkedList<>())
 								.add(event);
 					}
+					request.getResponse().setStatus(HttpStatus.SC_OK);
 				} catch (IOException ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
+
+			//  test results preflight API
+			simulator.installApiHandler(HttpMethod.GET, "^.*tests-result-preflight$", request -> {
+				try {
+					request.getResponse().setStatus(HttpStatus.SC_OK);
+					request.getResponse().getWriter().write("true");
+					request.getResponse().getWriter().flush();
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			});
+
+			//  test results push API
+			simulator.installApiHandler(HttpMethod.POST, "^.*test-results$", request -> {
+				try {
+					String rawEventsBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					TestsResult testsResult = dtoFactory.dtoFromXml(rawEventsBody, TestsResult.class);
+					testResultsCollectors
+							.computeIfAbsent(spID, sp -> new LinkedList<>())
+							.add(testsResult);
+					request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
+					request.getResponse().getWriter().write("{\"status\": \"queued\"}");
+					request.getResponse().getWriter().flush();
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			});
+
+			//  logs preflight API
+
+			//  logs push API
 
 			result.put(spID, simulator);
 		}
@@ -197,6 +294,10 @@ public class OctaneSDKBasicFunctionalityTest {
 				logger.error("failed to dispatch events to " + octaneClient, e);
 			}
 		});
+	}
+
+	private void simulatePushTestResultsCycleAllClients() {
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1"));
 	}
 
 	private void removeSPEPSimulators(Collection<OctaneSPEndpointSimulator> simulators) {

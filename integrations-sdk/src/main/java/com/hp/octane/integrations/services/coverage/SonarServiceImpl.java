@@ -28,7 +28,7 @@ import com.hp.octane.integrations.dto.coverage.BuildCoverage;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -71,11 +71,11 @@ class SonarServiceImpl implements SonarService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+	SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
-		if (queueService == null) {
+		if (queueingService == null) {
 			throw new IllegalArgumentException("queue service MUST NOT be null");
 		}
 		if (restService == null) {
@@ -85,10 +85,10 @@ class SonarServiceImpl implements SonarService {
 		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 
-		if (queueService.isPersistenceEnabled()) {
-			sonarIntegrationQueue = queueService.initFileQueue(BUILD_COVERAGE_QUEUE_FILE, SonarServiceImpl.BuildCoverageQueueItem.class);
+		if (queueingService.isPersistenceEnabled()) {
+			sonarIntegrationQueue = queueingService.initFileQueue(BUILD_COVERAGE_QUEUE_FILE, SonarServiceImpl.BuildCoverageQueueItem.class);
 		} else {
-			sonarIntegrationQueue = queueService.initMemoQueue();
+			sonarIntegrationQueue = queueingService.initMemoQueue();
 		}
 
 		logger.info("starting background worker...");
@@ -366,7 +366,7 @@ class SonarServiceImpl implements SonarService {
 		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
 	}
 
-	private static final class BuildCoverageQueueItem implements QueueService.QueueItem {
+	private static final class BuildCoverageQueueItem implements QueueingService.QueueItem {
 		private String jobId;
 		private String buildId;
 		private String projectKey;

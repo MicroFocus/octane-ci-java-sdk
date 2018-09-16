@@ -102,4 +102,14 @@ public class BuildContextImpl implements BuildContext {
 		this.subType = subType;
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return "BuildContextImpl{" +
+				"serverId='" + serverId + '\'' +
+				", jobId='" + jobId + '\'' +
+				", buildId='" + buildId + '\'' +
+				", subType='" + subType + '\'' +
+				'}';
+	}
 }

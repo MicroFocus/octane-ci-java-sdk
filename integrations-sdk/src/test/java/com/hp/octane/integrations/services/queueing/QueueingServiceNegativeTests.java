@@ -13,30 +13,30 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.services.queue;
+package com.hp.octane.integrations.services.queueing;
 
 import com.hp.octane.integrations.OctaneSDK;
 import org.junit.Test;
 
-public class QueueServiceNegativeTests {
+public class QueueingServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new QueueServiceImpl(null);
+		new QueueingServiceImpl(null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new QueueServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+		new QueueingServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		QueueService.newInstance(null);
+		QueueingService.newInstance(null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		QueueService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object());
+		QueueingService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object());
 	}
 }

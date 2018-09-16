@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.tests;
@@ -19,7 +18,7 @@ package com.hp.octane.integrations.services.tests;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
-import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
@@ -31,18 +30,18 @@ public interface TestsService {
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer   SDK services configurer object
-	 * @param queueService Queue service
+	 * @param queueingService Queue service
 	 * @param restService  Rest Service
 	 * @return initialized service
 	 */
-	static TestsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
-		return new TestsServiceImpl(configurer, queueService, restService);
+	static TestsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
+		return new TestsServiceImpl(configurer, queueingService, restService);
 	}
 
 	/**
 	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
 	 */
-	boolean isTestsResultRelevant(String serverCiId, String jobCiId) throws IOException;
+	boolean isTestsResultRelevant(String jobCiId) throws IOException;
 
 	/**
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY

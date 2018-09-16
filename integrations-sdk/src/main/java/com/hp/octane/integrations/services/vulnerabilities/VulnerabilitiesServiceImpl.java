@@ -23,7 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -61,21 +61,21 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private Long TIME_OUT_FOR_QUEUE_ITEM = 3 * 60 * 60 * 1000L; //3 hours
 	private volatile Long actualTimeout = 3 * 60 * 60 * 1000L;
 
-	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
-		if (queueService == null) {
+		if (queueingService == null) {
 			throw new IllegalArgumentException("queue Service MUST NOT be null");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		if (queueService.isPersistenceEnabled()) {
-			vulnerabilitiesQueue = queueService.initFileQueue(VULNERABILITIES_QUEUE_FILE, VulnerabilitiesQueueItem.class);
+		if (queueingService.isPersistenceEnabled()) {
+			vulnerabilitiesQueue = queueingService.initFileQueue(VULNERABILITIES_QUEUE_FILE, VulnerabilitiesQueueItem.class);
 		} else {
-			vulnerabilitiesQueue = queueService.initMemoQueue();
+			vulnerabilitiesQueue = queueingService.initMemoQueue();
 		}
 
 		this.pluginServices = configurer.pluginServices;
@@ -284,7 +284,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES_PRE_FLIGHT;
 	}
 
-	public static final class VulnerabilitiesQueueItem implements QueueService.QueueItem {
+	public static final class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
 		public String jobId;
 		public String buildId;
 		public String projectName;

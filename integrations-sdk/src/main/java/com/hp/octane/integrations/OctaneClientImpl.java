@@ -26,10 +26,11 @@ import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
-import com.hp.octane.integrations.services.queue.QueueService;
-import com.hp.octane.integrations.spi.CIPluginServices;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.io.File;
 
 /**
  * protected implementation of the OctaneClient
@@ -40,7 +41,7 @@ import org.apache.logging.log4j.Logger;
 final class OctaneClientImpl implements OctaneClient {
 	private static final Logger logger = LogManager.getLogger(OctaneClientImpl.class);
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final ConfigurationService configurationService;
 	private final SonarService sonarService;
 	private final EntitiesService entitiesService;
@@ -55,11 +56,16 @@ final class OctaneClientImpl implements OctaneClient {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("services configurer MUST NOT be null nor empty");
 		}
+		if (configurer.pluginServices.getServerInfo() == null ||
+				configurer.pluginServices.getServerInfo().getInstanceId() == null || configurer.pluginServices.getServerInfo().getInstanceId().isEmpty()) {
+			throw new IllegalArgumentException("plugin service MUST provide a valid instance ID (non null nor empty");
+		}
 
 		//  internals init
-		pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
+		ensureStorageIfAny();
 		LoggingService.newInstance(configurer);
-		QueueService queueService = QueueService.newInstance(configurer);
+		QueueingService queueingService = QueueingService.newInstance(configurer);
 
 		//  independent services init
 		restService = RestService.newInstance(configurer);
@@ -67,12 +73,12 @@ final class OctaneClientImpl implements OctaneClient {
 
 		//  dependent services init
 		configurationService = ConfigurationService.newInstance(configurer, restService);
-		sonarService = SonarService.newInstance(configurer, queueService, restService);
+		sonarService = SonarService.newInstance(configurer, queueingService, restService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		eventsService = EventsService.newInstance(configurer, restService);
-		logsService = LogsService.newInstance(configurer, queueService, restService);
-		testsService = TestsService.newInstance(configurer, queueService, restService);
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueService, restService);
+		logsService = LogsService.newInstance(configurer, queueingService, restService);
+		testsService = TestsService.newInstance(configurer, queueingService, restService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueingService, restService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		BridgeService.newInstance(configurer, restService, tasksProcessor);
@@ -118,13 +124,13 @@ final class OctaneClientImpl implements OctaneClient {
 
 	@Override
 	public String getEffectiveInstanceId() throws IllegalStateException {
-		if (pluginServices.getServerInfo() == null) {
+		if (configurer.pluginServices.getServerInfo() == null) {
 			throw new IllegalStateException("plugin services resolved CIServerInfo to be NULL; this was not the case when client was initially created");
 		}
-		if (pluginServices.getServerInfo().getInstanceId() == null || pluginServices.getServerInfo().getInstanceId().isEmpty()) {
+		if (configurer.pluginServices.getServerInfo().getInstanceId() == null || configurer.pluginServices.getServerInfo().getInstanceId().isEmpty()) {
 			throw new IllegalStateException("plugin services resolved instance ID to be NULL or empty; this was not the case when client was initially created");
 		}
-		return pluginServices.getServerInfo().getInstanceId();
+		return configurer.pluginServices.getServerInfo().getInstanceId();
 	}
 
 	@Override
@@ -136,5 +142,16 @@ final class OctaneClientImpl implements OctaneClient {
 	@Override
 	public String toString() {
 		return "OctaneClientImpl{ instanceId: " + getEffectiveInstanceId() + " }";
+	}
+
+	private void ensureStorageIfAny() {
+		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
+			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), getEffectiveInstanceId());
+			if (instanceOrientedStorage.mkdirs()) {
+				logger.info("verified dedicated storage for OctaneClient instance " + getEffectiveInstanceId());
+			} else {
+				logger.error("failed to create dedicated storage for OctaneClient instance " + getEffectiveInstanceId());
+			}
+		}
 	}
 }

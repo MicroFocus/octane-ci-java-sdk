@@ -15,7 +15,6 @@
 
 package com.hp.octane.integrations;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.spi.CIPluginServices;

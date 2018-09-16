@@ -37,8 +37,8 @@ public class TestsDTOsTest {
 	private static final String className = "class";
 	private static final String testName = "test";
 	private static final TestRunResult result = TestRunResult.PASSED;
-	private static final Long duration = 3000L;
-	private static final Long started = System.currentTimeMillis();
+	private static final long duration = 3000;
+	private static final long started = System.currentTimeMillis();
 
 	@Test
 	public void test_A() throws JAXBException {

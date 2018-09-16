@@ -23,7 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -44,8 +44,8 @@ import java.util.concurrent.ThreadFactory;
 final class LogsServiceImpl implements LogsService {
 	private static final Logger logger = LogManager.getLogger(LogsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 
-	private final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
@@ -53,21 +53,21 @@ final class LogsServiceImpl implements LogsService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
-		if (queueService == null) {
+		if (queueingService == null) {
 			throw new IllegalArgumentException("queue service MUST NOT be null");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		if (queueService.isPersistenceEnabled()) {
-			buildLogsQueue = queueService.initFileQueue(BUILD_LOG_QUEUE_FILE, BuildLogQueueItem.class);
+		if (queueingService.isPersistenceEnabled()) {
+			buildLogsQueue = queueingService.initFileQueue(BUILD_LOG_QUEUE_FILE, BuildLogQueueItem.class);
 		} else {
-			buildLogsQueue = queueService.initMemoQueue();
+			buildLogsQueue = queueingService.initMemoQueue();
 		}
 
 		this.pluginServices = configurer.pluginServices;
@@ -87,7 +87,6 @@ final class LogsServiceImpl implements LogsService {
 
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
-	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  infallible everlasting background worker
 	private void worker() {
 		while (true) {
@@ -224,7 +223,7 @@ final class LogsServiceImpl implements LogsService {
 		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
 	}
 
-	private static final class BuildLogQueueItem implements QueueService.QueueItem {
+	private static final class BuildLogQueueItem implements QueueingService.QueueItem {
 		private String jobId;
 		private String buildId;
 

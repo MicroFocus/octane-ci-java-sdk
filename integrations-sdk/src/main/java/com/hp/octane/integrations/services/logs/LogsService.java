@@ -17,7 +17,7 @@ package com.hp.octane.integrations.services.logs;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 
 public interface LogsService {
 
@@ -25,12 +25,12 @@ public interface LogsService {
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer   SDK services configurer object
-	 * @param queueService Queue service
+	 * @param queueingService Queue service
 	 * @param restService  Rest Service
 	 * @return initialized service
 	 */
-	static LogsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
-		return new LogsServiceImpl(configurer, queueService, restService);
+	static LogsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
+		return new LogsServiceImpl(configurer, queueingService, restService);
 	}
 
 	/**

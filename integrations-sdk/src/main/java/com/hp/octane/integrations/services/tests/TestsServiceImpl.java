@@ -11,12 +11,14 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -24,9 +26,10 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
-import com.hp.octane.integrations.services.queue.QueueService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
+import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -46,44 +49,46 @@ import java.util.concurrent.ThreadFactory;
 final class TestsServiceImpl implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-//	private static final String TESTS_QUEUE_FILE = "tests-queue.dat";
+	private static final String TESTS_RESULTS_QUEUE_FILE = "test-results-queue.dat";
 
-	//private final ObjectQueue<TestsResultQueueEntry> testsQueue;
+	private final Object NO_TEST_RESULTS_MONITOR = new Object();
+	private final ObjectQueue<TestsResultQueueItem> testResultsQueue;
 	private final CIPluginServices pluginServices;
 	private final RestService restService;
 
-	private List<TestsResultQueueEntry> buildList = Collections.synchronizedList(new LinkedList<>());
-	private int SERVICE_UNAVAILABLE_BREATHE_INTERVAL = 10000;
+	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueService queueService, RestService restService) {
+	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
-		if (queueService == null) {
+		if (queueingService == null) {
 			throw new IllegalArgumentException("queue service MUST NOT be null");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-//		if (queueService.isPersistenceEnabled()) {
-//			testsQueue = queueService.initFileQueue(TESTS_QUEUE_FILE, TestsResultQueueEntry.class);
-//		} else {
-//			testsQueue = queueService.initMemoQueue();
-//		}
+		if (queueingService.isPersistenceEnabled()) {
+			testResultsQueue = queueingService.initFileQueue(TESTS_RESULTS_QUEUE_FILE, TestsResultQueueItem.class);
+		} else {
+			testResultsQueue = queueingService.initMemoQueue();
+		}
 
 		this.pluginServices = configurer.pluginServices;
 		this.restService = restService;
 
 		logger.info("starting background worker...");
-		Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory())
+		Executors
+				.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory())
 				.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY");
+		logger.info("initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
-	public boolean isTestsResultRelevant(String serverCiId, String jobCiId) throws IOException {
+	public boolean isTestsResultRelevant(String jobCiId) throws IOException {
+		String serverCiId = pluginServices.getServerInfo().getInstanceId();
 		if (serverCiId == null || serverCiId.isEmpty()) {
 			throw new IllegalArgumentException("server CI ID MUST NOT be null nor empty");
 		}
@@ -101,6 +106,7 @@ final class TestsServiceImpl implements TestsService {
 		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
 	}
 
+	@Override
 	public OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
@@ -133,7 +139,10 @@ final class TestsServiceImpl implements TestsService {
 
 	@Override
 	public void enqueuePushTestsResult(String jobCiId, String buildCiId) {
-		buildList.add(new TestsResultQueueEntry(jobCiId, buildCiId));
+		testResultsQueue.add(new TestsResultQueueItem(jobCiId, buildCiId));
+		synchronized (NO_TEST_RESULTS_MONITOR) {
+			NO_TEST_RESULTS_MONITOR.notify();
+		}
 	}
 
 	//  TODO: implement retries counter per item and strategy of discard
@@ -141,42 +150,77 @@ final class TestsServiceImpl implements TestsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (true) {
-			if (!buildList.isEmpty()) {
-				try {
-					TestsResultQueueEntry testsResultQueueEntry = buildList.get(0);
-					TestsResult testsResult = pluginServices.getTestsResult(testsResultQueueEntry.jobId, testsResultQueueEntry.buildId);
-					OctaneResponse response = pushTestsResult(testsResult);
-					if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-						logger.info("tests result push SUCCEED");
-						buildList.remove(0);
-					} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-						logger.info("tests result push FAILED, service unavailable; retrying after a breathe...");
-						breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-					} else {
-						//  case of any other fatal error
-						logger.error("tests result push FAILED, status " + response.getStatus() + "; dropping this item from the queue");
-						buildList.remove(0);
-					}
+			if (testResultsQueue.size() == 0) {
+				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_TEST_RESULTS_MONITOR);
+				continue;
+			}
 
-				} catch (IOException e) {
-					logger.error("tests result push failed; will retry after " + SERVICE_UNAVAILABLE_BREATHE_INTERVAL + "ms", e);
-					breathe(SERVICE_UNAVAILABLE_BREATHE_INTERVAL);
-				} catch (Throwable t) {
-					logger.error("tests result push failed; dropping this item from the queue ", t);
-					buildList.remove(0);
-				}
-			} else {
-				breathe(LIST_EMPTY_INTERVAL);
+			TestsResultQueueItem testsResultQueueItem = null;
+			try {
+				testsResultQueueItem = testResultsQueue.peek();
+				doPreflightAndPushTestResult(testsResultQueueItem);
+				logger.debug("successfully processed " + testsResultQueueItem);
+				testResultsQueue.remove();
+			} catch (TemporaryException tque) {
+				logger.error("temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
+			} catch (PermanentException pqie) {
+				logger.error("permanent error on " + testsResultQueueItem + ", passing over", pqie);
+				testResultsQueue.remove();
+			} catch (Throwable t) {
+				logger.error("unexpected error on build log item '" + testsResultQueueItem + "', passing over", t);
+				testResultsQueue.remove();
 			}
 		}
 	}
 
-	//  TODO: turn to be breakable wait with timeout and notifier
-	private void breathe(int period) {
+	private void doPreflightAndPushTestResult(TestsResultQueueItem queueItem) {
+		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
+		if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
+			logger.warn("no (valid) Octane configuration found, skipping " + queueItem);
+			return;
+		}
+
+		//  validate test result
+		TestsResult testsResult = pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
+		if (testsResult == null) {
+			logger.error("test result of " + queueItem + " resolved to be NULL, skipping");
+			return;
+		}
+		if (testsResult.getBuildContext() == null ||
+				testsResult.getBuildContext().getServerId() == null || testsResult.getBuildContext().getServerId().isEmpty() ||
+				testsResult.getBuildContext().getJobId() == null || testsResult.getBuildContext().getJobId().isEmpty() ||
+				testsResult.getBuildContext().getBuildId() == null || testsResult.getBuildContext().getBuildId().isEmpty()) {
+			logger.error("build context (" + testsResult.getBuildContext() + ") of test result of " + queueItem + " is invalid, skipping");
+			return;
+		}
+		if (testsResult.getTestRuns() == null || testsResult.getTestRuns().isEmpty()) {
+			logger.error("test result of " + queueItem + " has no test runs in it, skipping");
+			return;
+		}
+
+		//  preflight
+		boolean isRelevant;
 		try {
-			Thread.sleep(period);
-		} catch (InterruptedException ie) {
-			logger.error("interrupted while breathing", ie);
+			isRelevant = isTestsResultRelevant(queueItem.jobId);
+			if (!isRelevant) {
+				logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
+				return;
+			}
+		} catch (IOException ioe) {
+			throw new TemporaryException("failed to perform preflight request for " + queueItem, ioe);
+		}
+
+		//  push
+		try {
+			OctaneResponse response = pushTestsResult(testsResult);
+			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+				throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
+			} else if (response.getStatus() != HttpStatus.SC_ACCEPTED) {
+				throw new PermanentException("push request PERMANENTLY failed with status " + response.getStatus());
+			}
+		} catch (IOException ioe) {
+			throw new TemporaryException("failed to perform push test results request for " + queueItem, ioe);
 		}
 	}
 
@@ -184,15 +228,15 @@ final class TestsServiceImpl implements TestsService {
 		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
 	}
 
-	private static final class TestsResultQueueEntry implements QueueService.QueueItem {
+	private static final class TestsResultQueueItem implements QueueingService.QueueItem {
 		private String jobId;
 		private String buildId;
 
 		//  [YG] this constructor MUST be present
-		private TestsResultQueueEntry() {
+		private TestsResultQueueItem() {
 		}
 
-		private TestsResultQueueEntry(String jobId, String buildId) {
+		private TestsResultQueueItem(String jobId, String buildId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
 		}

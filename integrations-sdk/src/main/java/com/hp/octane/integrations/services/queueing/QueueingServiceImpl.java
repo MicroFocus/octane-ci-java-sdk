@@ -13,7 +13,7 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.services.queue;
+package com.hp.octane.integrations.services.queueing;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -31,19 +31,18 @@ import java.io.OutputStream;
  * Queue Service provides a common queue infrastructure, initialization and maintenance
  */
 
-final class QueueServiceImpl implements QueueService {
-	private static final Logger logger = LogManager.getLogger(QueueServiceImpl.class);
+final class QueueingServiceImpl implements QueueingService {
+	private static final Logger logger = LogManager.getLogger(QueueingServiceImpl.class);
 	private final File storageDirectory;
 
-	QueueServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+	QueueingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null || configurer.pluginServices == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 
 		//  check persistence availability
-		File availableStorage = configurer.pluginServices.getAllowedOctaneStorage();
-		if (availableStorage != null && availableStorage.isDirectory() && availableStorage.canWrite() && availableStorage.canRead()) {
-			storageDirectory = availableStorage;
+		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
+			storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), configurer.pluginServices.getServerInfo().getInstanceId());
 			logger.info("hosting plugin PROVIDE available storage, queues persistence enabled");
 		} else {
 			storageDirectory = null;
