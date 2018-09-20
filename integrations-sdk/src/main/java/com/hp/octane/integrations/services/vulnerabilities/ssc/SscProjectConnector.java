@@ -101,7 +101,7 @@ public class SscProjectConnector {
     }
 
     public Issues readNewIssuesOfLastestScan(int projectVersionId) {
-        String urlSuffix = String.format("projectVersions/%d/issues?showremoved=false", projectVersionId);
+        String urlSuffix = String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
         String rawResponse = sendGetEntity(urlSuffix);
         return responseToObject(rawResponse, Issues.class);
     }
