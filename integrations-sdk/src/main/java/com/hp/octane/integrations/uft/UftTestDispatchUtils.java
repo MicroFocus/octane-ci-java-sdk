@@ -28,6 +28,7 @@ import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.util.SdkStringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.annotation.Obsolete;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -160,6 +161,11 @@ public class UftTestDispatchUtils {
         }
 
         return hasDiff;
+    }
+
+    @Obsolete
+    public static boolean checkTestEquals(AutomatedTest discoveredTest, Entity octaneTest) {
+        return checkTestEquals(discoveredTest, octaneTest, null);
     }
 
     public static boolean checkTestEquals(AutomatedTest discoveredTest, Entity octaneTest, String expectedTestRunnerId) {
