@@ -15,10 +15,16 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -214,6 +220,22 @@ public final class OctaneSDK {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * This method allows the test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
+	 *
+	 * @param octaneServerUrl base Octane server URL
+	 * @param sharedSpaceId   shared space ID
+	 * @param client          client / api key
+	 * @param secret          secret / api secret
+	 * @return Octane server response; response MAY be inspected for the specific error in order to create meaningful message to the user
+	 * @throws IOException in case of basic connectivity failure
+	 */
+	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret) throws IOException {
+		//  TODO: validations
+		//  perform request to Octane
+		return null;
 	}
 
 	/**
