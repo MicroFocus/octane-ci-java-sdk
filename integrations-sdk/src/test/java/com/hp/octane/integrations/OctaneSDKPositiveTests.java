@@ -16,6 +16,7 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
@@ -44,11 +45,11 @@ public class OctaneSDKPositiveTests {
 		Assert.assertNotNull(octaneClients);
 		Assert.assertFalse(octaneClients.isEmpty());
 
-		OctaneClient client = OctaneSDK.getClient(PluginServices1.instanceId);
+		OctaneClient client = OctaneSDK.getClientByInstanceId(PluginServices1.instanceId);
 		Assert.assertNotNull(client);
 		Assert.assertEquals(PluginServices1.instanceId, client.getEffectiveInstanceId());
 
-		client = OctaneSDK.getClient(PluginServices2.instanceId);
+		client = OctaneSDK.getClientByInstanceId(PluginServices2.instanceId);
 		Assert.assertNotNull(client);
 		Assert.assertEquals(PluginServices2.instanceId, client.getEffectiveInstanceId());
 
@@ -58,30 +59,30 @@ public class OctaneSDKPositiveTests {
 	@Test
 	public void sdkTestB() {
 		OctaneSDK.addClient(new PluginServices3());
-		OctaneClient client = OctaneSDK.getClient(PluginServices3.dynamicInstance);
+		OctaneClient client = OctaneSDK.getClientByInstanceId(PluginServices3.dynamicInstance);
 
 		Assert.assertNotNull(client);
 		Assert.assertEquals(PluginServices3.dynamicInstance, client.getEffectiveInstanceId());
 
 		PluginServices3.dynamicInstance = PluginServices2.instanceId;
-		client = OctaneSDK.getClient(PluginServices2.instanceId);
+		client = OctaneSDK.getClientByInstanceId(PluginServices2.instanceId);
 
 		Assert.assertNotNull(client);
 		Assert.assertEquals(PluginServices2.instanceId, client.getEffectiveInstanceId());
 
-		OctaneSDK.removeClient(client);
+		Assert.assertNotNull(OctaneSDK.removeClient(client));
 	}
 
 	@Test
 	public void sdkTestC() {
 		CIPluginServices pluginServices = new PluginServices4();
 		OctaneSDK.addClient(pluginServices);
-		OctaneClient client = OctaneSDK.getClient(pluginServices);
+		OctaneClient client = OctaneSDK.getClientByInstance(pluginServices);
 
 		Assert.assertNotNull(client);
 		Assert.assertEquals(PluginServices4.instanceId, client.getEffectiveInstanceId());
 
-		OctaneSDK.removeClient(client);
+		Assert.assertNotNull(OctaneSDK.removeClient(client));
 	}
 
 	@Test
@@ -125,8 +126,8 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
 			Assert.assertNotEquals(clientA.getVulnerabilitiesService(), clientB.getVulnerabilitiesService());
 		} finally {
-			OctaneSDK.removeClient(clientA);
-			OctaneSDK.removeClient(clientB);
+			Assert.assertNotNull(OctaneSDK.removeClient(clientA));
+			Assert.assertNotNull(OctaneSDK.removeClient(clientB));
 		}
 	}
 
@@ -137,7 +138,7 @@ public class OctaneSDKPositiveTests {
 
 		Assert.assertEquals("OctaneClientImpl{ instanceId: " + PluginServices5.instanceId + " }", client.toString());
 
-		OctaneSDK.removeClient(client);
+		Assert.assertNotNull(OctaneSDK.removeClient(client));
 	}
 
 	@Test
@@ -152,13 +153,26 @@ public class OctaneSDKPositiveTests {
 
 			PluginServices3.dynamicInstance = PluginServices1.instanceId;
 
-			OctaneClient client = OctaneSDK.getClient(PluginServices1.instanceId);
+			OctaneClient client = OctaneSDK.getClientByInstanceId(PluginServices1.instanceId);
 			Assert.assertNotNull(client);
 			Assert.assertEquals(PluginServices1.instanceId, client.getEffectiveInstanceId());
 		} finally {
-			OctaneSDK.removeClient(clientA);
-			OctaneSDK.removeClient(clientB);
+			Assert.assertNotNull(OctaneSDK.removeClient(clientA));
+			Assert.assertNotNull(OctaneSDK.removeClient(clientB));
 		}
+	}
+
+	@Test
+	public void sdkTestG() {
+		OctaneClient client = OctaneSDK.addClient(new PluginServices6());
+		Assert.assertNotNull(client.getConfigurationService().getOctaneConfiguration());
+		String sharedSpaceId = client.getConfigurationService().getOctaneConfiguration().getSharedSpace();
+		Assert.assertNotNull(sharedSpaceId);
+
+		OctaneClient test = OctaneSDK.getClientBySharedSpaceId(sharedSpaceId);
+		Assert.assertNotNull(test);
+		Assert.assertEquals(sharedSpaceId, test.getConfigurationService().getOctaneConfiguration().getSharedSpace());
+		Assert.assertNotNull(OctaneSDK.removeClient(client));
 	}
 
 	private static class PluginServices1 extends CIPluginServicesBase {
@@ -208,6 +222,21 @@ public class OctaneSDKPositiveTests {
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class)
 					.setInstanceId(instanceId);
+		}
+	}
+
+	private static class PluginServices6 extends CIPluginServicesBase {
+		private static String instanceId = UUID.randomUUID().toString();
+		private static String sharedSpaceId = "1001";
+
+		@Override
+		public CIServerInfo getServerInfo() {
+			return dtoFactory.newDTO(CIServerInfo.class).setInstanceId(instanceId);
+		}
+
+		@Override
+		public OctaneConfiguration getOctaneConfiguration() {
+			return dtoFactory.newDTO(OctaneConfiguration.class).setSharedSpace(sharedSpaceId);
 		}
 	}
 }

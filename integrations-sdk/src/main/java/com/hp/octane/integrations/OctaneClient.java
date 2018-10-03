@@ -103,9 +103,4 @@ public interface OctaneClient {
 	 * @return instance ID; won't be NULL, if the underlying plugin service will resolve instance ID to NULL, this method should throw IllegalStateException
 	 */
 	String getEffectiveInstanceId() throws IllegalStateException;
-
-	/**
-	 * closes this OctaneClient instance, while shutting down all of its services/tasks/rest calls
-	 */
-	void close();
 }

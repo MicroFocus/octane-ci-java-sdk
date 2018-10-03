@@ -16,8 +16,7 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.entities.OctaneBulkExceptionData;
+import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
@@ -62,7 +61,7 @@ public class OctaneSDKNegativeTests {
 		try {
 			OctaneSDK.addClient(pluginServices);
 		} finally {
-			OctaneSDK.removeClient(successfulOne);
+			Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
 		}
 	}
 
@@ -73,35 +72,35 @@ public class OctaneSDKNegativeTests {
 		try {
 			OctaneSDK.addClient(new PluginServices4());
 		} finally {
-			successfulOne.close();
+			Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
 		}
 	}
 
 	//  get client by instance ID
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeG() {
-		OctaneSDK.getClient((String) null);
+		OctaneSDK.getClientByInstanceId((String) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeH() {
-		OctaneSDK.getClient("");
+		OctaneSDK.getClientByInstanceId("");
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeI() {
-		OctaneSDK.getClient("none-existing-one");
+		OctaneSDK.getClientByInstanceId("none-existing-one");
 	}
 
 	//  get client by CIPluginServices object
 	@Test(expected = IllegalArgumentException.class)
 	public void sdkTestNegativeJ() {
-		OctaneSDK.getClient((CIPluginServices) null);
+		OctaneSDK.getClientByInstance((CIPluginServices) null);
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void sdkTestNegativeK() {
-		OctaneSDK.getClient(new PluginServices1());
+		OctaneSDK.getClientByInstance(new PluginServices1());
 	}
 
 	//  remove client
@@ -110,24 +109,20 @@ public class OctaneSDKNegativeTests {
 		OctaneSDK.removeClient(null);
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void sdkTestNegativeM() {
 		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices4());
 		OctaneClient successfulTwo = OctaneSDK.addClient(new PluginServices5());
 		OctaneClient removed = OctaneSDK.removeClient(successfulOne);
-		try {
-			OctaneSDK.removeClient(removed);
-		} finally {
-			OctaneSDK.removeClient(successfulOne);
-			OctaneSDK.removeClient(successfulTwo);
-		}
+		Assert.assertNull(OctaneSDK.removeClient(removed));
+		Assert.assertNotNull(OctaneSDK.removeClient(successfulTwo));
 	}
 
-	@Test(expected = IllegalStateException.class)
+	@Test
 	public void sdkTestNegativeN() {
 		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices4());
-		successfulOne.close();
-		successfulOne.close();
+		Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
+		Assert.assertNull(OctaneSDK.removeClient(successfulOne));
 	}
 
 	//  client dynamically breaks serverInfo/instanceId contract
@@ -142,7 +137,7 @@ public class OctaneSDKNegativeTests {
 			successfulOne.getEffectiveInstanceId();
 		} finally {
 			PluginServices5.serverInfoNull = false;
-			OctaneSDK.removeClient(successfulOne);
+			Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
 		}
 	}
 
@@ -157,7 +152,7 @@ public class OctaneSDKNegativeTests {
 			successfulOne.getEffectiveInstanceId();
 		} finally {
 			PluginServices5.instanceIdNull = false;
-			OctaneSDK.removeClient(successfulOne);
+			Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
 		}
 	}
 
@@ -172,7 +167,7 @@ public class OctaneSDKNegativeTests {
 			successfulOne.getEffectiveInstanceId();
 		} finally {
 			PluginServices5.instanceIdEmpty = false;
-			OctaneSDK.removeClient(successfulOne);
+			Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
 		}
 	}
 
@@ -188,6 +183,42 @@ public class OctaneSDKNegativeTests {
 			OctaneSDK.SDKServicesConfigurer.class.getConstructor(CIPluginServices.class).newInstance(null);
 			Assert.fail("should not be able to create");
 		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+		}
+	}
+
+	//  illegal shared space ID
+	@Test(expected = IllegalStateException.class)
+	public void sdkTestNegativeT() {
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices6());
+		try {
+			OctaneSDK.addClient(new PluginServices7());
+		} finally {
+			Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void sdkTestNegativeU() {
+		OctaneSDK.getClientBySharedSpaceId(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void sdkTestNegativeV() {
+		OctaneSDK.getClientBySharedSpaceId("");
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void sdkTestNegativeW() {
+		OctaneSDK.getClientBySharedSpaceId("1");
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void sdkTestNegativeX() {
+		OctaneClient successfulOne = OctaneSDK.addClient(new PluginServices7());
+		try {
+			OctaneSDK.getClientBySharedSpaceId("1");
+		} finally {
+			Assert.assertNotNull(OctaneSDK.removeClient(successfulOne));
 		}
 	}
 
@@ -229,6 +260,36 @@ public class OctaneSDKNegativeTests {
 		public CIServerInfo getServerInfo() {
 			return serverInfoNull ? null : dtoFactory.newDTO(CIServerInfo.class)
 					.setInstanceId(instanceIdNull ? null : (instanceIdEmpty ? "" : instanceId));
+		}
+	}
+
+	private static class PluginServices6 extends CIPluginServicesBase {
+		private static String instanceId = UUID.randomUUID().toString();
+		private static String sharedSpaceId = "1001";
+
+		@Override
+		public CIServerInfo getServerInfo() {
+			return dtoFactory.newDTO(CIServerInfo.class).setInstanceId(instanceId);
+		}
+
+		@Override
+		public OctaneConfiguration getOctaneConfiguration() {
+			return dtoFactory.newDTO(OctaneConfiguration.class).setSharedSpace(sharedSpaceId);
+		}
+	}
+
+	private static class PluginServices7 extends CIPluginServicesBase {
+		private static String instanceId = UUID.randomUUID().toString();
+		private static String sharedSpaceId = "1001";
+
+		@Override
+		public CIServerInfo getServerInfo() {
+			return dtoFactory.newDTO(CIServerInfo.class).setInstanceId(instanceId);
+		}
+
+		@Override
+		public OctaneConfiguration getOctaneConfiguration() {
+			return dtoFactory.newDTO(OctaneConfiguration.class).setSharedSpace(sharedSpaceId);
 		}
 	}
 }

@@ -28,7 +28,6 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 import java.io.InputStream;
@@ -133,7 +132,7 @@ public interface CIPluginServices {
 	 * @param buildCiId Build CI ID to get tests results of
 	 * @return TestsResult data; NULL if no tests result available
 	 */
-	TestsResult getTestsResult(String jobCiId, String buildCiId);
+	InputStream getTestsResult(String jobCiId, String buildCiId);
 
 	/**
 	 * Retrieves build's log as an InputStream

@@ -60,6 +60,13 @@ public interface ConfigurationService {
 	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
 
 	/**
+	 * Retrieves current Octane configuration in context of this specific Octane client
+	 *
+	 * @return Octane configuration
+	 */
+	OctaneConfiguration getOctaneConfiguration();
+
+	/**
 	 * Notify SDK upon Octane configuration change
 	 */
 	void notifyChange();

@@ -94,7 +94,7 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+	public InputStream getTestsResult(String jobCiId, String buildCiId) {
 		return null;
 	}
 

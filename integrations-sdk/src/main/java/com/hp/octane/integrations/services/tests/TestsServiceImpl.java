@@ -187,20 +187,9 @@ final class TestsServiceImpl implements TestsService {
 		}
 
 		//  validate test result
-		TestsResult testsResult = pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
+		InputStream testsResult = pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
 		if (testsResult == null) {
-			logger.error("test result of " + queueItem + " resolved to be NULL, skipping");
-			return;
-		}
-		if (testsResult.getBuildContext() == null ||
-				testsResult.getBuildContext().getServerId() == null || testsResult.getBuildContext().getServerId().isEmpty() ||
-				testsResult.getBuildContext().getJobId() == null || testsResult.getBuildContext().getJobId().isEmpty() ||
-				testsResult.getBuildContext().getBuildId() == null || testsResult.getBuildContext().getBuildId().isEmpty()) {
-			logger.error("build context (" + testsResult.getBuildContext() + ") of test result of " + queueItem + " is invalid, skipping");
-			return;
-		}
-		if (testsResult.getTestRuns() == null || testsResult.getTestRuns().isEmpty()) {
-			logger.error("test result of " + queueItem + " has no test runs in it, skipping");
+			logger.warn("test result of " + queueItem + " resolved to be NULL, skipping");
 			return;
 		}
 

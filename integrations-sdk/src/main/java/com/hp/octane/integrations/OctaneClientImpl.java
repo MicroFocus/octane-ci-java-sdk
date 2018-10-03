@@ -134,14 +134,12 @@ final class OctaneClientImpl implements OctaneClient {
 	}
 
 	@Override
-	public void close() {
-		restService.obtainOctaneRestClient().shutdown();
-		OctaneSDK.removeClient(this);
-	}
-
-	@Override
 	public String toString() {
 		return "OctaneClientImpl{ instanceId: " + getEffectiveInstanceId() + " }";
+	}
+
+	void close() {
+		restService.obtainOctaneRestClient().shutdown();
 	}
 
 	private void ensureStorageIfAny() {

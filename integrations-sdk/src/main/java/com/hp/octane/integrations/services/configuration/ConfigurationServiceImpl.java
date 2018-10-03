@@ -135,6 +135,11 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
+	public OctaneConfiguration getOctaneConfiguration() {
+		return pluginServices.getOctaneConfiguration();
+	}
+
+	@Override
 	public void notifyChange() {
 		logger.info("notified about Octane Server configuration change, propagating to RestService");
 		restService.notifyConfigurationChange();

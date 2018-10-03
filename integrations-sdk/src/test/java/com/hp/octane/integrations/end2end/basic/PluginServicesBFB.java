@@ -76,7 +76,7 @@ class PluginServicesBFB extends CIPluginServicesBase {
 	}
 
 	@Override
-	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+	public InputStream getTestsResult(String jobCiId, String buildCiId) {
 		List<TestRun> testRuns = new LinkedList<>();
 		for (int i = 20; i > 0; i--) {
 			testRuns.add(dtoFactory.newDTO(TestRun.class)
@@ -89,7 +89,7 @@ class PluginServicesBFB extends CIPluginServicesBase {
 			);
 		}
 
-		return dtoFactory.newDTO(TestsResult.class)
+		TestsResult testsResult = dtoFactory.newDTO(TestsResult.class)
 				.setBuildContext(
 						dtoFactory.newDTO(BuildContext.class)
 								.setServerId(instanceId)
@@ -97,6 +97,7 @@ class PluginServicesBFB extends CIPluginServicesBase {
 								.setBuildId("1")
 				)
 				.setTestRuns(testRuns);
+		return dtoFactory.dtoToXmlStream(testsResult);
 	}
 
 	@Override
