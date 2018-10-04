@@ -91,7 +91,9 @@ public final class OctaneSDK {
 		CIPluginServices pluginServices;
 		try {
 			pluginServices = pluginServicesClass.newInstance();
-			pluginServices.setInstanceId(instanceId);
+			if (!pluginServices.isValid()) {
+				throw new IllegalArgumentException("plugin services implementation is invalid");
+			}
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
 		}

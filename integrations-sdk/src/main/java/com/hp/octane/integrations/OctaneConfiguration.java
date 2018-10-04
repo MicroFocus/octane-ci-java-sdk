@@ -15,11 +15,11 @@ public class OctaneConfiguration {
 	private String secret;
 	volatile boolean attached = false;
 
-	public String getInstanceId() {
+	public final String getInstanceId() {
 		return instanceId;
 	}
 
-	synchronized public void setInstanceId(String instanceId) {
+	synchronized public final void setInstanceId(String instanceId) {
 		if (attached) {
 			if (instanceId == null || instanceId.isEmpty()) {
 				throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
@@ -31,11 +31,11 @@ public class OctaneConfiguration {
 		this.instanceId = instanceId;
 	}
 
-	public String getUrl() {
+	public final String getUrl() {
 		return url;
 	}
 
-	public void setUrl(String url) {
+	public final void setUrl(String url) {
 		if (url == null || url.isEmpty()) {
 			throw new IllegalArgumentException("url MUST NOT be null nor empty");
 		}
@@ -47,11 +47,11 @@ public class OctaneConfiguration {
 		this.url = url;
 	}
 
-	public String getSharedSpace() {
+	public final String getSharedSpace() {
 		return sharedSpace;
 	}
 
-	synchronized public void setSharedSpace(String sharedSpace) {
+	synchronized public final void setSharedSpace(String sharedSpace) {
 		if (attached) {
 			if (sharedSpace == null || sharedSpace.isEmpty()) {
 				throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
@@ -79,7 +79,7 @@ public class OctaneConfiguration {
 		this.secret = secret;
 	}
 
-	public boolean isValid() {
+	public final boolean isValid() {
 		boolean result = false;
 		if (url != null &&
 				instanceId != null && !instanceId.isEmpty() &&

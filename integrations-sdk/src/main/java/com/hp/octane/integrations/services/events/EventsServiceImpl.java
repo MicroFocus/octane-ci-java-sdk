@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -122,8 +123,10 @@ final class EventsServiceImpl implements EventsService {
 			CIEventsList eventsSnapshot;
 			try {
 				eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
+				CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
+				serverInfo.setInstanceId(configurer.octaneConfiguration.getInstanceId());
 				eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-						.setServer(configurer.pluginServices.getServerInfo())
+						.setServer(serverInfo)
 						.setEvents(eventsChunk);
 			} catch (Throwable t) {
 				logger.error("failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");

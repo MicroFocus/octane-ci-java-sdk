@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
+import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -179,7 +180,7 @@ final class TestsServiceImpl implements TestsService {
 
 	private void doPreflightAndPushTestResult(TestsResultQueueItem queueItem) {
 
-		//  validate test result
+		//  validate test result - first to be done as it is the cheapest to 'fail fast'
 		InputStream testsResult = configurer.pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
 		if (testsResult == null) {
 			logger.warn("test result of " + queueItem + " resolved to be NULL, skipping");
@@ -196,6 +197,16 @@ final class TestsServiceImpl implements TestsService {
 			}
 		} catch (IOException ioe) {
 			throw new TemporaryException("failed to perform preflight request for " + queueItem, ioe);
+		}
+
+		//  [YG] TODO: TEMPORARY SOLUTION - ci server ID, job ID and build ID should move to become a query parameters
+		try {
+			String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResult);
+			testResultXML = testResultXML.replaceAll("<build.*?>",
+					"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>");
+			testsResult = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
+		} catch (Exception e) {
+			throw new PermanentException("failed to update ci server instance ID in the test results XML");
 		}
 
 		//  push

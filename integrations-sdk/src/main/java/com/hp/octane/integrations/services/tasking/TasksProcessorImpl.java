@@ -198,8 +198,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 		CIPluginSDKInfo sdkInfo = dtoFactory.newDTO(CIPluginSDKInfo.class)
 				.setApiVersion(OctaneSDK.API_VERSION)
 				.setSdkVersion(OctaneSDK.SDK_VERSION);
+		CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
+		serverInfo.setInstanceId(configurer.octaneConfiguration.getInstanceId());
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
-				.setServer(configurer.pluginServices.getServerInfo())
+				.setServer(serverInfo)
 				.setPlugin(configurer.pluginServices.getPluginInfo())
 				.setSdk(sdkInfo);
 		result.setBody(dtoFactory.dtoToJson(status));
