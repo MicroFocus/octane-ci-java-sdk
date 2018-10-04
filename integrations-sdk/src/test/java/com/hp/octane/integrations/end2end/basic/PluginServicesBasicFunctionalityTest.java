@@ -24,7 +24,6 @@ import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.spi.CIPluginServicesBase;
-import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -37,7 +36,7 @@ public class PluginServicesBasicFunctionalityTest extends CIPluginServicesBase {
 	@Override
 	public CIServerInfo getServerInfo() {
 		return dtoFactory.newDTO(CIServerInfo.class)
-				.setUrl("http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort())
+				.setUrl("http://localhost:9999")
 				.setType("custom")
 				.setVersion("1.1.1");
 	}

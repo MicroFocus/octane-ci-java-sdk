@@ -61,12 +61,14 @@ public class OctaneSDKBasicFunctionalityTest {
 	@Test(timeout = 20000)
 	public void testA() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
-		Map<String, List<CIEvent>> eventsCollectors = new LinkedHashMap<>();
+		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
 		Map<String, List<TestsResult>> testResultsCollectors = new LinkedHashMap<>();
 		Map<String, List<String>> logsCollectors = new LinkedHashMap<>();
 		try {
 			String spIdA = UUID.randomUUID().toString();
 			String spIdB = UUID.randomUUID().toString();
+			String clientAInstanceId = UUID.randomUUID().toString();
+			String clientBInstanceId = UUID.randomUUID().toString();
 
 			//  init 2 shared space endpoints simulators
 			simulators = initSPEPSimulators(
@@ -81,7 +83,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//
 			OctaneClient clientA = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
-							UUID.randomUUID().toString(),
+							clientAInstanceId,
 							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
 							spIdA,
 							"client_SP_A",
@@ -95,7 +97,15 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
-				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).size() == 3) {
+				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
+					eventsCollectors.get(spIdA).forEach(cil -> {
+						Assert.assertNotNull(cil);
+						Assert.assertNotNull(cil.getServer());
+						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assert.assertEquals("custom", cil.getServer().getType());
+						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+					});
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -129,7 +139,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//
 			OctaneClient clientB = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
-							UUID.randomUUID().toString(),
+							clientBInstanceId,
 							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
 							spIdB,
 							"client_SP_B",
@@ -146,8 +156,28 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
-				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).size() == 3 &&
-						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).size() == 3) {
+				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3 &&
+						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
+					//  client A
+					eventsCollectors.get(spIdA).forEach(cil -> {
+						Assert.assertNotNull(cil);
+						Assert.assertNotNull(cil.getServer());
+						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assert.assertEquals("custom", cil.getServer().getType());
+						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+					});
+
+					//  client B
+					eventsCollectors.get(spIdB).forEach(cil -> {
+						Assert.assertNotNull(cil);
+						Assert.assertNotNull(cil.getServer());
+						Assert.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
+						Assert.assertEquals("custom", cil.getServer().getType());
+						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+					});
+
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -194,8 +224,16 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
-				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).size() == 3) {
+				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+					eventsCollectors.get(spIdB).forEach(cil -> {
+						Assert.assertNotNull(cil);
+						Assert.assertNotNull(cil.getServer());
+						Assert.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
+						Assert.assertEquals("custom", cil.getServer().getType());
+						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+					});
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -254,7 +292,7 @@ public class OctaneSDKBasicFunctionalityTest {
 
 	private Map<String, OctaneSPEndpointSimulator> initSPEPSimulators(
 			Set<String> spIDs,
-			Map<String, List<CIEvent>> eventsCollectors,
+			Map<String, List<CIEventsList>> eventsCollectors,
 			Map<String, List<TestsResult>> testResultsCollectors,
 			Map<String, List<String>> logsCollectors) {
 		Map<String, OctaneSPEndpointSimulator> result = new LinkedHashMap<>();
@@ -267,14 +305,9 @@ public class OctaneSDKBasicFunctionalityTest {
 				try {
 					String rawEventsBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
 					CIEventsList eventsList = dtoFactory.dtoFromJson(rawEventsBody, CIEventsList.class);
-					Assert.assertNotNull(eventsList);
-					Assert.assertNotNull(eventsList.getServer());
-					Assert.assertNotNull(eventsList.getEvents());
-					for (CIEvent event : eventsList.getEvents()) {
-						eventsCollectors
-								.computeIfAbsent(spID, sp -> new LinkedList<>())
-								.add(event);
-					}
+					eventsCollectors
+							.computeIfAbsent(spID, sp -> new LinkedList<>())
+							.add(eventsList);
 					request.getResponse().setStatus(HttpStatus.SC_OK);
 				} catch (IOException ioe) {
 					throw new RuntimeException(ioe);
