@@ -15,16 +15,15 @@
 
 package com.hp.octane.integrations.services.configuration;
 
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -50,18 +49,18 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	private static final String UI_CONTEXT_PATH = "/ui";
 	private static final String PARAM_SHARED_SPACE = "p";
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 
 	ConfigurationServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 		logger.info("initialized SUCCESSFULLY");
 	}
@@ -85,11 +84,11 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 					if (sharedSpaceAndWorkspace.length < 1 || sharedSpaceAndWorkspace[0].isEmpty()) {
 						throw new IllegalArgumentException("shared space parameter MUST be present");
 					}
-					result = dtoFactory.newDTO(OctaneConfiguration.class)
-							.setUrl(url)
-							.setSharedSpace(sharedSpaceAndWorkspace[0])
-							.setApiKey(apiKey)
-							.setSecret(secret);
+					result = new OctaneConfigurationImpl();
+					result.setUrl(url);
+					result.setSharedSpace(sharedSpaceAndWorkspace[0]);
+					result.setClient(apiKey);
+					result.setSecret(secret);
 				}
 			}
 		} catch (MalformedURLException murle) {
@@ -108,7 +107,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	@Override
 	public boolean isConfigurationValid() {
 		try {
-			OctaneResponse response = validateConfiguration(pluginServices.getOctaneConfiguration());
+			OctaneResponse response = validateConfiguration(configurer.octaneConfiguration);
 			return response.getStatus() == HttpStatus.SC_OK;
 		} catch (Exception e) {
 			logger.error("failed to validate Octane server configuration, resolving isConfigurationValid to FALSE", e);
@@ -126,7 +125,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		}
 
 		URL octaneUrl = CIPluginSDKUtils.parseURL(configuration.getUrl());
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(octaneUrl);
+		CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(octaneUrl);
 		OctaneRestClient octaneRestClientImpl = restService.createOctaneRestClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
@@ -135,13 +134,13 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
-	public OctaneConfiguration getOctaneConfiguration() {
-		return pluginServices.getOctaneConfiguration();
-	}
-
-	@Override
 	public void notifyChange() {
 		logger.info("notified about Octane Server configuration change, propagating to RestService");
 		restService.notifyConfigurationChange();
+	}
+
+	private static class OctaneConfigurationImpl extends OctaneConfiguration {
+		private OctaneConfigurationImpl() {
+		}
 	}
 }

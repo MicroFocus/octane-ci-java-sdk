@@ -17,11 +17,10 @@ package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
@@ -97,7 +96,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private static final String AUTHENTICATION_URI = "authentication/sign_in";
 	private static final int MAX_TOTAL_CONNECTIONS = 20;
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final CloseableHttpClient httpClient;
 	private final List<HttpUriRequest> ongoingRequests = new LinkedList<>();
 	private final Object REQUESTS_LIST_LOCK = new Object();
@@ -105,11 +104,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private Cookie LWSSO_TOKEN = null;
 
 	OctaneRestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 
-		pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 
 		SSLContext sslContext = SSLContexts.createSystemDefault();
 		HostnameVerifier hostnameVerifier = new CustomHostnameVerifier();
@@ -130,7 +129,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 	@Override
 	public OctaneResponse execute(OctaneRequest request) throws IOException {
-		return executeRequest(request, pluginServices.getOctaneConfiguration());
+		return executeRequest(request, configurer.octaneConfiguration);
 	}
 
 	@Override
@@ -282,7 +281,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		//  configure proxy if needed
 		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
-		CIProxyConfiguration proxyConfiguration = pluginServices.getProxyConfiguration(parsedUrl);
+		CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(parsedUrl);
 		if (proxyConfiguration != null) {
 			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
@@ -366,7 +365,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private HttpUriRequest buildLoginRequest(OctaneConfiguration config) throws IOException {
 		HttpUriRequest loginRequest;
 		try {
-			LoginApiBody loginApiBody = new LoginApiBody(config.getApiKey(), config.getSecret());
+			LoginApiBody loginApiBody = new LoginApiBody(config.getClient(), config.getSecret());
 			StringEntity loginApiJson = new StringEntity(CIPluginSDKUtils.getObjectMapper().writeValueAsString(loginApiBody), ContentType.APPLICATION_JSON);
 			RequestBuilder requestBuilder = RequestBuilder.post(config.getUrl() + "/" + AUTHENTICATION_URI)
 					.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE)

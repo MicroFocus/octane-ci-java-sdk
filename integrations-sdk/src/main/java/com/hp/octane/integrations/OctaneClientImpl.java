@@ -83,7 +83,8 @@ final class OctaneClientImpl implements OctaneClient {
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		BridgeService.newInstance(configurer, restService, tasksProcessor);
 
-		logger.info("OctaneClient initialized with currently effective instance ID '" + getEffectiveInstanceId() + "' (remember, instance ID is not owned by SDK and may change on the fly)");
+		logger.info("OctaneClient initialized with currently effective instance ID '" + configurer.octaneConfiguration.getInstanceId() +
+				"' (remember, instance ID is not owned by SDK and may change on the fly)");
 	}
 
 	public ConfigurationService getConfigurationService() {
@@ -123,19 +124,8 @@ final class OctaneClientImpl implements OctaneClient {
 	}
 
 	@Override
-	public String getEffectiveInstanceId() throws IllegalStateException {
-		if (configurer.pluginServices.getServerInfo() == null) {
-			throw new IllegalStateException("plugin services resolved CIServerInfo to be NULL; this was not the case when client was initially created");
-		}
-		if (configurer.pluginServices.getServerInfo().getInstanceId() == null || configurer.pluginServices.getServerInfo().getInstanceId().isEmpty()) {
-			throw new IllegalStateException("plugin services resolved instance ID to be NULL or empty; this was not the case when client was initially created");
-		}
-		return configurer.pluginServices.getServerInfo().getInstanceId();
-	}
-
-	@Override
 	public String toString() {
-		return "OctaneClientImpl{ instanceId: " + getEffectiveInstanceId() + " }";
+		return "OctaneClientImpl{ instanceId: " + configurer.octaneConfiguration.getInstanceId() + " }";
 	}
 
 	void close() {
@@ -144,11 +134,12 @@ final class OctaneClientImpl implements OctaneClient {
 
 	private void ensureStorageIfAny() {
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
-			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), getEffectiveInstanceId());
+			String instanceId = configurer.octaneConfiguration.getInstanceId();
+			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), instanceId);
 			if (instanceOrientedStorage.mkdirs()) {
-				logger.info("verified dedicated storage for OctaneClient instance " + getEffectiveInstanceId());
+				logger.info("verified dedicated storage for OctaneClient instance " + instanceId);
 			} else {
-				logger.error("failed to create dedicated storage for OctaneClient instance " + getEffectiveInstanceId());
+				logger.error("failed to create dedicated storage for OctaneClient instance " + instanceId);
 			}
 		}
 	}

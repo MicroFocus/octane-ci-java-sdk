@@ -15,9 +15,9 @@
 
 package com.hp.octane.integrations.services.configuration;
 
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 
 import java.io.IOException;
@@ -58,13 +58,6 @@ public interface ConfigurationService {
 	 * @throws IOException in case of connection failure
 	 */
 	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
-
-	/**
-	 * Retrieves current Octane configuration in context of this specific Octane client
-	 *
-	 * @return Octane configuration
-	 */
-	OctaneConfiguration getOctaneConfiguration();
 
 	/**
 	 * Notify SDK upon Octane configuration change

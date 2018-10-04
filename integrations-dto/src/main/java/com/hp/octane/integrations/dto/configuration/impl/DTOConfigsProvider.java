@@ -20,7 +20,6 @@ import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 
 /**
  * Configuration DTOs definitions provider
@@ -30,7 +29,6 @@ public final class DTOConfigsProvider extends DTOInternalProviderBase {
 
 	public DTOConfigsProvider(DTOFactory.DTOConfiguration configuration) {
 		super(configuration);
-		dtoPairs.put(OctaneConfiguration.class, OctaneConfigurationImpl.class);
 		dtoPairs.put(CIProxyConfiguration.class, CIProxyConfigurationImpl.class);
 	}
 

@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.entities.*;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.exceptions.OctaneRestException;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -50,7 +49,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 	private static final Logger logger = LogManager.getLogger(EntitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 
 	private static final String FILTERING_FRAGMENT = "query={query}";
@@ -61,13 +60,13 @@ final class EntitiesServiceImpl implements EntitiesService {
 	private static final int MAX_GET_LIMIT = 1000;
 
 	EntitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 		logger.info("initialized SUCCESSFULLY");
 	}
@@ -211,9 +210,9 @@ final class EntitiesServiceImpl implements EntitiesService {
 
 	private String getEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy) {
 
-		StringBuilder template = new StringBuilder(pluginServices.getOctaneConfiguration().getUrl());
+		StringBuilder template = new StringBuilder(configurer.octaneConfiguration.getUrl());
 		template.append("/api/shared_spaces/");
-		template.append(pluginServices.getOctaneConfiguration().getSharedSpace());
+		template.append(configurer.octaneConfiguration.getSharedSpace());
 		if (workspaceId != null) {
 			template.append("/workspaces/");
 			template.append(workspaceId);

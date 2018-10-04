@@ -20,11 +20,9 @@ import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -51,12 +49,12 @@ final class BridgeServiceImpl implements BridgeService {
 	private final ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
 	private final ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 
 	BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (restService == null) {
@@ -66,7 +64,7 @@ final class BridgeServiceImpl implements BridgeService {
 			throw new IllegalArgumentException("task processor MUST NOT be null");
 		}
 
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
 
@@ -79,9 +77,9 @@ final class BridgeServiceImpl implements BridgeService {
 	private void worker() {
 		try {
 			String tasksJSON;
-			CIServerInfo serverInfo = pluginServices.getServerInfo();
-			CIPluginInfo pluginInfo = pluginServices.getPluginInfo();
-			String apiKey = pluginServices.getOctaneConfiguration() == null ? "" : pluginServices.getOctaneConfiguration().getApiKey();
+			CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
+			CIPluginInfo pluginInfo = configurer.pluginServices.getPluginInfo();
+			String client = configurer.octaneConfiguration.getClient();
 
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
@@ -89,7 +87,7 @@ final class BridgeServiceImpl implements BridgeService {
 					serverInfo.getType(),
 					serverInfo.getUrl(),
 					pluginInfo == null ? "" : pluginInfo.getVersion(),
-					apiKey,
+					client,
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
 			//  regardless of response - reconnect again to keep the light on
@@ -110,58 +108,51 @@ final class BridgeServiceImpl implements BridgeService {
 	private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, String pluginVersion, String octaneUser, String ciServerUser) {
 		String responseBody = null;
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
-		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
-		if (octaneConfiguration != null && octaneConfiguration.isValid()) {
-			Map<String, String> headers = new HashMap<>();
-			headers.put(RestService.ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-			OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
-					.setMethod(HttpMethod.GET)
-					.setUrl(octaneConfiguration.getUrl() +
-							RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-							RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + CIPluginSDKUtils.urlEncodeQueryParam(selfType) +
-							"&self-url=" + CIPluginSDKUtils.urlEncodeQueryParam(selfUrl) +
-							"&api-version=" + OctaneSDK.API_VERSION +
-							"&sdk-version=" + CIPluginSDKUtils.urlEncodeQueryParam(OctaneSDK.SDK_VERSION) +
-							"&plugin-version=" + CIPluginSDKUtils.urlEncodeQueryParam(pluginVersion) +
-							"&client-id=" + CIPluginSDKUtils.urlEncodeQueryParam(octaneUser) +
-							"&ci-server-user=" + CIPluginSDKUtils.urlEncodeQueryParam(ciServerUser))
-					.setHeaders(headers);
-			try {
-				OctaneResponse octaneResponse = octaneRestClient.execute(octaneRequest);
-				if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
-					responseBody = octaneResponse.getBody();
+		Map<String, String> headers = new HashMap<>();
+		headers.put(RestService.ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.GET)
+				.setUrl(configurer.octaneConfiguration.getUrl() +
+						RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
+						RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + CIPluginSDKUtils.urlEncodeQueryParam(selfType) +
+						"&self-url=" + CIPluginSDKUtils.urlEncodeQueryParam(selfUrl) +
+						"&api-version=" + OctaneSDK.API_VERSION +
+						"&sdk-version=" + CIPluginSDKUtils.urlEncodeQueryParam(OctaneSDK.SDK_VERSION) +
+						"&plugin-version=" + CIPluginSDKUtils.urlEncodeQueryParam(pluginVersion) +
+						"&client-id=" + CIPluginSDKUtils.urlEncodeQueryParam(octaneUser) +
+						"&ci-server-user=" + CIPluginSDKUtils.urlEncodeQueryParam(ciServerUser))
+				.setHeaders(headers);
+		try {
+			OctaneResponse octaneResponse = octaneRestClient.execute(octaneRequest);
+			if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
+				responseBody = octaneResponse.getBody();
+			} else {
+				if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
+					logger.debug("no tasks found on server");
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
+					logger.debug("expected timeout disconnection on retrieval of abridged tasks");
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
+					logger.error("connection to Octane failed: authentication error");
+					CIPluginSDKUtils.doWait(9000);
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
+					logger.error("connection to Octane failed: authorization error");
+					CIPluginSDKUtils.doWait(9000);
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
+					logger.error("connection to Octane failed: 404, API changes? version problem?");
+					CIPluginSDKUtils.doWait(20000);
 				} else {
-					if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
-						logger.debug("no tasks found on server");
-					} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
-						logger.debug("expected timeout disconnection on retrieval of abridged tasks");
-					} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-						logger.error("connection to Octane failed: authentication error");
-						CIPluginSDKUtils.doWait(9000);
-					} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
-						logger.error("connection to Octane failed: authorization error");
-						CIPluginSDKUtils.doWait(9000);
-					} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-						logger.error("connection to Octane failed: 404, API changes? version problem?");
-						CIPluginSDKUtils.doWait(20000);
-					} else {
-						logger.error("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
-						CIPluginSDKUtils.doWait(10000);
-					}
+					logger.error("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
+					CIPluginSDKUtils.doWait(10000);
 				}
-			} catch (IOException ioe) {
-				logger.error("failed to retrieve abridged tasks", ioe);
-				CIPluginSDKUtils.doWait(8000);
-			} catch (Throwable t) {
-				logger.error("unexpected error during retrieval of abridged tasks", t);
-				CIPluginSDKUtils.doWait(10000);
 			}
-			return responseBody;
-		} else {
-			logger.info("Octane is not configured on this plugin or the configuration is not valid, breathing before next retry");
-			CIPluginSDKUtils.doWait(5000);
-			return null;
+		} catch (IOException ioe) {
+			logger.error("failed to retrieve abridged tasks", ioe);
+			CIPluginSDKUtils.doWait(8000);
+		} catch (Throwable t) {
+			logger.error("unexpected error during retrieval of abridged tasks", t);
+			CIPluginSDKUtils.doWait(10000);
 		}
+		return responseBody;
 	}
 
 	private void handleTasks(String tasksJSON) {
@@ -173,7 +164,7 @@ final class BridgeServiceImpl implements BridgeService {
 				taskProcessingExecutors.execute(() -> {
 					OctaneResultAbridged result = tasksProcessor.execute(task);
 					int submitStatus = putAbridgedResult(
-							pluginServices.getServerInfo().getInstanceId(),
+							configurer.octaneConfiguration.getInstanceId(),
 							result.getId(),
 							dtoFactory.dtoToJsonStream(result));
 					logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
@@ -186,13 +177,12 @@ final class BridgeServiceImpl implements BridgeService {
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
 		OctaneRestClient octaneRestClientImpl = restService.obtainOctaneRestClient();
-		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
 		Map<String, String> headers = new LinkedHashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(octaneConfiguration.getUrl() +
-						RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+				.setUrl(configurer.octaneConfiguration.getUrl() +
+						RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
 						RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks/" + taskId + "/result")
 				.setHeaders(headers)
 				.setBody(contentJSON);

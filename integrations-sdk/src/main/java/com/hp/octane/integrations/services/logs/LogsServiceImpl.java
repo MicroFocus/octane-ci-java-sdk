@@ -15,17 +15,16 @@
 
 package com.hp.octane.integrations.services.logs;
 
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -48,14 +47,14 @@ final class LogsServiceImpl implements LogsService {
 
 	private final Object NO_LOGS_MONITOR = new Object();
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
 	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (queueingService == null) {
@@ -71,7 +70,7 @@ final class LogsServiceImpl implements LogsService {
 			buildLogsQueue = queueingService.initMemoQueue();
 		}
 
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 
 		logger.info("starting background worker...");
@@ -107,7 +106,7 @@ final class LogsServiceImpl implements LogsService {
 			BuildLogQueueItem buildLogQueueItem = null;
 			try {
 				buildLogQueueItem = buildLogsQueue.peek();
-				pushBuildLog(pluginServices.getServerInfo().getInstanceId(), buildLogQueueItem);
+				pushBuildLog(configurer.octaneConfiguration.getInstanceId(), buildLogQueueItem);
 				logger.debug("successfully processed " + buildLogQueueItem);
 				buildLogsQueue.remove();
 			} catch (TemporaryException tque) {
@@ -124,7 +123,7 @@ final class LogsServiceImpl implements LogsService {
 	}
 
 	private void pushBuildLog(String serverId, BuildLogQueueItem queueItem) {
-		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
+		OctaneConfiguration octaneConfiguration = configurer.octaneConfiguration;
 		if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
 			logger.warn("no (valid) Octane configuration found, bypassing " + queueItem);
 			return;
@@ -155,7 +154,7 @@ final class LogsServiceImpl implements LogsService {
 							"/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART +
 							encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs");
 			try {
-				log = pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
+				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
 					logger.info("no log for " + queueItem + " found, abandoning");
 					break;
@@ -170,7 +169,7 @@ final class LogsServiceImpl implements LogsService {
 			} catch (IOException ioe) {
 				logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);
 				breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
-				log = pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
+				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
 					logger.info("no log for " + queueItem + " found, abandoning");
 					break;
@@ -198,7 +197,7 @@ final class LogsServiceImpl implements LogsService {
 		try {
 			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
-					.setUrl(getAnalyticsContextPath(octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
+					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl().toString(), octaneConfiguration.getSharedSpace()) +
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {

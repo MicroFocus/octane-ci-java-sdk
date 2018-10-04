@@ -15,11 +15,7 @@
 
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.services.configuration.ConfigurationService;
-import com.hp.octane.integrations.services.rest.OctaneRestClient;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,7 +23,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -38,7 +33,7 @@ import java.util.Properties;
 
 public final class OctaneSDK {
 	private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
-	private static final Map<CIPluginServices, OctaneClient> clients = new LinkedHashMap<>();
+	private static final Map<OctaneConfiguration, OctaneClient> clients = new LinkedHashMap<>();
 
 	public static final Integer API_VERSION;
 	public static final String SDK_VERSION;
@@ -62,41 +57,47 @@ public final class OctaneSDK {
 	/**
 	 * gateway to initialize an OctaneSDK instance/s
 	 *
-	 * @param pluginServices Object that implements the CIPluginServices interface. This object is actually a composite
-	 *                       API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases.
+	 * @param octaneConfiguration valid Octane configuration object
+	 * @param pluginServicesClass Class that implements the CIPluginServices interface. This object is a composite
+	 *                            API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases
 	 */
-	synchronized public static OctaneClient addClient(CIPluginServices pluginServices) {
-		if (pluginServices == null) {
-			throw new IllegalArgumentException("initialization failed: MUST be initialized with valid plugin services provider");
+	synchronized public static OctaneClient addClient(OctaneConfiguration octaneConfiguration, Class<? extends CIPluginServices> pluginServicesClass) {
+		if (octaneConfiguration == null) {
+			throw new IllegalArgumentException("octane configuration MUST NOT be null");
 		}
-		if (pluginServices.getServerInfo() == null) {
-			throw new IllegalArgumentException("plugin services MUST provide server info (found to be NULL)");
+		if (clients.containsKey(octaneConfiguration)) {
+			throw new IllegalStateException("provided octane configuration instance already in use");
 		}
-
-		//  validate plugin services instance
-		if (clients.containsKey(pluginServices)) {
-			throw new IllegalStateException("SDK instance configured with this ci plugin services instance is already present");
+		if (!octaneConfiguration.isValid()) {
+			throw new IllegalArgumentException("octane configuration is invalid");
 		}
 
-		//  validate instance ID
-		String instanceId = pluginServices.getServerInfo().getInstanceId();
-		if (instanceId == null || instanceId.isEmpty()) {
-			throw new IllegalArgumentException("plugin services's server info MUST provide instance ID which is not NULL nor empty");
-		}
-		if (clients.values().stream().anyMatch(client -> instanceId.equals(client.getEffectiveInstanceId()))) {
+		//  validate instance ID uniqueness
+		String instanceId = octaneConfiguration.getInstanceId();
+		if (!isInstanceIdUnique(instanceId)) {
 			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
 		}
 
-		//  validate shared space ID
-		String sharedSpace = pluginServices.getOctaneConfiguration() != null ? pluginServices.getOctaneConfiguration().getSharedSpace() : null;
-		if (sharedSpace != null && clients.values().stream().anyMatch(client ->
-				client.getConfigurationService().getOctaneConfiguration() != null &&
-						sharedSpace.equals(client.getConfigurationService().getOctaneConfiguration().getSharedSpace()))) {
+		//  validate shared space ID uniqueness
+		String sharedSpace = octaneConfiguration.getSharedSpace();
+		if (!isSharedSpaceIdUnique(sharedSpace)) {
 			throw new IllegalStateException("SDK instance claiming for shared space ID [" + sharedSpace + "] is already present");
 		}
 
-		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(pluginServices));
-		clients.put(pluginServices, newInstance);
+		//  validate plugin services class and instantiate
+		if (pluginServicesClass == null) {
+			throw new IllegalArgumentException("plugin service class MUST be initialized with valid plugin services provider");
+		}
+		CIPluginServices pluginServices;
+		try {
+			pluginServices = pluginServicesClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
+		}
+
+		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(octaneConfiguration, pluginServices));
+		octaneConfiguration.attached = true;
+		clients.put(octaneConfiguration, newInstance);
 		logger.info("Octane Client instance initialized SUCCESSFULLY");
 
 		return newInstance;
@@ -124,20 +125,16 @@ public final class OctaneSDK {
 			throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
 		}
 
-		List<OctaneClient> result = new LinkedList<>();
-		for (OctaneClient client : clients.values()) {
-			if (instanceId.equals(client.getEffectiveInstanceId())) {
-				result.add(client);
-			}
-		}
+		OctaneClient result = clients.entrySet().stream()
+				.filter(e -> instanceId.equals(e.getKey().getInstanceId()))
+				.findFirst()
+				.map(Map.Entry::getValue)
+				.orElse(null);
 
-		if (result.size() == 1) {
-			return result.get(0);
-		} else if (result.isEmpty()) {
-			throw new IllegalStateException("no client with instance ID [" + instanceId + "] present");
+		if (result != null) {
+			return result;
 		} else {
-			logger.warn("found more than 1 OctaneClient claiming for instance ID [" + instanceId + "], someone of them will be returned by this API");
-			return result.get(0);
+			throw new IllegalStateException("no client with instance ID [" + instanceId + "] present");
 		}
 	}
 
@@ -154,40 +151,16 @@ public final class OctaneSDK {
 			throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
 		}
 
-		List<OctaneClient> result = new LinkedList<>();
-		for (OctaneClient client : clients.values()) {
-			if (client.getConfigurationService().getOctaneConfiguration() != null &&
-					sharedSpaceId.equals(client.getConfigurationService().getOctaneConfiguration().getSharedSpace())) {
-				result.add(client);
-			}
-		}
+		OctaneClient result = clients.entrySet().stream()
+				.filter(e -> sharedSpaceId.equals(e.getKey().getSharedSpace()))
+				.findFirst()
+				.map(Map.Entry::getValue)
+				.orElse(null);
 
-		if (result.size() == 1) {
-			return result.get(0);
-		} else if (result.isEmpty()) {
+		if (result != null) {
+			return result;
+		} else {
 			throw new IllegalStateException("no client with shared space ID [" + sharedSpaceId + "] present");
-		} else {
-			logger.warn("found more than 1 OctaneClient claiming for shared space ID [" + sharedSpaceId + "], someone of them will be returned by this API");
-			return result.get(0);
-		}
-	}
-
-	/**
-	 * provides specific OctaneClient - claiming for specified instance ID
-	 * if no instance found for the specified instance ID - IllegalStateException will be thrown
-	 *
-	 * @param pluginServices instance of PluginServices
-	 * @return OctaneClient; MAY NOT be NULL
-	 */
-	public static OctaneClient getClientByInstance(CIPluginServices pluginServices) throws IllegalStateException {
-		if (pluginServices == null) {
-			throw new IllegalArgumentException("plugin services parameter MUST NOT be null");
-		}
-
-		if (clients.containsKey(pluginServices)) {
-			return clients.get(pluginServices);
-		} else {
-			throw new IllegalStateException("no client initialized with specified CIPluginServices instance present");
 		}
 	}
 
@@ -202,8 +175,8 @@ public final class OctaneSDK {
 			throw new IllegalArgumentException("client MUST NOT be null");
 		}
 
-		Map.Entry<CIPluginServices, OctaneClient> targetEntry = null;
-		for (Map.Entry<CIPluginServices, OctaneClient> entry : clients.entrySet()) {
+		Map.Entry<OctaneConfiguration, OctaneClient> targetEntry = null;
+		for (Map.Entry<OctaneConfiguration, OctaneClient> entry : clients.entrySet()) {
 			if (entry.getValue() == client) {
 				targetEntry = entry;
 				break;
@@ -216,6 +189,7 @@ public final class OctaneSDK {
 			} catch (Throwable throwable) {
 				logger.error("failure detected while closing OctaneClient", throwable);
 			}
+			targetEntry.getKey().attached = false;
 			return clients.remove(targetEntry.getKey());
 		} else {
 			return null;
@@ -238,13 +212,23 @@ public final class OctaneSDK {
 		return null;
 	}
 
+	static boolean isInstanceIdUnique(String instanceId) {
+		return clients.keySet().stream().anyMatch(oc -> oc.getInstanceId().equals(instanceId));
+	}
+
+	static boolean isSharedSpaceIdUnique(String sharedSpace) {
+		return clients.keySet().stream().anyMatch(oc -> oc.getSharedSpace().equals(sharedSpace));
+	}
+
 	/**
 	 * This class designed for internal usage only and effectively non-usable / should not be used for any other purpose
 	 */
 	public static final class SDKServicesConfigurer {
+		public final OctaneConfiguration octaneConfiguration;
 		public final CIPluginServices pluginServices;
 
-		private SDKServicesConfigurer(CIPluginServices pluginServices) {
+		private SDKServicesConfigurer(OctaneConfiguration octaneConfiguration, CIPluginServices pluginServices) {
+			this.octaneConfiguration = octaneConfiguration;
 			this.pluginServices = pluginServices;
 		}
 	}

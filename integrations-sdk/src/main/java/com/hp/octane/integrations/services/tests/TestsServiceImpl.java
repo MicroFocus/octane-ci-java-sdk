@@ -16,7 +16,6 @@
 package com.hp.octane.integrations.services.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -27,7 +26,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.queueing.QueueingService;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -53,14 +51,14 @@ final class TestsServiceImpl implements TestsService {
 
 	private final Object NO_TEST_RESULTS_MONITOR = new Object();
 	private final ObjectQueue<TestsResultQueueItem> testResultsQueue;
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
 	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (queueingService == null) {
@@ -76,7 +74,7 @@ final class TestsServiceImpl implements TestsService {
 			testResultsQueue = queueingService.initMemoQueue();
 		}
 
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 
 		logger.info("starting background worker...");
@@ -88,7 +86,7 @@ final class TestsServiceImpl implements TestsService {
 
 	@Override
 	public boolean isTestsResultRelevant(String jobCiId) throws IOException {
-		String serverCiId = pluginServices.getServerInfo().getInstanceId();
+		String serverCiId = configurer.octaneConfiguration.getInstanceId();
 		if (serverCiId == null || serverCiId.isEmpty()) {
 			throw new IllegalArgumentException("server CI ID MUST NOT be null nor empty");
 		}
@@ -98,7 +96,7 @@ final class TestsServiceImpl implements TestsService {
 
 		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
+				.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
 						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobCiId) + "/tests-result-preflight");
 
@@ -128,7 +126,7 @@ final class TestsServiceImpl implements TestsService {
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
-				.setUrl(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
+				.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 						"test-results?skip-errors=false")
 				.setHeaders(headers)
 				.setBody(testsResult);
@@ -180,14 +178,9 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	private void doPreflightAndPushTestResult(TestsResultQueueItem queueItem) {
-		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
-		if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
-			logger.warn("no (valid) Octane configuration found, skipping " + queueItem);
-			return;
-		}
 
 		//  validate test result
-		InputStream testsResult = pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
+		InputStream testsResult = configurer.pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
 		if (testsResult == null) {
 			logger.warn("test result of " + queueItem + " resolved to be NULL, skipping");
 			return;

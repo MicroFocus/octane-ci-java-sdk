@@ -16,7 +16,6 @@
 package com.hp.octane.integrations.spi;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
@@ -61,13 +60,6 @@ public interface CIPluginServices {
 	File getAllowedOctaneStorage();
 
 	/**
-	 * Provides Octane Server configuration (managed by plugin implementation)
-	 *
-	 * @return OctaneConfiguration object; if no configuration available the implementation should return NULL
-	 */
-	OctaneConfiguration getOctaneConfiguration();
-
-	/**
 	 * Provides CI Server proxy configuration (managed by plugin implementation)
 	 *
 	 * @param targetUrl target URL that the proxy, if available, should be relevant to
@@ -100,7 +92,7 @@ public interface CIPluginServices {
 	void runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace with parsed parameters/DTO
 
 	/**
-	 * suspend events from CI
+	 * Suspends events
 	 *
 	 * @param suspend desired state of CI events suspension
 	 */
@@ -161,4 +153,9 @@ public interface CIPluginServices {
 	OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo);
 
 	PipelineNode createExecutor(DiscoveryInfo discoveryInfo);
+
+	default boolean isValid() {
+		return this.getPluginInfo() != null &&
+				this.getServerInfo() != null;
+	}
 }

@@ -18,9 +18,9 @@ package com.hp.octane.integrations.services.coverage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
@@ -30,7 +30,6 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpRequest;
@@ -65,14 +64,14 @@ class SonarServiceImpl implements SonarService {
 
 	private final String BUILD_COVERAGE_QUEUE_FILE = "build-coverage-queue.dat";
 	private final ObjectQueue<SonarServiceImpl.BuildCoverageQueueItem> sonarIntegrationQueue;
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
 	SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (queueingService == null) {
@@ -82,7 +81,7 @@ class SonarServiceImpl implements SonarService {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 
 		if (queueingService.isPersistenceEnabled()) {
@@ -105,7 +104,7 @@ class SonarServiceImpl implements SonarService {
 				SonarServiceImpl.BuildCoverageQueueItem buildCoverageQueueItem = null;
 				try {
 					buildCoverageQueueItem = sonarIntegrationQueue.peek();
-					pushSonarDataToOctane(pluginServices.getServerInfo().getInstanceId(), buildCoverageQueueItem);
+					pushSonarDataToOctane(configurer.octaneConfiguration.getInstanceId(), buildCoverageQueueItem);
 					logger.debug("successfully processed " + buildCoverageQueueItem);
 					sonarIntegrationQueue.remove();
 				} catch (TemporaryException te) {
@@ -133,7 +132,7 @@ class SonarServiceImpl implements SonarService {
 				HttpClient httpClient = HttpClientBuilder.create().build();
 
 				URIBuilder uriBuilder = new URIBuilder(sonarURL + WEBHOOK_CREATE_URI)
-						.setParameter("name", "ci_" + pluginServices.getServerInfo().getInstanceId())
+						.setParameter("name", "ci_" + configurer.octaneConfiguration.getInstanceId())
 						.setParameter("url", ciCallbackUrl);
 
 				HttpPost request = new HttpPost(uriBuilder.toString());
@@ -184,14 +183,8 @@ class SonarServiceImpl implements SonarService {
 	}
 
 	private void pushSonarDataToOctane(String serverId, BuildCoverageQueueItem queueItem) {
-		OctaneConfiguration octaneConfiguration = pluginServices.getOctaneConfiguration();
-		if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
-			logger.warn("no (valid) Octane configuration found, bypassing " + queueItem);
-			return;
-		}
-
 		//  preflight
-		String[] workspaceIDs = preflightRequest(octaneConfiguration, serverId, queueItem.jobId);
+		String[] workspaceIDs = preflightRequest(configurer.octaneConfiguration, serverId, queueItem.jobId);
 		if (workspaceIDs.length == 0) {
 			logger.info("coverage of " + queueItem + " found no interested workspace in Octane, passing over");
 			return;
@@ -239,7 +232,7 @@ class SonarServiceImpl implements SonarService {
 		try {
 			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
-					.setUrl(getAnalyticsContextPath(octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
+					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
@@ -270,7 +263,7 @@ class SonarServiceImpl implements SonarService {
 	}
 
 	private OctaneRequest buildCoveragePutRequest(BuildCoverage buildCoverage, String ciIdentity, String jobId, String buildId) throws URISyntaxException, JsonProcessingException {
-		URIBuilder uriBuilder = new URIBuilder(getAnalyticsContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) + "coverage")
+		URIBuilder uriBuilder = new URIBuilder(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) + "coverage")
 				.setParameter("ci-server-identity", CIPluginSDKUtils.urlEncodeQueryParam(ciIdentity))
 				.setParameter("ci-job-id", CIPluginSDKUtils.urlEncodeQueryParam(jobId))
 				.setParameter("ci-build-id", CIPluginSDKUtils.urlEncodeQueryParam(buildId))

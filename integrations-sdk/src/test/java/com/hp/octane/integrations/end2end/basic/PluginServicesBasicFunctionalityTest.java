@@ -27,22 +27,17 @@ import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.UUID;
 
-class PluginServicesBFB extends CIPluginServicesBase {
+class PluginServicesBasicFunctionalityTest extends CIPluginServicesBase {
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
-	private String instanceId = UUID.randomUUID().toString();
-	private String client = "client_SP_B";
-	private String secret = "secret_SP_B";
 
 	@Override
 	public CIServerInfo getServerInfo() {
 		return dtoFactory.newDTO(CIServerInfo.class)
-				.setInstanceId(instanceId)
+				.setInstanceId(OctaneConfigurationBasicFunctionalityTest.instanceId)
 				.setUrl("http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort())
 				.setType("custom")
 				.setVersion("1.1.1");
@@ -52,11 +47,6 @@ class PluginServicesBFB extends CIPluginServicesBase {
 	public CIPluginInfo getPluginInfo() {
 		return dtoFactory.newDTO(CIPluginInfo.class)
 				.setVersion(OctaneSDK.SDK_VERSION);
-	}
-
-	@Override
-	public File getAllowedOctaneStorage() {
-		return new File("temp");
 	}
 
 	@Override
@@ -76,7 +66,7 @@ class PluginServicesBFB extends CIPluginServicesBase {
 		TestsResult testsResult = dtoFactory.newDTO(TestsResult.class)
 				.setBuildContext(
 						dtoFactory.newDTO(BuildContext.class)
-								.setServerId(instanceId)
+								.setServerId(OctaneConfigurationBasicFunctionalityTest.instanceId)
 								.setJobId("job-a")
 								.setBuildId("1")
 				)

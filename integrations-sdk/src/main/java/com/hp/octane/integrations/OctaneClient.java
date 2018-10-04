@@ -95,12 +95,4 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	VulnerabilitiesService getVulnerabilitiesService();
-
-	/**
-	 * resolves instance ID from the plugin services
-	 * pay attention: this property is mutable on the plugin's side, therefore we'll be resolving it at runtime
-	 *
-	 * @return instance ID; won't be NULL, if the underlying plugin service will resolve instance ID to NULL, this method should throw IllegalStateException
-	 */
-	String getEffectiveInstanceId() throws IllegalStateException;
 }

@@ -15,7 +15,7 @@
 
 package com.hp.octane.integrations.services.rest;
 
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 

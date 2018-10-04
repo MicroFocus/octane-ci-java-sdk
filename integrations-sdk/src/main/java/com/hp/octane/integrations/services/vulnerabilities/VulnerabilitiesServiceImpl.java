@@ -24,7 +24,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
@@ -52,7 +51,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 	private final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
 	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
@@ -62,7 +61,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private volatile Long actualTimeout = 3 * 60 * 60 * 1000L;
 
 	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (queueingService == null) {
@@ -78,7 +77,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			vulnerabilitiesQueue = queueingService.initMemoQueue();
 		}
 
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 
 		logger.info("starting background worker...");
@@ -104,8 +103,8 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
-				.setUrl(getVulnerabilitiesContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"?instance-id='" + pluginServices.getServerInfo().getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'")
+				.setUrl(getVulnerabilitiesContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+						"?instance-id='" + configurer.octaneConfiguration.getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'")
 				.setHeaders(headers)
 				.setBody(vulnerabilities);
 		OctaneResponse response = octaneRestClient.execute(request);
@@ -133,7 +132,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	private void updateTimeout() {
-		long timeoutConfig = pluginServices.getServerInfo().getMaxPollingTimeoutHours();
+		long timeoutConfig = configurer.pluginServices.getServerInfo().getMaxPollingTimeoutHours();
 		if (timeoutConfig <= 0) {
 			actualTimeout = TIME_OUT_FOR_QUEUE_ITEM;
 		} else {
@@ -154,8 +153,8 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(getVulnerabilitiesPreFlightContextPath(pluginServices.getOctaneConfiguration().getUrl(), pluginServices.getOctaneConfiguration().getSharedSpace()) +
-						"?instance-id='" + pluginServices.getServerInfo().getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'");
+				.setUrl(getVulnerabilitiesPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+						"?instance-id='" + configurer.octaneConfiguration.getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'");
 
 		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
 		if (response.getStatus() == HttpStatus.SC_OK) {
@@ -241,8 +240,8 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (result != null) {
 			return result;
 		}
-		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, this.pluginServices.getServerInfo().getSSCURL(),
-				this.pluginServices.getServerInfo().getSSCBaseAuthToken(),
+		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, configurer.pluginServices.getServerInfo().getSSCURL(),
+				configurer.pluginServices.getServerInfo().getSSCBaseAuthToken(),
 				targetDir,
 				this.restService.obtainSSCRestClient()
 		);
@@ -250,7 +249,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
-		File allowedOctaneStorage = this.pluginServices.getAllowedOctaneStorage();
+		File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
 		if (allowedOctaneStorage == null) {
 			logger.info("Issues of :" + vulnerabilitiesQueueItem.jobId + "," + vulnerabilitiesQueueItem.buildId + " cannot be cached in the file system.");
 			return null;

@@ -15,10 +15,10 @@
 
 package com.hp.octane.integrations.services.events;
 
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -55,7 +54,7 @@ final class EventsServiceImpl implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private final List<CIEvent> events = Collections.synchronizedList(new LinkedList<>());
 
@@ -67,14 +66,14 @@ final class EventsServiceImpl implements EventsService {
 	private final long TEMPORARY_FAILURE_PAUSE = 15000;
 
 	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
-		this.pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		this.restService = restService;
 
 		logger.info("starting background worker...");
@@ -118,30 +117,13 @@ final class EventsServiceImpl implements EventsService {
 				continue;
 			}
 
-			//  get and validate Octane configuration
-			OctaneConfiguration octaneConfiguration;
-			try {
-				octaneConfiguration = pluginServices.getOctaneConfiguration();
-				if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
-					logger.info("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...");
-					CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
-					logger.info("back from pause");
-					continue;
-				}
-			} catch (Throwable t) {
-				logger.error("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...", t);
-				CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
-				logger.info("back from pause");
-				continue;
-			}
-
 			//  build events list to be sent
 			List<CIEvent> eventsChunk = null;
 			CIEventsList eventsSnapshot;
 			try {
 				eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
 				eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-						.setServer(pluginServices.getServerInfo())
+						.setServer(configurer.pluginServices.getServerInfo())
 						.setEvents(eventsChunk);
 			} catch (Throwable t) {
 				logger.error("failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
@@ -151,8 +133,8 @@ final class EventsServiceImpl implements EventsService {
 
 			//  send the data to Octane
 			try {
-				logEventsToBeSent(octaneConfiguration, eventsSnapshot);
-				sendEventsData(octaneConfiguration, eventsSnapshot);
+				logEventsToBeSent(configurer.octaneConfiguration, eventsSnapshot);
+				sendEventsData(configurer.octaneConfiguration, eventsSnapshot);
 				removeEvents(eventsChunk);
 				logger.info("... done, left to send " + events.size() + " events");
 			} catch (TemporaryException tqie) {

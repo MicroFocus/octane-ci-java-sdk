@@ -79,7 +79,14 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  I
 			//  add one client and verify it works okay
 			//
-			OctaneClient clientA = OctaneSDK.addClient(new PluginServicesBFA(spIdA));
+			OctaneClient clientA = OctaneSDK.addClient(
+					new OctaneConfigurationBasicFunctionalityTest(
+							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
+							spIdA,
+							"client_SP_A",
+							"secret_SP_A"
+					),
+					PluginServicesBasicFunctionalityTest.class);
 			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
@@ -119,7 +126,14 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  II
 			//  add one more client and verify they are both works okay
 			//
-			OctaneClient clientB = OctaneSDK.addClient(new PluginServicesBFB(spIdB));
+			OctaneClient clientB = OctaneSDK.addClient(
+					new OctaneConfigurationBasicFunctionalityTest(
+							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
+							spIdB,
+							"client_SP_B",
+							"secret_SP_B"
+					),
+					PluginServicesBasicFunctionalityTest.class);
 			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
 			eventsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdA).clear();
