@@ -83,7 +83,7 @@ final class BridgeServiceImpl implements BridgeService {
 
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
-					serverInfo.getInstanceId(),
+					configurer.octaneConfiguration.getInstanceId(),
 					serverInfo.getType(),
 					serverInfo.getUrl(),
 					pluginInfo == null ? "" : pluginInfo.getVersion(),

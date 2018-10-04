@@ -91,6 +91,7 @@ public final class OctaneSDK {
 		CIPluginServices pluginServices;
 		try {
 			pluginServices = pluginServicesClass.newInstance();
+			pluginServices.setInstanceId(instanceId);
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
 		}
@@ -213,11 +214,11 @@ public final class OctaneSDK {
 	}
 
 	static boolean isInstanceIdUnique(String instanceId) {
-		return clients.keySet().stream().anyMatch(oc -> oc.getInstanceId().equals(instanceId));
+		return clients.keySet().stream().noneMatch(oc -> oc.getInstanceId().equals(instanceId));
 	}
 
 	static boolean isSharedSpaceIdUnique(String sharedSpace) {
-		return clients.keySet().stream().anyMatch(oc -> oc.getSharedSpace().equals(sharedSpace));
+		return clients.keySet().stream().noneMatch(oc -> oc.getSharedSpace().equals(sharedSpace));
 	}
 
 	/**

@@ -42,7 +42,7 @@ final class QueueingServiceImpl implements QueueingService {
 
 		//  check persistence availability
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
-			storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), configurer.pluginServices.getServerInfo().getInstanceId());
+			storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), configurer.octaneConfiguration.getInstanceId());
 			logger.info("hosting plugin PROVIDE available storage, queues persistence enabled");
 		} else {
 			storageDirectory = null;

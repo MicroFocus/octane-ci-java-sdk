@@ -81,6 +81,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//
 			OctaneClient clientA = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
+							UUID.randomUUID().toString(),
 							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
 							spIdA,
 							"client_SP_A",
@@ -128,6 +129,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//
 			OctaneClient clientB = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
+							UUID.randomUUID().toString(),
 							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
 							spIdB,
 							"client_SP_B",

@@ -28,11 +28,11 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.http.HttpHeaders;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -65,13 +65,13 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 
 	TasksProcessorImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
-		pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 	}
 
 	@Override
@@ -119,8 +119,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 				if (HttpMethod.POST.equals(task.getMethod()) && path.length == 2) {
 					if (INIT.equalsIgnoreCase(path[1])) {
 						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
-						pluginServices.runTestDiscovery(discoveryInfo);
-						PipelineNode node = pluginServices.createExecutor(discoveryInfo);
+						configurer.pluginServices.runTestDiscovery(discoveryInfo);
+						PipelineNode node = configurer.pluginServices.createExecutor(discoveryInfo);
 						if (node != null) {
 							result.setBody(dtoFactory.dtoToJson(node));
 							result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
@@ -128,11 +128,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 						result.setStatus(200);
 					} else if (SUITE_RUN.equalsIgnoreCase(path[1])) {
 						TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
-						pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
+						configurer.pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
 						result.setStatus(200);
 					} else if (TEST_CONN.equalsIgnoreCase(path[1])) {
 						TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
-						OctaneResponse connTestResult = pluginServices.checkRepositoryConnectivity(testConnectivityInfo);
+						OctaneResponse connTestResult = configurer.pluginServices.checkRepositoryConnectivity(testConnectivityInfo);
 						result.setStatus(connTestResult.getStatus());
 						result.setBody(connTestResult.getBody());
 					} else if (CREDENTIALS_UPSERT.equalsIgnoreCase(path[1])) {
@@ -144,7 +144,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 					}
 				} else if (HttpMethod.DELETE.equals(task.getMethod()) && path.length == 2) {
 					String id = path[1];
-					pluginServices.deleteExecutor(id);
+					configurer.pluginServices.deleteExecutor(id);
 				}
 
 			} else {
@@ -199,38 +199,38 @@ final class TasksProcessorImpl implements TasksProcessor {
 				.setApiVersion(OctaneSDK.API_VERSION)
 				.setSdkVersion(OctaneSDK.SDK_VERSION);
 		CIProviderSummaryInfo status = dtoFactory.newDTO(CIProviderSummaryInfo.class)
-				.setServer(pluginServices.getServerInfo())
-				.setPlugin(pluginServices.getPluginInfo())
+				.setServer(configurer.pluginServices.getServerInfo())
+				.setPlugin(configurer.pluginServices.getPluginInfo())
 				.setSdk(sdkInfo);
 		result.setBody(dtoFactory.dtoToJson(status));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters) {
-		CIJobsList content = pluginServices.getJobsList(includingParameters);
+		CIJobsList content = configurer.pluginServices.getJobsList(includingParameters);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
-		PipelineNode content = pluginServices.getPipeline(jobId);
+		PipelineNode content = configurer.pluginServices.getPipeline(jobId);
 		result.setBody(dtoFactory.dtoToJson(content));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		pluginServices.runPipeline(jobId, originalBody);
+		configurer.pluginServices.runPipeline(jobId, originalBody);
 		result.setStatus(201);
 	}
 
 	private void suspendCiEvents(OctaneResultAbridged result, String suspend) {
 		boolean toSuspend = Boolean.parseBoolean(suspend);
-		pluginServices.suspendCIEvents(toSuspend);
+		configurer.pluginServices.suspendCIEvents(toSuspend);
 		result.setStatus(201);
 	}
 
 	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId) {
-		SnapshotNode data = pluginServices.getSnapshotLatest(jobId, false);
+		SnapshotNode data = configurer.pluginServices.getSnapshotLatest(jobId, false);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
@@ -240,7 +240,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId) {
-		SnapshotNode data = pluginServices.getSnapshotByNumber(jobCiId, buildCiId, false);
+		SnapshotNode data = configurer.pluginServices.getSnapshotByNumber(jobCiId, buildCiId, false);
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
@@ -250,7 +250,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeUpsertCredentials(OctaneResultAbridged result, CredentialsInfo credentialsInfo) {
-		OctaneResponse response = pluginServices.upsertCredentials(credentialsInfo);
+		OctaneResponse response = configurer.pluginServices.upsertCredentials(credentialsInfo);
 		result.setBody(response.getBody());
 		result.setStatus(response.getStatus());
 	}

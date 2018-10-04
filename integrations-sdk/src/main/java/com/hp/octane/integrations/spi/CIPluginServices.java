@@ -38,6 +38,8 @@ import java.net.URL;
 
 public interface CIPluginServices {
 
+	void setInstanceId(String instanceId);
+
 	/**
 	 * Provides CI Server information
 	 *

@@ -31,13 +31,19 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-class PluginServicesBasicFunctionalityTest extends CIPluginServicesBase {
+public class PluginServicesBasicFunctionalityTest extends CIPluginServicesBase {
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
+	public String instanceId;
+
+	@Override
+	public void setInstanceId(String instanceId) {
+		this.instanceId = instanceId;
+	}
 
 	@Override
 	public CIServerInfo getServerInfo() {
 		return dtoFactory.newDTO(CIServerInfo.class)
-				.setInstanceId(OctaneConfigurationBasicFunctionalityTest.instanceId)
+				.setInstanceId(instanceId)
 				.setUrl("http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort())
 				.setType("custom")
 				.setVersion("1.1.1");
@@ -66,7 +72,7 @@ class PluginServicesBasicFunctionalityTest extends CIPluginServicesBase {
 		TestsResult testsResult = dtoFactory.newDTO(TestsResult.class)
 				.setBuildContext(
 						dtoFactory.newDTO(BuildContext.class)
-								.setServerId(OctaneConfigurationBasicFunctionalityTest.instanceId)
+								.setServerId(instanceId)
 								.setJobId("job-a")
 								.setBuildId("1")
 				)

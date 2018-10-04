@@ -53,12 +53,8 @@ final class OctaneClientImpl implements OctaneClient {
 	private final VulnerabilitiesService vulnerabilitiesService;
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("services configurer MUST NOT be null nor empty");
-		}
-		if (configurer.pluginServices.getServerInfo() == null ||
-				configurer.pluginServices.getServerInfo().getInstanceId() == null || configurer.pluginServices.getServerInfo().getInstanceId().isEmpty()) {
-			throw new IllegalArgumentException("plugin service MUST provide a valid instance ID (non null nor empty");
 		}
 
 		//  internals init
