@@ -84,7 +84,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 					if (sharedSpaceAndWorkspace.length < 1 || sharedSpaceAndWorkspace[0].isEmpty()) {
 						throw new IllegalArgumentException("shared space parameter MUST be present");
 					}
-					result = new OctaneConfigurationImpl();
+					result = new OctaneConfiguration();
 					result.setUrl(url);
 					result.setSharedSpace(sharedSpaceAndWorkspace[0]);
 					result.setClient(apiKey);
@@ -137,10 +137,5 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	public void notifyChange() {
 		logger.info("notified about Octane Server configuration change, propagating to RestService");
 		restService.notifyConfigurationChange();
-	}
-
-	private static class OctaneConfigurationImpl extends OctaneConfiguration {
-		private OctaneConfigurationImpl() {
-		}
 	}
 }

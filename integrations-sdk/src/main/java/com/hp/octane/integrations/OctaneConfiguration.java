@@ -6,7 +6,7 @@ import org.apache.logging.log4j.Logger;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public abstract class OctaneConfiguration {
+public class OctaneConfiguration {
 	private static final Logger logger = LogManager.getLogger(OctaneConfiguration.class);
 	private String instanceId;
 	private String url;
