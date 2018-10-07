@@ -55,7 +55,7 @@ import java.util.zip.GZIPInputStream;
  */
 
 public class OctaneSDKBasicFunctionalityTest {
-	private static final Logger logger = LogManager.getLogger(OctaneSDK.class);
+	private static final Logger logger = LogManager.getLogger(OctaneSDKBasicFunctionalityTest.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test(timeout = 20000)
@@ -84,7 +84,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneClient clientA = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
 							clientAInstanceId,
-							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
+							OctaneSPEndpointSimulator.getSimulatorUrl(),
 							spIdA,
 							"client_SP_A",
 							"secret_SP_A"
@@ -140,7 +140,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneClient clientB = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
 							clientBInstanceId,
-							"http://localhost:" + OctaneSPEndpointSimulator.getUnderlyingServerPort(),
+							OctaneSPEndpointSimulator.getSimulatorUrl(),
 							spIdB,
 							"client_SP_B",
 							"secret_SP_B"

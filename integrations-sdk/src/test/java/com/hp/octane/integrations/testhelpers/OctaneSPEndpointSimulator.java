@@ -93,11 +93,11 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	 *
 	 * @return effectively selected server port
 	 */
-	synchronized public static int getUnderlyingServerPort() {
+	synchronized public static String getSimulatorUrl() {
 		if (selectedPort == null) {
 			startServer();
 		}
-		return selectedPort;
+		return "http://localhost:" + selectedPort;
 	}
 
 	private static void startServer() {
