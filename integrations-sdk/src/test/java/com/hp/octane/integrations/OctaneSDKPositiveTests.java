@@ -22,6 +22,7 @@ import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.List;
 import java.util.UUID;
 
@@ -56,26 +57,15 @@ public class OctaneSDKPositiveTests {
 	}
 
 	@Test
-	public void sdkTestB() {
-		OctaneConfiguration oc = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
-		OctaneSDK.addClient(oc, PluginServices.class);
-		OctaneClient client = OctaneSDK.getClientByInstanceId(oc.getInstanceId());
-
-		Assert.assertNotNull(client);
-
-		oc.setInstanceId(UUID.randomUUID().toString());
-		client = OctaneSDK.getClientByInstanceId(oc.getInstanceId());
-
-		Assert.assertNotNull(client);
-
-		Assert.assertNotNull(OctaneSDK.removeClient(client));
-	}
-
-	@Test
 	public void sdkTestC() {
 		OctaneConfiguration oc = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
 		OctaneSDK.addClient(oc, PluginServices.class);
 		OctaneClient client = OctaneSDK.getClientBySharedSpaceId("1001");
+
+		Assert.assertNotNull(client);
+
+		oc.setSharedSpace("1002");
+		client = OctaneSDK.getClientBySharedSpaceId(oc.getSharedSpace());
 
 		Assert.assertNotNull(client);
 
@@ -94,6 +84,7 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotNull(clientB);
 
 			Assert.assertNotNull(clientA.getConfigurationService());
+			Assert.assertNotNull(clientA.getCoverageService());
 			Assert.assertNotNull(clientA.getEntitiesService());
 			Assert.assertNotNull(clientA.getEventsService());
 			Assert.assertNotNull(clientA.getLogsService());
@@ -104,6 +95,7 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotNull(clientA.getVulnerabilitiesService());
 
 			Assert.assertNotNull(clientB.getConfigurationService());
+			Assert.assertNotNull(clientA.getCoverageService());
 			Assert.assertNotNull(clientB.getEntitiesService());
 			Assert.assertNotNull(clientB.getEventsService());
 			Assert.assertNotNull(clientB.getLogsService());
@@ -114,6 +106,7 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotNull(clientB.getVulnerabilitiesService());
 
 			Assert.assertNotEquals(clientA.getConfigurationService(), clientB.getConfigurationService());
+			Assert.assertNotEquals(clientA.getCoverageService(), clientB.getCoverageService());
 			Assert.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
 			Assert.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
 			Assert.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());
@@ -138,6 +131,19 @@ public class OctaneSDKPositiveTests {
 		Assert.assertNotNull(OctaneSDK.removeClient(client));
 	}
 
+	@Test
+	public void sdkTestF() {
+		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
+		OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1002", null, null);
+		OctaneClient clientA = OctaneSDK.addClient(oc1, OctaneSDKNegativeTests.PluginServices.class);
+		OctaneClient clientB = OctaneSDK.addClient(oc2, OctaneSDKNegativeTests.PluginServices.class);
+		Assert.assertNotNull(clientA);
+		Assert.assertNotNull(clientB);
+
+		Assert.assertNotNull(OctaneSDK.removeClient(clientB));
+		oc2.setSharedSpace(oc1.getSharedSpace());
+	}
+
 	public static class PluginServices extends CIPluginServicesBase {
 		@Override
 		public CIServerInfo getServerInfo() {
@@ -148,13 +154,16 @@ public class OctaneSDKPositiveTests {
 		public CIPluginInfo getPluginInfo() {
 			return dtoFactory.newDTO(CIPluginInfo.class);
 		}
+
+		@Override
+		public File getAllowedOctaneStorage() {
+			return new File("temp");
+		}
 	}
 
 	private static class OctaneConfigurationIntern extends OctaneConfiguration {
 		private OctaneConfigurationIntern(String iId, String url, String spId, String client, String secret) {
-			this.setInstanceId(iId);
-			this.setUrl(url);
-			this.setSharedSpace(spId);
+			super(iId, url, spId);
 			this.setClient(client);
 			this.setSecret(secret);
 		}

@@ -65,44 +65,42 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		logger.info("initialized SUCCESSFULLY");
 	}
 
-	@Override
-	public OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException {
-		OctaneConfiguration result = null;
-		try {
-			String url;
-			URL tmpUrl = new URL(rawUrl);
-			int contextPathPosition = rawUrl.indexOf(UI_CONTEXT_PATH);
-			if (contextPathPosition < 0) {
-				throw new IllegalArgumentException("URL does not conform to the expected format");
-			} else {
-				url = rawUrl.substring(0, contextPathPosition);
-			}
-			List<NameValuePair> params = URLEncodedUtils.parse(tmpUrl.toURI(), "UTF-8");
-			for (NameValuePair param : params) {
-				if (param.getName().equals(PARAM_SHARED_SPACE)) {
-					String[] sharedSpaceAndWorkspace = param.getValue().split("/");
-					if (sharedSpaceAndWorkspace.length < 1 || sharedSpaceAndWorkspace[0].isEmpty()) {
-						throw new IllegalArgumentException("shared space parameter MUST be present");
-					}
-					result = new OctaneConfiguration();
-					result.setUrl(url);
-					result.setSharedSpace(sharedSpaceAndWorkspace[0]);
-					result.setClient(apiKey);
-					result.setSecret(secret);
-				}
-			}
-		} catch (MalformedURLException murle) {
-			throw new IllegalArgumentException("invalid URL", murle);
-		} catch (URISyntaxException uirse) {
-			throw new IllegalArgumentException("invalid URL (parameters)", uirse);
-		}
-
-		if (result == null) {
-			throw new IllegalArgumentException("failed to extract NGA server URL and shared space ID from '" + rawUrl + "'");
-		} else {
-			return result;
-		}
-	}
+//	@Override
+//	public OctaneConfiguration buildConfiguration(String instanceId, String rawUrl, String client, String secret) throws IllegalArgumentException {
+//		OctaneConfiguration result = null;
+//		try {
+//			String url;
+//			URL tmpUrl = new URL(rawUrl);
+//			int contextPathPosition = rawUrl.indexOf(UI_CONTEXT_PATH);
+//			if (contextPathPosition < 0) {
+//				throw new IllegalArgumentException("URL does not conform to the expected format");
+//			} else {
+//				url = rawUrl.substring(0, contextPathPosition);
+//			}
+//			List<NameValuePair> params = URLEncodedUtils.parse(tmpUrl.toURI(), "UTF-8");
+//			for (NameValuePair param : params) {
+//				if (param.getName().equals(PARAM_SHARED_SPACE)) {
+//					String[] sharedSpaceAndWorkspace = param.getValue().split("/");
+//					if (sharedSpaceAndWorkspace.length < 1 || sharedSpaceAndWorkspace[0].isEmpty()) {
+//						throw new IllegalArgumentException("shared space parameter MUST be present");
+//					}
+//					result = new OctaneConfiguration(instanceId, url, sharedSpaceAndWorkspace[0]);
+//					result.setClient(client);
+//					result.setSecret(secret);
+//				}
+//			}
+//		} catch (MalformedURLException murle) {
+//			throw new IllegalArgumentException("invalid URL", murle);
+//		} catch (URISyntaxException uirse) {
+//			throw new IllegalArgumentException("invalid URL (parameters)", uirse);
+//		}
+//
+//		if (result == null) {
+//			throw new IllegalArgumentException("failed to extract NGA server URL and shared space ID from '" + rawUrl + "'");
+//		} else {
+//			return result;
+//		}
+//	}
 
 	@Override
 	public boolean isConfigurationValid() {
@@ -119,9 +117,6 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	public OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException {
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration MUST not be null");
-		}
-		if (!configuration.isValid()) {
-			throw new IllegalArgumentException("configuration " + configuration + " is not valid");
 		}
 
 		URL octaneUrl = CIPluginSDKUtils.parseURL(configuration.getUrl());

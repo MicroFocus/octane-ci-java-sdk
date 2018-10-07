@@ -124,11 +124,6 @@ final class LogsServiceImpl implements LogsService {
 
 	private void pushBuildLog(String serverId, BuildLogQueueItem queueItem) {
 		OctaneConfiguration octaneConfiguration = configurer.octaneConfiguration;
-		if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
-			logger.warn("no (valid) Octane configuration found, bypassing " + queueItem);
-			return;
-		}
-
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(queueItem.buildId);

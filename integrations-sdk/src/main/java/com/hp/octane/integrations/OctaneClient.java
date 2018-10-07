@@ -45,7 +45,7 @@ public interface OctaneClient {
 	 *
 	 * @return service, MUST NOT be null
 	 */
-	SonarService getSonarService();
+	SonarService getCoverageService();
 
 	/**
 	 * provides Entities service

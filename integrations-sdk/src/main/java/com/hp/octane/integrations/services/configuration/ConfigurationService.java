@@ -38,12 +38,13 @@ public interface ConfigurationService {
 	/**
 	 * Builds configuration object from raw data, usually supplied from UI or storage
 	 *
-	 * @param rawUrl Octane server url
-	 * @param apiKey API Key
-	 * @param secret API Secret
+	 * @param instanceId instance ID
+	 * @param rawUrl     Octane server url
+	 * @param apiKey     API Key
+	 * @param secret     API Secret
 	 * @return OctaneConfiguration
 	 */
-	OctaneConfiguration buildConfiguration(String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
+//	OctaneConfiguration buildConfiguration(String instanceId, String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
 
 	/**
 	 * Check if current configuration is valid

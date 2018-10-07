@@ -1,34 +1,28 @@
 package com.hp.octane.integrations;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.net.MalformedURLException;
 import java.net.URL;
 
 public class OctaneConfiguration {
-	private static final Logger logger = LogManager.getLogger(OctaneConfiguration.class);
-	private String instanceId;
+	private final String instanceId;
 	private String url;
 	private String sharedSpace;
 	private String client;
 	private String secret;
 	volatile boolean attached = false;
 
-	public final String getInstanceId() {
-		return instanceId;
+	public OctaneConfiguration(String instanceId, String url, String sharedSpace) {
+		if (instanceId == null || instanceId.isEmpty()) {
+			throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
+		}
+
+		this.instanceId = instanceId;
+		setUrl(url);
+		setSharedSpace(sharedSpace);
 	}
 
-	synchronized public final void setInstanceId(String instanceId) {
-		if (attached) {
-			if (instanceId == null || instanceId.isEmpty()) {
-				throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
-			}
-			if (!OctaneSDK.isInstanceIdUnique(instanceId)) {
-				throw new IllegalArgumentException("instance ID '" + instanceId + "' is already in use");
-			}
-		}
-		this.instanceId = instanceId;
+	public final String getInstanceId() {
+		return instanceId;
 	}
 
 	public final String getUrl() {
@@ -39,12 +33,13 @@ public class OctaneConfiguration {
 		if (url == null || url.isEmpty()) {
 			throw new IllegalArgumentException("url MUST NOT be null nor empty");
 		}
+
 		try {
-			new URL(url);
+			URL tmp = new URL(url);
+			this.url = tmp.getProtocol() + "://" + tmp.getHost() + (tmp.getPort() > 0 ? (":" + tmp.getPort()) : "");
 		} catch (MalformedURLException mue) {
 			throw new IllegalArgumentException("invalid url", mue);
 		}
-		this.url = url;
 	}
 
 	public final String getSharedSpace() {
@@ -52,14 +47,18 @@ public class OctaneConfiguration {
 	}
 
 	synchronized public final void setSharedSpace(String sharedSpace) {
-		if (attached) {
-			if (sharedSpace == null || sharedSpace.isEmpty()) {
-				throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
-			}
-			if (!OctaneSDK.isSharedSpaceIdUnique(sharedSpace)) {
-				throw new IllegalArgumentException("shared space ID '" + sharedSpace + "' is already in use");
-			}
+		if (sharedSpace == null || sharedSpace.isEmpty()) {
+			throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
 		}
+
+		if (sharedSpace.equals(this.sharedSpace)) {
+			return;
+		}
+
+		if (attached && !OctaneSDK.isSharedSpaceIdUnique(sharedSpace)) {
+			throw new IllegalArgumentException("shared space ID '" + sharedSpace + "' is already in use");
+		}
+
 		this.sharedSpace = sharedSpace;
 	}
 
@@ -77,21 +76,6 @@ public class OctaneConfiguration {
 
 	public void setSecret(String secret) {
 		this.secret = secret;
-	}
-
-	public final boolean isValid() {
-		boolean result = false;
-		if (url != null &&
-				instanceId != null && !instanceId.isEmpty() &&
-				sharedSpace != null && !sharedSpace.isEmpty()) {
-			try {
-				new URL(url);
-				result = true;
-			} catch (MalformedURLException mue) {
-				logger.warn("Octane configuration (specifically URL '" + url + "') failed", mue);
-			}
-		}
-		return result;
 	}
 
 	@Override

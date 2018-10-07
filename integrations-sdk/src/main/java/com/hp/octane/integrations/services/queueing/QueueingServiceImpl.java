@@ -26,6 +26,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Queue Service provides a common queue infrastructure, initialization and maintenance
@@ -34,15 +36,19 @@ import java.io.OutputStream;
 final class QueueingServiceImpl implements QueueingService {
 	private static final Logger logger = LogManager.getLogger(QueueingServiceImpl.class);
 	private final File storageDirectory;
+	private final List<FileObjectQueue> fileObjectQueues = new LinkedList<>();
 
 	QueueingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 
 		//  check persistence availability
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
-			storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), configurer.octaneConfiguration.getInstanceId());
+			storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + configurer.octaneConfiguration.getInstanceId());
+			if (!storageDirectory.mkdirs()) {
+				logger.info("storage directories structure assumed to be present");
+			}
 			logger.info("hosting plugin PROVIDE available storage, queues persistence enabled");
 		} else {
 			storageDirectory = null;
@@ -65,12 +71,25 @@ final class QueueingServiceImpl implements QueueingService {
 		ObjectQueue<T> result;
 		try {
 			File queueFile = new File(storageDirectory, queueFileName);
-			result = new FileObjectQueue<>(queueFile, new GenericOctaneQueueItemConverter<>(targetType));
+			FileObjectQueue<T> tmp = new FileObjectQueue<>(queueFile, new GenericOctaneQueueItemConverter<>(targetType));
+			fileObjectQueues.add(tmp);
+			result = tmp;
 		} catch (Exception e) {
 			logger.error("failed to create file based queue, falling back to memory based one", e);
 			result = initMemoQueue();
 		}
 		return result;
+	}
+
+	@Override
+	public void shutdown() {
+		fileObjectQueues.forEach(fileObjectQueue -> {
+			try {
+				fileObjectQueue.close();
+			} catch (Exception e) {
+				logger.error("failed to close " + fileObjectQueue, e);
+			}
+		});
 	}
 
 	private static final class GenericOctaneQueueItemConverter<T> implements FileObjectQueue.Converter<T> {

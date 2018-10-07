@@ -71,9 +71,6 @@ public final class OctaneSDK {
 		if (clients.containsKey(octaneConfiguration)) {
 			throw new IllegalStateException("provided octane configuration instance already in use");
 		}
-		if (!octaneConfiguration.isValid()) {
-			throw new IllegalArgumentException("octane configuration is invalid");
-		}
 
 		//  validate instance ID uniqueness
 		String instanceId = octaneConfiguration.getInstanceId();
@@ -213,12 +210,13 @@ public final class OctaneSDK {
 	 * @throws IOException in case of basic connectivity failure
 	 */
 	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
-		OctaneConfiguration configuration = new OctaneConfiguration();
-		configuration.setUrl(octaneServerUrl);
-		configuration.setSharedSpace(sharedSpaceId);
+		//  [YG]: instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
+		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
 		configuration.setSecret(secret);
 		configuration.setClient(client);
-		configuration.setInstanceId(UUID.randomUUID().toString());              //  [YG]: instance ID is required by validators, therefore adding random value here
+		if (pluginServicesClass == null) {
+			throw new IllegalArgumentException("plugin services provider is invalid");
+		}
 		CIPluginServices pluginServices;
 		try {
 			pluginServices = pluginServicesClass.newInstance();

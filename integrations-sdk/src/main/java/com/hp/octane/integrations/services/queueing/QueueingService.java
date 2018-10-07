@@ -58,6 +58,12 @@ public interface QueueingService {
 	 */
 	<T extends QueueItem> ObjectQueue<T> initFileQueue(String queueFileName, Class<T> targetType);
 
+	/**
+	 * Shuts down all queue services
+	 * - closing all persistent queues
+	 */
+	void shutdown();
+
 	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	interface QueueItem {

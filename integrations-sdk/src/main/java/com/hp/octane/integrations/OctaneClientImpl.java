@@ -47,6 +47,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final EntitiesService entitiesService;
 	private final EventsService eventsService;
 	private final LogsService logsService;
+	private final QueueingService queueingService;
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
 	private final TestsService testsService;
@@ -61,7 +62,7 @@ final class OctaneClientImpl implements OctaneClient {
 		this.configurer = configurer;
 		ensureStorageIfAny();
 		LoggingService.newInstance(configurer);
-		QueueingService queueingService = QueueingService.newInstance(configurer);
+		queueingService = QueueingService.newInstance(configurer);
 
 		//  independent services init
 		restService = RestService.newInstance(configurer);
@@ -79,15 +80,14 @@ final class OctaneClientImpl implements OctaneClient {
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		BridgeService.newInstance(configurer, restService, tasksProcessor);
 
-		logger.info("OctaneClient initialized with currently effective instance ID '" + configurer.octaneConfiguration.getInstanceId() +
-				"' (remember, instance ID is not owned by SDK and may change on the fly)");
+		logger.info("OctaneClient initialized with currently effective instance ID '" + configurer.octaneConfiguration.getInstanceId());
 	}
 
 	public ConfigurationService getConfigurationService() {
 		return configurationService;
 	}
 
-	public SonarService getSonarService() {
+	public SonarService getCoverageService() {
 		return sonarService;
 	}
 
@@ -125,18 +125,43 @@ final class OctaneClientImpl implements OctaneClient {
 	}
 
 	void close() {
+		//  close HTTP client
 		restService.obtainOctaneRestClient().shutdown();
+
+		//  close queues
+		queueingService.shutdown();
+
+		//  clean storage
+		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
+			String instanceId = configurer.octaneConfiguration.getInstanceId();
+			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
+			if (deleteFolder(instanceOrientedStorage)) {
+				logger.info("cleaned dedicated storage for OctaneClient instance " + instanceId);
+			} else {
+				logger.error("failed to clean dedicated storage for OctaneClient instance " + instanceId);
+			}
+		}
 	}
 
 	private void ensureStorageIfAny() {
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
-			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), instanceId);
+			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
 			if (instanceOrientedStorage.mkdirs()) {
 				logger.info("verified dedicated storage for OctaneClient instance " + instanceId);
 			} else {
 				logger.error("failed to create dedicated storage for OctaneClient instance " + instanceId);
 			}
 		}
+	}
+
+	private boolean deleteFolder(File folder) {
+		File[] children = folder.listFiles();
+		if (children != null) {
+			for (File file : children) {
+				deleteFolder(file);
+			}
+		}
+		return folder.delete();
 	}
 }
