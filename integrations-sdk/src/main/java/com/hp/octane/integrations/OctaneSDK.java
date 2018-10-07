@@ -16,6 +16,8 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.UUID;
 
 /**
  * OctaneSDK serves initialization phase when hosting plugin configures OctaneClient/s to work with
@@ -200,7 +203,7 @@ public final class OctaneSDK {
 	}
 
 	/**
-	 * This method allows the test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
+	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
 	 *
 	 * @param octaneServerUrl base Octane server URL
 	 * @param sharedSpaceId   shared space ID
@@ -209,10 +212,23 @@ public final class OctaneSDK {
 	 * @return Octane server response; response MAY be inspected for the specific error in order to create meaningful message to the user
 	 * @throws IOException in case of basic connectivity failure
 	 */
-	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret) throws IOException {
-		//  TODO: validations
-		//  perform request to Octane
-		return null;
+	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
+		OctaneConfiguration configuration = new OctaneConfiguration();
+		configuration.setUrl(octaneServerUrl);
+		configuration.setSharedSpace(sharedSpaceId);
+		configuration.setSecret(secret);
+		configuration.setClient(client);
+		configuration.setInstanceId(UUID.randomUUID().toString());              //  [YG]: instance ID is required by validators, therefore adding random value here
+		CIPluginServices pluginServices;
+		try {
+			pluginServices = pluginServicesClass.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
+		}
+		SDKServicesConfigurer configurer = new SDKServicesConfigurer(configuration, pluginServices);
+		RestService restService = RestService.newInstance(configurer);
+		ConfigurationService configurationService = ConfigurationService.newInstance(configurer, restService);
+		return configurationService.validateConfiguration(configuration);
 	}
 
 	static boolean isInstanceIdUnique(String instanceId) {

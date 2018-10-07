@@ -104,7 +104,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private Cookie LWSSO_TOKEN = null;
 
 	OctaneRestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 

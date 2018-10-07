@@ -34,7 +34,7 @@ final class RestServiceImpl implements RestService {
 	private SSCRestClient sscRestClient;
 
 	RestServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 
