@@ -70,7 +70,7 @@ public class SscProjectConnector {
         if (projectId == null) {
             return null;
         }
-        String suffix = "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectVersion);
+        String suffix = getURLForProjectVersion(projectId);
         String rawResponse = sendGetEntity(suffix);
         ProjectVersions projectVersions = responseToObject(rawResponse, ProjectVersions.class);
         if (projectVersions.data.length == 0) {
@@ -80,7 +80,8 @@ public class SscProjectConnector {
     }
 
     public Integer getProjectId() {
-        String rawResponse = sendGetEntity("projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectName));
+        String projectIdURL = getProjectIdURL();
+        String rawResponse = sendGetEntity(projectIdURL);
         Projects projects = responseToObject(rawResponse, Projects.class);
         if (projects.data.length == 0) {
             return null;
@@ -101,15 +102,29 @@ public class SscProjectConnector {
     }
 
     public Issues readNewIssuesOfLastestScan(int projectVersionId) {
-        String urlSuffix = String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
+        String urlSuffix = getNewIssuesURL(projectVersionId);
         String rawResponse = sendGetEntity(urlSuffix);
         return responseToObject(rawResponse, Issues.class);
     }
 
     public Artifacts getArtifactsOfProjectVersion(Integer id, int limit) {
 
-        String urlSuffix = String.format("projectVersions/%d/artifacts?limit=%d", id, limit);
+        String urlSuffix = getArtifactsURL(id, limit);
         String rawResponse = sendGetEntity(urlSuffix);
         return responseToObject(rawResponse, Artifacts.class);
+    }
+    public String getProjectIdURL() {
+        return "projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectName);
+    }
+
+    public String getNewIssuesURL(int projectVersionId) {
+        return String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
+    }
+
+    public String getArtifactsURL(Integer projectVersionId, int limit) {
+        return String.format("projectVersions/%d/artifacts?limit=%d", projectVersionId, limit);
+    }
+    public String getURLForProjectVersion(Integer projectId) {
+        return "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectVersion);
     }
 }
