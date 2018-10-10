@@ -178,7 +178,7 @@ public class SSCHandler {
         setOctaneStatus(dtoFactory, issue, octaneIssue);
         Map extendedData = getExtendedData(issue);
         octaneIssue.setExtendedData(extendedData);
-        octaneIssue.setPrimaryLocationFull(issue.primaryLocation);
+        octaneIssue.setPrimaryLocationFull(issue.fullFileName);
         octaneIssue.setLine(issue.lineNumber);
         octaneIssue.setRemoteId(issue.issueInstanceId);
         octaneIssue.setIntroducedDate(convertDates(issue.foundDate));
