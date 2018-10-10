@@ -10,7 +10,6 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.lang.reflect.Array;
 import java.util.List;
 
 import static org.easymock.EasyMock.*;
@@ -30,7 +29,7 @@ public class VulnerabilitiesTest {
         sscFortifyConfigurations.projectVersion = "version";
         sscFortifyConfigurations.baseToken = "";
 
-        SSCClient sscClientMock = EasyMock.createNiceMock(SSCClient.class);
+        SSCClient sscClientMock = createNiceMock(SSCClient.class);
         replay();
         SscProjectConnector sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClientMock);
 
