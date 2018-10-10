@@ -14,8 +14,8 @@ import java.util.List;
 
 import static org.easymock.EasyMock.*;
 
-public class VulnerabilitiesTest {
-	
+public class VulnerabilitiesTests {
+
 	@Test
 	public void wellFormedURLS() {
 		SSCFortifyConfigurations sscFortifyConfigurations = new SSCFortifyConfigurations();
