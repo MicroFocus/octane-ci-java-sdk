@@ -154,23 +154,23 @@ public class SSCHandler {
 		return octaneIssues;
 	}
 
-	private OctaneIssue createOctaneIssue(DTOFactory dtoFactory, Issues.Issue issue) {
-		logger.debug("enter createOctaneIssue");
-		OctaneIssue octaneIssue = dtoFactory.newDTO(OctaneIssue.class);
-		setOctaneAnalysis(dtoFactory, issue, octaneIssue);
-		setOctaneSeverity(dtoFactory, issue, octaneIssue);
-		setOctaneStatus(dtoFactory, issue, octaneIssue);
-		Map<String, String> extendedData = getExtendedData(issue);
-		octaneIssue.setExtendedData(extendedData);
-		octaneIssue.setPrimaryLocationFull(issue.primaryLocation);
-		octaneIssue.setLine(issue.lineNumber);
-		octaneIssue.setRemoteId(issue.issueInstanceId);
-		octaneIssue.setIntroducedDate(convertDates(issue.foundDate));
-		octaneIssue.setExternalLink(issue.hRef);
-		octaneIssue.setToolName(EXTERNAL_TOOL_NAME);
-		logger.debug("exit createOctaneIssue");
-		return octaneIssue;
-	}
+    private OctaneIssue createOctaneIssue(DTOFactory dtoFactory, Issues.Issue issue) {
+        logger.debug("enter createOctaneIssue");
+        OctaneIssue octaneIssue = dtoFactory.newDTO(OctaneIssue.class);
+        setOctaneAnalysis(dtoFactory, issue, octaneIssue);
+        setOctaneSeverity(dtoFactory, issue, octaneIssue);
+        setOctaneStatus(dtoFactory, issue, octaneIssue);
+        Map<String, String> extendedData = getExtendedData(issue);
+        octaneIssue.setExtendedData(extendedData);
+        octaneIssue.setPrimaryLocationFull(issue.fullFileName);
+        octaneIssue.setLine(issue.lineNumber);
+        octaneIssue.setRemoteId(issue.issueInstanceId);
+        octaneIssue.setIntroducedDate(convertDates(issue.foundDate));
+        octaneIssue.setExternalLink(issue.hRef);
+        octaneIssue.setToolName(EXTERNAL_TOOL_NAME);
+        logger.debug("exit createOctaneIssue");
+        return octaneIssue;
+    }
 
 	static private String convertDates(String inputFoundDate) {
 		if (inputFoundDate == null) {

@@ -1,7 +1,7 @@
 package com.hp.octane.integrations.vulnerabilities;
 
+import com.hp.octane.integrations.api.SSCClient;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import com.hp.octane.integrations.services.vulnerabilities.SSCHandler;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
@@ -14,133 +14,144 @@ import java.util.List;
 
 import static org.easymock.EasyMock.*;
 
-public class VulnerabilitiesTests {
+public class VulnerabilitiesTest {
 
-	@Test
-	public void wellFormedURLS() {
-		SSCFortifyConfigurations sscFortifyConfigurations = new SSCFortifyConfigurations();
-		sscFortifyConfigurations.serverURL = "server_url";
 
-		sscFortifyConfigurations.projectName = "project";
-		sscFortifyConfigurations.projectVersion = "version";
-		sscFortifyConfigurations.baseToken = "";
 
-		SSCRestClient sscClientMock = EasyMock.createNiceMock(SSCRestClient.class);
-		replay();
-		SscProjectConnector sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClientMock);
+    @Test
+    public void wellFormedURLS() {
 
-		String projectIdURL = sscProjectConnector.getProjectIdURL();
-		String newIssuesURL = sscProjectConnector.getNewIssuesURL(1);
-		String artifactsURL = sscProjectConnector.getArtifactsURL(100, 1000);
-		String urlForProjectVersion = sscProjectConnector.getURLForProjectVersion(500);
 
-		Assert.assertEquals(projectIdURL, "projects?q=name:project");
-		Assert.assertEquals(newIssuesURL, "projectVersions/1/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false");
-		Assert.assertEquals(artifactsURL, "projectVersions/100/artifacts?limit=1000");
-		Assert.assertEquals(urlForProjectVersion, "projects/500/versions?q=name:version");
-	}
+        SSCFortifyConfigurations sscFortifyConfigurations = new SSCFortifyConfigurations();
+        sscFortifyConfigurations.serverURL = "server_url";
 
-	@Test
-	public void analysisSSCToOctaneWellTransformed() {
-		Issues sscIssues = new Issues();
-		Issues.Issue issue1 = new Issues.Issue();
-		issue1.reviewed = true;
+        sscFortifyConfigurations.projectName = "project";
+        sscFortifyConfigurations.projectVersion = "version";
+        sscFortifyConfigurations.baseToken = "";
 
-		Issues.Issue issue2 = new Issues.Issue();
-		issue2.audited = true;
+        SSCClient sscClientMock = createNiceMock(SSCClient.class);
+        replay();
+        SscProjectConnector sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClientMock);
 
-		Issues.Issue issue3 = new Issues.Issue();
-		issue3.issueStatus = "reviewed";
+        String projectIdURL = sscProjectConnector.getProjectIdURL();
+        String newIssuesURL = sscProjectConnector.getNewIssuesURL(1);
+        String artifactsURL = sscProjectConnector.getArtifactsURL(100, 1000);
+        String urlForProjectVersion = sscProjectConnector.getURLForProjectVersion(500);
 
-		Issues.Issue issue4 = new Issues.Issue();
 
-		sscIssues.data = new Issues.Issue[]{issue1, issue2, issue3, issue4};
+        Assert.assertEquals(projectIdURL, "projects?q=name:project");
+        Assert.assertEquals(newIssuesURL, "projectVersions/1/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false");
+        Assert.assertEquals(artifactsURL, "projectVersions/100/artifacts?limit=1000");
+        Assert.assertEquals(urlForProjectVersion, "projects/500/versions?q=name:version");
+    }
 
-		SSCHandler sscHandler = new SSCHandler();
-		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
-		for (int i = 0; i < 4; i++) {
-			if (i != 3) {
-				Assert.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
-			} else {
-				Assert.assertNull(octaneIssues.get(i).getAnalysis());
-			}
-		}
-	}
+    @Test
+    public void analysisSSCToOctaneWellTransformed() {
 
-	@Test
-	public void stateOctaneWellTransformed() {
-		Issues.Issue issue1 = new Issues.Issue();
-		issue1.scanStatus = "UPDATED";
-		Issues.Issue issue2 = new Issues.Issue();
-		issue2.scanStatus = "NEW";
-		Issues.Issue issue3 = new Issues.Issue();
-		issue3.scanStatus = "REINTRODUCED";
-		Issues.Issue issue4 = new Issues.Issue();
-		issue4.scanStatus = "REMOVED";
-		Issues.Issue issue5 = new Issues.Issue();
+        Issues sscIssues = new Issues();
+        Issues.Issue issue1 = new Issues.Issue();
+        issue1.reviewed = true;
 
-		Issues sscIssues = new Issues();
-		sscIssues.data = new Issues.Issue[]{issue1, issue2, issue3, issue4, issue5};
+        Issues.Issue issue2 = new Issues.Issue();
+        issue2.audited = true;
 
-		SSCHandler sscHandler = new SSCHandler();
-		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+        Issues.Issue issue3 = new Issues.Issue();
+        issue3.issueStatus = "reviewed";
 
-		String[] expectedValues = new String[]{
-				"list_node.issue_state_node.existing",
-				"list_node.issue_state_node.new", "list_node.issue_state_node.reopen",
-				"list_node.issue_state_node.closed"
-		};
+        Issues.Issue issue4 = new Issues.Issue();
 
-		for (int i = 0; i < 5; i++) {
-			if (i != 4) {
-				Assert.assertEquals(expectedValues[i], octaneIssues.get(i).getState().getId());
-			} else {
-				Assert.assertNull(octaneIssues.get(i).getState());
-			}
-		}
-	}
+        sscIssues.data = new Issues.Issue[]{issue1, issue2, issue3, issue4};
 
-	@Test
-	public void extendedData() {
-		Issues.Issue issue = new Issues.Issue();
-		issue.issueName = "name";
-		issue.likelihood = "likelihood";
-		issue.impact = "impact";
-		issue.kingdom = "kingdom";
-		issue.confidance = "confidence";
-		issue.removedDate = "removedDate";
+        SSCHandler sscHandler = new SSCHandler();
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+        for(int i =0; i<4; i++){
+            if(i != 3){
+                Assert.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
+            }
+            else{
+                Assert.assertNull(octaneIssues.get(i).getAnalysis());
+            }
+        }
 
-		Issues sscIssues = new Issues();
-		sscIssues.data = new Issues.Issue[]{issue};
-		SSCHandler sscHandler = new SSCHandler();
-		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+    }
 
-		Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("issueName"), "name");
-		Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"), "likelihood");
-		Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("kingdom"), "kingdom");
-		Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("impact"), "impact");
-		Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("confidence"), "confidence");
-		Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("removedDate"), "removedDate");
-	}
+    @Test
+    public void stateOctaneWellTransformed() {
+        Issues.Issue issue1 = new Issues.Issue();
+        issue1.scanStatus = "UPDATED";
+        Issues.Issue issue2 = new Issues.Issue();
+        issue2.scanStatus = "NEW";
+        Issues.Issue issue3 = new Issues.Issue();
+        issue3.scanStatus = "REINTRODUCED";
+        Issues.Issue issue4 = new Issues.Issue();
+        issue4.scanStatus = "REMOVED";
+        Issues.Issue issue5 = new Issues.Issue();
 
-	@Test
-	public void simpleFields() {
-		Issues.Issue issue = new Issues.Issue();
-		issue.primaryLocation = "primary_location";
-		issue.lineNumber = 100;
-		issue.issueInstanceId = "ID_ID_ID";
-		issue.foundDate = "2018-09-12T14:01:20.590+0000";
-		issue.hRef = "hRef";
+        Issues sscIssues = new Issues();
+        sscIssues.data = new Issues.Issue[]{issue1, issue2, issue3, issue4, issue5};
 
-		Issues sscIssues = new Issues();
-		sscIssues.data = new Issues.Issue[]{issue};
-		SSCHandler sscHandler = new SSCHandler();
-		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+        SSCHandler sscHandler = new SSCHandler();
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
 
-		Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "primary_location");
-		Assert.assertEquals(String.valueOf(octaneIssues.get(0).getLine()), String.valueOf(100));
-		Assert.assertEquals(octaneIssues.get(0).getRemoteId(), "ID_ID_ID");
-		Assert.assertNotNull(octaneIssues.get(0).getIntroducedDate());
-		Assert.assertEquals(octaneIssues.get(0).getExternalLink(), "hRef");
-	}
+        String[] expectedValues = new String[]{
+                "list_node.issue_state_node.existing",
+                "list_node.issue_state_node.new", "list_node.issue_state_node.reopen",
+                "list_node.issue_state_node.closed"
+        };
+        for (int i = 0; i < 5; i++) {
+            if(i != 4) {
+                Assert.assertEquals(expectedValues[i], octaneIssues.get(i).getState().getId());
+            }else {
+                Assert.assertNull(octaneIssues.get(i).getState());
+            }
+        }
+    }
+
+    @Test
+    public void extendedData(){
+
+        Issues.Issue issue = new Issues.Issue();
+        issue.issueName = "name";
+        issue.likelihood = "likelihood";
+        issue.impact= "impact";
+        issue.kingdom = "kingdom";
+        issue.confidance = "confidence";
+        issue.removedDate = "removedDate";
+
+        Issues sscIssues = new Issues();
+        sscIssues.data = new Issues.Issue[]{issue};
+        SSCHandler sscHandler = new SSCHandler();
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("issueName"),"name");
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"),"likelihood");
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("kingdom"),"kingdom");
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("impact"),"impact");
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("confidence"),"confidence");
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("removedDate"),"removedDate");
+    }
+
+    @Test
+    public void simpleFields() {
+
+        Issues.Issue issue = new Issues.Issue();
+        issue.fullFileName = "fullFileName";
+        issue.lineNumber = 100;
+        issue.issueInstanceId = "ID_ID_ID";
+        issue.foundDate = "2018-09-12T14:01:20.590+0000";
+        issue.hRef = "hRef";
+
+
+        Issues sscIssues = new Issues();
+        sscIssues.data = new Issues.Issue[]{issue};
+        SSCHandler sscHandler = new SSCHandler();
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+
+        Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "fullFileName");
+        Assert.assertEquals(String.valueOf(octaneIssues.get(0).getLine()), String.valueOf(100));
+        Assert.assertEquals(octaneIssues.get(0).getRemoteId(), "ID_ID_ID");
+        Assert.assertNotNull(octaneIssues.get(0).getIntroducedDate());
+        Assert.assertEquals(octaneIssues.get(0).getExternalLink(), "hRef");
+
+    }
 }
