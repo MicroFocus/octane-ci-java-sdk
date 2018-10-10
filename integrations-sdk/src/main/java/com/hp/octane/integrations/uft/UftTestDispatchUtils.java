@@ -28,6 +28,7 @@ import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.annotation.Obsolete;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,7 +65,7 @@ public class UftTestDispatchUtils {
         //post test updated
         tests = result.getUpdatedTests();
         if (!tests.isEmpty()) {
-            boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId());
+            boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId(), result.getTestRunnerId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  updated tests posted successfully = " + updated;
             logMessage(Level.INFO, customLogger, msg);
         }
@@ -72,7 +73,7 @@ public class UftTestDispatchUtils {
         //post test deleted
         tests = result.getDeletedTests();
         if (!tests.isEmpty()) {
-            boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId());
+            boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId(), result.getTestRunnerId());
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  deleted tests set as not executable successfully = " + updated;
             logMessage(Level.INFO, customLogger, msg);
         }
@@ -127,7 +128,6 @@ public class UftTestDispatchUtils {
     private static boolean matchDiscoveryTestResultsWithOctaneForFullSync(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
         boolean hasDiff = false;
         Map<String, Entity> octaneTestsMap = getTestsFromServer(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), Long.parseLong(discoveryResult.getScmRepositoryId()), null);
-
         for (AutomatedTest discoveredTest : discoveryResult.getAllTests()) {
             String key = createKey(discoveredTest.getPackage(), discoveredTest.getName());
             Entity octaneTest = octaneTestsMap.remove(key);
@@ -135,7 +135,7 @@ public class UftTestDispatchUtils {
             if (octaneTest != null) {
                 hasDiff = true;//if we get here - there is diff with discovered tests
                 //the only fields that might be different is description and executable
-                boolean testsEqual = checkTestEquals(discoveredTest, octaneTest);
+                boolean testsEqual = checkTestEquals(discoveredTest, octaneTest, discoveryResult.getTestRunnerId());
                 if (!testsEqual) { //if equal - skip
                     discoveredTest.setId(octaneTest.getId());
                     discoveredTest.setOctaneStatus(OctaneStatus.MODIFIED);
@@ -163,13 +163,25 @@ public class UftTestDispatchUtils {
         return hasDiff;
     }
 
+    @Obsolete
     public static boolean checkTestEquals(AutomatedTest discoveredTest, Entity octaneTest) {
+        return checkTestEquals(discoveredTest, octaneTest, null);
+    }
+
+    public static boolean checkTestEquals(AutomatedTest discoveredTest, Entity octaneTest, String expectedTestRunnerId) {
         boolean octaneExecutable = octaneTest.getBooleanValue(EntityConstants.AutomatedTest.EXECUTABLE_FIELD);
         String octaneDesc = octaneTest.getStringValue(EntityConstants.AutomatedTest.DESCRIPTION_FIELD);
         octaneDesc = (SdkStringUtils.isEmpty(octaneDesc) || "null".equals(octaneDesc)) ? "" : octaneDesc;
         String discoveredDesc = SdkStringUtils.isEmpty(discoveredTest.getDescription()) ? "" : discoveredTest.getDescription();
         boolean descriptionEquals = (SdkStringUtils.isEmpty(octaneDesc) && SdkStringUtils.isEmpty(discoveredDesc)) || octaneDesc.contains(discoveredDesc);
-        return (octaneExecutable && descriptionEquals && !discoveredTest.getIsMoved());
+
+        boolean testRunnerIdEquals = true;
+        if (SdkStringUtils.isNotEmpty(expectedTestRunnerId)) {
+            Entity testRunner = (Entity) octaneTest.getField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD);
+            testRunnerIdEquals = (testRunner != null && expectedTestRunnerId.equals(testRunner.getId()));
+        }
+
+        return (octaneExecutable && descriptionEquals && !discoveredTest.getIsMoved() && testRunnerIdEquals);
     }
 
     /**
@@ -217,7 +229,7 @@ public class UftTestDispatchUtils {
 
         conditions.add(QueryHelper.conditionRef(EntityConstants.AutomatedTest.SCM_REPOSITORY_FIELD, scmRepositoryId));
         Collection<String> fields = Arrays.asList(EntityConstants.AutomatedTest.ID_FIELD, EntityConstants.AutomatedTest.NAME_FIELD, EntityConstants.AutomatedTest.PACKAGE_FIELD,
-                EntityConstants.AutomatedTest.EXECUTABLE_FIELD, EntityConstants.AutomatedTest.DESCRIPTION_FIELD);
+                EntityConstants.AutomatedTest.EXECUTABLE_FIELD, EntityConstants.AutomatedTest.DESCRIPTION_FIELD, EntityConstants.AutomatedTest.TEST_RUNNER_FIELD);
         List<Entity> octaneTests = entitiesService.getEntities(workspaceId, EntityConstants.AutomatedTest.COLLECTION_NAME, conditions, fields);
         Map<String, Entity> octaneTestsMapByKey = new HashMap<>();
         for (Entity octaneTest : octaneTests) {
@@ -360,8 +372,9 @@ public class UftTestDispatchUtils {
         return isRealException;
     }
 
-    private static boolean updateTests(EntitiesService entitiesService, Collection<AutomatedTest> tests, String workspaceId) {
+    private static boolean updateTests(EntitiesService entitiesService, Collection<AutomatedTest> tests, String workspaceId, String testRunnerId) {
 
+        Entity testRunner = SdkStringUtils.isNotEmpty(testRunnerId) ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.TestRunner.ENTITY_NAME).setId(testRunnerId) : null;
         try {
             //CONVERT TO DTO
             List<Entity> testsForUpdate = new ArrayList<>();
@@ -373,6 +386,9 @@ public class UftTestDispatchUtils {
 
                 if (test.getDescription() != null) {
                     octaneTest.setField(EntityConstants.AutomatedTest.DESCRIPTION_FIELD, test.getDescription());
+                }
+                if (testRunner != null) {
+                    octaneTest.setField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD, testRunner);
                 }
                 if (test.getIsMoved()) {
                     octaneTest.setName(test.getName());

@@ -89,6 +89,10 @@ public class SSCHandler {
 		return theCloset;
 	}
 
+	/// For Unit Testing
+	public SSCHandler() {
+	}
+
 	public SSCHandler(VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
 	                  String sscUrl,
 	                  String sscBaseToken,
@@ -129,11 +133,14 @@ public class SSCHandler {
 		logger.warn("entered getLatestScan, read issues and serialize to:" + this.targetDir);
 		Issues issues = sscProjectConnector.readNewIssuesOfLastestScan(projectVersion.id);
 		List<OctaneIssue> octaneIssues = createOctaneIssues(issues);
+		if (octaneIssues.isEmpty()) {
+			throw new PermanentException("This scan has no issues.");
+		}
 		IssuesFileSerializer issuesFileSerializer = new IssuesFileSerializer(targetDir, octaneIssues);
 		return issuesFileSerializer.doSerializeAndCache();
 	}
 
-	private List<OctaneIssue> createOctaneIssues(Issues issues) {
+	public List<OctaneIssue> createOctaneIssues(Issues issues) {
 		if (issues == null) {
 			return new ArrayList<>();
 		}
