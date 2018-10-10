@@ -135,7 +135,7 @@ public class VulnerabilitiesTest {
     public void simpleFields() {
 
         Issues.Issue issue = new Issues.Issue();
-        issue.primaryLocation = "primary_location";
+        issue.fullFileName = "fullFileName";
         issue.lineNumber = 100;
         issue.issueInstanceId = "ID_ID_ID";
         issue.foundDate = "2018-09-12T14:01:20.590+0000";
@@ -147,7 +147,7 @@ public class VulnerabilitiesTest {
         SSCHandler sscHandler = new SSCHandler();
         List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
 
-        Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "primary_location");
+        Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "fullFileName");
         Assert.assertEquals(String.valueOf(octaneIssues.get(0).getLine()), String.valueOf(100));
         Assert.assertEquals(octaneIssues.get(0).getRemoteId(), "ID_ID_ID");
         Assert.assertNotNull(octaneIssues.get(0).getIntroducedDate());
