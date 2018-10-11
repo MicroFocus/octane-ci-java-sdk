@@ -30,6 +30,7 @@ import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.commons.codec.Charsets;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +38,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -86,12 +88,12 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	@Override
-	public boolean isTestsResultRelevant(String jobCiId) throws IOException {
+	public boolean isTestsResultRelevant(String jobId) throws IOException {
 		String serverCiId = configurer.octaneConfiguration.getInstanceId();
 		if (serverCiId == null || serverCiId.isEmpty()) {
 			throw new IllegalArgumentException("server CI ID MUST NOT be null nor empty");
 		}
-		if (jobCiId == null || jobCiId.isEmpty()) {
+		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
 		}
 
@@ -99,36 +101,59 @@ final class TestsServiceImpl implements TestsService {
 				.setMethod(HttpMethod.GET)
 				.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
-						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobCiId) + "/tests-result-preflight");
+						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight");
 
 		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
 		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
 	}
 
 	@Override
-	public OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException {
+	public OctaneResponse pushTestsResult(TestsResult testsResult, String jobId, String buildId) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
+		}
+		if (jobId == null || jobId.isEmpty()) {
+			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+		}
+		if (buildId == null || buildId.isEmpty()) {
+			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
 
 		String testsResultAsXml = dtoFactory.dtoToXml(testsResult);
 		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes());
-		return pushTestsResult(testsResultAsStream);
+		return pushTestsResult(testsResultAsStream, jobId, buildId);
 	}
 
 	@Override
-	public OctaneResponse pushTestsResult(InputStream testsResult) throws IOException {
+	public OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
+		}
+		if (jobId == null || jobId.isEmpty()) {
+			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+		}
+		if (buildId == null || buildId.isEmpty()) {
+			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
 
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
+		String uri;
+		try {
+			uri = new URIBuilder(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) + "test-results")
+					.addParameter("skip-errors", "false")
+					.addParameter("instance-id", configurer.octaneConfiguration.getInstanceId())
+					.addParameter("job-ci-id", jobId)
+					.addParameter("build-ci-id", buildId)
+					.build()
+					.toString();
+		} catch (URISyntaxException urise) {
+			throw new PermanentException("failed to build URL to Octane's 'test-results' resource", urise);
+		}
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
-				.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-						"test-results?skip-errors=false")
+				.setUrl(uri)
 				.setHeaders(headers)
 				.setBody(testsResult);
 		OctaneResponse response = octaneRestClient.execute(request);
@@ -211,7 +236,7 @@ final class TestsServiceImpl implements TestsService {
 
 		//  push
 		try {
-			OctaneResponse response = pushTestsResult(testsResult);
+			OctaneResponse response = pushTestsResult(testsResult, queueItem.jobId, queueItem.buildId);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 				throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_ACCEPTED) {

@@ -29,9 +29,9 @@ public interface TestsService {
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
-	 * @param configurer   SDK services configurer object
+	 * @param configurer      SDK services configurer object
 	 * @param queueingService Queue service
-	 * @param restService  Rest Service
+	 * @param restService     Rest Service
 	 * @return initialized service
 	 */
 	static TestsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
@@ -41,21 +41,25 @@ public interface TestsService {
 	/**
 	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
 	 */
-	boolean isTestsResultRelevant(String jobCiId) throws IOException;
+	boolean isTestsResultRelevant(String jobId) throws IOException;
 
 	/**
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
 	 *
 	 * @param testsResult ready-to-be-pushed TestsResult object, having a collection of tests results with the relevant build context
+	 * @param jobId       ID of the job that produced the results
+	 * @param buildId     ID of the build that produced the results
 	 */
-	OctaneResponse pushTestsResult(TestsResult testsResult) throws IOException;
+	OctaneResponse pushTestsResult(TestsResult testsResult, String jobId, String buildId) throws IOException;
 
 	/**
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
 	 *
 	 * @param testsResult ready-to-be-pushed TestsResult resource given as an InputStream
+	 * @param jobId       ID of the job that produced the results
+	 * @param buildId     ID of the build that produced the results
 	 */
-	OctaneResponse pushTestsResult(InputStream testsResult) throws IOException;
+	OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException;
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval.
