@@ -1,8 +1,5 @@
-[![GitHub](https://img.shields.io/github/license/MicroFocus/octane-ci-java-sdk.svg)](https://github.com/MicroFocus/octane-ci-java-sdk)
-
 # SDK for CI Plugins to integrate with ALM Octane
-  
-  
+
 ## Introduction
 
 Octane's CI Plugin Development Kit provides an easy and robust way to integrate CI Environment with [ALM Octane](https://software.microfocus.com/en-us/products/alm-octane/overview) application server.
