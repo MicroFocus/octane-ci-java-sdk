@@ -11,31 +11,28 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
-package com.hp.octane.integrations.dto.general.impl;
+package com.hp.octane.integrations.dto.securityscans;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * CIJobsList DTO implementation.
+ * SSC Server info DTO
  */
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-class CIJobsListImpl implements CIJobsList {
-	private PipelineNode[] jobs;
+public interface SSCServerInfo extends DTOBase {
 
-	@Override
-	public PipelineNode[] getJobs() {
-		return jobs;
-	}
+	String getSSCURL();
 
-	@Override
-	public CIJobsList setJobs(PipelineNode[] jobs) {
-		this.jobs = jobs;
-		return this;
-	}
+	SSCServerInfo setSSCURL(String sscUrl);
+
+	String getSSCBaseAuthToken();
+
+	SSCServerInfo setSSCBaseAuthToken(String sscBaseAuthToken);
+
+	long getMaxPollingTimeoutHours();
+
+	SSCServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours);
 }
+

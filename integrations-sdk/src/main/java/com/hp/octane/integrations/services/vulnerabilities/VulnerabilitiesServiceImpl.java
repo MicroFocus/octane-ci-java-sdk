@@ -132,7 +132,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	private void updateTimeout() {
-		long timeoutConfig = configurer.pluginServices.getServerInfo().getMaxPollingTimeoutHours();
+		long timeoutConfig = configurer.pluginServices.getSSCServerInfo().getMaxPollingTimeoutHours();
 		if (timeoutConfig <= 0) {
 			actualTimeout = TIME_OUT_FOR_QUEUE_ITEM;
 		} else {
@@ -240,8 +240,8 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (result != null) {
 			return result;
 		}
-		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, configurer.pluginServices.getServerInfo().getSSCURL(),
-				configurer.pluginServices.getServerInfo().getSSCBaseAuthToken(),
+		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, configurer.pluginServices.getSSCServerInfo().getSSCURL(),
+				configurer.pluginServices.getSSCServerInfo().getSSCBaseAuthToken(),
 				targetDir,
 				this.restService.obtainSSCRestClient()
 		);

@@ -28,19 +28,23 @@ class CIPluginSDKInfoImpl implements CIPluginSDKInfo {
 	private Integer apiVersion;
 	private String sdkVersion;
 
+	@Override
 	public Integer getApiVersion() {
 		return apiVersion;
 	}
 
+	@Override
 	public CIPluginSDKInfo setApiVersion(Integer apiVersion) {
 		this.apiVersion = apiVersion;
 		return this;
 	}
 
+	@Override
 	public String getSdkVersion() {
 		return sdkVersion;
 	}
 
+	@Override
 	public CIPluginSDKInfo setSdkVersion(String sdkVersion) {
 		this.sdkVersion = sdkVersion;
 		return this;

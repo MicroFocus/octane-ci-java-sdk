@@ -25,7 +25,6 @@ public class SonarInfoImpl implements SonarInfo {
 	private String serverAuthenticationToken;
 
 	public SonarInfoImpl() {
-
 	}
 
 	public SonarInfoImpl(String serverUrl, String serverVersion, String serverAuthenticationToken) {
