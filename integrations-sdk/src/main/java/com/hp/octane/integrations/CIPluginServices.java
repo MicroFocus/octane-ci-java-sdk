@@ -13,7 +13,7 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.spi;
+package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
@@ -22,9 +22,10 @@ import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
+import com.hp.octane.integrations.dto.general.CIPluginInfo;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.securityscans.SSCServerInfo;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 
 import java.io.File;
@@ -35,84 +36,101 @@ import java.net.URL;
  * Empty abstract implementation of CIPluginServices.
  */
 
-public abstract class CIPluginServicesBase implements CIPluginServices {
+public abstract class CIPluginServices {
+	private String instanceId;
 
-	@Override
+	//  ABSTRACTS
+	//
+	public abstract CIServerInfo getServerInfo();
+
+	public abstract CIPluginInfo getPluginInfo();
+
+	//  CONCRETE FINALS
+	//
+	protected final String getInstanceId() {
+		return instanceId;
+	}
+
+	final void setInstanceId(String instanceId) {
+		if (instanceId == null || instanceId.isEmpty()) {
+			throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
+		}
+		if (instanceId.equals(this.instanceId)) {
+			return;
+		}
+		if (this.instanceId != null) {
+			throw new IllegalStateException("instance ID IS NOT EXPECTED to be overwrote; current value: " + this.instanceId + ", newly provided value: " + instanceId);
+		}
+		this.instanceId = instanceId;
+	}
+
+	final boolean isValid() {
+		return instanceId != null && !instanceId.isEmpty() &&
+				getPluginInfo() != null &&
+				getServerInfo() != null;
+	}
+
+	//  CONCRETE STUBS FOR OVERRIDES
+	//
 	public File getAllowedOctaneStorage() {
 		return null;
 	}
 
-	@Override
 	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		return null;
 	}
 
-	@Override
 	public CIJobsList getJobsList(boolean includeParameters) {
 		return null;
 	}
 
-	@Override
 	public PipelineNode getPipeline(String rootCIJobId) {
 		return null;
 	}
 
-	@Override
 	public void runPipeline(String ciJobId, String originalBody) {
 	}
 
-	@Override
 	public void suspendCIEvents(boolean suspend) {
 	}
 
-	@Override
 	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
 		return null;
 	}
 
-	@Override
 	public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
 		return null;
 	}
 
-	@Override
 	public InputStream getTestsResult(String jobCiId, String buildCiId) {
 		return null;
 	}
 
-	@Override
 	public InputStream getBuildLog(String jobCiId, String buildCiId) {
 		return null;
 	}
 
-	@Override
 	public SonarInfo getSonarInfo() {
 		return null;
 	}
 
-	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 	}
 
-	@Override
 	public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
 	}
 
-	@Override
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		return null;
 	}
 
-	@Override
 	public void deleteExecutor(String id) {
 	}
 
-	@Override
 	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
 		return null;
 	}
 
-	@Override
 	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
 		return null;
 	}

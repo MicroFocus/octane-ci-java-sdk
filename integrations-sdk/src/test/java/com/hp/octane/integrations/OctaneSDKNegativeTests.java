@@ -18,8 +18,6 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.spi.CIPluginServices;
-import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -249,7 +247,7 @@ public class OctaneSDKNegativeTests {
 	}
 
 	//  MOCK classes
-	public static class PluginServices extends CIPluginServicesBase {
+	public static class PluginServices extends CIPluginServices {
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class);
@@ -261,7 +259,7 @@ public class OctaneSDKNegativeTests {
 		}
 	}
 
-	public static class PluginServices1 extends CIPluginServicesBase {
+	public static class PluginServices1 extends CIPluginServices {
 		@Override
 		public CIServerInfo getServerInfo() {
 			return null;
@@ -273,7 +271,7 @@ public class OctaneSDKNegativeTests {
 		}
 	}
 
-	public static class PluginServices2 extends CIPluginServicesBase {
+	public static class PluginServices2 extends CIPluginServices {
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class);
@@ -285,7 +283,7 @@ public class OctaneSDKNegativeTests {
 		}
 	}
 
-	private static class PluginServices3 extends CIPluginServicesBase {
+	private static class PluginServices3 extends CIPluginServices {
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class);

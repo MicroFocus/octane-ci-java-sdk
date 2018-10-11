@@ -4,7 +4,6 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -41,7 +40,7 @@ public class OctaneSDKTestConfigurationTests {
 		OctaneSPEndpointSimulator.removeInstance(spId);
 	}
 
-	static class PluginServices extends CIPluginServicesBase {
+	static class PluginServices extends CIPluginServices {
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class);

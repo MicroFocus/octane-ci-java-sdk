@@ -18,7 +18,6 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -91,6 +90,7 @@ public final class OctaneSDK {
 		CIPluginServices pluginServices;
 		try {
 			pluginServices = pluginServicesClass.newInstance();
+			pluginServices.setInstanceId(instanceId);
 			if (!pluginServices.isValid()) {
 				throw new IllegalArgumentException("plugin services implementation is invalid");
 			}

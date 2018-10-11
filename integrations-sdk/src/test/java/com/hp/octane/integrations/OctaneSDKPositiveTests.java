@@ -18,7 +18,6 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -148,7 +147,7 @@ public class OctaneSDKPositiveTests {
 		oc2.setSharedSpace(oc1.getSharedSpace());
 	}
 
-	public static class PluginServices extends CIPluginServicesBase {
+	public static class PluginServices extends CIPluginServices {
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class);
