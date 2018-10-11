@@ -16,7 +16,7 @@
 
 package com.hp.octane.integrations.executor;
 
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;

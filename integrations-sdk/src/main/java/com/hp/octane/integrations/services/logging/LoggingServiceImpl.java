@@ -11,12 +11,12 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.logging;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 
@@ -26,12 +26,16 @@ import java.io.File;
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
  */
 
-public final class LoggingServiceImpl extends OctaneSDK.SDKServiceBase {
-	private static final Object INIT_LOCKER = new Object();
+final class LoggingServiceImpl implements LoggingService {
 	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
+	private final Object INIT_LOCKER = new Object();
+	private final CIPluginServices pluginServices;
 
-	public LoggingServiceImpl(Object internalUsageValidator) {
-		super(internalUsageValidator);
+	LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null || configurer.pluginServices == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
+		pluginServices = configurer.pluginServices;
 		configureLogger();
 	}
 

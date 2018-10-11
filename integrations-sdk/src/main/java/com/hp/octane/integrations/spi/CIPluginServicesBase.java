@@ -16,19 +16,15 @@
 package com.hp.octane.integrations.spi;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIPluginInfo;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 import java.io.InputStream;
@@ -41,22 +37,7 @@ import java.net.URL;
 public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
-	public CIServerInfo getServerInfo() {
-		return null;
-	}
-
-	@Override
-	public CIPluginInfo getPluginInfo() {
-		return null;
-	}
-
-	@Override
 	public File getAllowedOctaneStorage() {
-		return null;
-	}
-
-	@Override
-	public OctaneConfiguration getOctaneConfiguration() {
 		return null;
 	}
 
@@ -94,7 +75,7 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public TestsResult getTestsResult(String jobCiId, String buildCiId) {
+	public InputStream getTestsResult(String jobCiId, String buildCiId) {
 		return null;
 	}
 

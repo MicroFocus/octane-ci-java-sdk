@@ -17,7 +17,7 @@
 
 package com.hp.octane.integrations.uft;
 
-import com.hp.octane.integrations.api.EntitiesService;
+import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityConstants;
@@ -26,7 +26,7 @@ import com.hp.octane.integrations.dto.entities.OctaneRestExceptionData;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.*;
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.annotation.Obsolete;
 import org.apache.logging.log4j.Level;

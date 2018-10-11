@@ -11,16 +11,15 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.events;
 
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.EventsService;
-import com.hp.octane.integrations.api.RestService;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
@@ -28,7 +27,7 @@ import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.util.CIPluginSDKUtils;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -36,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -43,20 +43,21 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import static com.hp.octane.integrations.api.RestService.ANALYTICS_CI_PATH_PART;
-import static com.hp.octane.integrations.api.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.api.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
+import static com.hp.octane.integrations.services.rest.RestService.ANALYTICS_CI_PATH_PART;
+import static com.hp.octane.integrations.services.rest.RestService.CONTENT_TYPE_HEADER;
+import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
 
 /**
  * EventsService implementation
  */
 
-public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements EventsService {
+final class EventsServiceImpl implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
-	private final List<CIEvent> events;
+	private final List<CIEvent> events = Collections.synchronizedList(new LinkedList<>());
 
 	private final Object NO_EVENTS_MONITOR = new Object();
 	private final int EVENTS_CHUNK_SIZE = System.getProperty("octane.sdk.events.chunk-size") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.chunk-size")) : 10;
@@ -65,15 +66,16 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
 	private final long TEMPORARY_FAILURE_PAUSE = 15000;
 
-	public EventsServiceImpl(Object internalUsageValidator, RestService restService) {
-		super(internalUsageValidator);
-
+	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
+		this.configurer = configurer;
 		this.restService = restService;
-		this.events = new LinkedList<>();
 
 		logger.info("starting background worker...");
 		Executors
@@ -84,13 +86,16 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 	@Override
 	public void publishEvent(CIEvent event) {
-		synchronized (events) {
-			events.add(event);
-			if (events.size() > MAX_EVENTS_TO_KEEP) {
-				logger.warn("reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + events.size() + "), capping the head");
-				while (events.size() > MAX_EVENTS_TO_KEEP) {
-					events.remove(0);
-				}
+		if (event == null) {
+			throw new IllegalArgumentException("event MUST NOT be null");
+		}
+
+		events.add(event);
+		int eventsSize = events.size();
+		if (eventsSize > MAX_EVENTS_TO_KEEP) {
+			logger.warn("reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
+			while (events.size() > MAX_EVENTS_TO_KEEP) {        //  in this case we need to read the real-time size of the list
+				events.remove(0);
 			}
 		}
 		synchronized (NO_EVENTS_MONITOR) {
@@ -100,9 +105,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 
 	private void removeEvents(List<CIEvent> eventsToRemove) {
 		if (eventsToRemove != null && !eventsToRemove.isEmpty()) {
-			synchronized (events) {
-				events.removeAll(eventsToRemove);
-			}
+			events.removeAll(eventsToRemove);
 		}
 	}
 
@@ -115,45 +118,26 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 				continue;
 			}
 
-			//  get and validate Octane configuration
-			OctaneConfiguration octaneConfiguration;
-			try {
-				octaneConfiguration = pluginServices.getOctaneConfiguration();
-				if (octaneConfiguration == null || !octaneConfiguration.isValid()) {
-					logger.info("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...");
-					CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
-					logger.info("back from pause");
-					continue;
-				}
-			} catch (Throwable t) {
-				logger.error("failed to obtain Octane configuration, pausing for " + OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE + "ms...", t);
-				CIPluginSDKUtils.doWait(OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE);
-				logger.info("back from pause");
-				continue;
-			}
-
 			//  build events list to be sent
 			List<CIEvent> eventsChunk = null;
 			CIEventsList eventsSnapshot;
 			try {
-				synchronized (events) {
-					eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
-				}
+				eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
+				CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
+				serverInfo.setInstanceId(configurer.octaneConfiguration.getInstanceId());
 				eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
-						.setServer(pluginServices.getServerInfo())
+						.setServer(serverInfo)
 						.setEvents(eventsChunk);
 			} catch (Throwable t) {
 				logger.error("failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
-				if (eventsChunk != null && !eventsChunk.isEmpty()) {
-					removeEvents(eventsChunk);
-				}
+				removeEvents(eventsChunk);
 				continue;
 			}
 
 			//  send the data to Octane
 			try {
-				logEventsToBeSent(octaneConfiguration, eventsSnapshot);
-				sendEventsData(octaneConfiguration, eventsSnapshot);
+				logEventsToBeSent(configurer.octaneConfiguration, eventsSnapshot);
+				sendEventsData(configurer.octaneConfiguration, eventsSnapshot);
 				removeEvents(eventsChunk);
 				logger.info("... done, left to send " + events.size() + " events");
 			} catch (TemporaryException tqie) {
@@ -194,7 +178,7 @@ public final class EventsServiceImpl extends OctaneSDK.SDKServiceBase implements
 				.setBody(dtoFactory.dtoToJsonStream(eventsList));
 		OctaneResponse octaneResponse;
 		try {
-			octaneResponse = restService.obtainClient().execute(octaneRequest);
+			octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
 		}

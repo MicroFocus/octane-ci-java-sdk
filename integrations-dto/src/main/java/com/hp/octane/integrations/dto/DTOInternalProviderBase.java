@@ -20,8 +20,10 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -44,12 +46,20 @@ public abstract class DTOInternalProviderBase {
 
 	protected abstract <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException;
 
-	<T extends DTOBase> String toXML(T dto) throws JAXBException {
+	<T extends DTOBase> String toXml(T dto) throws JAXBException {
 		JAXBContext jaxbContext = JAXBContext.newInstance(this.getXMLAbles());
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		marshaller.marshal(dto, baos);
 		return baos.toString();
+	}
+
+	<T extends DTOBase> InputStream toXmlStream(T dto) throws JAXBException {
+		JAXBContext jaxbContext = JAXBContext.newInstance(this.getXMLAbles());
+		Marshaller marshaller = jaxbContext.createMarshaller();
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		marshaller.marshal(dto, baos);
+		return new ByteArrayInputStream(baos.toByteArray());
 	}
 
 	<T extends DTOBase> T fromXml(String xml) throws JAXBException {

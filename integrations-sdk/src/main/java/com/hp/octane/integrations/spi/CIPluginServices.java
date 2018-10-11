@@ -16,7 +16,6 @@
 package com.hp.octane.integrations.spi;
 
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
-import com.hp.octane.integrations.dto.configuration.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
@@ -28,7 +27,6 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.dto.tests.TestsResult;
 
 import java.io.File;
 import java.io.InputStream;
@@ -60,13 +58,6 @@ public interface CIPluginServices {
 	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
 	 */
 	File getAllowedOctaneStorage();
-
-	/**
-	 * Provides Octane Server configuration (managed by plugin implementation)
-	 *
-	 * @return OctaneConfiguration object; if no configuration available the implementation should return NULL
-	 */
-	OctaneConfiguration getOctaneConfiguration();
 
 	/**
 	 * Provides CI Server proxy configuration (managed by plugin implementation)
@@ -101,7 +92,7 @@ public interface CIPluginServices {
 	void runPipeline(String ciJobId, String originalBody);       //  [YG]: TODO: replace with parsed parameters/DTO
 
 	/**
-	 * suspend events from CI
+	 * Suspends events
 	 *
 	 * @param suspend desired state of CI events suspension
 	 */
@@ -133,7 +124,7 @@ public interface CIPluginServices {
 	 * @param buildCiId Build CI ID to get tests results of
 	 * @return TestsResult data; NULL if no tests result available
 	 */
-	TestsResult getTestsResult(String jobCiId, String buildCiId);
+	InputStream getTestsResult(String jobCiId, String buildCiId);
 
 	/**
 	 * Retrieves build's log as an InputStream
@@ -162,4 +153,9 @@ public interface CIPluginServices {
 	OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo);
 
 	PipelineNode createExecutor(DiscoveryInfo discoveryInfo);
+
+	default boolean isValid() {
+		return this.getPluginInfo() != null &&
+				this.getServerInfo() != null;
+	}
 }

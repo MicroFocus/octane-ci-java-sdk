@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>java-sdk</artifactId>
 		<groupId>com.hpe.adm.octane.ciplugins</groupId>
-		<version>1.5-SNAPSHOT</version>
+		<version>2.0-SNAPSHOT</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -16,6 +16,8 @@
 		<commons-logging.version>1.2</commons-logging.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<squareup-tape.version>1.2.3</squareup-tape.version>
+
+		<jetty-server.version>9.4.12.v20180830</jetty-server.version>
 	</properties>
 
 	<dependencies>
@@ -69,6 +71,11 @@
 			<groupId>org.easymock</groupId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<artifactId>jetty-server</artifactId>
+			<groupId>org.eclipse.jetty</groupId>
+			<version>${jetty-server.version}</version>
+		</dependency>
 
 	</dependencies>
 
@@ -93,6 +100,16 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<configuration>
+					<sourcepath>${basedir}/src/main/java/com/hp/octane/integrations</sourcepath>
+					<sourceFileExcludes>
+						<sourceFileExclude>*Impl.java</sourceFileExclude>
+					</sourceFileExcludes>
+				</configuration>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>
@@ -116,8 +133,8 @@
 						<artifactId>maven-source-plugin</artifactId>
 					</plugin>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
+						<groupId>org.apache.maven.plugins</groupId>
 					</plugin>
 				</plugins>
 			</build>

@@ -15,7 +15,7 @@
  */
 package com.hp.octane.integrations.executor;
 
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 
 public enum TestsToRunFramework {
 
