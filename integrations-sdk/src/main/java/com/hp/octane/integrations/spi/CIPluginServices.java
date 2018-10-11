@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.SSCServerInfo;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 
 import java.io.File;
@@ -118,7 +119,7 @@ public interface CIPluginServices {
 	SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree);
 
 	/**
-	 * Retrieves tests result report for the specific build
+	 * Provides tests result report for the specific build
 	 *
 	 * @param jobCiId   Job CI ID to get tests results of
 	 * @param buildCiId Build CI ID to get tests results of
@@ -127,7 +128,7 @@ public interface CIPluginServices {
 	InputStream getTestsResult(String jobCiId, String buildCiId);
 
 	/**
-	 * Retrieves build's log as an InputStream
+	 * Provides build's log as an InputStream
 	 *
 	 * @param jobCiId   job CI ID of the specific build to get log for
 	 * @param buildCiId build CI ID to get log for
@@ -136,11 +137,22 @@ public interface CIPluginServices {
 	InputStream getBuildLog(String jobCiId, String buildCiId);
 
 	/**
-	 * Retrieves SonarQube info from CI
+	 * Provides SonarQube info from CI
+	 * - this API assumes that there might be only one SSC Server in the CI
+	 * - if/when this assumption will be proved wrong we'll add specifying parameter to the method
 	 *
-	 * @return SonarQube info
+	 * @return SonarQube info, if any available
 	 */
 	SonarInfo getSonarInfo();
+
+	/**
+	 * Provides SSC Server (Fortify OnPrem tool) info from the CI
+	 * - this API assumes that there might be only one SSC Server in the CI
+	 * - if/when this assumption will be proved wrong we'll add specifying parameter to the method
+	 *
+	 * @return SSC Server info, if any available
+	 */
+	SSCServerInfo getSSCServerInfo();
 
 	void runTestDiscovery(DiscoveryInfo discoveryInfo);
 

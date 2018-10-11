@@ -11,29 +11,34 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
-package com.hp.octane.integrations.dto.pipelines.impl;
+
+package com.hp.octane.integrations.dto.securityscans.impl;
 
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
+import com.hp.octane.integrations.dto.securityscans.SSCServerInfo;
 
-public class DTOIssueProvider extends DTOInternalProviderBase {
+/**
+ * DTO pair provider for a DTO objects related to the security realm
+ */
 
-    public DTOIssueProvider(DTOFactory.DTOConfiguration configuration) {
-        super(configuration);
-        dtoPairs.put(OctaneIssue.class, OctaneIssueImpl.class);
-    }
+public class DTOSecurityContextProvider extends DTOInternalProviderBase {
 
-    @Override
-    protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
-        T result = null;
-        if (dtoPairs.containsKey(targetType)) {
-            result = (T) dtoPairs.get(targetType).newInstance();
-        }
-        return result;
-    }
+	public DTOSecurityContextProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
+		dtoPairs.put(SSCServerInfo.class, SSCServerInfoImpl.class);
+		dtoPairs.put(OctaneIssue.class, OctaneIssueImpl.class);
+	}
+
+	@Override
+	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+		T result = null;
+		if (dtoPairs.containsKey(targetType)) {
+			result = (T) dtoPairs.get(targetType).newInstance();
+		}
+		return result;
+	}
 }

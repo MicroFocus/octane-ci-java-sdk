@@ -80,7 +80,7 @@ final class OctaneClientImpl implements OctaneClient {
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		BridgeService.newInstance(configurer, restService, tasksProcessor);
 
-		logger.info("OctaneClient initialized with currently effective instance ID '" + configurer.octaneConfiguration.getInstanceId());
+		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
 	}
 
 	public ConfigurationService getConfigurationService() {

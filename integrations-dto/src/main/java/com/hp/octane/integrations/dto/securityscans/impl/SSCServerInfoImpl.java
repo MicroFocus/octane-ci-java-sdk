@@ -14,54 +14,51 @@
  *
  */
 
-package com.hp.octane.integrations.dto.general.impl;
+package com.hp.octane.integrations.dto.securityscans.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
-import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.octane.integrations.dto.general.CIPluginInfo;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.securityscans.SSCServerInfo;
 
 /**
- * Description of Plugin Status
+ * SSCServerInfo DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class CIProviderSummaryInfoImpl implements CIProviderSummaryInfo {
-	private CIServerInfo server;
-	private CIPluginInfo plugin;
-	private CIPluginSDKInfo sdk;
+class SSCServerInfoImpl implements SSCServerInfo {
+	private volatile String sscURL;
+	private volatile String sscBaseAuthToken;
+	private volatile long maxPollingTimeoutHours;
 
 	@Override
-	public CIServerInfo getServer() {
-		return server;
+	public String getSSCURL() {
+		return sscURL;
 	}
 
 	@Override
-	public CIProviderSummaryInfo setServer(CIServerInfo server) {
-		this.server = server;
+	public SSCServerInfo setSSCURL(String sscUrl) {
+		this.sscURL = sscUrl;
 		return this;
 	}
 
 	@Override
-	public CIPluginInfo getPlugin() {
-		return plugin;
+	public String getSSCBaseAuthToken() {
+		return sscBaseAuthToken;
 	}
 
 	@Override
-	public CIProviderSummaryInfo setPlugin(CIPluginInfo plugin) {
-		this.plugin = plugin;
+	public SSCServerInfo setSSCBaseAuthToken(String sscBaseAuthToken) {
+		this.sscBaseAuthToken = sscBaseAuthToken;
 		return this;
 	}
 
 	@Override
-	public CIPluginSDKInfo getSdk() {
-		return sdk;
+	public long getMaxPollingTimeoutHours() {
+		return maxPollingTimeoutHours;
 	}
 
 	@Override
-	public CIProviderSummaryInfo setSdk(CIPluginSDKInfo sdk) {
-		this.sdk = sdk;
+	public SSCServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours) {
+		this.maxPollingTimeoutHours = maxPollingTimeoutHours;
 		return this;
 	}
 }
