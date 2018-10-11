@@ -1,3 +1,5 @@
+[![GitHub](https://img.shields.io/github/license/MicroFocus/octane-ci-java-sdk.svg)](https://github.com/MicroFocus/octane-ci-java-sdk)
+
 # SDK for CI Plugins to integrate with ALM Octane
   
   
