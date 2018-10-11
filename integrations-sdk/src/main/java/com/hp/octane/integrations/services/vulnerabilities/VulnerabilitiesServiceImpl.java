@@ -57,8 +57,8 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 10000;
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
-	private Long TIME_OUT_FOR_QUEUE_ITEM = 3 * 60 * 60 * 1000L; //3 hours
-	private volatile Long actualTimeout = 3 * 60 * 60 * 1000L;
+	private Long TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L; //3 hours
+	private volatile Long actualTimeout = 12 * 60 * 60 * 1000L;
 
 	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
