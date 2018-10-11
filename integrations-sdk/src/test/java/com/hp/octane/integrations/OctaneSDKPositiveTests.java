@@ -37,8 +37,10 @@ public class OctaneSDKPositiveTests {
 	public void sdkTestA() {
 		List<OctaneClient> octaneClients = OctaneSDK.getClients();
 		Assert.assertNotNull(octaneClients);
-		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
-		OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1002", null, null);
+		String instance1 = UUID.randomUUID().toString();
+		String instance2 = UUID.randomUUID().toString();
+		OctaneConfiguration oc1 = new OctaneConfigurationIntern(instance1, "http://localhost", "1001", null, null);
+		OctaneConfiguration oc2 = new OctaneConfigurationIntern(instance2, "http://localhost", "1002", null, null);
 
 		OctaneSDK.addClient(oc1, PluginServices.class);
 		OctaneSDK.addClient(oc2, PluginServices.class);
@@ -49,9 +51,11 @@ public class OctaneSDKPositiveTests {
 
 		OctaneClient client = OctaneSDK.getClientByInstanceId(oc1.getInstanceId());
 		Assert.assertNotNull(client);
+		Assert.assertEquals(instance1, client.getInstanceId());
 
 		client = OctaneSDK.getClientByInstanceId(oc2.getInstanceId());
 		Assert.assertNotNull(client);
+		Assert.assertEquals(instance2, client.getInstanceId());
 
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
 	}

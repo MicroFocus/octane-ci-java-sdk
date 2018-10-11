@@ -91,11 +91,6 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 	}
 
 	@Override
-	public SSCServerInfo getSSCServerInfo() {
-		return null;
-	}
-
-	@Override
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 	}
 

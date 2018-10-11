@@ -15,8 +15,8 @@
 
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logs.LogsService;
@@ -32,6 +32,13 @@ import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServic
  */
 
 public interface OctaneClient {
+
+	/**
+	 * provides OctaneClient instance ID
+	 * <p>
+	 * return instance ID
+	 */
+	String getInstanceId();
 
 	/**
 	 * provides Configuration service

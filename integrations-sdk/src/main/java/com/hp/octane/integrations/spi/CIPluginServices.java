@@ -145,15 +145,6 @@ public interface CIPluginServices {
 	 */
 	SonarInfo getSonarInfo();
 
-	/**
-	 * Provides SSC Server (Fortify OnPrem tool) info from the CI
-	 * - this API assumes that there might be only one SSC Server in the CI
-	 * - if/when this assumption will be proved wrong we'll add specifying parameter to the method
-	 *
-	 * @return SSC Server info, if any available
-	 */
-	SSCServerInfo getSSCServerInfo();
-
 	void runTestDiscovery(DiscoveryInfo discoveryInfo);
 
 	void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo);

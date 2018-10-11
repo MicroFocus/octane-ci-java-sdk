@@ -16,15 +16,15 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.OctaneRestClient;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.queueing.QueueingService;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -57,8 +57,8 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 10000;
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
-	private Long TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
-	private volatile Long actualTimeout = 12 * 60 * 60 * 1000L;
+	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
+	//private volatile Long actualTimeout = 12 * 60 * 60 * 1000L;
 
 	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
@@ -121,24 +121,25 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	@Override
 	public void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
 	                                                  String projectName, String projectVersion,
-	                                                  long startRunTime) {
+	                                                  long startRunTime,
+	                                                  long queueItemTimeout) {
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
 		vulnerabilitiesQueueItem.projectName = projectName;
 		vulnerabilitiesQueueItem.projectVersionSymbol = projectVersion;
 		vulnerabilitiesQueueItem.startTime = startRunTime;
+		vulnerabilitiesQueueItem.timeout = queueItemTimeout <= 0 ? DEFAULT_TIME_OUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000;
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
-		updateTimeout();
 		logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was added to vulnerabilities queue");
 	}
 
-	private void updateTimeout() {
-		long timeoutConfig = configurer.pluginServices.getSSCServerInfo().getMaxPollingTimeoutHours();
-		if (timeoutConfig <= 0) {
-			actualTimeout = TIME_OUT_FOR_QUEUE_ITEM;
-		} else {
-			actualTimeout = timeoutConfig * 60 * 60 * 1000;
-		}
-	}
+//	private void updateTimeout() {
+//		long timeoutConfig = configurer.pluginServices.getSSCServerInfo().getMaxPollingTimeoutHours();
+//		if (timeoutConfig <= 0) {
+//			actualTimeout = TIME_OUT_FOR_QUEUE_ITEM;
+//		} else {
+//			actualTimeout = timeoutConfig * 60 * 60 * 1000;
+//		}
+//	}
 
 	private void preflightRequest(String jobId, String buildId) throws IOException {
 		if (buildId == null || buildId.isEmpty()) {
@@ -226,7 +227,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private void reEnqueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.startTime;
 		vulnerabilitiesQueue.remove();
-		if (timePass < actualTimeout) {
+		if (timePass < vulnerabilitiesQueueItem.timeout) {
 			vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 		} else {
 			logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was removed from queue after timeout in queue is over");
@@ -240,11 +241,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (result != null) {
 			return result;
 		}
-		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, configurer.pluginServices.getSSCServerInfo().getSSCURL(),
-				configurer.pluginServices.getSSCServerInfo().getSSCBaseAuthToken(),
-				targetDir,
-				this.restService.obtainSSCRestClient()
-		);
+		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, targetDir, this.restService.obtainSSCRestClient());
 		return sscHandler.getLatestScan();
 	}
 
@@ -288,7 +285,10 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		public String buildId;
 		public String projectName;
 		public String projectVersionSymbol;
+		public String sscUrl;
+		public String authToken;
 		public Long startTime;
+		public Long timeout;
 		public boolean isRelevant = false;
 
 		//  [YG] this constructor MUST be present, don't remove
