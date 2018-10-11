@@ -33,20 +33,43 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
- * Empty abstract implementation of CIPluginServices.
+ * Definition of CIPluginServices SPI
+ *
+ * CI Plugin Services is an SPI definition, linking logic enabling SDK define a required essentials from and to interact with the hosting plugin
+ * Hosting plugin MUST implement a concrete and valid class extending this one and provide it upon OctaneClient initialization
+ * CI Plugin Services implementation MUST be stateless, the only state that will be injected into it by an SDK is the bounded INSTANCE ID
  */
 
 public abstract class CIPluginServices {
 	private String instanceId;
 
+	//
 	//  ABSTRACTS
 	//
+
+	/**
+	 * Provides CI Server information
+	 *
+	 * @return ServerInfo object; MUST NOT return null
+	 */
 	public abstract CIServerInfo getServerInfo();
 
+	/**
+	 * Provides Plugin's information
+	 *
+	 * @return PluginInfo object; MUST NOT return null
+	 */
 	public abstract CIPluginInfo getPluginInfo();
 
+	//
 	//  CONCRETE FINALS
 	//
+
+	/**
+	 * Provides instance ID of the Octane Client that this instance of Plugin Services is bound to
+	 *
+	 * @return Octane Client instance ID
+	 */
 	protected final String getInstanceId() {
 		return instanceId;
 	}
@@ -70,46 +93,118 @@ public abstract class CIPluginServices {
 				getServerInfo() != null;
 	}
 
+	//
 	//  CONCRETE STUBS FOR OVERRIDES
 	//
+
+	/**
+	 * Provides the folder that the plugin is allowed to write to (logs, queues, temporary stuff etc)
+	 *
+	 * @return File object of type Directory; if no available storage exists the implementation should return NULL
+	 */
 	public File getAllowedOctaneStorage() {
 		return null;
 	}
 
+	/**
+	 * Provides CI Server proxy configuration (managed by plugin implementation)
+	 *
+	 * @param targetUrl target URL that the proxy, if available, should be relevant to
+	 * @return ProxyConfiguration object; if no configuration available the implementation should return NULL
+	 */
 	public CIProxyConfiguration getProxyConfiguration(URL targetUrl) {
 		return null;
 	}
 
+	/**
+	 * Provides a list of Projects existing on this CI Server
+	 *
+	 * @param includeParameters should the jobs data include parameters or not
+	 * @return ProjectList object holding the list of the projects
+	 */
 	public CIJobsList getJobsList(boolean includeParameters) {
 		return null;
 	}
 
+	/**
+	 * Provides Pipeline (structure) from the root CI Job
+	 *
+	 * @param rootCIJobId root Job CI ID to start pipeline from
+	 * @return pipeline's structure or null if CI Job not found
+	 */
 	public PipelineNode getPipeline(String rootCIJobId) {
 		return null;
 	}
 
+	/**
+	 * Executes the Pipeline, running the root job
+	 *
+	 * @param ciJobId      Job CI ID to execute
+	 * @param originalBody request body, expected to be JSON that holds parameters
+	 */
 	public void runPipeline(String ciJobId, String originalBody) {
 	}
 
+	/**
+	 * Suspends events
+	 *
+	 * @param suspend desired state of CI events suspension
+	 */
 	public void suspendCIEvents(boolean suspend) {
 	}
 
+	/**
+	 * Provides Snapshot of the latest CI Build of the specified CI Job
+	 *
+	 * @param ciJobId Job CI ID to get latest snapshot for
+	 * @param subTree should the snapshot include sub tree or not
+	 * @return latest snapshot's structure or null if build data not found
+	 */
 	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
 		return null;
 	}
 
+	/**
+	 * Provides Snapshot of the specified CI Build of the specified CI Job
+	 *
+	 * @param ciJobId   Job CI ID to get the specified snapshot for
+	 * @param buildCiId Build CI ID to get snapshot of
+	 * @param subTree   should the snapshot include sub tree or not
+	 * @return specified snapshot's structure or null if build data not found
+	 */
 	public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
 		return null;
 	}
 
+	/**
+	 * Provides tests result report for the specific build
+	 *
+	 * @param jobCiId   Job CI ID to get tests results of
+	 * @param buildCiId Build CI ID to get tests results of
+	 * @return TestsResult data; NULL if no tests result available
+	 */
 	public InputStream getTestsResult(String jobCiId, String buildCiId) {
 		return null;
 	}
 
+	/**
+	 * Provides build's log as an InputStream
+	 *
+	 * @param jobCiId   job CI ID of the specific build to get log for
+	 * @param buildCiId build CI ID to get log for
+	 * @return build's log as an InputStream; NULL if no log available
+	 */
 	public InputStream getBuildLog(String jobCiId, String buildCiId) {
 		return null;
 	}
 
+	/**
+	 * Provides SonarQube info from CI
+	 * - this API assumes that there might be only one SSC Server in the CI
+	 * - if/when this assumption will be proved wrong we'll add specifying parameter to the method
+	 *
+	 * @return SonarQube info, if any available
+	 */
 	public SonarInfo getSonarInfo() {
 		return null;
 	}
