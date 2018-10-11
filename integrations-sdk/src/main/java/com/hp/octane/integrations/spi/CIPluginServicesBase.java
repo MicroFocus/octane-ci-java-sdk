@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.SSCServerInfo;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 
 import java.io.File;
@@ -86,6 +87,11 @@ public abstract class CIPluginServicesBase implements CIPluginServices {
 
 	@Override
 	public SonarInfo getSonarInfo() {
+		return null;
+	}
+
+	@Override
+	public SSCServerInfo getSSCServerInfo() {
 		return null;
 	}
 
