@@ -27,10 +27,12 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 class CIPluginInfoImpl implements CIPluginInfo {
 	private String version;
 
+	@Override
 	public String getVersion() {
 		return version;
 	}
 
+	@Override
 	public CIPluginInfo setVersion(String version) {
 		this.version = version;
 		return this;
