@@ -15,8 +15,8 @@
 
 package com.hp.octane.integrations.services.logging;
 
+import com.hp.octane.integrations.CIPluginServices;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.spi.CIPluginServices;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.LoggerContext;
 

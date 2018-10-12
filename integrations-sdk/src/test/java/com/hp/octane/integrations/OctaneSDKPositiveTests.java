@@ -18,7 +18,6 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.spi.CIPluginServicesBase;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,8 +36,10 @@ public class OctaneSDKPositiveTests {
 	public void sdkTestA() {
 		List<OctaneClient> octaneClients = OctaneSDK.getClients();
 		Assert.assertNotNull(octaneClients);
-		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
-		OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1002", null, null);
+		String instance1 = UUID.randomUUID().toString();
+		String instance2 = UUID.randomUUID().toString();
+		OctaneConfiguration oc1 = new OctaneConfigurationIntern(instance1, "http://localhost", "1001", null, null);
+		OctaneConfiguration oc2 = new OctaneConfigurationIntern(instance2, "http://localhost", "1002", null, null);
 
 		OctaneSDK.addClient(oc1, PluginServices.class);
 		OctaneSDK.addClient(oc2, PluginServices.class);
@@ -49,9 +50,11 @@ public class OctaneSDKPositiveTests {
 
 		OctaneClient client = OctaneSDK.getClientByInstanceId(oc1.getInstanceId());
 		Assert.assertNotNull(client);
+		Assert.assertEquals(instance1, client.getInstanceId());
 
 		client = OctaneSDK.getClientByInstanceId(oc2.getInstanceId());
 		Assert.assertNotNull(client);
+		Assert.assertEquals(instance2, client.getInstanceId());
 
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
 	}
@@ -144,7 +147,7 @@ public class OctaneSDKPositiveTests {
 		oc2.setSharedSpace(oc1.getSharedSpace());
 	}
 
-	public static class PluginServices extends CIPluginServicesBase {
+	public static class PluginServices extends CIPluginServices {
 		@Override
 		public CIServerInfo getServerInfo() {
 			return dtoFactory.newDTO(CIServerInfo.class);

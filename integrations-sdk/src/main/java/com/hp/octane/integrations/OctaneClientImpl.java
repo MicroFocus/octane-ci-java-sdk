@@ -15,18 +15,18 @@
 
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logging.LoggingService;
 import com.hp.octane.integrations.services.logs.LogsService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
-import com.hp.octane.integrations.services.queueing.QueueingService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -81,6 +81,11 @@ final class OctaneClientImpl implements OctaneClient {
 		BridgeService.newInstance(configurer, restService, tasksProcessor);
 
 		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
+	}
+
+	@Override
+	public String getInstanceId() {
+		return configurer.octaneConfiguration.getInstanceId();
 	}
 
 	public ConfigurationService getConfigurationService() {

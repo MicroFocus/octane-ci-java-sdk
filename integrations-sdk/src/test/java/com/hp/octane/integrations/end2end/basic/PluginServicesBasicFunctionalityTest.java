@@ -23,14 +23,14 @@ import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 import com.hp.octane.integrations.dto.tests.TestsResult;
-import com.hp.octane.integrations.spi.CIPluginServicesBase;
+import com.hp.octane.integrations.CIPluginServices;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-public class PluginServicesBasicFunctionalityTest extends CIPluginServicesBase {
+public class PluginServicesBasicFunctionalityTest extends CIPluginServices {
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Override
