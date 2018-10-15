@@ -129,20 +129,20 @@ public abstract class CIPluginServices {
 	/**
 	 * Provides Pipeline (structure) from the root CI Job
 	 *
-	 * @param rootCIJobId root Job CI ID to start pipeline from
+	 * @param rootJobId root Job CI ID to start pipeline from
 	 * @return pipeline's structure or null if CI Job not found
 	 */
-	public PipelineNode getPipeline(String rootCIJobId) {
+	public PipelineNode getPipeline(String rootJobId) {
 		return null;
 	}
 
 	/**
 	 * Executes the Pipeline, running the root job
 	 *
-	 * @param ciJobId      Job CI ID to execute
+	 * @param jobId        Job CI ID to execute
 	 * @param originalBody request body, expected to be JSON that holds parameters
 	 */
-	public void runPipeline(String ciJobId, String originalBody) {
+	public void runPipeline(String jobId, String originalBody) {
 	}
 
 	/**
@@ -156,45 +156,57 @@ public abstract class CIPluginServices {
 	/**
 	 * Provides Snapshot of the latest CI Build of the specified CI Job
 	 *
-	 * @param ciJobId Job CI ID to get latest snapshot for
+	 * @param jobId   Job CI ID to get latest snapshot for
 	 * @param subTree should the snapshot include sub tree or not
 	 * @return latest snapshot's structure or null if build data not found
 	 */
-	public SnapshotNode getSnapshotLatest(String ciJobId, boolean subTree) {
+	public SnapshotNode getSnapshotLatest(String jobId, boolean subTree) {
 		return null;
 	}
 
 	/**
 	 * Provides Snapshot of the specified CI Build of the specified CI Job
 	 *
-	 * @param ciJobId   Job CI ID to get the specified snapshot for
-	 * @param buildCiId Build CI ID to get snapshot of
-	 * @param subTree   should the snapshot include sub tree or not
+	 * @param jobId   Job CI ID to get the specified snapshot for
+	 * @param buildId Build CI ID to get snapshot of
+	 * @param subTree should the snapshot include sub tree or not
 	 * @return specified snapshot's structure or null if build data not found
 	 */
-	public SnapshotNode getSnapshotByNumber(String ciJobId, String buildCiId, boolean subTree) {
+	public SnapshotNode getSnapshotByNumber(String jobId, String buildId, boolean subTree) {
 		return null;
 	}
 
 	/**
 	 * Provides tests result report for the specific build
 	 *
-	 * @param jobCiId   Job CI ID to get tests results of
-	 * @param buildCiId Build CI ID to get tests results of
+	 * @param jobId   Job CI ID to get tests results of
+	 * @param buildId Build CI ID to get tests results of
 	 * @return TestsResult data; NULL if no tests result available
 	 */
-	public InputStream getTestsResult(String jobCiId, String buildCiId) {
+	public InputStream getTestsResult(String jobId, String buildId) {
 		return null;
 	}
 
 	/**
 	 * Provides build's log as an InputStream
 	 *
-	 * @param jobCiId   job CI ID of the specific build to get log for
-	 * @param buildCiId build CI ID to get log for
+	 * @param jobId   job CI ID of the specific build to get log for
+	 * @param buildId build CI ID to get log for
 	 * @return build's log as an InputStream; NULL if no log available
 	 */
-	public InputStream getBuildLog(String jobCiId, String buildCiId) {
+	public InputStream getBuildLog(String jobId, String buildId) {
+		return null;
+	}
+
+	/**
+	 * Provides tests result report for the specific build
+	 *
+	 * @param jobId          Job CI ID to get tests results of
+	 * @param buildId        Build CI ID to get tests results of
+	 * @param reportFileName specific report file name, optional (if NULL, 0 or 1 report is expected to be provided)
+	 * @return TestsResult data; NULL if no tests result available
+	 */
+	public InputStream getCoverageReport(String jobId, String buildId, String reportFileName) {
 		return null;
 	}
 

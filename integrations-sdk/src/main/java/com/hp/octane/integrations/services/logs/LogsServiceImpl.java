@@ -111,7 +111,7 @@ final class LogsServiceImpl implements LogsService {
 				buildLogsQueue.remove();
 			} catch (TemporaryException tque) {
 				logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
-				breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
 				logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
 				buildLogsQueue.remove();
@@ -163,7 +163,7 @@ final class LogsServiceImpl implements LogsService {
 				}
 			} catch (IOException ioe) {
 				logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);
-				breathe(TEMPORARY_ERROR_BREATHE_INTERVAL);
+				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
 					logger.info("no log for " + queueItem + " found, abandoning");
@@ -192,7 +192,7 @@ final class LogsServiceImpl implements LogsService {
 		try {
 			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
-					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl().toString(), octaneConfiguration.getSharedSpace()) +
+					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
@@ -213,14 +213,6 @@ final class LogsServiceImpl implements LogsService {
 			}
 		}
 		return result;
-	}
-
-	private void breathe(int period) {
-		try {
-			Thread.sleep(period);
-		} catch (InterruptedException ie) {
-			logger.error("interrupted while breathing", ie);
-		}
 	}
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {

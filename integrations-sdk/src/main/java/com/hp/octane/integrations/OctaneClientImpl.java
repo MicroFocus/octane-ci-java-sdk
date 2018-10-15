@@ -17,6 +17,7 @@ package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
@@ -43,6 +44,7 @@ final class OctaneClientImpl implements OctaneClient {
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final ConfigurationService configurationService;
+	private final CoverageService coverageService;
 	private final SonarService sonarService;
 	private final EntitiesService entitiesService;
 	private final EventsService eventsService;
@@ -70,7 +72,8 @@ final class OctaneClientImpl implements OctaneClient {
 
 		//  dependent services init
 		configurationService = ConfigurationService.newInstance(configurer, restService);
-		sonarService = SonarService.newInstance(configurer, queueingService, restService);
+		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
+		sonarService = SonarService.newInstance(configurer, queueingService, coverageService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		eventsService = EventsService.newInstance(configurer, restService);
 		logsService = LogsService.newInstance(configurer, queueingService, restService);
@@ -88,38 +91,52 @@ final class OctaneClientImpl implements OctaneClient {
 		return configurer.octaneConfiguration.getInstanceId();
 	}
 
+	@Override
 	public ConfigurationService getConfigurationService() {
 		return configurationService;
 	}
 
-	public SonarService getCoverageService() {
+	@Override
+	public CoverageService getCoverageService() {
+		return coverageService;
+	}
+
+	@Override
+	public SonarService getSonarService() {
 		return sonarService;
 	}
 
+	@Override
 	public EntitiesService getEntitiesService() {
 		return entitiesService;
 	}
 
+	@Override
 	public EventsService getEventsService() {
 		return eventsService;
 	}
 
+	@Override
 	public LogsService getLogsService() {
 		return logsService;
 	}
 
+	@Override
 	public RestService getRestService() {
 		return restService;
 	}
 
+	@Override
 	public TasksProcessor getTasksProcessor() {
 		return tasksProcessor;
 	}
 
+	@Override
 	public TestsService getTestsService() {
 		return testsService;
 	}
 
+	@Override
 	public VulnerabilitiesService getVulnerabilitiesService() {
 		return vulnerabilitiesService;
 	}

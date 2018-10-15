@@ -88,6 +88,7 @@ public class OctaneSDKPositiveTests {
 
 			Assert.assertNotNull(clientA.getConfigurationService());
 			Assert.assertNotNull(clientA.getCoverageService());
+			Assert.assertNotNull(clientA.getSonarService());
 			Assert.assertNotNull(clientA.getEntitiesService());
 			Assert.assertNotNull(clientA.getEventsService());
 			Assert.assertNotNull(clientA.getLogsService());
@@ -98,7 +99,8 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotNull(clientA.getVulnerabilitiesService());
 
 			Assert.assertNotNull(clientB.getConfigurationService());
-			Assert.assertNotNull(clientA.getCoverageService());
+			Assert.assertNotNull(clientB.getCoverageService());
+			Assert.assertNotNull(clientB.getSonarService());
 			Assert.assertNotNull(clientB.getEntitiesService());
 			Assert.assertNotNull(clientB.getEventsService());
 			Assert.assertNotNull(clientB.getLogsService());
@@ -110,6 +112,7 @@ public class OctaneSDKPositiveTests {
 
 			Assert.assertNotEquals(clientA.getConfigurationService(), clientB.getConfigurationService());
 			Assert.assertNotEquals(clientA.getCoverageService(), clientB.getCoverageService());
+			Assert.assertNotEquals(clientA.getSonarService(), clientB.getSonarService());
 			Assert.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
 			Assert.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
 			Assert.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());

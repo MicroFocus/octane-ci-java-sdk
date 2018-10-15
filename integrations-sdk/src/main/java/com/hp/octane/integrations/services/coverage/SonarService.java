@@ -18,19 +18,26 @@ package com.hp.octane.integrations.services.coverage;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
-import com.hp.octane.integrations.services.rest.RestService;
+
+/**
+ * Sonar service provides an integration functionality related to SonarQube
+ * It is a full responsibility of this service to
+ * - manage its own queue items
+ * - call preflight API to ensure the data is relevant to Octane
+ * - retrieve relevant content from Sonar server
+ * - push relevant convent to Octane
+ */
 
 public interface SonarService {
-	String SONAR_REPORT = "SONAR_REPORT";
 
 	/**
-	 * Coverage Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 * Sonar integration Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		return new SonarServiceImpl(configurer, queueingService, restService);
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService) {
+		return new SonarServiceImpl(configurer, queueingService, coverageService);
 	}
 
 	/**
@@ -52,7 +59,7 @@ public interface SonarService {
 	String getSonarStatus(String sonarURL);
 
 	/**
-	 * enqueue FetchAndPushSonarCoverageToOctane task, the  fetch coverage data for projectKey from sonarQube server associated with sonarURL, and inject it to octane.
+	 * enqueue FetchAndPushSonarCoverageToOctane task, the fetch coverage data for projectKey from sonarQube server associated with sonarURL, and inject it to Octane
 	 * the ci parameters will be sent to octane as parameters
 	 *
 	 * @param jobId      CI Job ID
@@ -61,7 +68,7 @@ public interface SonarService {
 	 * @param sonarURL   Sonar server URL
 	 * @param sonarToken Sonar server authentication token
 	 */
-	void enqueueFetchAndPushSonarCoverageToOctane(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken);
+	void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken);
 
 	/**
 	 * ensure that webhook with the ciCallbackUrl exist in the Sonar server
