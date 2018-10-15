@@ -39,6 +39,8 @@ public interface EntitiesService {
 
 	List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData);
 
+	List<Entity> getEntities(String url);
+
 	List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, Collection<String> fields);
 
 	List<Entity> deleteEntitiesByIds(Long workspaceId, String entityCollectionName, Collection<?> entitiesIds);

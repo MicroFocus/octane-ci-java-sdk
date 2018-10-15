@@ -179,6 +179,27 @@ final class EntitiesServiceImpl implements EntitiesService {
 		return result;
 	}
 
+	@Override
+	public List<Entity> getEntities(String url) {
+
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
+		Map<String, String> headers = new HashMap<>();
+		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+
+		List<Entity> result = new ArrayList<>();
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.GET)
+				.setUrl(url)
+				.setHeaders(headers);
+		OctaneResponse response = executeRequest(octaneRestClient, request);
+
+		ResponseEntityList responseEntityList = parseBody(HttpStatus.SC_OK, response);
+
+		result.addAll(responseEntityList.getData());
+
+		return result;
+	}
+
 	private OctaneResponse executeRequest(OctaneRestClient octaneRestClient, OctaneRequest request) {
 		try {
 			return octaneRestClient.execute(request);
