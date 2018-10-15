@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.CIPluginServices;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,7 +49,12 @@ public class PluginServicesBasicFunctionalityTest extends CIPluginServices {
 	}
 
 	@Override
-	public InputStream getTestsResult(String jobCiId, String buildCiId) {
+	public File getAllowedOctaneStorage() {
+		return new File("temp");
+	}
+
+	@Override
+	public InputStream getTestsResult(String jobId, String buildId) {
 		List<TestRun> testRuns = new LinkedList<>();
 		for (int i = 20; i > 0; i--) {
 			testRuns.add(dtoFactory.newDTO(TestRun.class)
@@ -72,7 +78,12 @@ public class PluginServicesBasicFunctionalityTest extends CIPluginServices {
 	}
 
 	@Override
-	public InputStream getBuildLog(String jobCiId, String buildCiId) {
+	public InputStream getBuildLog(String jobId, String buildId) {
 		return new ByteArrayInputStream("some log line".getBytes());
+	}
+
+	@Override
+	public InputStream getCoverageReport(String jobId, String buildId, String reportFileName) {
+		return this.getClass().getClassLoader().getResourceAsStream("coverage" + File.separator + reportFileName);
 	}
 }

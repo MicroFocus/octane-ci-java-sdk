@@ -16,6 +16,7 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
@@ -48,11 +49,18 @@ public interface OctaneClient {
 	ConfigurationService getConfigurationService();
 
 	/**
-	 * provides Sonar service
+	 * provides Coverage service
 	 *
 	 * @return service, MUST NOT be null
 	 */
-	SonarService getCoverageService();
+	CoverageService getCoverageService();
+
+	/**
+	 * provides Sonar integration service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	SonarService getSonarService();
 
 	/**
 	 * provides Entities service

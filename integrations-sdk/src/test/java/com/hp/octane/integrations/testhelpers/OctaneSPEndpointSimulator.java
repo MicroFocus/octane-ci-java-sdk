@@ -141,7 +141,7 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 			return;
 		}
 
-		if (signInApiPattern.matcher(s).matches()) {
+		if (signInApiPattern.matcher(request.getPathInfo()).matches()) {
 			OctaneSecuritySimulationUtils.signIn(request);
 			return;
 		}
@@ -150,14 +150,14 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 			return;
 		}
 
-		if (!s.startsWith("/api/shared_spaces/" + sp + "/") && !s.startsWith("/internal-api/shared_spaces/" + sp + "/")) {
+		if (!request.getPathInfo().startsWith("/api/shared_spaces/" + sp + "/") && !s.startsWith("/internal-api/shared_spaces/" + sp + "/")) {
 			return;
 		}
 
 		apiHandlersRegistry.keySet().stream()
 				.filter(apiHandlerKey -> {
 					String[] keyParts = apiHandlerKey.split(API_HANDLER_KEY_JOINER);
-					return request.getMethod().compareTo(keyParts[0]) == 0 && Pattern.compile(keyParts[1]).matcher(s).matches();
+					return request.getMethod().compareTo(keyParts[0]) == 0 && Pattern.compile(keyParts[1]).matcher(request.getPathInfo()).matches();
 				})
 				.findFirst()
 				.ifPresent(apiPattern -> {

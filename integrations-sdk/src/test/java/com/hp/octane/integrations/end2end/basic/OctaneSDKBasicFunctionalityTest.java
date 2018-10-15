@@ -18,6 +18,7 @@ package com.hp.octane.integrations.end2end.basic;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.CIEventsList;
@@ -64,6 +65,7 @@ public class OctaneSDKBasicFunctionalityTest {
 		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
 		Map<String, List<TestsResult>> testResultsCollectors = new LinkedHashMap<>();
 		Map<String, List<String>> logsCollectors = new LinkedHashMap<>();
+		Map<String, List<String>> coverageCollectors = new LinkedHashMap<>();
 		try {
 			String spIdA = UUID.randomUUID().toString();
 			String spIdB = UUID.randomUUID().toString();
@@ -75,7 +77,8 @@ public class OctaneSDKBasicFunctionalityTest {
 					Stream.of(spIdA, spIdB).collect(Collectors.toSet()),
 					eventsCollectors,
 					testResultsCollectors,
-					logsCollectors);
+					logsCollectors,
+					coverageCollectors);
 
 			//
 			//  I
@@ -94,6 +97,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
 			simulatePushLogsCycleAllClients();
+			simulatePushCoverageAllClients();
 
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
@@ -133,6 +137,16 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
+			//  validate coverage
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
 			//
 			//  II
 			//  add one more client and verify they are both works okay
@@ -150,9 +164,11 @@ public class OctaneSDKBasicFunctionalityTest {
 			eventsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdA).clear();
 			logsCollectors.get(spIdA).clear();
+			coverageCollectors.get(spIdA).clear();
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
 			simulatePushLogsCycleAllClients();
+			simulatePushCoverageAllClients();
 
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
@@ -207,6 +223,17 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
+			//  validate coverages
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2 &&
+						coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
 			//
 			//  III
 			//  remove one client and verify it is shut indeed and the second continue to work okay
@@ -218,9 +245,12 @@ public class OctaneSDKBasicFunctionalityTest {
 			testResultsCollectors.get(spIdB).clear();
 			logsCollectors.get(spIdA).clear();
 			logsCollectors.get(spIdB).clear();
+			coverageCollectors.get(spIdA).clear();
+			coverageCollectors.get(spIdB).clear();
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
 			simulatePushLogsCycleAllClients();
+			simulatePushCoverageAllClients();
 
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
@@ -263,6 +293,17 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
+			//  validate coverages
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
+					Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
 			//
 			//  IV
 			//  remove second client and ensure no interactions anymore
@@ -270,11 +311,14 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneSDK.removeClient(clientB);
 			eventsCollectors.get(spIdB).clear();
 			testResultsCollectors.get(spIdB).clear();
+			logsCollectors.get(spIdB).clear();
+			coverageCollectors.get(spIdB).clear();
 
 			//  events, tests, logs
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
 			simulatePushLogsCycleAllClients();
+			simulatePushCoverageAllClients();
 
 			CIPluginSDKUtils.doWait(4000);
 
@@ -282,19 +326,26 @@ public class OctaneSDKBasicFunctionalityTest {
 			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
 			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
 			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 
 		} finally {
+			//  remove clients
+			OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
+
 			//  remove simulators
 			if (simulators != null) removeSPEPSimulators(simulators.values());
 		}
-
 	}
 
 	private Map<String, OctaneSPEndpointSimulator> initSPEPSimulators(
 			Set<String> spIDs,
 			Map<String, List<CIEventsList>> eventsCollectors,
 			Map<String, List<TestsResult>> testResultsCollectors,
-			Map<String, List<String>> logsCollectors) {
+			Map<String, List<String>> logsCollectors,
+			Map<String, List<String>> coverageCollectors) {
 		Map<String, OctaneSPEndpointSimulator> result = new LinkedHashMap<>();
 
 		for (String spID : spIDs) {
@@ -347,7 +398,7 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
-			//  logs preflight API
+			//  logs/coverage preflight API
 			simulator.installApiHandler(HttpMethod.GET, "^.*workspaceId$", request -> {
 				try {
 					request.getResponse().setStatus(HttpStatus.SC_OK);
@@ -365,6 +416,22 @@ public class OctaneSDKBasicFunctionalityTest {
 					logsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(rawLogBody);
+					request.getResponse().setStatus(HttpStatus.SC_OK);
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			});
+
+			//  coverage preflight API
+			//  no need to configure, since it's the same API as for logs, see above
+
+			//  coverage push API
+			simulator.installApiHandler(HttpMethod.PUT, "^.*coverage$", request -> {
+				try {
+					String rawCoverageBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					coverageCollectors
+							.computeIfAbsent(spID, sp -> new LinkedList<>())
+							.add(rawCoverageBody);
 					request.getResponse().setStatus(HttpStatus.SC_OK);
 				} catch (IOException ioe) {
 					throw new RuntimeException(ioe);
@@ -417,6 +484,11 @@ public class OctaneSDKBasicFunctionalityTest {
 
 	private void simulatePushLogsCycleAllClients() {
 		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1"));
+	}
+
+	private void simulatePushCoverageAllClients() {
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.JACOCOXML, "jacoco-coverage.xml"));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.LCOV, "coverage-report.lcov"));
 	}
 
 	private void removeSPEPSimulators(Collection<OctaneSPEndpointSimulator> simulators) {
