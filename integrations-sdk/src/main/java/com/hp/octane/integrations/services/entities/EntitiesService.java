@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.services.entities;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.ResponseEntityList;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.entities.Entity;
 
@@ -39,7 +40,7 @@ public interface EntitiesService {
 
 	List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData);
 
-	List<Entity> getEntities(String url);
+	ResponseEntityList getPagedEntities(String url);
 
 	List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, Collection<String> fields);
 
@@ -50,4 +51,7 @@ public interface EntitiesService {
 	List<Entity> updateEntities(Long workspaceId, String entityCollectionName, List<Entity> entities);
 
 	List<Entity> updateEntities(Long workspaceId, String entityCollectionName, String jsonData);
+
+	String buildEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy);
+
 }

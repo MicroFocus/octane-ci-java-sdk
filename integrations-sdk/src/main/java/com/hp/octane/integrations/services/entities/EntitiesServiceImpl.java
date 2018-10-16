@@ -88,7 +88,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-		String url = getEntityUrl(workspaceId, entityCollectionName, conditions, null, null, null, null);
+		String url = buildEntityUrl(workspaceId, entityCollectionName, conditions, null, null, null, null);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.DELETE)
 				.setUrl(url)
@@ -114,7 +114,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 
-		String url = getEntityUrl(workspaceId, entityCollectionName, null, null, null, null, null);
+		String url = buildEntityUrl(workspaceId, entityCollectionName, null, null, null, null, null);
 
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
@@ -141,7 +141,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 
-		String url = getEntityUrl(workspaceId, entityCollectionName, null, null, null, null, null);
+		String url = buildEntityUrl(workspaceId, entityCollectionName, null, null, null, null, null);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(url)
@@ -155,49 +155,34 @@ final class EntitiesServiceImpl implements EntitiesService {
 	@Override
 	public List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, Collection<String> fields) {
 
-		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
-		Map<String, String> headers = new HashMap<>();
-		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-
 		List<Entity> result = new ArrayList<>();
+		int limit = MAX_GET_LIMIT;
 		boolean fetchedAll = false;
 		while (!fetchedAll) {
-			String url = getEntityUrl(workspaceId, entityCollectionName, conditions, fields, result.size(), MAX_GET_LIMIT, null);
-			OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-					.setMethod(HttpMethod.GET)
-					.setUrl(url)
-					.setHeaders(headers);
-			OctaneResponse response = executeRequest(octaneRestClient, request);
-
-			ResponseEntityList responseEntityList = parseBody(HttpStatus.SC_OK, response);
-
+			String url = buildEntityUrl(workspaceId, entityCollectionName, conditions, fields, result.size(), limit, null);
+			ResponseEntityList responseEntityList = getPagedEntities(url);
 			result.addAll(responseEntityList.getData());
 			fetchedAll = responseEntityList.getData().isEmpty() || responseEntityList.getTotalCount() == 0 || responseEntityList.getTotalCount() == result.size();
 		}
-
 
 		return result;
 	}
 
 	@Override
-	public List<Entity> getEntities(String url) {
-
+	public ResponseEntityList getPagedEntities(String url) {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 
-		List<Entity> result = new ArrayList<>();
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
 				.setUrl(url)
 				.setHeaders(headers);
 		OctaneResponse response = executeRequest(octaneRestClient, request);
 
-		ResponseEntityList responseEntityList = parseBody(HttpStatus.SC_OK, response);
+		ResponseEntityList pagedEntityList = parseBody(HttpStatus.SC_OK, response);
 
-		result.addAll(responseEntityList.getData());
-
-		return result;
+		return pagedEntityList;
 	}
 
 	private OctaneResponse executeRequest(OctaneRestClient octaneRestClient, OctaneRequest request) {
@@ -229,7 +214,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 		}
 	}
 
-	private String getEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy) {
+	public String buildEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy) {
 
 		StringBuilder template = new StringBuilder(configurer.octaneConfiguration.getUrl());
 		template.append("/api/shared_spaces/");
