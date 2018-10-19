@@ -43,4 +43,20 @@ public class EntityConstants {
         public static final String COLLECTION_NAME = "executors";
     }
 
+    public static class Taxonomy extends Base {
+        public static final String COLLECTION_NAME = "taxonomy_nodes";
+        public static final String CATEGORY_NAME = "category";
+    }
+
+    public static class Release extends Base {
+        public static final String COLLECTION_NAME = "releases";
+    }
+
+    public static class Lists extends Base {
+        public static final String COLLECTION_NAME = "list_nodes";
+    }
+
+    public static class Workspaces extends Base {
+        public static final String COLLECTION_NAME = "workspaces";
+    }
 }

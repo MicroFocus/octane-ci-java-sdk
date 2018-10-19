@@ -21,6 +21,7 @@ import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logs.LogsService;
+import com.hp.octane.integrations.services.pipelines.PipelineContextService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
@@ -68,6 +69,13 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	EntitiesService getEntitiesService();
+
+	/**
+	 * provides PipelineContextImpl service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	PipelineContextService getPipelineContextService();
 
 	/**
 	 * provides Events service

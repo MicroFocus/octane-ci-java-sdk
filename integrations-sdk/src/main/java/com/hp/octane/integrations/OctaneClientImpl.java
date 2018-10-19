@@ -23,6 +23,7 @@ import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logging.LoggingService;
 import com.hp.octane.integrations.services.logs.LogsService;
+import com.hp.octane.integrations.services.pipelines.PipelineContextService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
@@ -47,6 +48,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final CoverageService coverageService;
 	private final SonarService sonarService;
 	private final EntitiesService entitiesService;
+	private final PipelineContextService pipelineContextService;
 	private final EventsService eventsService;
 	private final LogsService logsService;
 	private final QueueingService queueingService;
@@ -75,6 +77,7 @@ final class OctaneClientImpl implements OctaneClient {
 		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
 		sonarService = SonarService.newInstance(configurer, queueingService, coverageService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
+		pipelineContextService = PipelineContextService.newInstance(configurer, restService);
 		eventsService = EventsService.newInstance(configurer, restService);
 		logsService = LogsService.newInstance(configurer, queueingService, restService);
 		testsService = TestsService.newInstance(configurer, queueingService, restService);
@@ -109,6 +112,11 @@ final class OctaneClientImpl implements OctaneClient {
 	@Override
 	public EntitiesService getEntitiesService() {
 		return entitiesService;
+	}
+
+	@Override
+	public PipelineContextService getPipelineContextService() {
+		return pipelineContextService;
 	}
 
 	@Override

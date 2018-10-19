@@ -19,6 +19,8 @@ package com.hp.octane.integrations.dto.pipelines.impl;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
+import com.hp.octane.integrations.dto.pipelines.PipelineContext;
+import com.hp.octane.integrations.dto.pipelines.PipelineContextList;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.pipelines.PipelinePhase;
 
@@ -32,6 +34,8 @@ public final class DTOPipelinesProvider extends DTOInternalProviderBase {
 		super(configuration);
 		dtoPairs.put(PipelineNode.class, PipelineNodeImpl.class);
 		dtoPairs.put(PipelinePhase.class, PipelinePhaseImpl.class);
+		dtoPairs.put(PipelineContext.class, PipelineContextImpl.class);
+		dtoPairs.put(PipelineContextList.class, PipelineContextListImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

@@ -169,6 +169,24 @@ final class EntitiesServiceImpl implements EntitiesService {
 	}
 
 	@Override
+	public List<Entity> getEntitiesByIds(Long workspaceId, String collectionName, Collection<?> ids) {
+		if (ids == null || ids.size() == 0) {
+			return new LinkedList<>();
+		}
+		int limit = 100;
+		if (ids.size() > limit) {
+			throw new IllegalArgumentException("List of ids is too long. Only " + limit + " values are allowed.");
+		}
+
+		List<String> conditions = new LinkedList();
+		conditions.add(QueryHelper.conditionIn(EntityConstants.Base.ID_FIELD, ids, true));
+
+		String url = buildEntityUrl(workspaceId, collectionName, conditions, null, 0, limit, null);
+		ResponseEntityList result = getPagedEntities(url);
+		return result.getData();
+	}
+
+	@Override
 	public ResponseEntityList getPagedEntities(String url) {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
