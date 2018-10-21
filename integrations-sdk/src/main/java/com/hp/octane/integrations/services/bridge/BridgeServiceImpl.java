@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
@@ -90,8 +91,8 @@ final class BridgeServiceImpl implements BridgeService {
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
 					configurer.octaneConfiguration.getInstanceId(),
-					serverInfo.getType(),
-					serverInfo.getUrl(),
+					serverInfo.getType() == null ? CIServerTypes.UNKNOWN.value() : serverInfo.getType(),
+					serverInfo.getUrl() == null ? "" : serverInfo.getUrl(),
 					pluginInfo == null ? "" : pluginInfo.getVersion(),
 					client,
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
