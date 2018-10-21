@@ -16,10 +16,11 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 
-public interface VulnerabilitiesService {
+public interface VulnerabilitiesService extends ClosableService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)

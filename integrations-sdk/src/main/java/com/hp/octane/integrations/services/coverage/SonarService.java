@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.coverage;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
+import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 
 /**
@@ -28,7 +29,7 @@ import com.hp.octane.integrations.services.queueing.QueueingService;
  * - push relevant convent to Octane
  */
 
-public interface SonarService {
+public interface SonarService extends ClosableService {
 
 	/**
 	 * Sonar integration Service instance producer - for internal usage only (protected by inaccessible configurer)

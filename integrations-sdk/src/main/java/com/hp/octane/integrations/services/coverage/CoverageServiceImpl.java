@@ -35,6 +35,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -46,6 +47,7 @@ class CoverageServiceImpl implements CoverageService {
 	private static final Logger logger = LogManager.getLogger(CoverageServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private final ExecutorService coveragePushExecutor = Executors.newSingleThreadExecutor(new CoveragePushWorkerThreadFactory());
 	private final Object NO_COVERAGES_MONITOR = new Object();
 	private final String BUILD_COVERAGE_QUEUE_FILE = "coverage-push-queue.dat";
 	private final ObjectQueue<CoverageQueueItem> coveragePushQueue;
@@ -76,15 +78,13 @@ class CoverageServiceImpl implements CoverageService {
 		}
 
 		logger.info("starting background worker...");
-		Executors
-				.newSingleThreadExecutor(new CoveragePushWorkerThreadFactory())
-				.execute(this::worker);
+		coveragePushExecutor.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY (backed by " + coveragePushQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
 	private void worker() {
-		while (true) {
+		while (!coveragePushExecutor.isShutdown()) {
 			if (coveragePushQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_COVERAGES_MONITOR);
 				continue;
@@ -191,6 +191,11 @@ class CoverageServiceImpl implements CoverageService {
 		synchronized (NO_COVERAGES_MONITOR) {
 			NO_COVERAGES_MONITOR.notify();
 		}
+	}
+
+	@Override
+	public void shutdown() {
+		coveragePushExecutor.shutdown();
 	}
 
 	private void pushCoverageWithPreflight(CoverageQueueItem queueItem) {

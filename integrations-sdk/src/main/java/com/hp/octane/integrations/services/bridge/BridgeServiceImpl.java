@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
@@ -73,6 +74,12 @@ final class BridgeServiceImpl implements BridgeService {
 		logger.info("initialized SUCCESSFULLY");
 	}
 
+	@Override
+	public void shutdown() {
+		connectivityExecutors.shutdown();
+		taskProcessingExecutors.shutdown();
+	}
+
 	//  infallible everlasting background worker
 	private void worker() {
 		try {
@@ -84,15 +91,16 @@ final class BridgeServiceImpl implements BridgeService {
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
 					configurer.octaneConfiguration.getInstanceId(),
-					serverInfo.getType(),
-					serverInfo.getUrl(),
-					pluginInfo == null ? "" : pluginInfo.getVersion(),
-					client,
+					serverInfo.getType() == null ? CIServerTypes.UNKNOWN.value() : serverInfo.getType(),
+					serverInfo.getUrl() == null ? "" : serverInfo.getUrl(),
+					pluginInfo == null || pluginInfo.getVersion() == null ? "" : pluginInfo.getVersion(),
+					client == null ? "" : client,
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
 			//  regardless of response - reconnect again to keep the light on
-			connectivityExecutors.execute(this::worker);
-
+			if (!connectivityExecutors.isShutdown()) {
+				connectivityExecutors.execute(this::worker);
+			}
 
 			//  now can process the received tasks - if any
 			if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -101,7 +109,9 @@ final class BridgeServiceImpl implements BridgeService {
 		} catch (Throwable t) {
 			logger.error("getting tasks from Octane Server temporary failed", t);
 			CIPluginSDKUtils.doWait(2000);
-			connectivityExecutors.execute(this::worker);
+			if (!connectivityExecutors.isShutdown()) {
+				connectivityExecutors.execute(this::worker);
+			}
 		}
 	}
 
@@ -161,6 +171,9 @@ final class BridgeServiceImpl implements BridgeService {
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
 			logger.info("parsed " + tasks.length + " tasks, processing...");
 			for (final OctaneTaskAbridged task : tasks) {
+				if (taskProcessingExecutors.isShutdown()) {
+					break;
+				}
 				taskProcessingExecutors.execute(() -> {
 					OctaneResultAbridged result = tasksProcessor.execute(task);
 					int submitStatus = putAbridgedResult(

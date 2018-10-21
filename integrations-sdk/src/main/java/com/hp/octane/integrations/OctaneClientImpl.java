@@ -44,6 +44,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private static final Logger logger = LogManager.getLogger(OctaneClientImpl.class);
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
+	private final BridgeService bridgeService;
 	private final ConfigurationService configurationService;
 	private final CoverageService coverageService;
 	private final SonarService sonarService;
@@ -84,7 +85,20 @@ final class OctaneClientImpl implements OctaneClient {
 		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueingService, restService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
-		BridgeService.newInstance(configurer, restService, tasksProcessor);
+		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);
+
+		//  register shutdown hook to allow graceful shutdown of services/resources
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			String instanceId = configurer.octaneConfiguration.getInstanceId();
+			logger.info("closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
+			try {
+				this.close();
+			} catch (Throwable throwable) {
+				logger.error("failed during shutdown of OctaneClient " + instanceId, throwable);
+			} finally {
+				logger.info("...OctaneClient " + instanceId + " CLOSED");
+			}
+		}));
 
 		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
 	}
@@ -154,12 +168,21 @@ final class OctaneClientImpl implements OctaneClient {
 		return "OctaneClientImpl{ instanceId: " + configurer.octaneConfiguration.getInstanceId() + " }";
 	}
 
-	void close() {
-		//  close HTTP client
-		restService.obtainOctaneRestClient().shutdown();
-
-		//  close queues
+	private void close() {
 		queueingService.shutdown();
+		bridgeService.shutdown();
+		coverageService.shutdown();
+		sonarService.shutdown();
+		eventsService.shutdown();
+		logsService.shutdown();
+		testsService.shutdown();
+		vulnerabilitiesService.shutdown();
+		restService.obtainOctaneRestClient().shutdown();
+	}
+
+	void remove() {
+		//  shut down services
+		close();
 
 		//  clean storage
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {

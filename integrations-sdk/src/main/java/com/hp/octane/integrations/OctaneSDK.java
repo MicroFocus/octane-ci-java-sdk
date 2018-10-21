@@ -168,7 +168,7 @@ public final class OctaneSDK {
 	}
 
 	/**
-	 * removes client while shutting down all of its services
+	 * removes client while shutting down all of its services and cleaning all used persistent storage
 	 *
 	 * @param client client to be shut down and removed
 	 * @return invalidated client or NULL if no such a client found
@@ -188,7 +188,7 @@ public final class OctaneSDK {
 
 		if (targetEntry != null) {
 			try {
-				((OctaneClientImpl) targetEntry.getValue()).close();
+				((OctaneClientImpl) targetEntry.getValue()).remove();
 			} catch (Throwable throwable) {
 				logger.error("failure detected while closing OctaneClient", throwable);
 			}

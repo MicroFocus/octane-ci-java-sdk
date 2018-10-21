@@ -18,13 +18,14 @@ package com.hp.octane.integrations.services.tests;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface TestsService {
+public interface TestsService extends ClosableService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)

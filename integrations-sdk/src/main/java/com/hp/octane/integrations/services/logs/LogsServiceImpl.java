@@ -33,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -45,6 +46,7 @@ final class LogsServiceImpl implements LogsService {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 
+	private final ExecutorService logsPushExecutor = Executors.newSingleThreadExecutor(new BuildLogsPushWorkerThreadFactory());
 	private final Object NO_LOGS_MONITOR = new Object();
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
@@ -74,9 +76,7 @@ final class LogsServiceImpl implements LogsService {
 		this.restService = restService;
 
 		logger.info("starting background worker...");
-		Executors
-				.newSingleThreadExecutor(new BuildLogsPushWorkerThreadFactory())
-				.execute(this::worker);
+		logsPushExecutor.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
 	}
 
@@ -95,9 +95,14 @@ final class LogsServiceImpl implements LogsService {
 		}
 	}
 
+	@Override
+	public void shutdown() {
+		logsPushExecutor.shutdown();
+	}
+
 	//  infallible everlasting background worker
 	private void worker() {
-		while (true) {
+		while (!logsPushExecutor.isShutdown()) {
 			if (buildLogsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_LOGS_MONITOR);
 				continue;

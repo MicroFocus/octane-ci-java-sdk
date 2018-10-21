@@ -16,10 +16,11 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 
-public interface BridgeService {
+public interface BridgeService extends ClosableService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
