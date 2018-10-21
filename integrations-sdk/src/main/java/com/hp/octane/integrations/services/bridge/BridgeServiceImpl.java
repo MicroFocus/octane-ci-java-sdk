@@ -93,8 +93,8 @@ final class BridgeServiceImpl implements BridgeService {
 					configurer.octaneConfiguration.getInstanceId(),
 					serverInfo.getType() == null ? CIServerTypes.UNKNOWN.value() : serverInfo.getType(),
 					serverInfo.getUrl() == null ? "" : serverInfo.getUrl(),
-					pluginInfo == null ? "" : pluginInfo.getVersion(),
-					client,
+					pluginInfo == null || pluginInfo.getVersion() == null ? "" : pluginInfo.getVersion(),
+					client == null ? "" : client,
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
 			//  regardless of response - reconnect again to keep the light on
