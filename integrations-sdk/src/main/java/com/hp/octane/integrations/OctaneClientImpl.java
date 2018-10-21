@@ -44,6 +44,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private static final Logger logger = LogManager.getLogger(OctaneClientImpl.class);
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
+	private final BridgeService bridgeService;
 	private final ConfigurationService configurationService;
 	private final CoverageService coverageService;
 	private final SonarService sonarService;
@@ -84,7 +85,7 @@ final class OctaneClientImpl implements OctaneClient {
 		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueingService, restService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
-		BridgeService.newInstance(configurer, restService, tasksProcessor);
+		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);
 
 		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
 	}
@@ -155,11 +156,16 @@ final class OctaneClientImpl implements OctaneClient {
 	}
 
 	void close() {
-		//  close HTTP client
-		restService.obtainOctaneRestClient().shutdown();
-
-		//  close queues
+		//  shut down services
 		queueingService.shutdown();
+		bridgeService.shutdown();
+		coverageService.shutdown();
+		sonarService.shutdown();
+		eventsService.shutdown();
+		logsService.shutdown();
+		testsService.shutdown();
+		vulnerabilitiesService.shutdown();
+		restService.obtainOctaneRestClient().shutdown();
 
 		//  clean storage
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {

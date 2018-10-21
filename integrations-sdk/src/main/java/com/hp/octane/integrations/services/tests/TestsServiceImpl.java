@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -52,6 +53,7 @@ final class TestsServiceImpl implements TestsService {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String TESTS_RESULTS_QUEUE_FILE = "test-results-queue.dat";
 
+	private final ExecutorService testsPushExecutor = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
 	private final Object NO_TEST_RESULTS_MONITOR = new Object();
 	private final ObjectQueue<TestsResultQueueItem> testResultsQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
@@ -81,9 +83,7 @@ final class TestsServiceImpl implements TestsService {
 		this.restService = restService;
 
 		logger.info("starting background worker...");
-		Executors
-				.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory())
-				.execute(this::worker);
+		testsPushExecutor.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
 	}
 
@@ -176,9 +176,14 @@ final class TestsServiceImpl implements TestsService {
 		}
 	}
 
+	@Override
+	public void shutdown() {
+		testsPushExecutor.shutdown();
+	}
+
 	//  infallible everlasting background worker
 	private void worker() {
-		while (true) {
+		while (!testsPushExecutor.isShutdown()) {
 			if (testResultsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_TEST_RESULTS_MONITOR);
 				continue;

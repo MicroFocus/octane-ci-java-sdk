@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -48,8 +49,10 @@ import java.util.concurrent.ThreadFactory;
 final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
 
-	private final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
+	private final ExecutorService vulnerabilitiesProcessingExecutor = Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory());
+	private final Object NO_VULNERABILITIES_RESULTS_MONITOR = new Object();
 	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
@@ -58,7 +61,6 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private int LIST_EMPTY_INTERVAL = 10000;
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
-	//private volatile Long actualTimeout = 12 * 60 * 60 * 1000L;
 
 	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
@@ -81,8 +83,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		this.restService = restService;
 
 		logger.info("starting background worker...");
-		Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory())
-				.execute(this::worker);
+		vulnerabilitiesProcessingExecutor.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
 	}
 
@@ -132,14 +133,10 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was added to vulnerabilities queue");
 	}
 
-//	private void updateTimeout() {
-//		long timeoutConfig = configurer.pluginServices.getSSCServerInfo().getMaxPollingTimeoutHours();
-//		if (timeoutConfig <= 0) {
-//			actualTimeout = TIME_OUT_FOR_QUEUE_ITEM;
-//		} else {
-//			actualTimeout = timeoutConfig * 60 * 60 * 1000;
-//		}
-//	}
+	@Override
+	public void shutdown() {
+		vulnerabilitiesProcessingExecutor.shutdown();
+	}
 
 	private void preflightRequest(String jobId, String buildId) throws IOException {
 		if (buildId == null || buildId.isEmpty()) {
@@ -178,29 +175,32 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  infallible everlasting background worker
 	private void worker() {
-		while (true) {
-			if (vulnerabilitiesQueue.size() > 0) {
-				VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem = null;
-				try {
-					vulnerabilitiesQueueItem = vulnerabilitiesQueue.peek();
-					if (processPushVulnerabilitiesQueueItem(vulnerabilitiesQueueItem)) {
-						vulnerabilitiesQueue.remove();
-					} else {
-						reEnqueueItem(vulnerabilitiesQueueItem);
-					}
-				} catch (TemporaryException tque) {
-					logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+		while (!vulnerabilitiesProcessingExecutor.isShutdown()) {
+			if (vulnerabilitiesQueue.size() == 0) {
+				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_VULNERABILITIES_RESULTS_MONITOR);
+				continue;
+			}
+
+			VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem = null;
+			try {
+				vulnerabilitiesQueueItem = vulnerabilitiesQueue.peek();
+				if (processPushVulnerabilitiesQueueItem(vulnerabilitiesQueueItem)) {
+					vulnerabilitiesQueue.remove();
+				} else {
 					reEnqueueItem(vulnerabilitiesQueueItem);
-					CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
-				} catch (PermanentException pqie) {
-					logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
-					vulnerabilitiesQueue.remove();
-				} catch (Throwable t) {
-					logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
-					vulnerabilitiesQueue.remove();
 				}
-			} else {
-				CIPluginSDKUtils.doWait(LIST_EMPTY_INTERVAL);
+			} catch (TemporaryException tque) {
+				logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				if (vulnerabilitiesQueueItem != null) {
+					reEnqueueItem(vulnerabilitiesQueueItem);
+				}
+				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
+			} catch (PermanentException pqie) {
+				logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
+				vulnerabilitiesQueue.remove();
+			} catch (Throwable t) {
+				logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
+				vulnerabilitiesQueue.remove();
 			}
 		}
 	}

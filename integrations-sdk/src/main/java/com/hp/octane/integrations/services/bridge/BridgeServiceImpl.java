@@ -73,6 +73,12 @@ final class BridgeServiceImpl implements BridgeService {
 		logger.info("initialized SUCCESSFULLY");
 	}
 
+	@Override
+	public void shutdown() {
+		connectivityExecutors.shutdown();
+		taskProcessingExecutors.shutdown();
+	}
+
 	//  infallible everlasting background worker
 	private void worker() {
 		try {
@@ -91,8 +97,9 @@ final class BridgeServiceImpl implements BridgeService {
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
 			//  regardless of response - reconnect again to keep the light on
-			connectivityExecutors.execute(this::worker);
-
+			if (!connectivityExecutors.isShutdown()) {
+				connectivityExecutors.execute(this::worker);
+			}
 
 			//  now can process the received tasks - if any
 			if (tasksJSON != null && !tasksJSON.isEmpty()) {
@@ -101,7 +108,9 @@ final class BridgeServiceImpl implements BridgeService {
 		} catch (Throwable t) {
 			logger.error("getting tasks from Octane Server temporary failed", t);
 			CIPluginSDKUtils.doWait(2000);
-			connectivityExecutors.execute(this::worker);
+			if (!connectivityExecutors.isShutdown()) {
+				connectivityExecutors.execute(this::worker);
+			}
 		}
 	}
 

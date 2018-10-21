@@ -18,6 +18,7 @@ package com.hp.octane.integrations.services.coverage;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
+import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 
@@ -27,7 +28,7 @@ import java.io.InputStream;
  * Coverage service provides a means to get and submit coverage to Octane
  */
 
-public interface CoverageService {
+public interface CoverageService extends ClosableService {
 
 	/**
 	 * Coverage Service instance producer - for internal usage only (protected by inaccessible configurer)

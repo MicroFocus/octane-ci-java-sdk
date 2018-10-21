@@ -18,9 +18,10 @@ package com.hp.octane.integrations.services.queueing;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.ClosableService;
 import com.squareup.tape.ObjectQueue;
 
-public interface QueueingService {
+public interface QueueingService extends ClosableService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
@@ -57,12 +58,6 @@ public interface QueueingService {
 	 * @return initialized queue
 	 */
 	<T extends QueueItem> ObjectQueue<T> initFileQueue(String queueFileName, Class<T> targetType);
-
-	/**
-	 * Shuts down all queue services
-	 * - closing all persistent queues
-	 */
-	void shutdown();
 
 	@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
 	@JsonIgnoreProperties(ignoreUnknown = true)

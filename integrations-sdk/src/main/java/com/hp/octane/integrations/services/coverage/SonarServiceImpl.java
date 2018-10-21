@@ -43,6 +43,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -60,6 +61,7 @@ class SonarServiceImpl implements SonarService {
 	private static final String CONNECTION_FAILURE = "CONNECTION_FAILURE";
 	private static final String COMPONENT_TREE_URI = "/api/measures/component_tree";
 
+	private final ExecutorService sonarIntegrationExecutor = Executors.newSingleThreadExecutor(new SonarIntegrationWorkerThreadFactory());
 	private final Object NO_SONAR_COVERAGE_ITEMS_MONITOR = new Object();
 	private final ObjectQueue<SonarBuildCoverageQueueItem> sonarIntegrationQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
@@ -89,15 +91,13 @@ class SonarServiceImpl implements SonarService {
 		}
 
 		logger.info("starting background worker...");
-		Executors
-				.newSingleThreadExecutor(new SonarIntegrationWorkerThreadFactory())
-				.execute(this::worker);
+		sonarIntegrationExecutor.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY (backed by " + sonarIntegrationQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
 	private void worker() {
-		while (true) {
+		while (!sonarIntegrationExecutor.isShutdown()) {
 			if (sonarIntegrationQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_SONAR_COVERAGE_ITEMS_MONITOR);
 				continue;
@@ -156,6 +156,11 @@ class SonarServiceImpl implements SonarService {
 			logger.error(errorMessage, e);
 			throw new SonarIntegrationException(errorMessage, e);
 		}
+	}
+
+	@Override
+	public void shutdown() {
+		sonarIntegrationExecutor.shutdown();
 	}
 
 	@Override

@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -55,6 +56,7 @@ final class EventsServiceImpl implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+	private final ExecutorService eventsPushExecutor = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private final List<CIEvent> events = Collections.synchronizedList(new LinkedList<>());
@@ -78,9 +80,7 @@ final class EventsServiceImpl implements EventsService {
 		this.restService = restService;
 
 		logger.info("starting background worker...");
-		Executors
-				.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory())
-				.execute(this::worker);
+		eventsPushExecutor.execute(this::worker);
 		logger.info("initialized SUCCESSFULLY");
 	}
 
@@ -103,6 +103,11 @@ final class EventsServiceImpl implements EventsService {
 		}
 	}
 
+	@Override
+	public void shutdown() {
+		eventsPushExecutor.shutdown();
+	}
+
 	private void removeEvents(List<CIEvent> eventsToRemove) {
 		if (eventsToRemove != null && !eventsToRemove.isEmpty()) {
 			events.removeAll(eventsToRemove);
@@ -111,7 +116,7 @@ final class EventsServiceImpl implements EventsService {
 
 	//  infallible everlasting worker function
 	private void worker() {
-		while (true) {
+		while (!eventsPushExecutor.isShutdown()) {
 			//  have any events to send?
 			if (events.isEmpty()) {
 				CIPluginSDKUtils.doBreakableWait(NO_EVENTS_PAUSE, NO_EVENTS_MONITOR);
