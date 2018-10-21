@@ -94,8 +94,9 @@ final class OctaneClientImpl implements OctaneClient {
 				this.close();
 			} catch (Throwable throwable) {
 				logger.error("failed during shutdown of OctaneClient " + configurer.octaneConfiguration.getInstanceId(), throwable);
+			} finally {
+				logger.info("...OctaneClient " + configurer.octaneConfiguration.getInstanceId() + " CLOSED");
 			}
-			logger.info("...OctaneClient " + configurer.octaneConfiguration.getInstanceId() + " CLOSED");
 		}));
 
 		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
