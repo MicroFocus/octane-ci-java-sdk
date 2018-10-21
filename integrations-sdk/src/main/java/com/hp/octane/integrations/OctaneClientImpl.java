@@ -90,7 +90,11 @@ final class OctaneClientImpl implements OctaneClient {
 		//  register shutdown hook to allow graceful shutdown of services/resources
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			logger.info("closing OctaneClient " + configurer.octaneConfiguration.getInstanceId() + " as per Runtime shutdown request...");
-			this.close();
+			try {
+				this.close();
+			} catch (Throwable throwable) {
+				logger.error("failed during shutdown of OctaneClient " + configurer.octaneConfiguration.getInstanceId(), throwable);
+			}
 			logger.info("...OctaneClient " + configurer.octaneConfiguration.getInstanceId() + " CLOSED");
 		}));
 
