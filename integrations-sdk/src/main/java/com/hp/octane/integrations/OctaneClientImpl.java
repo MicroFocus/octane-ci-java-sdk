@@ -87,6 +87,12 @@ final class OctaneClientImpl implements OctaneClient {
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);
 
+		//  register shutdown hook to allow graceful shutdown of services/resources
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			logger.info("closing OctaneClient as per Runtime shutdown request");
+			this.close();
+		}));
+
 		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
 	}
 
