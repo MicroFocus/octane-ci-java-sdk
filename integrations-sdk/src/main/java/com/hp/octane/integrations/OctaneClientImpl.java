@@ -161,8 +161,7 @@ final class OctaneClientImpl implements OctaneClient {
 		return "OctaneClientImpl{ instanceId: " + configurer.octaneConfiguration.getInstanceId() + " }";
 	}
 
-	void close() {
-		//  shut down services
+	private void close() {
 		queueingService.shutdown();
 		bridgeService.shutdown();
 		coverageService.shutdown();
@@ -172,6 +171,11 @@ final class OctaneClientImpl implements OctaneClient {
 		testsService.shutdown();
 		vulnerabilitiesService.shutdown();
 		restService.obtainOctaneRestClient().shutdown();
+	}
+
+	void remove() {
+		//  shut down services
+		close();
 
 		//  clean storage
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
