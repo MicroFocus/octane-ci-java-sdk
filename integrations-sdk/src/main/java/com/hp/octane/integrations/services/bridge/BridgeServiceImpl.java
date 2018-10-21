@@ -171,6 +171,9 @@ final class BridgeServiceImpl implements BridgeService {
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
 			logger.info("parsed " + tasks.length + " tasks, processing...");
 			for (final OctaneTaskAbridged task : tasks) {
+				if (taskProcessingExecutors.isShutdown()) {
+					break;
+				}
 				taskProcessingExecutors.execute(() -> {
 					OctaneResultAbridged result = tasksProcessor.execute(task);
 					int submitStatus = putAbridgedResult(
