@@ -1,3 +1,6 @@
+![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)
+
+
 # SDK for CI Plugins to integrate with ALM Octane
 
 ## Introduction
