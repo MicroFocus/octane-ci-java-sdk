@@ -59,7 +59,7 @@ public class OctaneSDKBasicFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(OctaneSDKBasicFunctionalityTest.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(timeout = 20000)
+	@Test(timeout = 40000)
 	public void testA() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
