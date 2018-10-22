@@ -1,4 +1,6 @@
-![GitHub](https://img.shields.io/github/license/mashape/apistatus.svg)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+![AppVeyor](https://img.shields.io/appveyor/ci/m-seldin/octane-ci-java-sdk.svg)
+[![codecov](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk)
 
 
 # SDK for CI Plugins to integrate with ALM Octane
