@@ -24,4 +24,5 @@ after_test:
     bash codecov.sh -f "integrations-sdk\target\jacoco-report\jacoco.xml" -t cee5cda3-50d9-4704-b075-97a1f7471f79
 
 cache:
+- C:\maven\
 - C:\Users\appveyor\.m2
