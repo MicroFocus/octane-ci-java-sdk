@@ -12,7 +12,7 @@ install:
 - cmd: SET MAVEN_OPTS=-XX:MaxPermSize=2g -Xmx4g
 - cmd: SET JAVA_OPTS=-XX:MaxPermSize=2g -Xmx4g
 build_script:
-- mvn compile spotbugs:check
+- mvn compile spotbugs:check -T8
 test_script:
 - mvn test -T8 -P jacoco-coverage
 after_test:
