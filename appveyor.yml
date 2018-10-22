@@ -9,15 +9,19 @@ install:
       [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
     }
 - cmd: SET PATH=C:\maven\apache-maven-3.5.4\bin;%JAVA_HOME%\bin;%PATH%
+
 build_script:
 - mvn compile spotbugs:check -T8
+
 test_script:
 - mvn test -T8 -P jacoco-coverage
+
 after_test:
 - ps: |
     $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
     Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-    bash codecov.sh -f "coverage.xml" -t cee5cda3-50d9-4704-b075-97a1f7471f79
+    bash codecov.sh -f "integrations-dto\target\jacoco-report\jacoco.xml" -t cee5cda3-50d9-4704-b075-97a1f7471f79
+    bash codecov.sh -f "integrations-sdk\target\jacoco-report\jacoco.xml" -t cee5cda3-50d9-4704-b075-97a1f7471f79
+
 cache:
-- C:\maven\
 - C:\Users\appveyor\.m2
