@@ -50,6 +50,7 @@ public class OctaneConfigurationTests {
 		OctaneConfiguration oc = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:9999/some/path?query=false", "1002");
 		Assert.assertNotNull(oc);
 		Assert.assertEquals("http://localhost:9999", oc.getUrl());
+		Assert.assertEquals("localhost:9999", oc.getFarm());
 		Assert.assertNotNull(oc.toString());
 		Assert.assertFalse(oc.toString().isEmpty());
 		Assert.assertFalse(oc.attached);
@@ -62,12 +63,15 @@ public class OctaneConfigurationTests {
 
 		oc.setUrl("https://some.host.com/some/path?query=false");
 		Assert.assertEquals("https://some.host.com", oc.getUrl());
+		Assert.assertEquals("some.host.com", oc.getFarm());
 
 		oc.setUrl("http://localhost.end");
 		Assert.assertEquals("http://localhost.end", oc.getUrl());
+		Assert.assertEquals("localhost.end", oc.getFarm());
 
 		oc.setUrl("http://localhost.end:9999");
 		Assert.assertEquals("http://localhost.end:9999", oc.getUrl());
+		Assert.assertEquals("localhost.end:9999", oc.getFarm());
 
 		oc.setSharedSpace("1002");
 		Assert.assertEquals("1002", oc.getSharedSpace());

@@ -9,7 +9,8 @@ public class OctaneConfiguration {
 	private String sharedSpace;
 	private String client;
 	private String secret;
-	volatile boolean attached = false;
+	volatile boolean attached;
+	private String farm;
 
 	public OctaneConfiguration(String instanceId, String url, String sharedSpace) {
 		if (instanceId == null || instanceId.isEmpty()) {
@@ -36,7 +37,13 @@ public class OctaneConfiguration {
 
 		try {
 			URL tmp = new URL(url);
-			this.url = tmp.getProtocol() + "://" + tmp.getHost() + (tmp.getPort() > 0 ? (":" + tmp.getPort()) : "");
+			String tmpFarm = tmp.getHost() + (tmp.getPort() > 0 ? (":" + tmp.getPort()) : "");
+			if (attached && !OctaneSDK.isSharedSpaceUnique(tmpFarm, sharedSpace)) {
+				throw new IllegalArgumentException("shared space '" + sharedSpace + "' of Octane '" + tmpFarm + "' is already in use");
+			}
+
+			farm = tmpFarm;
+			this.url = tmp.getProtocol() + "://" + tmpFarm;
 		} catch (MalformedURLException mue) {
 			throw new IllegalArgumentException("invalid url", mue);
 		}
@@ -46,7 +53,7 @@ public class OctaneConfiguration {
 		return sharedSpace;
 	}
 
-	synchronized public final void setSharedSpace(String sharedSpace) {
+	public final void setSharedSpace(String sharedSpace) {
 		if (sharedSpace == null || sharedSpace.isEmpty()) {
 			throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
 		}
@@ -55,8 +62,8 @@ public class OctaneConfiguration {
 			return;
 		}
 
-		if (attached && !OctaneSDK.isSharedSpaceIdUnique(sharedSpace)) {
-			throw new IllegalArgumentException("shared space ID '" + sharedSpace + "' is already in use");
+		if (attached && !OctaneSDK.isSharedSpaceUnique(farm, sharedSpace)) {
+			throw new IllegalArgumentException("shared space '" + sharedSpace + "' of Octane '" + farm + "' is already in use");
 		}
 
 		this.sharedSpace = sharedSpace;
@@ -76,6 +83,10 @@ public class OctaneConfiguration {
 
 	public void setSecret(String secret) {
 		this.secret = secret;
+	}
+
+	final String getFarm() {
+		return farm;
 	}
 
 	@Override

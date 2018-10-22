@@ -168,6 +168,10 @@ final class OctaneClientImpl implements OctaneClient {
 		return "OctaneClientImpl{ instanceId: " + configurer.octaneConfiguration.getInstanceId() + " }";
 	}
 
+	/**
+	 * private API to cleanly close the OctaneClient with all its resources
+	 * use-cases: JVM shutdown, temporary client suspension, complete client removal
+	 */
 	private void close() {
 		queueingService.shutdown();
 		bridgeService.shutdown();
@@ -180,6 +184,10 @@ final class OctaneClientImpl implements OctaneClient {
 		restService.obtainOctaneRestClient().shutdown();
 	}
 
+	/**
+	 * package-protected API to completely remove OctaneClient: closing its services, releasing the resources, deleting any persisted artifacts
+	 * use-cases: OctaneClient configuration being removed from consumer's application
+	 */
 	void remove() {
 		//  shut down services
 		close();
