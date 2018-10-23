@@ -32,6 +32,7 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     private SCMRepository scmRepository;
     private boolean forceFullDiscovery;
     private TestingToolType testingToolType;
+    private String configurationId;
 
     @Override
     public String getWorkspaceId() {
@@ -112,5 +113,15 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     public DiscoveryInfo setExecutorLogicalName(String executorLogicalName) {
         this.executorLogicalName = executorLogicalName;
         return this;
+    }
+
+    @Override
+    public String getConfigurationId() {
+        return configurationId;
+    }
+
+    @Override
+    public void setConfigurationId(String configurationId) {
+        this.configurationId = configurationId;
     }
 }

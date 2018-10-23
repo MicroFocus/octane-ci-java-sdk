@@ -60,6 +60,9 @@ public class UftTestDiscoveryResult {
     private String workspaceId;
 
     @XmlAttribute
+    private String configurationId;
+
+    @XmlAttribute
     private boolean fullScan;
 
     @XmlAttribute
@@ -211,5 +214,13 @@ public class UftTestDiscoveryResult {
 
     public void setTestRunnerId(String testRunnerId) {
         this.testRunnerId = testRunnerId;
+    }
+
+    public String getConfigurationId() {
+        return configurationId;
+    }
+
+    public void setConfigurationId(String configurationId) {
+        this.configurationId = configurationId;
     }
 }

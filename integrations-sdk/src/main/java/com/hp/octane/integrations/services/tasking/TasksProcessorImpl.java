@@ -119,6 +119,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 				if (HttpMethod.POST.equals(task.getMethod()) && path.length == 2) {
 					if (INIT.equalsIgnoreCase(path[1])) {
 						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+						discoveryInfo.setConfigurationId(task.getServiceId());
 						configurer.pluginServices.runTestDiscovery(discoveryInfo);
 						PipelineNode node = configurer.pluginServices.createExecutor(discoveryInfo);
 						if (node != null) {

@@ -56,4 +56,8 @@ public interface DiscoveryInfo extends DTOBase {
     String getExecutorLogicalName();
 
     DiscoveryInfo setExecutorLogicalName(String executorLogicalName);
+
+	String getConfigurationId();
+
+	void setConfigurationId(String configurationId);
 }
