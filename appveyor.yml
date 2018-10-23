@@ -20,8 +20,8 @@ after_test:
 - ps: |
     $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
     Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
-    bash codecov.sh -f "integrations-dto/target/jacoco-report/jacoco.xml" -t cee5cda3-50d9-4704-b075-97a1f7471f79
-    bash codecov.sh -f "integrations-sdk/target/jacoco-report/jacoco.xml" -t cee5cda3-50d9-4704-b075-97a1f7471f79
+    bash codecov.sh -f "integrations-dto/target/jacoco-report/jacoco.xml" -t 96bc1054-cc9f-4095-b02e-339e8b0f74a5
+    bash codecov.sh -f "integrations-sdk/target/jacoco-report/jacoco.xml" -t 96bc1054-cc9f-4095-b02e-339e8b0f74a5
 
 cache:
 - C:\maven\
