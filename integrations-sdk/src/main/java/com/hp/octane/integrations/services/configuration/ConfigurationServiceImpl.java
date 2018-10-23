@@ -26,16 +26,11 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 
 /**
  * Base implementation of Configuration Service API
@@ -46,8 +41,6 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private static final String CONNECTIVITY_STATUS_URL = "/analytics/ci/servers/connectivity/status";
-	private static final String UI_CONTEXT_PATH = "/ui";
-	private static final String PARAM_SHARED_SPACE = "p";
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
@@ -65,50 +58,18 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		logger.info("initialized SUCCESSFULLY");
 	}
 
-//	@Override
-//	public OctaneConfiguration buildConfiguration(String instanceId, String rawUrl, String client, String secret) throws IllegalArgumentException {
-//		OctaneConfiguration result = null;
-//		try {
-//			String url;
-//			URL tmpUrl = new URL(rawUrl);
-//			int contextPathPosition = rawUrl.indexOf(UI_CONTEXT_PATH);
-//			if (contextPathPosition < 0) {
-//				throw new IllegalArgumentException("URL does not conform to the expected format");
-//			} else {
-//				url = rawUrl.substring(0, contextPathPosition);
-//			}
-//			List<NameValuePair> params = URLEncodedUtils.parse(tmpUrl.toURI(), "UTF-8");
-//			for (NameValuePair param : params) {
-//				if (param.getName().equals(PARAM_SHARED_SPACE)) {
-//					String[] sharedSpaceAndWorkspace = param.getValue().split("/");
-//					if (sharedSpaceAndWorkspace.length < 1 || sharedSpaceAndWorkspace[0].isEmpty()) {
-//						throw new IllegalArgumentException("shared space parameter MUST be present");
-//					}
-//					result = new OctaneConfiguration(instanceId, url, sharedSpaceAndWorkspace[0]);
-//					result.setClient(client);
-//					result.setSecret(secret);
-//				}
-//			}
-//		} catch (MalformedURLException murle) {
-//			throw new IllegalArgumentException("invalid URL", murle);
-//		} catch (URISyntaxException uirse) {
-//			throw new IllegalArgumentException("invalid URL (parameters)", uirse);
-//		}
-//
-//		if (result == null) {
-//			throw new IllegalArgumentException("failed to extract NGA server URL and shared space ID from '" + rawUrl + "'");
-//		} else {
-//			return result;
-//		}
-//	}
+	@Override
+	public OctaneConfiguration getCurrentConfiguration() {
+		return configurer.octaneConfiguration;
+	}
 
 	@Override
-	public boolean isConfigurationValid() {
+	public boolean isCurrentConfigurationValid() {
 		try {
 			OctaneResponse response = validateConfiguration(configurer.octaneConfiguration);
 			return response.getStatus() == HttpStatus.SC_OK;
 		} catch (Exception e) {
-			logger.error("failed to validate Octane server configuration, resolving isConfigurationValid to FALSE", e);
+			logger.error("failed to validate Octane server configuration, resolving isCurrentConfigurationValid to FALSE", e);
 			return false;
 		}
 	}

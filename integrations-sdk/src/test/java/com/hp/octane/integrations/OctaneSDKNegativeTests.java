@@ -184,9 +184,9 @@ public class OctaneSDKNegativeTests {
 		Assert.assertNull(OctaneSDK.removeClient(successfulOne));
 	}
 
-	//  client dynamically breaks unique instanceId/sharedSpaceId contract
+	//  client dynamically breaks unique instanceId/farm/sharedSpaceId contract
 	@Test(expected = IllegalArgumentException.class)
-	public void sdkTestNegativeO4() {
+	public void sdkTestNegativeO1() {
 		String sp1 = UUID.randomUUID().toString();
 		String sp2 = UUID.randomUUID().toString();
 		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", sp1, null, null);
@@ -198,6 +198,66 @@ public class OctaneSDKNegativeTests {
 
 		try {
 			oc1.setSharedSpace(oc2.getSharedSpace());
+		} finally {
+			Assert.assertNotNull(OctaneSDK.removeClient(clientA));
+			Assert.assertNotNull(OctaneSDK.removeClient(clientB));
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void sdkTestNegativeO2() {
+		String url1 = "http://localhost";
+		String url2 = "http://localhost1";
+		String sp = UUID.randomUUID().toString();
+		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), url1, sp, null, null);
+		OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), url2, sp, null, null);
+		OctaneClient clientA = OctaneSDK.addClient(oc1, PluginServices.class);
+		OctaneClient clientB = OctaneSDK.addClient(oc2, PluginServices.class);
+		Assert.assertNotNull(clientA);
+		Assert.assertNotNull(clientB);
+
+		try {
+			oc1.setUrl(oc2.getUrl());
+		} finally {
+			Assert.assertNotNull(OctaneSDK.removeClient(clientA));
+			Assert.assertNotNull(OctaneSDK.removeClient(clientB));
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void sdkTestNegativeO3() {
+		String url1 = "http://localhost:8080";
+		String url2 = "http://localhost:8081";
+		String sp = UUID.randomUUID().toString();
+		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), url1, sp, null, null);
+		OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), url2, sp, null, null);
+		OctaneClient clientA = OctaneSDK.addClient(oc1, PluginServices.class);
+		OctaneClient clientB = OctaneSDK.addClient(oc2, PluginServices.class);
+		Assert.assertNotNull(clientA);
+		Assert.assertNotNull(clientB);
+
+		try {
+			oc1.setUrl(oc2.getUrl());
+		} finally {
+			Assert.assertNotNull(OctaneSDK.removeClient(clientA));
+			Assert.assertNotNull(OctaneSDK.removeClient(clientB));
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void sdkTestNegativeO4() {
+		String url1 = "http://localhost:8080";
+		String url2 = "http://localhost:8081";
+		String sp = UUID.randomUUID().toString();
+		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), url1, sp, null, null);
+		OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), url2, sp, null, null);
+		OctaneClient clientA = OctaneSDK.addClient(oc1, PluginServices.class);
+		OctaneClient clientB = OctaneSDK.addClient(oc2, PluginServices.class);
+		Assert.assertNotNull(clientA);
+		Assert.assertNotNull(clientB);
+
+		try {
+			oc1.setUrl("https://localhost:8081");
 		} finally {
 			Assert.assertNotNull(OctaneSDK.removeClient(clientA));
 			Assert.assertNotNull(OctaneSDK.removeClient(clientB));
@@ -275,22 +335,8 @@ public class OctaneSDKNegativeTests {
 			OctaneSDK.SDKServicesConfigurer.class.getConstructor(OctaneConfiguration.class, CIPluginServices.class).newInstance(null, null);
 			Assert.fail("should not be able to create");
 		} catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+			Assert.assertNotNull(e);
 		}
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void sdkTestNegativeU() {
-		OctaneSDK.getClientBySharedSpaceId(null);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void sdkTestNegativeV() {
-		OctaneSDK.getClientBySharedSpaceId("");
-	}
-
-	@Test(expected = IllegalStateException.class)
-	public void sdkTestNegativeW() {
-		OctaneSDK.getClientBySharedSpaceId("1");
 	}
 
 	//  MOCK classes

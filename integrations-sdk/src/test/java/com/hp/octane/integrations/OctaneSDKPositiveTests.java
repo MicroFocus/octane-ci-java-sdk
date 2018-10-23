@@ -51,28 +51,14 @@ public class OctaneSDKPositiveTests {
 		OctaneClient client = OctaneSDK.getClientByInstanceId(oc1.getInstanceId());
 		Assert.assertNotNull(client);
 		Assert.assertEquals(instance1, client.getInstanceId());
+		Assert.assertEquals(oc1, client.getConfigurationService().getCurrentConfiguration());
 
 		client = OctaneSDK.getClientByInstanceId(oc2.getInstanceId());
 		Assert.assertNotNull(client);
 		Assert.assertEquals(instance2, client.getInstanceId());
+		Assert.assertEquals(oc2, client.getConfigurationService().getCurrentConfiguration());
 
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
-	}
-
-	@Test
-	public void sdkTestC() {
-		OctaneConfiguration oc = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
-		OctaneSDK.addClient(oc, PluginServices.class);
-		OctaneClient client = OctaneSDK.getClientBySharedSpaceId("1001");
-
-		Assert.assertNotNull(client);
-
-		oc.setSharedSpace("1002");
-		client = OctaneSDK.getClientBySharedSpaceId(oc.getSharedSpace());
-
-		Assert.assertNotNull(client);
-
-		Assert.assertNotNull(OctaneSDK.removeClient(client));
 	}
 
 	@Test
@@ -92,6 +78,7 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotNull(clientA.getEntitiesService());
 			Assert.assertNotNull(clientA.getEventsService());
 			Assert.assertNotNull(clientA.getLogsService());
+			Assert.assertNotNull(clientA.getPipelineContextService());
 			Assert.assertNotNull(clientA.getRestService());
 			Assert.assertNotNull(clientA.getTasksProcessor());
 			Assert.assertNotNull(clientA.getTestsService());
@@ -104,6 +91,7 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotNull(clientB.getEntitiesService());
 			Assert.assertNotNull(clientB.getEventsService());
 			Assert.assertNotNull(clientB.getLogsService());
+			Assert.assertNotNull(clientB.getPipelineContextService());
 			Assert.assertNotNull(clientB.getRestService());
 			Assert.assertNotNull(clientB.getTasksProcessor());
 			Assert.assertNotNull(clientB.getTestsService());
@@ -116,6 +104,7 @@ public class OctaneSDKPositiveTests {
 			Assert.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
 			Assert.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
 			Assert.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());
+			Assert.assertNotEquals(clientA.getPipelineContextService(), clientB.getPipelineContextService());
 			Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
 			Assert.assertNotEquals(clientA.getTasksProcessor(), clientB.getTasksProcessor());
 			Assert.assertNotEquals(clientA.getTestsService(), clientB.getTestsService());

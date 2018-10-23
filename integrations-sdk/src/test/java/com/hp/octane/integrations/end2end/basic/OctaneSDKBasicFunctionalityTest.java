@@ -59,7 +59,7 @@ public class OctaneSDKBasicFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(OctaneSDKBasicFunctionalityTest.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(timeout = 20000)
+	@Test(timeout = 40000)
 	public void testA() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
@@ -93,7 +93,7 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_A"
 					),
 					PluginServicesBasicFunctionalityTest.class);
-			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
+			Assert.assertTrue(clientA.getConfigurationService().isCurrentConfigurationValid());
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
 			simulatePushLogsCycleAllClients();
@@ -160,7 +160,7 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_B"
 					),
 					PluginServicesBasicFunctionalityTest.class);
-			Assert.assertTrue(clientA.getConfigurationService().isConfigurationValid());
+			Assert.assertTrue(clientA.getConfigurationService().isCurrentConfigurationValid());
 			eventsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdA).clear();
 			logsCollectors.get(spIdA).clear();

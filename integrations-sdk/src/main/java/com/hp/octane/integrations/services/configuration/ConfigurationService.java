@@ -36,20 +36,17 @@ public interface ConfigurationService {
 	}
 
 	/**
-	 * Builds configuration object from raw data, usually supplied from UI or storage
+	 * Provides current OctaneConfiguration that THIS OctaneClient instance is configured with
+	 * - ATTENTION: this is a LIVE configuration object, any changes to its properties will have immediate or almost immediate effect on THIS OctaneClient instance
 	 *
-	 * @param instanceId instance ID
-	 * @param rawUrl     Octane server url
-	 * @param apiKey     API Key
-	 * @param secret     API Secret
-	 * @return OctaneConfiguration
+	 * @return current Octane Configuration
 	 */
-//	OctaneConfiguration buildConfiguration(String instanceId, String rawUrl, String apiKey, String secret) throws IllegalArgumentException;
+	OctaneConfiguration getCurrentConfiguration();
 
 	/**
 	 * Check if current configuration is valid
 	 */
-	boolean isConfigurationValid();
+	boolean isCurrentConfigurationValid();
 
 	/**
 	 * Tests connectivity to the Octane server with the supplied configuration

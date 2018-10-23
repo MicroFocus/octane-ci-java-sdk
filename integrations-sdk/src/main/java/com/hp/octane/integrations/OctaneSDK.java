@@ -79,7 +79,7 @@ public final class OctaneSDK {
 
 		//  validate shared space ID uniqueness
 		String sharedSpace = octaneConfiguration.getSharedSpace();
-		if (!isSharedSpaceIdUnique(sharedSpace)) {
+		if (!isSharedSpaceUnique(octaneConfiguration.getFarm(), sharedSpace)) {
 			throw new IllegalStateException("SDK instance claiming for shared space ID [" + sharedSpace + "] is already present");
 		}
 
@@ -142,32 +142,6 @@ public final class OctaneSDK {
 	}
 
 	/**
-	 * provides specific OctaneClient (the first one found) - claiming for specified shared space ID
-	 * attentions: since shared space ID is not owned by OctaneClient and may be changed after the initialization, we may effectively have duplicate shared space ID at some point of time
-	 * if no client instance found for the specified shared space ID - IllegalStateException will be thrown
-	 *
-	 * @param sharedSpaceId shared space ID of the desired client
-	 * @return OctaneClient; MAY NOT be NULL
-	 */
-	public static OctaneClient getClientBySharedSpaceId(String sharedSpaceId) throws IllegalStateException {
-		if (sharedSpaceId == null || sharedSpaceId.isEmpty()) {
-			throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
-		}
-
-		OctaneClient result = clients.entrySet().stream()
-				.filter(e -> sharedSpaceId.equals(e.getKey().getSharedSpace()))
-				.findFirst()
-				.map(Map.Entry::getValue)
-				.orElse(null);
-
-		if (result != null) {
-			return result;
-		} else {
-			throw new IllegalStateException("no client with shared space ID [" + sharedSpaceId + "] present");
-		}
-	}
-
-	/**
 	 * removes client while shutting down all of its services and cleaning all used persistent storage
 	 *
 	 * @param client client to be shut down and removed
@@ -210,7 +184,7 @@ public final class OctaneSDK {
 	 * @throws IOException in case of basic connectivity failure
 	 */
 	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
-		//  [YG]: instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
+		//  instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
 		configuration.setSecret(secret);
 		configuration.setClient(client);
@@ -233,8 +207,8 @@ public final class OctaneSDK {
 		return clients.keySet().stream().noneMatch(oc -> oc.getInstanceId().equals(instanceId));
 	}
 
-	static boolean isSharedSpaceIdUnique(String sharedSpace) {
-		return clients.keySet().stream().noneMatch(oc -> oc.getSharedSpace().equals(sharedSpace));
+	static boolean isSharedSpaceUnique(String host, String sharedSpace) {
+		return clients.keySet().stream().noneMatch(oc -> (oc.getFarm() + oc.getSharedSpace()).equals(host + sharedSpace));
 	}
 
 	/**
