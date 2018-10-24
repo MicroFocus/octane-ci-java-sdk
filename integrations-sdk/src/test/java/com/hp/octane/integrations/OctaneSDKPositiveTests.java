@@ -62,6 +62,38 @@ public class OctaneSDKPositiveTests {
 	}
 
 	@Test
+	public void sdkTestB() {
+		String instance = UUID.randomUUID().toString();
+		String url = "http://localhost:8080";
+		String sp = UUID.randomUUID().toString();
+		OctaneConfiguration oc = new OctaneConfigurationIntern(instance, url, sp, null, null);
+
+		OctaneSDK.addClient(oc, PluginServices.class);
+
+		OctaneClient client = OctaneSDK.getClientByInstanceId(oc.getInstanceId());
+		Assert.assertNotNull(client);
+		Assert.assertEquals(instance, client.getInstanceId());
+		Assert.assertEquals(url, client.getConfigurationService().getCurrentConfiguration().getUrl());
+		Assert.assertEquals(sp, client.getConfigurationService().getCurrentConfiguration().getSharedSpace());
+
+		//  same values should work smooth
+		oc.setSharedSpace(sp);
+		oc.setUrl(url);
+		Assert.assertEquals(url, client.getConfigurationService().getCurrentConfiguration().getUrl());
+		Assert.assertEquals(sp, client.getConfigurationService().getCurrentConfiguration().getSharedSpace());
+
+		//  new unique values should work as well
+		url = "http://localhost:8081";
+		sp = UUID.randomUUID().toString();
+		oc.setSharedSpace(sp);
+		oc.setUrl(url);
+		Assert.assertEquals(url, client.getConfigurationService().getCurrentConfiguration().getUrl());
+		Assert.assertEquals(sp, client.getConfigurationService().getCurrentConfiguration().getSharedSpace());
+
+		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
+	}
+
+	@Test
 	public void sdkTestD() {
 		OctaneConfiguration oc1 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
 		OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1002", null, null);
