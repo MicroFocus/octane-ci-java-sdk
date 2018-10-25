@@ -15,10 +15,20 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
+import com.hp.octane.integrations.CIPluginServices;
+import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.general.CIPluginInfo;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.UUID;
+
 public class VulnerabilitiesServiceNegativeTests {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
@@ -38,5 +48,90 @@ public class VulnerabilitiesServiceNegativeTests {
 	@Test(expected = ClassCastException.class)
 	public void testD() {
 		VulnerabilitiesService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+	}
+
+	//  enqueue API negative testing validation
+	@Test(expected = IllegalArgumentException.class)
+	public void testE_1() {
+		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+		Assert.assertNotNull(client);
+
+		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
+		try {
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(null, null, 0, 0);
+		} finally {
+			OctaneSDK.removeClient(client);
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testE_2() {
+		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+		Assert.assertNotNull(client);
+
+		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
+		try {
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("", null, 0, 0);
+		} finally {
+			OctaneSDK.removeClient(client);
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testE_3() {
+		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+		Assert.assertNotNull(client);
+
+		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
+		try {
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", null, 0, 0);
+		} finally {
+			OctaneSDK.removeClient(client);
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testE_4() {
+		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+		Assert.assertNotNull(client);
+
+		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
+		try {
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "", 0, 0);
+		} finally {
+			OctaneSDK.removeClient(client);
+		}
+	}
+
+	//  this one is the OK one
+	@Test
+	public void testE_5() {
+		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+		Assert.assertNotNull(client);
+
+		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
+		try {
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "build-id", 0, 0);
+		} finally {
+			OctaneSDK.removeClient(client);
+		}
+	}
+
+	public static final class PluginServices extends CIPluginServices {
+
+		@Override
+		public CIServerInfo getServerInfo() {
+			return dtoFactory.newDTO(CIServerInfo.class);
+		}
+
+		@Override
+		public CIPluginInfo getPluginInfo() {
+			return dtoFactory.newDTO(CIPluginInfo.class);
+		}
 	}
 }
