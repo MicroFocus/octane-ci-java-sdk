@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
@@ -120,17 +121,19 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	@Override
-	public void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
-	                                                  String projectName, String projectVersion,
+	public void enqueueRetrieveAndPushVulnerabilities(String jobId,
+	                                                  String buildId,
 	                                                  long startRunTime,
 	                                                  long queueItemTimeout) {
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
-		vulnerabilitiesQueueItem.projectName = projectName;
-		vulnerabilitiesQueueItem.projectVersionSymbol = projectVersion;
 		vulnerabilitiesQueueItem.startTime = startRunTime;
 		vulnerabilitiesQueueItem.timeout = queueItemTimeout <= 0 ? DEFAULT_TIME_OUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000;
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 		logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was added to vulnerabilities queue");
+
+		synchronized (NO_VULNERABILITIES_RESULTS_MONITOR) {
+			NO_VULNERABILITIES_RESULTS_MONITOR.notify();
+		}
 	}
 
 	@Override
@@ -207,12 +210,18 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 	private boolean processPushVulnerabilitiesQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		try {
+			SSCProjectConfiguration sscProjectConfiguration = configurer.pluginServices.getSSCProjectConfiguration(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+			if (sscProjectConfiguration == null) {
+				logger.debug("SSC project configurations is missing or not valid, skipping processing for " + vulnerabilitiesQueueItem.jobId + " #" + vulnerabilitiesQueueItem.buildId);
+				return true;
+			}
+
 			//if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
 			if (!vulnerabilitiesQueueItem.isRelevant) {
 				preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
 				vulnerabilitiesQueueItem.isRelevant = true;
 			}
-			InputStream vulnerabilitiesStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem);
+			InputStream vulnerabilitiesStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem, sscProjectConfiguration);
 			if (vulnerabilitiesStream == null) {
 				return false;
 			} else {
@@ -235,13 +244,17 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		CIPluginSDKUtils.doWait(SKIP_QUEUE_ITEM_INTERVAL);
 	}
 
-	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, SSCProjectConfiguration sscProjectConfiguration) {
 		String targetDir = getTargetDir(vulnerabilitiesQueueItem);
 		InputStream result = getCachedScanResult(targetDir);
 		if (result != null) {
 			return result;
 		}
-		SSCHandler sscHandler = new SSCHandler(vulnerabilitiesQueueItem, targetDir, this.restService.obtainSSCRestClient());
+		SSCHandler sscHandler = new SSCHandler(
+				vulnerabilitiesQueueItem,
+				sscProjectConfiguration,
+				targetDir,
+				this.restService.obtainSSCRestClient());
 		return sscHandler.getLatestScan();
 	}
 
@@ -283,10 +296,6 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	public static final class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
 		public String jobId;
 		public String buildId;
-		public String projectName;
-		public String projectVersionSymbol;
-		public String sscUrl;
-		public String authToken;
 		public Long startTime;
 		public Long timeout;
 		public boolean isRelevant = false;
@@ -296,6 +305,11 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		}
 
 		private VulnerabilitiesQueueItem(String jobId, String buildId) {
+			if (jobId == null || jobId.isEmpty())
+				throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+			if (buildId == null || buildId.isEmpty())
+				throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
+
 			this.jobId = jobId;
 			this.buildId = buildId;
 		}

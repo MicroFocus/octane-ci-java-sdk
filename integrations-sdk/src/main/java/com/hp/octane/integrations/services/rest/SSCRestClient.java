@@ -15,10 +15,10 @@
 
 package com.hp.octane.integrations.services.rest;
 
-import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 public interface SSCRestClient {
 
-	CloseableHttpResponse sendGetRequest(SSCFortifyConfigurations sscFortifyConfigurations, String url);
+	CloseableHttpResponse sendGetRequest(SSCProjectConfiguration sscProjectConfiguration, String url);
 }

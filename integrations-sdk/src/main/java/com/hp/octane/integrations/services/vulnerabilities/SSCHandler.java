@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
@@ -82,7 +83,7 @@ public class SSCHandler {
 
 		for (Artifacts.Artifact artifact : artifacts.data) {
 			Date uploadDate = SSCDateUtils.getDateFromUTCString(artifact.uploadDate, SSCDateUtils.sscFormat);
-			if (uploadDate.after(startRunDate)) {
+			if (uploadDate != null && uploadDate.after(startRunDate)) {
 				theCloset = artifact;
 			}
 		}
@@ -93,33 +94,33 @@ public class SSCHandler {
 	public SSCHandler() {
 	}
 
-	public SSCHandler(VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
-	                  String targetDir,
-	                  SSCRestClient sscRestClient) {
-		if (sscRestClient == null) {
-			throw new PermanentException("sscClient MUST NOT be null");
-		}
+	public SSCHandler(
+			VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
+			SSCProjectConfiguration sscProjectConfiguration,
+			String targetDir,
+			SSCRestClient sscRestClient) {
 		if (vulnerabilitiesQueueItem == null) {
-			throw new PermanentException("vulnerabilitiesQueueItem MUST NOT be null");
+			throw new IllegalArgumentException("vulnerabilities QueueItem MUST NOT be null");
+		}
+		if (sscProjectConfiguration == null) {
+			throw new IllegalArgumentException("SSC project configuration MUST NOT be null");
+		}
+		if (sscRestClient == null) {
+			throw new IllegalArgumentException("sscClient MUST NOT be null");
 		}
 
 		//"Basic QWRtaW46ZGV2c2Vjb3Bz"
-		SSCFortifyConfigurations sscFortifyConfigurations = new SSCFortifyConfigurations();
-		sscFortifyConfigurations.baseToken = vulnerabilitiesQueueItem.authToken;
-		sscFortifyConfigurations.projectName = vulnerabilitiesQueueItem.projectName;
-		sscFortifyConfigurations.projectVersion = vulnerabilitiesQueueItem.projectVersionSymbol;
-		sscFortifyConfigurations.serverURL = vulnerabilitiesQueueItem.sscUrl;
 
 		this.targetDir = targetDir;
 		this.runStartTime = vulnerabilitiesQueueItem.startTime;
 
-		if (SdkStringUtils.isEmpty(sscFortifyConfigurations.baseToken) ||
-				SdkStringUtils.isEmpty(sscFortifyConfigurations.projectName) ||
-				SdkStringUtils.isEmpty(sscFortifyConfigurations.projectVersion) ||
-				SdkStringUtils.isEmpty(sscFortifyConfigurations.serverURL)) {
-			throw new PermanentException("missing one of the SSC configuration fields (baseToken\\project\\version\\serverUrl) will not continue connecting to the server");
+		if (SdkStringUtils.isEmpty(sscProjectConfiguration.getSSCUrl()) ||
+				SdkStringUtils.isEmpty(sscProjectConfiguration.getSSCBaseAuthToken()) ||
+				SdkStringUtils.isEmpty(sscProjectConfiguration.getProjectName()) ||
+				SdkStringUtils.isEmpty(sscProjectConfiguration.getProjectVersion())) {
+			throw new PermanentException("missing one of the SSC configuration fields (server URL, auth token, project name or project version) will not continue connecting to the server");
 		} else {
-			sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscRestClient);
+			sscProjectConnector = new SscProjectConnector(sscProjectConfiguration, sscRestClient);
 			projectVersion = sscProjectConnector.getProjectVersion();
 		}
 	}
@@ -152,23 +153,23 @@ public class SSCHandler {
 		return octaneIssues;
 	}
 
-    private OctaneIssue createOctaneIssue(DTOFactory dtoFactory, Issues.Issue issue) {
-        logger.debug("enter createOctaneIssue");
-        OctaneIssue octaneIssue = dtoFactory.newDTO(OctaneIssue.class);
-        setOctaneAnalysis(dtoFactory, issue, octaneIssue);
-        setOctaneSeverity(dtoFactory, issue, octaneIssue);
-        setOctaneStatus(dtoFactory, issue, octaneIssue);
-        Map<String, String> extendedData = getExtendedData(issue);
-        octaneIssue.setExtendedData(extendedData);
-        octaneIssue.setPrimaryLocationFull(issue.fullFileName);
-        octaneIssue.setLine(issue.lineNumber);
-        octaneIssue.setRemoteId(issue.issueInstanceId);
-        octaneIssue.setIntroducedDate(convertDates(issue.foundDate));
-        octaneIssue.setExternalLink(issue.hRef);
-        octaneIssue.setToolName(EXTERNAL_TOOL_NAME);
-        logger.debug("exit createOctaneIssue");
-        return octaneIssue;
-    }
+	private OctaneIssue createOctaneIssue(DTOFactory dtoFactory, Issues.Issue issue) {
+		logger.debug("enter createOctaneIssue");
+		OctaneIssue octaneIssue = dtoFactory.newDTO(OctaneIssue.class);
+		setOctaneAnalysis(dtoFactory, issue, octaneIssue);
+		setOctaneSeverity(dtoFactory, issue, octaneIssue);
+		setOctaneStatus(dtoFactory, issue, octaneIssue);
+		Map<String, String> extendedData = getExtendedData(issue);
+		octaneIssue.setExtendedData(extendedData);
+		octaneIssue.setPrimaryLocationFull(issue.fullFileName);
+		octaneIssue.setLine(issue.lineNumber);
+		octaneIssue.setRemoteId(issue.issueInstanceId);
+		octaneIssue.setIntroducedDate(convertDates(issue.foundDate));
+		octaneIssue.setExternalLink(issue.hRef);
+		octaneIssue.setToolName(EXTERNAL_TOOL_NAME);
+		logger.debug("exit createOctaneIssue");
+		return octaneIssue;
+	}
 
 	static private String convertDates(String inputFoundDate) {
 		if (inputFoundDate == null) {

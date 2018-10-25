@@ -17,10 +17,10 @@ package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -33,19 +33,17 @@ import java.io.IOException;
  * Created by hijaziy on 7/12/2018.
  */
 public class SscProjectConnector {
+	private final SSCProjectConfiguration sscProjectConfiguration;
+	private final SSCRestClient sscRestClient;
 
-	private SSCFortifyConfigurations sscFortifyConfigurations;
-	private SSCRestClient sscRestClient;
-
-	public SscProjectConnector(SSCFortifyConfigurations sscFortifyConfigurations,
-	                           SSCRestClient sscRestClient) {
-		this.sscFortifyConfigurations = sscFortifyConfigurations;
+	public SscProjectConnector(SSCProjectConfiguration sscProjectConfiguration, SSCRestClient sscRestClient) {
+		this.sscProjectConfiguration = sscProjectConfiguration;
 		this.sscRestClient = sscRestClient;
 	}
 
 	private String sendGetEntity(String urlSuffix) {
-		String url = sscFortifyConfigurations.serverURL + "/api/v1/" + urlSuffix;
-		CloseableHttpResponse response = sscRestClient.sendGetRequest(sscFortifyConfigurations, url);
+		String url = sscProjectConfiguration.getSSCUrl() + "/api/v1/" + urlSuffix;
+		CloseableHttpResponse response = sscRestClient.sendGetRequest(sscProjectConfiguration, url);
 
 		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("SSC Server is not available:" + response.getStatusLine().getStatusCode());
@@ -105,14 +103,13 @@ public class SscProjectConnector {
 	}
 
 	public Artifacts getArtifactsOfProjectVersion(Integer id, int limit) {
-
 		String urlSuffix = getArtifactsURL(id, limit);
 		String rawResponse = sendGetEntity(urlSuffix);
 		return responseToObject(rawResponse, Artifacts.class);
 	}
 
 	public String getProjectIdURL() {
-		return "projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectName);
+		return "projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectName());
 	}
 
 	public String getNewIssuesURL(int projectVersionId) {
@@ -124,6 +121,6 @@ public class SscProjectConnector {
 	}
 
 	public String getURLForProjectVersion(Integer projectId) {
-		return "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscFortifyConfigurations.projectVersion);
+		return "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectVersion());
 	}
 }

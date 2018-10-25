@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 
 import java.io.File;
@@ -218,6 +219,17 @@ public abstract class CIPluginServices {
 	 * @return SonarQube info, if any available
 	 */
 	public SonarInfo getSonarInfo() {
+		return null;
+	}
+
+	/**
+	 * Provides SSC (Fortify on premise) server configuration
+	 *
+	 * @param jobId   job ID
+	 * @param buildId build ID
+	 * @return valid SSC project configuration; NULL if no relevant valid configuration found or if any of essentials is missing
+	 */
+	public SSCProjectConfiguration getSSCProjectConfiguration(String jobId, String buildId) {
 		return null;
 	}
 

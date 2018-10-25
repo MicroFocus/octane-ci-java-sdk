@@ -18,21 +18,29 @@ package com.hp.octane.integrations.dto.securityscans;
 import com.hp.octane.integrations.dto.DTOBase;
 
 /**
- * SSC Server info DTO
+ * SSC project configuration DTO
  */
 
-public interface SSCServerInfo extends DTOBase {
+public interface SSCProjectConfiguration extends DTOBase {
 
-	String getSSCURL();
+	String getSSCUrl();
 
-	SSCServerInfo setSSCURL(String sscUrl);
+	SSCProjectConfiguration setSSCUrl(String sscUrl);
 
 	String getSSCBaseAuthToken();
 
-	SSCServerInfo setSSCBaseAuthToken(String sscBaseAuthToken);
+	SSCProjectConfiguration setSSCBaseAuthToken(String sscBaseAuthToken);
+
+	String getProjectName();
+
+	SSCProjectConfiguration setProjectName(String projectName);
+
+	String getProjectVersion();
+
+	SSCProjectConfiguration setProjectVersion(String projectVersion);
 
 	long getMaxPollingTimeoutHours();
 
-	SSCServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours);
+	SSCProjectConfiguration setMaxPollingTimeoutHours(long maxPollingTimeoutHours);
 }
 
