@@ -50,7 +50,6 @@ import java.util.zip.GZIPInputStream;
 
 public class VulnerabilitiesServiceFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceFunctionalityTest.class);
-	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test(timeout = 20000)
 	public void testVulnerabilitiesFunctional() {

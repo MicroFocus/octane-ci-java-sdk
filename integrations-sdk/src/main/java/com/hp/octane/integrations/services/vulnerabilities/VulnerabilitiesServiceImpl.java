@@ -145,13 +145,6 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	private boolean preflightRequest(String jobId, String buildId) throws IOException {
-		if (jobId == null || jobId.isEmpty()) {
-			throw new PermanentException("job CI ID MUST NOT be null nor empty");
-		}
-		if (buildId == null || buildId.isEmpty()) {
-			throw new PermanentException("build CI ID MUST NOT be null nor empty");
-		}
-
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 
@@ -178,16 +171,6 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	private void pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
-		if (vulnerabilities == null) {
-			throw new PermanentException("tests result MUST NOT be null");
-		}
-		if (jobId == null || jobId.isEmpty()) {
-			throw new PermanentException("job CI ID MUST NOT be null nor empty");
-		}
-		if (buildId == null || buildId.isEmpty()) {
-			throw new PermanentException("build CI ID MUST NOT be null nor empty");
-		}
-
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -270,7 +253,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
 		if (allowedOctaneStorage == null) {
-			logger.info("Issues of :" + vulnerabilitiesQueueItem.jobId + "," + vulnerabilitiesQueueItem.buildId + " cannot be cached in the file system.");
+			logger.info("hosting plugin does not provide storage, vulnerabilities won't be cached");
 			return null;
 		}
 		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
@@ -294,12 +277,12 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		return result;
 	}
 
-	private String getVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES;
-	}
-
 	private String getVulnerabilitiesPreFlightContextPath(String octaneBaseUrl, String sharedSpaceId) {
 		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES_PRE_FLIGHT;
+	}
+
+	private String getVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {
+		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES;
 	}
 
 	public static final class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
