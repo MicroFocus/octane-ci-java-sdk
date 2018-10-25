@@ -1,8 +1,9 @@
 package com.hp.octane.integrations.vulnerabilities;
 
+import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
-import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import com.hp.octane.integrations.services.vulnerabilities.SSCHandler;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SscProjectConnector;
@@ -14,15 +15,15 @@ import java.util.List;
 import static org.easymock.EasyMock.*;
 
 public class VulnerabilitiesTests {
+	private DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test
 	public void wellFormedURLS() {
-		SSCFortifyConfigurations sscFortifyConfigurations = new SSCFortifyConfigurations();
-		sscFortifyConfigurations.serverURL = "server_url";
-
-		sscFortifyConfigurations.projectName = "project";
-		sscFortifyConfigurations.projectVersion = "version";
-		sscFortifyConfigurations.baseToken = "";
+		SSCProjectConfiguration sscFortifyConfigurations = dtoFactory.newDTO(SSCProjectConfiguration.class)
+				.setSSCUrl("server_url")
+				.setProjectName("project")
+				.setProjectVersion("version")
+				.setSSCBaseAuthToken("");
 
 		SSCRestClient sscClientMock = createNiceMock(SSCRestClient.class);
 		replay();

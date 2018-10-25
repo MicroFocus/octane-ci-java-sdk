@@ -17,25 +17,27 @@
 package com.hp.octane.integrations.dto.securityscans.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.securityscans.SSCServerInfo;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 
 /**
  * SSCServerInfo DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class SSCServerInfoImpl implements SSCServerInfo {
-	private volatile String sscURL;
-	private volatile String sscBaseAuthToken;
-	private volatile long maxPollingTimeoutHours;
+class SSCProjectConfigurationImpl implements SSCProjectConfiguration {
+	private String sscURL;
+	private String sscBaseAuthToken;
+	private String projectName;
+	private String projectVersion;
+	private long maxPollingTimeoutHours;
 
 	@Override
-	public String getSSCURL() {
+	public String getSSCUrl() {
 		return sscURL;
 	}
 
 	@Override
-	public SSCServerInfo setSSCURL(String sscUrl) {
+	public SSCProjectConfiguration setSSCUrl(String sscUrl) {
 		this.sscURL = sscUrl;
 		return this;
 	}
@@ -46,8 +48,30 @@ class SSCServerInfoImpl implements SSCServerInfo {
 	}
 
 	@Override
-	public SSCServerInfo setSSCBaseAuthToken(String sscBaseAuthToken) {
+	public SSCProjectConfiguration setSSCBaseAuthToken(String sscBaseAuthToken) {
 		this.sscBaseAuthToken = sscBaseAuthToken;
+		return this;
+	}
+
+	@Override
+	public String getProjectName() {
+		return projectName;
+	}
+
+	@Override
+	public SSCProjectConfiguration setProjectName(String projectName) {
+		this.projectName = projectName;
+		return this;
+	}
+
+	@Override
+	public String getProjectVersion() {
+		return projectVersion;
+	}
+
+	@Override
+	public SSCProjectConfiguration setProjectVersion(String projectVersion) {
+		this.projectVersion = projectVersion;
 		return this;
 	}
 
@@ -57,7 +81,7 @@ class SSCServerInfoImpl implements SSCServerInfo {
 	}
 
 	@Override
-	public SSCServerInfo setMaxPollingTimeoutHours(long maxPollingTimeoutHours) {
+	public SSCProjectConfiguration setMaxPollingTimeoutHours(long maxPollingTimeoutHours) {
 		this.maxPollingTimeoutHours = maxPollingTimeoutHours;
 		return this;
 	}

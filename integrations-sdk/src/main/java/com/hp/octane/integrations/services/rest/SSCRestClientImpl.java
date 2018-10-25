@@ -18,9 +18,9 @@ package com.hp.octane.integrations.services.rest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.services.vulnerabilities.SSCFortifyConfigurations;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.AuthToken;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpEntity;
@@ -78,12 +78,12 @@ class SSCRestClientImpl implements SSCRestClient {
 	}
 
 	@Override
-	public CloseableHttpResponse sendGetRequest(SSCFortifyConfigurations sscFortifyConfigurations, String url) {
+	public CloseableHttpResponse sendGetRequest(SSCProjectConfiguration sscProjectConfiguration, String url) {
 		HttpGet request = new HttpGet(url);
 		request.addHeader("Authorization", "FortifyToken " +
-				getToken(sscFortifyConfigurations, false));
+				getToken(sscProjectConfiguration, false));
 		request.addHeader("Accept", "application/json");
-		request.addHeader("Host", getNetHost(sscFortifyConfigurations.serverURL));
+		request.addHeader("Host", getNetHost(sscProjectConfiguration.getSSCUrl()));
 
 		CloseableHttpResponse response;
 		try {
@@ -92,7 +92,7 @@ class SSCRestClientImpl implements SSCRestClient {
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				request.removeHeaders("Authorization");
 				request.addHeader("Authorization", "FortifyToken " +
-						getToken(sscFortifyConfigurations, true));
+						getToken(sscProjectConfiguration, true));
 				response = httpClient.execute(request);
 			}
 			return response;
@@ -103,21 +103,21 @@ class SSCRestClientImpl implements SSCRestClient {
 		}
 	}
 
-	private String getToken(SSCFortifyConfigurations sscCfgs, boolean forceRenew) {
+	private String getToken(SSCProjectConfiguration sscProjectConfiguration, boolean forceRenew) {
 		if (forceRenew || authTokenData == null) {
-			authTokenData = sendReqAuth(sscCfgs);
+			authTokenData = sendReqAuth(sscProjectConfiguration);
 		}
 		return authTokenData.token;
 	}
 
-	private AuthToken.AuthTokenData sendReqAuth(SSCFortifyConfigurations sscCfgs) {
+	private AuthToken.AuthTokenData sendReqAuth(SSCProjectConfiguration sscProjectConfiguration) {
 		//"/{SSC Server Context}/api/v1"
 		//String url = "http://" + serverURL + "/ssc/api/v1/projects?q=id:2743&fulltextsearch=true";
-		String url = sscCfgs.serverURL + "/api/v1/tokens";
+		String url = sscProjectConfiguration.getSSCUrl() + "/api/v1/tokens";
 		HttpPost request = new HttpPost(url);
-		request.addHeader("Authorization", sscCfgs.baseToken);
+		request.addHeader("Authorization", sscProjectConfiguration.getSSCBaseAuthToken());
 		request.addHeader("Accept", "application/json");
-		request.addHeader("Host", getNetHost(sscCfgs.serverURL));
+		request.addHeader("Host", getNetHost(sscProjectConfiguration.getSSCUrl()));
 		request.addHeader("Content-Type", "application/json;charset=UTF-8");
 
 		String body = "{\"type\": \"UnifiedLoginToken\"}";
