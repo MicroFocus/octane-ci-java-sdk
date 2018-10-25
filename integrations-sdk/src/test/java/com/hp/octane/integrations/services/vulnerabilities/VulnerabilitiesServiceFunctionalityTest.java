@@ -19,8 +19,7 @@ import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.events.CIEventsList;
-import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
@@ -53,8 +52,8 @@ public class VulnerabilitiesServiceFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceFunctionalityTest.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(timeout = 10000)
-	public void testA() {
+	@Test(timeout = 20000)
+	public void testVulnerabilitiesFunctional() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 
 		try {
@@ -62,14 +61,14 @@ public class VulnerabilitiesServiceFunctionalityTest {
 			String spIdB = UUID.randomUUID().toString();
 			String clientAInstanceId = UUID.randomUUID().toString();
 			String clientBInstanceId = UUID.randomUUID().toString();
+			Map<String, List<String>> preflightRequestCollectors = new LinkedHashMap<>();
+			Map<String, List<String>> pushVulnerabilitiesCollectors = new LinkedHashMap<>();
 
 			//  init 2 shared space endpoints simulators
-//			simulators = initSPEPSimulators(
-//					Stream.of(spIdA, spIdB).collect(Collectors.toSet()),
-//					eventsCollectors,
-//					testResultsCollectors,
-//					logsCollectors,
-//					coverageCollectors);
+			simulators = initSPEPSimulators(
+					Stream.of(spIdA, spIdB).collect(Collectors.toSet()),
+					preflightRequestCollectors,
+					pushVulnerabilitiesCollectors);
 
 			//
 			//  I
@@ -77,7 +76,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
 			//
 			OctaneConfiguration configA = new OctaneConfiguration(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
 			OctaneClient clientA = OctaneSDK.addClient(configA, VulnerabilitiesServicePluginServicesTest.class);
-			VulnerabilitiesService vulnerabilitiesService = clientA.getVulnerabilitiesService();
+			VulnerabilitiesService vulnerabilitiesServiceA = clientA.getVulnerabilitiesService();
+			vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("null-job", "null-build", System.currentTimeMillis(), 1);
+			CIPluginSDKUtils.doWait(3000);
+			Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
+			Assert.assertFalse(preflightRequestCollectors.containsKey(spIdB));
 
 			//
 			//  II
@@ -85,6 +88,14 @@ public class VulnerabilitiesServiceFunctionalityTest {
 			//
 			OctaneConfiguration configB = new OctaneConfiguration(clientBInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdB);
 			OctaneClient clientB = OctaneSDK.addClient(configB, VulnerabilitiesServicePluginServicesTest.class);
+			VulnerabilitiesService vulnerabilitiesServiceB = clientB.getVulnerabilitiesService();
+			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", System.currentTimeMillis(), 1);
+			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", System.currentTimeMillis(), 1);
+			List<String> preflightRequests = GeneralTestUtils.waitAtMostFor(6000, () -> preflightRequestCollectors.get(spIdB));
+			Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
+			Assert.assertEquals(2, preflightRequests.size());
+			Assert.assertEquals(clientBInstanceId + "|job-preflight-false|1", preflightRequests.get(0));
+			Assert.assertEquals(clientBInstanceId + "|job-preflight-true|1", preflightRequests.get(1));
 
 			//
 			//  III
@@ -109,97 +120,38 @@ public class VulnerabilitiesServiceFunctionalityTest {
 
 	private Map<String, OctaneSPEndpointSimulator> initSPEPSimulators(
 			Set<String> spIDs,
-			Map<String, List<CIEventsList>> eventsCollectors,
-			Map<String, List<TestsResult>> testResultsCollectors,
-			Map<String, List<String>> logsCollectors,
-			Map<String, List<String>> coverageCollectors) {
+			Map<String, List<String>> preflightRequestsCollectors,
+			Map<String, List<String>> pushRequestCollectors) {
 		Map<String, OctaneSPEndpointSimulator> result = new LinkedHashMap<>();
 
 		for (String spID : spIDs) {
 			OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
 
-			//  events API
-			simulator.installApiHandler(HttpMethod.PUT, "^.*events$", request -> {
+			//  vulnerabilities preflight API
+			simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", request -> {
 				try {
-					String rawEventsBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
-					CIEventsList eventsList = dtoFactory.dtoFromJson(rawEventsBody, CIEventsList.class);
-					eventsCollectors
-							.computeIfAbsent(spID, sp -> new LinkedList<>())
-							.add(eventsList);
+					//  retrieve query parameters
+					request.mergeQueryParameters("", request.getQueryString(), false);
+					preflightRequestsCollectors
+							.computeIfAbsent(spID, sid -> new LinkedList<>())
+							.add(request.getQueryParameters().getString("instance-id") + "|" +
+									request.getQueryParameters().getString("job-ci-id") + "|" +
+									request.getQueryParameters().getString("build-ci-id"));
 					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
-				}
-			});
-
-			//  test results preflight API
-			simulator.installApiHandler(HttpMethod.GET, "^.*tests-result-preflight$", request -> {
-				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("true");
+					request.getResponse().getWriter().write(request.getQueryParameters().getString("job-ci-id").contains("true") ? "true" : "false");
 					request.getResponse().getWriter().flush();
 				} catch (IOException ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
 
-			//  test results push API
-			simulator.installApiHandler(HttpMethod.POST, "^.*test-results$", request -> {
+			//  vulnerabilities push API
+			simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", request -> {
 				try {
-					String rawTestResultBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
-					TestsResult testsResult = dtoFactory.dtoFromXml(rawTestResultBody, TestsResult.class);
-					//  [YG] below validations are done to ensure NEW API (via query params) aligned with an OLD API (data within XML)
-					//  [YG] in the future we'll remove OLD API and this validation should be done differently
-					request.mergeQueryParameters("", request.getQueryString(), false);
-					Assert.assertEquals(request.getQueryParameters().getString("instance-id"), testsResult.getBuildContext().getServerId());
-					Assert.assertEquals(request.getQueryParameters().getString("job-ci-id"), testsResult.getBuildContext().getJobId());
-					Assert.assertEquals(request.getQueryParameters().getString("build-ci-id"), testsResult.getBuildContext().getBuildId());
-					testResultsCollectors
-							.computeIfAbsent(spID, sp -> new LinkedList<>())
-							.add(testsResult);
+					String rawVulnerabilitiesBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
 					request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
 					request.getResponse().getWriter().write("{\"status\": \"queued\"}");
 					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
-				}
-			});
-
-			//  logs/coverage preflight API
-			simulator.installApiHandler(HttpMethod.GET, "^.*workspaceId$", request -> {
-				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("[\"1001\"]");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
-				}
-			});
-
-			//  logs push API
-			simulator.installApiHandler(HttpMethod.POST, "^.*logs$", request -> {
-				try {
-					String rawLogBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
-					logsCollectors
-							.computeIfAbsent(spID, sp -> new LinkedList<>())
-							.add(rawLogBody);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
-				}
-			});
-
-			//  coverage preflight API
-			//  no need to configure, since it's the same API as for logs, see above
-
-			//  coverage push API
-			simulator.installApiHandler(HttpMethod.PUT, "^.*coverage$", request -> {
-				try {
-					String rawCoverageBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
-					coverageCollectors
-							.computeIfAbsent(spID, sp -> new LinkedList<>())
-							.add(rawCoverageBody);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
 				} catch (IOException ioe) {
 					throw new RuntimeException(ioe);
 				}

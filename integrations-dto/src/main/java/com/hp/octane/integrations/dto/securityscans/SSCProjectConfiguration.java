@@ -42,5 +42,7 @@ public interface SSCProjectConfiguration extends DTOBase {
 	long getMaxPollingTimeoutHours();
 
 	SSCProjectConfiguration setMaxPollingTimeoutHours(long maxPollingTimeoutHours);
+
+	boolean isValid();
 }
 

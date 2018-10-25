@@ -114,11 +114,8 @@ public class SSCHandler {
 		this.targetDir = targetDir;
 		this.runStartTime = vulnerabilitiesQueueItem.startTime;
 
-		if (SdkStringUtils.isEmpty(sscProjectConfiguration.getSSCUrl()) ||
-				SdkStringUtils.isEmpty(sscProjectConfiguration.getSSCBaseAuthToken()) ||
-				SdkStringUtils.isEmpty(sscProjectConfiguration.getProjectName()) ||
-				SdkStringUtils.isEmpty(sscProjectConfiguration.getProjectVersion())) {
-			throw new PermanentException("missing one of the SSC configuration fields (server URL, auth token, project name or project version) will not continue connecting to the server");
+		if (!sscProjectConfiguration.isValid()) {
+			throw new PermanentException("SSC configuration invalid, will not continue connecting to the server");
 		} else {
 			sscProjectConnector = new SscProjectConnector(sscProjectConfiguration, sscRestClient);
 			projectVersion = sscProjectConnector.getProjectVersion();

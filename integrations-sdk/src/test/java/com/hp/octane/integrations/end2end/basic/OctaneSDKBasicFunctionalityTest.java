@@ -60,7 +60,7 @@ public class OctaneSDKBasicFunctionalityTest {
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	@Test(timeout = 40000)
-	public void testA() {
+	public void testE2EFunctional() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
 		Map<String, List<TestsResult>> testResultsCollectors = new LinkedHashMap<>();

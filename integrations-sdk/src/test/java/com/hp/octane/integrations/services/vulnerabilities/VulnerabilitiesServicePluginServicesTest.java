@@ -21,19 +21,32 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
-import com.hp.octane.integrations.dto.tests.BuildContext;
-import com.hp.octane.integrations.dto.tests.TestRun;
-import com.hp.octane.integrations.dto.tests.TestRunResult;
-import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class VulnerabilitiesServicePluginServicesTest extends CIPluginServices {
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
+	private Map<String, SSCProjectConfiguration> projectConfigurations = new LinkedHashMap<>();
+
+	public VulnerabilitiesServicePluginServicesTest() {
+		projectConfigurations.put("job-preflight-false #1", dtoFactory.newDTO(SSCProjectConfiguration.class)
+				.setSSCUrl(OctaneSPEndpointSimulator.getSimulatorUrl())
+				.setSSCBaseAuthToken("sec-token")
+				.setProjectName("project-a")
+				.setProjectVersion("version-a")
+				.setMaxPollingTimeoutHours(1)
+		);
+		projectConfigurations.put("job-preflight-true #1", dtoFactory.newDTO(SSCProjectConfiguration.class)
+				.setSSCUrl(OctaneSPEndpointSimulator.getSimulatorUrl())
+				.setSSCBaseAuthToken("sec-token")
+				.setProjectName("project-a")
+				.setProjectVersion("version-a")
+				.setMaxPollingTimeoutHours(1)
+		);
+	}
 
 	@Override
 	public CIServerInfo getServerInfo() {
@@ -56,6 +69,6 @@ public class VulnerabilitiesServicePluginServicesTest extends CIPluginServices {
 
 	@Override
 	public SSCProjectConfiguration getSSCProjectConfiguration(String jobId, String buildId) {
-		return super.getSSCProjectConfiguration(jobId, buildId);
+		return projectConfigurations.get(jobId + " #" + buildId);
 	}
 }
