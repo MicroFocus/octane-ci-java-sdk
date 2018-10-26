@@ -18,6 +18,7 @@ package com.hp.octane.integrations.services.vulnerabilities;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -139,7 +140,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 					request.getResponse().getWriter().write(request.getQueryParameters().getString("job-ci-id").contains("true") ? "true" : "false");
 					request.getResponse().getWriter().flush();
 				} catch (IOException ioe) {
-					throw new RuntimeException("failed to write response", ioe);
+					throw new OctaneSDKGeneralException("failed to write response", ioe);
 				}
 			});
 
@@ -154,7 +155,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 					request.getResponse().getWriter().write("{\"status\": \"queued\"}");
 					request.getResponse().getWriter().flush();
 				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					throw new OctaneSDKGeneralException("failed to write response", ioe);
 				}
 			});
 
