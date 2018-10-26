@@ -139,7 +139,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 					request.getResponse().getWriter().write(request.getQueryParameters().getString("job-ci-id").contains("true") ? "true" : "false");
 					request.getResponse().getWriter().flush();
 				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					throw new RuntimeException("failed to write response", ioe);
 				}
 			});
 
