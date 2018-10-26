@@ -85,4 +85,11 @@ class SSCProjectConfigurationImpl implements SSCProjectConfiguration {
 		this.maxPollingTimeoutHours = maxPollingTimeoutHours;
 		return this;
 	}
+
+	@Override
+	public boolean isValid() {
+		return sscURL != null && !sscURL.isEmpty() &&
+				projectName != null && !projectName.isEmpty() &&
+				projectVersion != null && !projectVersion.isEmpty();
+	}
 }

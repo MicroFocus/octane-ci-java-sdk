@@ -88,38 +88,6 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		logger.info("initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
 	}
 
-	private void pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
-		if (vulnerabilities == null) {
-			throw new PermanentException("tests result MUST NOT be null");
-		}
-		if (buildId == null || buildId.isEmpty()) {
-			throw new PermanentException("build CI ID MUST NOT be null nor empty");
-		}
-		if (jobId == null || jobId.isEmpty()) {
-			throw new PermanentException("job CI ID MUST NOT be null nor empty");
-		}
-		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
-		Map<String, String> headers = new HashMap<>();
-		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
-		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
-		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.POST)
-				.setUrl(getVulnerabilitiesContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-						"?instance-id='" + configurer.octaneConfiguration.getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'")
-				.setHeaders(headers)
-				.setBody(vulnerabilities);
-		OctaneResponse response = octaneRestClient.execute(request);
-		logger.info("vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
-		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-			logger.info("vulnerabilities push SUCCEED" + jobId + "/" + buildId + " was removed from vulnerabilities queue");
-		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-			throw new TemporaryException("\"vulnerabilities push FAILED, service unavailable");
-		} else {
-			throw new PermanentException("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
-		}
-	}
-
 	@Override
 	public void enqueueRetrieveAndPushVulnerabilities(String jobId,
 	                                                  String buildId,
@@ -139,38 +107,6 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	@Override
 	public void shutdown() {
 		vulnerabilitiesProcessingExecutor.shutdown();
-	}
-
-	private void preflightRequest(String jobId, String buildId) throws IOException {
-		if (buildId == null || buildId.isEmpty()) {
-			throw new PermanentException("build CI ID MUST NOT be null nor empty");
-		}
-		if (jobId == null || jobId.isEmpty()) {
-			throw new PermanentException("job CI ID MUST NOT be null nor empty");
-		}
-
-		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
-		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
-
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getVulnerabilitiesPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-						"?instance-id='" + configurer.octaneConfiguration.getInstanceId() + "'&job-ci-id='" + encodedJobId + "'&build-ci-id='" + encodedBuildId + "'");
-
-		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
-		if (response.getStatus() == HttpStatus.SC_OK) {
-			if (String.valueOf(true).equals(response.getBody())) {
-				logger.info("vulnerabilities preflightRequest SUCCEED");
-				return;
-			} else {
-				throw new PermanentException("vulnerabilities preflightRequest is not relevant to any workspace in Octane");
-			}
-		}
-		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-			throw new TemporaryException("vulnerabilities preflightRequest FAILED, service unavailable");
-		} else {
-			throw new PermanentException("vulnerabilities preflightRequest FAILED with " + response.getStatus() + "");
-		}
 	}
 
 	//  TODO: implement retries counter per item and strategy of discard
@@ -208,18 +144,74 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		}
 	}
 
+	private boolean preflightRequest(String jobId, String buildId) throws IOException {
+		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
+
+		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.GET)
+				.setUrl(getVulnerabilitiesPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+						"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId);
+
+		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
+		if (response.getStatus() == HttpStatus.SC_OK) {
+			if ("true".equals(response.getBody())) {
+				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
+				return true;
+			} else {
+				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
+				return false;
+			}
+		}
+		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+			throw new TemporaryException("vulnerabilities preflight request FAILED, service unavailable");
+		} else {
+			throw new PermanentException("vulnerabilities preflight request FAILED with " + response.getStatus() + "");
+		}
+	}
+
+	private void pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
+		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
+		Map<String, String> headers = new HashMap<>();
+		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
+		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.POST)
+				.setUrl(getVulnerabilitiesContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+						"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId)
+				.setHeaders(headers)
+				.setBody(vulnerabilities);
+
+		OctaneResponse response = octaneRestClient.execute(request);
+		logger.info("vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
+		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+			logger.info("vulnerabilities push SUCCEED for " + jobId + " #" + buildId);
+		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+			throw new TemporaryException("vulnerabilities push FAILED, service unavailable");
+		} else {
+			throw new PermanentException("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
+		}
+	}
+
 	private boolean processPushVulnerabilitiesQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		try {
 			SSCProjectConfiguration sscProjectConfiguration = configurer.pluginServices.getSSCProjectConfiguration(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-			if (sscProjectConfiguration == null) {
+			if (sscProjectConfiguration == null || !sscProjectConfiguration.isValid()) {
 				logger.debug("SSC project configurations is missing or not valid, skipping processing for " + vulnerabilitiesQueueItem.jobId + " #" + vulnerabilitiesQueueItem.buildId);
 				return true;
 			}
 
-			//if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
+			//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
 			if (!vulnerabilitiesQueueItem.isRelevant) {
-				preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-				vulnerabilitiesQueueItem.isRelevant = true;
+				boolean relevant = preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+				if (relevant) {
+					//  set queue item value relevancy to true and continue
+					vulnerabilitiesQueueItem.isRelevant = true;
+				} else {
+					//  return with true to silently proceed to the next item
+					return true;
+				}
 			}
 			InputStream vulnerabilitiesStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem, sscProjectConfiguration);
 			if (vulnerabilitiesStream == null) {
@@ -261,7 +253,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
 		if (allowedOctaneStorage == null) {
-			logger.info("Issues of :" + vulnerabilitiesQueueItem.jobId + "," + vulnerabilitiesQueueItem.buildId + " cannot be cached in the file system.");
+			logger.info("hosting plugin does not provide storage, vulnerabilities won't be cached");
 			return null;
 		}
 		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
@@ -285,12 +277,12 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		return result;
 	}
 
-	private String getVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {
-		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES;
-	}
-
 	private String getVulnerabilitiesPreFlightContextPath(String octaneBaseUrl, String sharedSpaceId) {
 		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES_PRE_FLIGHT;
+	}
+
+	private String getVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {
+		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES;
 	}
 
 	public static final class VulnerabilitiesQueueItem implements QueueingService.QueueItem {

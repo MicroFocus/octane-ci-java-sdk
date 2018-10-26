@@ -111,6 +111,10 @@ class CoverageServiceImpl implements CoverageService {
 
 	@Override
 	public boolean isCoverageReportRelevant(String jobId) {
+		if (jobId == null || jobId.isEmpty()) {
+			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+		}
+
 		boolean result = false;
 		OctaneResponse response;
 
@@ -150,6 +154,19 @@ class CoverageServiceImpl implements CoverageService {
 
 	@Override
 	public OctaneResponse pushCoverage(String jobId, String buildId, CoverageReportType reportType, InputStream coverageReport) {
+		if (jobId == null || jobId.isEmpty()) {
+			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+		}
+		if (buildId == null || buildId.isEmpty()) {
+			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
+		}
+		if (reportType == null) {
+			throw new IllegalArgumentException("report type MUST NOT be null");
+		}
+		if (coverageReport == null) {
+			throw new IllegalArgumentException("coverage report data MUST NOT be null");
+		}
+
 		String url;
 		try {
 			url = new URIBuilder(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) + "coverage")
@@ -183,11 +200,9 @@ class CoverageServiceImpl implements CoverageService {
 		if (reportType == null) {
 			throw new IllegalArgumentException("report type MUST NOT be null");
 		}
-		if (reportFileName != null && reportFileName.isEmpty()) {
-			throw new IllegalArgumentException("report file name, when provided, MUST NOT be empty");
-		}
 
 		coveragePushQueue.add(new CoverageQueueItem(jobId, buildId, reportType, reportFileName));
+
 		synchronized (NO_COVERAGES_MONITOR) {
 			NO_COVERAGES_MONITOR.notify();
 		}
@@ -236,7 +251,7 @@ class CoverageServiceImpl implements CoverageService {
 		private CoverageQueueItem() {
 		}
 
-		public CoverageQueueItem(String jobId, String buildId, CoverageReportType reportType, String reportFileName) {
+		private CoverageQueueItem(String jobId, String buildId, CoverageReportType reportType, String reportFileName) {
 			this.jobId = jobId;
 			this.buildId = buildId;
 			this.reportType = reportType;
