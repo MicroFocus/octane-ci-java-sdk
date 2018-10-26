@@ -52,7 +52,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 	//  enqueue API negative testing validation
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_1() {
+	public void testE1() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -66,7 +66,7 @@ public class VulnerabilitiesServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_2() {
+	public void testE2() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -80,7 +80,7 @@ public class VulnerabilitiesServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_3() {
+	public void testE3() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -94,7 +94,7 @@ public class VulnerabilitiesServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_4() {
+	public void testE4() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -109,7 +109,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 	//  this one is the OK one
 	@Test
-	public void testE_5() {
+	public void testE5() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);

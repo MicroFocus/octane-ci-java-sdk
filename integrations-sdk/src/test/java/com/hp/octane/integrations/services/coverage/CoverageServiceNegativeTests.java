@@ -33,49 +33,49 @@ public class CoverageServiceNegativeTests {
 
 	//  Coverage service
 	@Test(expected = IllegalArgumentException.class)
-	public void testA_1() {
+	public void testA1() {
 		new CoverageServiceImpl(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
-	public void testA_2() {
+	public void testA2() {
 		new CoverageServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testA_3() {
+	public void testA3() {
 		CoverageService.newInstance(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
-	public void testA_4() {
+	public void testA4() {
 		CoverageService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	//  Sonar service
 	@Test(expected = IllegalArgumentException.class)
-	public void testB_1() {
+	public void testB1() {
 		new SonarServiceImpl(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
-	public void testB_2() {
+	public void testB2() {
 		new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testB_3() {
+	public void testB3() {
 		SonarService.newInstance(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
-	public void testB_4() {
+	public void testB4() {
 		SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	//  enqueue API negative testing validation
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_1() {
+	public void testE1() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -89,7 +89,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_2() {
+	public void testE2() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -103,7 +103,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_3() {
+	public void testE3() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -117,7 +117,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_4() {
+	public void testE4() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -131,7 +131,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testE_5() {
+	public void testE5() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -146,7 +146,7 @@ public class CoverageServiceNegativeTests {
 
 	//  push API negative testing validation
 	@Test(expected = IllegalArgumentException.class)
-	public void testF_1() {
+	public void testF1() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -160,7 +160,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testF_2() {
+	public void testF2() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -174,7 +174,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testF_3() {
+	public void testF3() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -188,7 +188,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testF_4() {
+	public void testF4() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -202,7 +202,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testF_5() {
+	public void testF5() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -216,7 +216,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testF_6() {
+	public void testF6() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -231,7 +231,7 @@ public class CoverageServiceNegativeTests {
 
 	//  is relevant API negative test
 	@Test(expected = IllegalArgumentException.class)
-	public void testG_1() {
+	public void testG1() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
@@ -245,7 +245,7 @@ public class CoverageServiceNegativeTests {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testG_2() {
+	public void testG2() {
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);

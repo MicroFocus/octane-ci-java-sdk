@@ -147,6 +147,9 @@ public class VulnerabilitiesServiceFunctionalityTest {
 			simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", request -> {
 				try {
 					String rawVulnerabilitiesBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					pushRequestCollectors
+							.computeIfAbsent(spID, sid -> new LinkedList<>())
+							.add(rawVulnerabilitiesBody);
 					request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
 					request.getResponse().getWriter().write("{\"status\": \"queued\"}");
 					request.getResponse().getWriter().flush();
