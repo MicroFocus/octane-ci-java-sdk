@@ -15,9 +15,9 @@
 
 package com.hp.octane.integrations.services.logging;
 
-import com.hp.octane.integrations.CIPluginServices;
 import com.hp.octane.integrations.OctaneSDK;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 
 import java.io.File;
@@ -27,25 +27,43 @@ import java.io.File;
  */
 
 final class LoggingServiceImpl implements LoggingService {
+	private static final Logger logger = LogManager.getLogger(LoggingServiceImpl.class);
 	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
 	private final Object INIT_LOCKER = new Object();
-	private final CIPluginServices pluginServices;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
+
+	private static LoggerContext commonLoggerContext;
 
 	LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null) {
+		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
-		pluginServices = configurer.pluginServices;
+		this.configurer = configurer;
 		configureLogger();
+		logger.info("logger is configured");
+	}
+
+	@Override
+	public void shutdown() {
+		if (OctaneSDK.getClients().isEmpty()) {
+			logger.info("last client is closing; general logger context is STOPPING");
+			commonLoggerContext.stop();
+		}
 	}
 
 	private void configureLogger() {
-		File file = pluginServices.getAllowedOctaneStorage();
+		File file = configurer.pluginServices.getAllowedOctaneStorage();
 		if (file != null && (file.isDirectory() || !file.exists())) {
 			synchronized (INIT_LOCKER) {
-				LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+				if (commonLoggerContext == null) {
+					commonLoggerContext = LoggerContext.getContext(false);
+				}
+
+				if (!commonLoggerContext.isStarted()) {
+					commonLoggerContext.start();
+				}
 				System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
-				ctx.reconfigure();
+				commonLoggerContext.reconfigure();
 			}
 		}
 	}

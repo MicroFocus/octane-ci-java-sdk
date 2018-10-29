@@ -44,6 +44,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private static final Logger logger = LogManager.getLogger(OctaneClientImpl.class);
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
+	private final LoggingService loggingService;
 	private final BridgeService bridgeService;
 	private final ConfigurationService configurationService;
 	private final CoverageService coverageService;
@@ -57,6 +58,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final TasksProcessor tasksProcessor;
 	private final TestsService testsService;
 	private final VulnerabilitiesService vulnerabilitiesService;
+	private final Thread shutdownHook;
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -66,7 +68,7 @@ final class OctaneClientImpl implements OctaneClient {
 		//  internals init
 		this.configurer = configurer;
 		ensureStorageIfAny();
-		LoggingService.newInstance(configurer);
+		loggingService = LoggingService.newInstance(configurer);
 		queueingService = QueueingService.newInstance(configurer);
 
 		//  independent services init
@@ -88,7 +90,7 @@ final class OctaneClientImpl implements OctaneClient {
 		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);
 
 		//  register shutdown hook to allow graceful shutdown of services/resources
-		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+		shutdownHook = new Thread(() -> {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
 			logger.info("closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
 			try {
@@ -98,7 +100,8 @@ final class OctaneClientImpl implements OctaneClient {
 			} finally {
 				logger.info("...OctaneClient " + instanceId + " CLOSED");
 			}
-		}));
+		});
+		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
 		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
 	}
@@ -182,6 +185,8 @@ final class OctaneClientImpl implements OctaneClient {
 		testsService.shutdown();
 		vulnerabilitiesService.shutdown();
 		restService.obtainOctaneRestClient().shutdown();
+		loggingService.shutdown();
+		Runtime.getRuntime().removeShutdownHook(shutdownHook);
 	}
 
 	/**
