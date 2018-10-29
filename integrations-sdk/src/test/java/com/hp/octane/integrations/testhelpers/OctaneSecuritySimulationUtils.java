@@ -43,15 +43,17 @@ class OctaneSecuritySimulationUtils {
 	}
 
 	static boolean authenticate(Request request) {
-		for (Cookie cookie : request.getCookies()) {
-			if (SECURITY_COOKIE_NAME.equals(cookie.getName())) {
-				String[] securityItems = cookie.getValue().split(SECURITY_TOKEN_SEPARATOR);
-				long issuedAt = Long.parseLong(securityItems[2]);
-				if (System.currentTimeMillis() - issuedAt > 2000) {
-					Cookie securityCookie = createSecurityCookie(securityItems[0], securityItems[1]);
-					request.getResponse().addCookie(securityCookie);
+		if (request.getCookies() != null) {
+			for (Cookie cookie : request.getCookies()) {
+				if (SECURITY_COOKIE_NAME.equals(cookie.getName())) {
+					String[] securityItems = cookie.getValue().split(SECURITY_TOKEN_SEPARATOR);
+					long issuedAt = Long.parseLong(securityItems[2]);
+					if (System.currentTimeMillis() - issuedAt > 2000) {
+						Cookie securityCookie = createSecurityCookie(securityItems[0], securityItems[1]);
+						request.getResponse().addCookie(securityCookie);
+					}
+					return true;
 				}
-				return true;
 			}
 		}
 		request.getResponse().setStatus(HttpStatus.SC_UNAUTHORIZED);

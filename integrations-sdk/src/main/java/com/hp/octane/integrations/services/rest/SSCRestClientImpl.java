@@ -148,7 +148,7 @@ class SSCRestClientImpl implements SSCRestClient {
 		String prefix = "http://";
 		int indexOfStart = serverURL.toLowerCase().indexOf(prefix) + prefix.length();
 		int indexOfEnd = serverURL.lastIndexOf("/");
-		if (indexOfEnd < 0) {
+		if (indexOfEnd < 0 || indexOfEnd <= indexOfStart) {
 			return serverURL.substring(indexOfStart);
 		}
 		return serverURL.substring(indexOfStart, indexOfEnd);

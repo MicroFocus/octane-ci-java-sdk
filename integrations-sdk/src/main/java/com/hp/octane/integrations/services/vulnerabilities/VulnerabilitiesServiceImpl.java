@@ -39,9 +39,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Default implementation of vulnerabilities service
@@ -62,6 +64,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private int LIST_EMPTY_INTERVAL = 10000;
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
+	private CompletableFuture<Boolean> workerExited;
 
 	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
@@ -106,7 +109,14 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 	@Override
 	public void shutdown() {
+		workerExited = new CompletableFuture<>();
 		vulnerabilitiesProcessingExecutor.shutdown();
+		try {
+			NO_VULNERABILITIES_RESULTS_MONITOR.notify();
+			workerExited.get(3000, TimeUnit.SECONDS);
+		} catch (Exception e) {
+			logger.warn("interrupted while waiting for the worker SHUT DOWN");
+		}
 	}
 
 	//  TODO: implement retries counter per item and strategy of discard
@@ -142,6 +152,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				vulnerabilitiesQueue.remove();
 			}
 		}
+		workerExited.complete(true);
 	}
 
 	private boolean preflightRequest(String jobId, String buildId) throws IOException {
