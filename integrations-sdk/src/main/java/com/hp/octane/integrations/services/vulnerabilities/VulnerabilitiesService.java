@@ -37,11 +37,13 @@ public interface VulnerabilitiesService extends ClosableService {
 	 * Enqueue retrieve and push vulnerabilities scan
 	 * This is the preferred way to push vulnerabilities scan results to Octane. This method provides facilities of queue, non-main thread execution and retry.
 	 *
-	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
-	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param jobId            any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param buildId          any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param startRunTime     timestamp of build start
+	 * @param queueItemTimeout timeout defined for this queue item
 	 */
-	void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId,
-	                                           String projectName, String projectVersion,
+	void enqueueRetrieveAndPushVulnerabilities(String jobId,
+	                                           String buildId,
 	                                           long startRunTime,
 	                                           long queueItemTimeout);
 }

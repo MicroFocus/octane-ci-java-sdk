@@ -38,6 +38,10 @@ public class OctaneConfiguration {
 		try {
 			URL tmp = new URL(url);
 			String tmpFarm = tmp.getHost() + (tmp.getPort() > 0 ? (":" + tmp.getPort()) : "");
+			if ((tmp.getProtocol() + "://" + tmpFarm).equals(this.url)) {
+				return;
+			}
+
 			if (attached && !OctaneSDK.isSharedSpaceUnique(tmpFarm, sharedSpace)) {
 				throw new IllegalArgumentException("shared space '" + sharedSpace + "' of Octane '" + tmpFarm + "' is already in use");
 			}

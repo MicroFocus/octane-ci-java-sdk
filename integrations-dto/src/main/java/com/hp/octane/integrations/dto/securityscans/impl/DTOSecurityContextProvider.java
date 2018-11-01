@@ -19,7 +19,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.dto.securityscans.SSCServerInfo;
+import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 
 /**
  * DTO pair provider for a DTO objects related to the security realm
@@ -29,7 +29,7 @@ public class DTOSecurityContextProvider extends DTOInternalProviderBase {
 
 	public DTOSecurityContextProvider(DTOFactory.DTOConfiguration configuration) {
 		super(configuration);
-		dtoPairs.put(SSCServerInfo.class, SSCServerInfoImpl.class);
+		dtoPairs.put(SSCProjectConfiguration.class, SSCProjectConfigurationImpl.class);
 		dtoPairs.put(OctaneIssue.class, OctaneIssueImpl.class);
 	}
 

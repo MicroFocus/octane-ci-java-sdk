@@ -160,17 +160,19 @@ public final class OctaneSDK {
 			}
 		}
 
+		OctaneClient removedClient = null;
 		if (targetEntry != null) {
 			try {
-				((OctaneClientImpl) targetEntry.getValue()).remove();
+				removedClient = clients.remove(targetEntry.getKey());
+				targetEntry.getKey().attached = false;
+				if (removedClient != null) {
+					((OctaneClientImpl) targetEntry.getValue()).remove();
+				}
 			} catch (Throwable throwable) {
 				logger.error("failure detected while closing OctaneClient", throwable);
 			}
-			targetEntry.getKey().attached = false;
-			return clients.remove(targetEntry.getKey());
-		} else {
-			return null;
 		}
+		return removedClient;
 	}
 
 	/**

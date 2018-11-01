@@ -16,8 +16,9 @@
 package com.hp.octane.integrations.services.logging;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.ClosableService;
 
-public interface LoggingService {
+public interface LoggingService extends ClosableService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
