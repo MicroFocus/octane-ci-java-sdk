@@ -29,6 +29,7 @@ public enum CIServerTypes {
 	BAMBOO("bamboo"),
 	TFS("tfs"),
 	GOCD("gocd"),
+	GITLAB("gitlab"),
 	UNKNOWN("unknown");
 
 	private String value;
