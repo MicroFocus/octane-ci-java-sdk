@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 public class DiscoveryInfoImpl implements DiscoveryInfo {
 
     private String executorId;
+    private String executorType;
     private String executorLogicalName;
     private String workspaceId;
     private String scmRepositoryId;
@@ -123,5 +124,15 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     @Override
     public void setConfigurationId(String configurationId) {
         this.configurationId = configurationId;
+    }
+
+    @Override
+    public String getExecutorType() {
+        return executorType;
+    }
+
+    @Override
+    public void setExecutorType(String executorType) {
+        this.executorType = executorType;
     }
 }
