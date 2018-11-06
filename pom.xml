@@ -83,7 +83,7 @@
 		<easymock.version>3.5.1</easymock.version>
 		<maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
 		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
-		<spotbugs.version>3.1.6</spotbugs.version>
+		<spotbugs.version>3.1.8</spotbugs.version>
 	</properties>
 
 	<dependencyManagement>
@@ -189,7 +189,7 @@
 					<version>${spotbugs.version}</version>
 					<configuration>
 						<effort>max</effort>
-						<maxRank>13</maxRank>
+						<maxRank>20</maxRank>
 					</configuration>
 					<executions>
 						<execution>

@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -120,7 +121,7 @@ final class TestsServiceImpl implements TestsService {
 		}
 
 		String testsResultAsXml = dtoFactory.dtoToXml(testsResult);
-		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes());
+		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes(Charset.defaultCharset()));
 		return pushTestsResult(testsResultAsStream, jobId, buildId);
 	}
 

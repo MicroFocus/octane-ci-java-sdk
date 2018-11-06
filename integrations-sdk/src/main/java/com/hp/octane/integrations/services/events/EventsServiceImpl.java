@@ -65,8 +65,7 @@ final class EventsServiceImpl implements EventsService {
 	private final int EVENTS_CHUNK_SIZE = System.getProperty("octane.sdk.events.chunk-size") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.chunk-size")) : 10;
 	private final int MAX_EVENTS_TO_KEEP = System.getProperty("octane.sdk.events.max-to-keep") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.max-to-keep")) : 3000;
 	private final long NO_EVENTS_PAUSE = System.getProperty("octane.sdk.events.empty-list-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.empty-list-pause")) : 15000;
-	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
-	private final long TEMPORARY_FAILURE_PAUSE = 15000;
+	private final long TEMPORARY_FAILURE_PAUSE = System.getProperty("octane.sdk.events.temp-fail-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.temp-fail-pause")) : 15000;
 
 	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -178,7 +177,7 @@ final class EventsServiceImpl implements EventsService {
 				.setMethod(HttpMethod.PUT)
 				.setUrl(configuration.getUrl() +
 						SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() +
-						ANALYTICS_CI_PATH_PART + "events")
+						ANALYTICS_CI_PATH_PART + "events?ci_server_identity=" + configurer.octaneConfiguration.getInstanceId())
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJsonStream(eventsList));
 		OctaneResponse octaneResponse;

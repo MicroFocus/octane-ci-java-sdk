@@ -22,7 +22,6 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.*;
-import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,13 +43,13 @@ public class SSCHandler {
 	private long runStartTime;
 
 	public static final String SCAN_RESULT_FILE = "securityScan.json";
-	public static String SEVERITY_LG_NAME_LOW = "list_node.severity.low";
-	public static String SEVERITY_LG_NAME_MEDIUM = "list_node.severity.medium";
-	public static String SEVERITY_LG_NAME_HIGH = "list_node.severity.high";
-	public static String SEVERITY_LG_NAME_CRITICAL = "list_node.severity.urgent";
-	public static String EXTERNAL_TOOL_NAME = "Fortify SSC";
-	public static String ARTIFACT_STATUS_COMPLETE = "PROCESS_COMPLETE";
-	public static String ARTIFACT_ERROR_PROCESSING = "ERROR_PROCESSING";
+	public static final String SEVERITY_LG_NAME_LOW = "list_node.severity.low";
+	public static final String SEVERITY_LG_NAME_MEDIUM = "list_node.severity.medium";
+	public static final String SEVERITY_LG_NAME_HIGH = "list_node.severity.high";
+	public static final String SEVERITY_LG_NAME_CRITICAL = "list_node.severity.urgent";
+	public static final String EXTERNAL_TOOL_NAME = "Fortify SSC";
+	public static final String ARTIFACT_STATUS_COMPLETE = "PROCESS_COMPLETE";
+	public static final String ARTIFACT_ERROR_PROCESSING = "ERROR_PROCESSING";
 
 	public boolean isScanProcessFinished() {
 		logger.debug("enter isScanProcessFinished");

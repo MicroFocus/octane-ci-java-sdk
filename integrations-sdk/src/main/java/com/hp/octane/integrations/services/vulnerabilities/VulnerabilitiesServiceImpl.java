@@ -120,7 +120,6 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	//  TODO: implement retries counter per item and strategy of discard
-	//  TODO: distinct between the item's problem, server problem and env problem and retry strategy accordingly
 	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  infallible everlasting background worker
 	private void worker() {

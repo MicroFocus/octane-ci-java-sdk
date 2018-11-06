@@ -42,7 +42,9 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -195,7 +197,7 @@ class SonarServiceImpl implements SonarService {
 			} else {
 				return CONNECTION_FAILURE;
 			}
-		} catch (Exception e) {
+		} catch (URISyntaxException | IOException e) {
 			return CONNECTION_FAILURE;
 		}
 	}
