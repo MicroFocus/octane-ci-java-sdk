@@ -62,10 +62,8 @@ public class IssuesFileSerializer {
 
 	private void validateFolderExists() {
 		File file = new File(this.targetDir);
-		if (!file.exists()) {
-			if (!file.mkdirs()) {
-				throw new OctaneSDKGeneralException("target directory was missing and failed to create one");
-			}
+		if (!file.exists() && !file.mkdirs()) {
+			throw new OctaneSDKGeneralException("target directory was missing and failed to create one");
 		}
 	}
 }

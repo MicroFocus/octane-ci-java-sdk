@@ -16,7 +16,6 @@
 package com.hp.octane.integrations.uft;
 
 import com.hp.octane.integrations.uft.items.*;
-import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.logging.log4j.LogManager;
