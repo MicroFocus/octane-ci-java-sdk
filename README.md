@@ -32,8 +32,8 @@ Typical SDK-based ALM Octane integrated CI Plugin development would walk along t
    2. to [push builds' artifacts](#providing-test-results) (tests results etc) to ALM Octane
 
 This Java SDK project has two sub-projects:
-- **integrations-sdk**, which is the main source of the CI Plugin SDK
-- **integrations-dto**, which contains the definition and building factory of all DTO objects used for communication with ALM Octane
+- **integrations-sdk**: the main source of the CI Plugin SDK
+- **integrations-dto**: the definition and building factory of all DTO objects used for communication with ALM Octane
 
 See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK APIs.
 
