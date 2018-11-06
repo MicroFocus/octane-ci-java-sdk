@@ -16,21 +16,27 @@
 package com.hp.octane.integrations.uft;
 
 import com.hp.octane.integrations.uft.items.*;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.poi.poifs.filesystem.*;
 import org.apache.poi.util.StringUtil;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UftTestDiscoveryUtils {
+	private static final Logger logger = LogManager.getLogger(UftTestDiscoveryUtils.class);
 
 	private static final String STFileExtention = ".st";//api test
 	private static final String QTPFileExtention = ".tsp";//gui test
@@ -161,7 +167,6 @@ public class UftTestDiscoveryUtils {
 		return relativePath;
 	}
 
-
 	/**
 	 * Extract test description from UFT GUI test.
 	 * Note : UFT API test doesn't contain description
@@ -170,7 +175,6 @@ public class UftTestDiscoveryUtils {
 	 * @return test description
 	 */
 	private static String getTestDescription(File dirPath) {
-
 		try {
 			if (!dirPath.exists()) {
 				return null;
@@ -181,10 +185,8 @@ public class UftTestDiscoveryUtils {
 				return null;
 			}
 
-
 			InputStream is = new FileInputStream(tspTestFile);
 			String xmlContent = extractXmlContentFromTspFile(is);
-
 
 			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
 			//documentBuilderFactory.setIgnoringComments(true);
@@ -194,7 +196,7 @@ public class UftTestDiscoveryUtils {
 			Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
 			String desc = document.getElementsByTagName("Description").item(0).getTextContent();
 			return desc;
-		} catch (Exception e) {
+		} catch (IOException | ParserConfigurationException | SAXException e) {
 			return null;
 		}
 	}
@@ -211,7 +213,11 @@ public class UftTestDiscoveryUtils {
 					System.out.println(entry);
 				} else if (entry instanceof DocumentEntry) {
 					byte[] content = new byte[((DocumentEntry) entry).getSize()];
-					poiFS.createDocumentInputStream("ComponentInfo").read(content);
+					int readBytes = poiFS.createDocumentInputStream("ComponentInfo").read(content);
+					if (readBytes < content.length) {
+						//  [YG] probably should handle this case and continue to read
+						logger.warn("expected to read " + content.length + " bytes, but read and stopped after " + readBytes);
+					}
 					String fromUnicodeLE = StringUtil.getFromUnicodeLE(content);
 					xmlData = fromUnicodeLE.substring(fromUnicodeLE.indexOf('<')).replaceAll("\u0000", "");
 				}

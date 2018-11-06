@@ -24,6 +24,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -45,12 +47,12 @@ public abstract class DTOInternalProviderBase {
 
 	protected abstract <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException;
 
-	<T extends DTOBase> String toXml(T dto) throws JAXBException {
+	<T extends DTOBase> String toXml(T dto) throws JAXBException, UnsupportedEncodingException {
 		JAXBContext jaxbContext = JAXBContext.newInstance(this.getXMLAbles());
 		Marshaller marshaller = jaxbContext.createMarshaller();
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		marshaller.marshal(dto, baos);
-		return baos.toString();
+		return baos.toString(Charset.defaultCharset().name());
 	}
 
 	<T extends DTOBase> InputStream toXmlStream(T dto) throws JAXBException {
