@@ -74,18 +74,6 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-
-		<plugins>
-			<plugin>
-				<artifactId>spotbugs-maven-plugin</artifactId>
-				<groupId>com.github.spotbugs</groupId>
-				<version>${spotbugs.version}</version>
-				<configuration>
-					<effort>max</effort>
-					<maxRank>20</maxRank>
-				</configuration>
-			</plugin>
-		</plugins>
 	</build>
 
 	<profiles>
