@@ -53,7 +53,7 @@ public class UftTestDispatchUtils {
 	}
 
 	public static void dispatchDiscoveryResult(EntitiesService entitiesService, UftTestDiscoveryResult result, JobRunContext jobRunContext, CustomLogger customLogger) {
-		if (SdkStringUtils.isNotEmpty(result.getTestRunnerId()) && !checkExecutorExistInOctane(entitiesService, result)){
+		if (SdkStringUtils.isNotEmpty(result.getTestRunnerId()) && !checkExecutorExistInOctane(entitiesService, result)) {
 			String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : executor " + result.getTestRunnerId() + " is not exist. Tests are not sent.";
 			logMessage(Level.WARN, customLogger, msg);
 		}
@@ -77,7 +77,7 @@ public class UftTestDispatchUtils {
 		//post test deleted
 		tests = result.getDeletedTests();
 		if (!tests.isEmpty()) {
-			boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId(), result.getScmRepositoryId(),null);
+			boolean updated = updateTests(entitiesService, tests, result.getWorkspaceId(), result.getScmRepositoryId(), null);
 			String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : " + tests.size() + "  deleted tests set as not executable successfully = " + updated;
 			logMessage(Level.INFO, customLogger, msg);
 		}
@@ -134,8 +134,7 @@ public class UftTestDispatchUtils {
 	 *
 	 * @return true if there were changes comparing to discovered results
 	 */
-	private static boolean matchDiscoveryTestResultsWithOctaneForFullSync(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
-		boolean hasDiff = false;
+	private static void matchDiscoveryTestResultsWithOctaneForFullSync(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
 		Collection<String> additionalFields = SdkStringUtils.isNotEmpty(discoveryResult.getTestRunnerId()) ? Arrays.asList(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD) : null;
 		Map<String, Entity> octaneTestsMap = getTestsFromServer(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), Long.parseLong(discoveryResult.getScmRepositoryId()), true, null, additionalFields);
 		Map<String, Entity> octaneTestsMapWithoutScmRepository = getTestsFromServer(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), Long.parseLong(discoveryResult.getScmRepositoryId()), false, null, additionalFields);
@@ -147,19 +146,24 @@ public class UftTestDispatchUtils {
 			Entity octaneTestWithoutScmRepository = octaneTestsMapWithoutScmRepository.remove(key);
 
 			if (octaneTest != null) {
-				hasDiff = true;//if we get here - there is diff with discovered tests
 				//the only fields that might be different is description and executable
 				boolean testsEqual = checkTestEquals(discoveredTest, octaneTest, discoveryResult.getTestRunnerId());
 				if (!testsEqual) { //if equal - skip
 					discoveredTest.setId(octaneTest.getId());
 					discoveredTest.setOctaneStatus(OctaneStatus.MODIFIED);
+					if (octaneTest.containsField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD) && octaneTest.getField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD) == null) {
+						discoveredTest.setMissingTestRunner(true);
+					}
 				} else {
 					discoveredTest.setOctaneStatus(OctaneStatus.NONE);
 				}
 			} else if (octaneTestWithoutScmRepository != null) {
-				//special handling - test were injected from pipeline, need to update scm repository
+				//special handling - test were injected from pipeline,or created from other fork. need to update scm repository
 				discoveredTest.setId(octaneTestWithoutScmRepository.getId());
 				discoveredTest.setOctaneStatus(OctaneStatus.MODIFIED);
+				if (octaneTestWithoutScmRepository.containsField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD) && octaneTestWithoutScmRepository.getField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD) == null) {
+					discoveredTest.setMissingTestRunner(true);
+				}
 				discoveredTest.setMissingScmRepository(true);
 			}
 			//else do nothing, status of test should remain NEW
@@ -167,7 +171,6 @@ public class UftTestDispatchUtils {
 
 		//go over executable tests that exist in Octane but not discovered and disable them
 		for (Entity octaneTest : octaneTestsMap.values()) {
-			hasDiff = true;//if some test exist - there is diff with discovered tests
 			boolean octaneExecutable = octaneTest.getBooleanValue(EntityConstants.AutomatedTest.EXECUTABLE_FIELD);
 			if (octaneExecutable) {
 				AutomatedTest test = new AutomatedTest();
@@ -179,8 +182,6 @@ public class UftTestDispatchUtils {
 				test.setOctaneStatus(OctaneStatus.DELETED);
 			}
 		}
-
-		return hasDiff;
 	}
 
 	public static boolean checkTestEquals(AutomatedTest discoveredTest, Entity octaneTest, String testRunnerId) {
@@ -226,7 +227,7 @@ public class UftTestDispatchUtils {
 		return hasDiff;
 	}
 
-	public static Map<String, Entity> getTestsFromServer(EntitiesService entitiesService, long workspaceId, long scmRepositoryId,boolean belongToScmRepository, Collection<String> allTestNames, Collection<String> additionalFieldsToFetch) {
+	public static Map<String, Entity> getTestsFromServer(EntitiesService entitiesService, long workspaceId, long scmRepositoryId, boolean belongToScmRepository, Collection<String> allTestNames, Collection<String> additionalFieldsToFetch) {
 		List<String> conditions = new ArrayList<>();
 		if (allTestNames != null && !allTestNames.isEmpty()) {
 			String byNameCondition = QueryHelper.conditionIn(EntityConstants.AutomatedTest.NAME_FIELD, allTestNames, false);
@@ -407,16 +408,16 @@ public class UftTestDispatchUtils {
 				if (test.getDescription() != null) {
 					octaneTest.setField(EntityConstants.AutomatedTest.DESCRIPTION_FIELD, test.getDescription());
 				}
-				if (testRunner != null) {
-					octaneTest.setField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD, testRunner);
-				}
 				if (test.getIsMoved()) {
 					octaneTest.setName(test.getName());
 					octaneTest.setField(EntityConstants.AutomatedTest.PACKAGE_FIELD, test.getPackage());
 				}
-				if (test.getMissingScmRepository()) {
+				if (test.isMissingScmRepository()) {
 					Entity scmRepository = dtoFactory.newDTO(Entity.class).setType(EntityConstants.ScmRepository.ENTITY_NAME).setId(scmRepositoryId);
 					octaneTest.setField(EntityConstants.ScmResourceFile.SCM_REPOSITORY_FIELD, scmRepository);
+				}
+				if (test.isMissingTestRunner() && testRunner != null) {
+					octaneTest.setField(EntityConstants.AutomatedTest.TEST_RUNNER_FIELD, testRunner);
 				}
 				testsForUpdate.add(octaneTest);
 			}

@@ -44,7 +44,9 @@ public class AutomatedTest implements SupportsMoveDetection, SupportsOctaneStatu
 	@XmlAttribute
 	private OctaneStatus octaneStatus;
 	@XmlAttribute
-	private Boolean missingScmRepository;
+	private boolean missingScmRepository;
+	@XmlAttribute
+	private boolean missingTestRunner;
 
 	@XmlAttribute
 	private String name;
@@ -161,11 +163,19 @@ public class AutomatedTest implements SupportsMoveDetection, SupportsOctaneStatu
 		this.octaneStatus = octaneStatus;
 	}
 
-	public Boolean getMissingScmRepository() {
+	public boolean isMissingScmRepository() {
 		return missingScmRepository;
 	}
 
-	public void setMissingScmRepository(Boolean missingScmRepository) {
+	public void setMissingScmRepository(boolean missingScmRepository) {
 		this.missingScmRepository = missingScmRepository;
+	}
+
+	public boolean isMissingTestRunner() {
+		return missingTestRunner;
+	}
+
+	public void setMissingTestRunner(boolean missingTestRunner) {
+		this.missingTestRunner = missingTestRunner;
 	}
 }
