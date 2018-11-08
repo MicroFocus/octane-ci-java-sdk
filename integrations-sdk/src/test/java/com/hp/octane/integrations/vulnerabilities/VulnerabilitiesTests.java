@@ -10,6 +10,7 @@ import com.hp.octane.integrations.services.vulnerabilities.ssc.SscProjectConnect
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.easymock.EasyMock.*;
@@ -54,7 +55,7 @@ public class VulnerabilitiesTests {
 
 		Issues.Issue issue4 = new Issues.Issue();
 
-		sscIssues.data = new Issues.Issue[]{issue1, issue2, issue3, issue4};
+		sscIssues.data = Arrays.asList(issue1, issue2, issue3, issue4);
 
 		SSCHandler sscHandler = new SSCHandler();
 		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
@@ -80,7 +81,7 @@ public class VulnerabilitiesTests {
 		Issues.Issue issue5 = new Issues.Issue();
 
 		Issues sscIssues = new Issues();
-		sscIssues.data = new Issues.Issue[]{issue1, issue2, issue3, issue4, issue5};
+		sscIssues.data = Arrays.asList(issue1, issue2, issue3, issue4, issue5);
 
 		SSCHandler sscHandler = new SSCHandler();
 		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
@@ -111,7 +112,7 @@ public class VulnerabilitiesTests {
 		issue.removedDate = "removedDate";
 
 		Issues sscIssues = new Issues();
-		sscIssues.data = new Issues.Issue[]{issue};
+		sscIssues.data = Arrays.asList(issue);
 		SSCHandler sscHandler = new SSCHandler();
 		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
 
@@ -133,7 +134,7 @@ public class VulnerabilitiesTests {
 		issue.hRef = "hRef";
 
 		Issues sscIssues = new Issues();
-		sscIssues.data = new Issues.Issue[]{issue};
+		sscIssues.data = Arrays.asList(issue);
 		SSCHandler sscHandler = new SSCHandler();
 		List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
 

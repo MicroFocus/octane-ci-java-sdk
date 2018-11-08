@@ -68,20 +68,20 @@ public class SscProjectConnector {
 		String suffix = getURLForProjectVersion(projectId);
 		String rawResponse = sendGetEntity(suffix);
 		ProjectVersions projectVersions = responseToObject(rawResponse, ProjectVersions.class);
-		if (projectVersions.data.length == 0) {
+		if (projectVersions.count == 0) {
 			return null;
 		}
-		return projectVersions.data[0];
+		return projectVersions.data.get(0);
 	}
 
 	private Integer getProjectId() {
 		String projectIdURL = getProjectIdURL();
 		String rawResponse = sendGetEntity(projectIdURL);
 		Projects projects = responseToObject(rawResponse, Projects.class);
-		if (projects.data.length == 0) {
+		if (projects.count == 0) {
 			return null;
 		}
-		return projects.data[0].id;
+		return projects.data.get(0).id;
 	}
 
 	private <T> T responseToObject(String response, Class<T> type) {
@@ -96,11 +96,52 @@ public class SscProjectConnector {
 		}
 	}
 
-	public Issues readNewIssuesOfLastestScan(int projectVersionId) {
+	public Issues readNewIssuesOfLatestScan(int projectVersionId) {
 		String urlSuffix = getNewIssuesURL(projectVersionId);
-		String rawResponse = sendGetEntity(urlSuffix);
-		return responseToObject(rawResponse, Issues.class);
+		return readPagedEntities(urlSuffix,Issues.class);
 	}
+	public Issues readIssues(int projectVersionId, String state) {
+		String urlSuffix = getIssuesURL(projectVersionId, state);
+		return readPagedEntities(urlSuffix, Issues.class);
+	}
+
+	public <SSCArray extends SscBaseEntityArray> SSCArray readPagedEntities(String url, Class<SSCArray> type) {
+		int startIndex = 0;
+
+		try {
+			boolean allFetched = false;
+			SSCArray total = type.newInstance();
+			while (!allFetched) {
+				String pagedURL = getPagedURL(url, startIndex);
+				String rawResponse = sendGetEntity(pagedURL);
+				SSCArray page = responseToObject(rawResponse, type);
+				if(total.data == null){
+					total.data = page.data;
+				}else {
+					total.data.addAll(page.data);
+				}
+				total.count = total.data.size();
+				allFetched = (total.data.size() == page.count);
+				startIndex += total.count;
+			}
+			return total;
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private String getPagedURL(String url, int startIndex) {
+
+		if(url.contains("?")){
+			return url + "&start=" + startIndex;
+		}else{
+			return url + "?start=" + startIndex;
+		}
+	}
+
 
 	public Artifacts getArtifactsOfProjectVersion(Integer id, int limit) {
 		String urlSuffix = getArtifactsURL(id, limit);
@@ -114,6 +155,14 @@ public class SscProjectConnector {
 
 	public String getNewIssuesURL(int projectVersionId) {
 		return String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
+	}
+
+	public String getIssuesURL(int projectVersionId, String state) {
+	    if("updated".equalsIgnoreCase(state)) {
+            return String.format("projectVersions/%d/issues?q=[issue_age]:!new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false",
+                    projectVersionId);
+        }
+        return null;
 	}
 
 	public String getArtifactsURL(Integer projectVersionId, int limit) {

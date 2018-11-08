@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
@@ -37,8 +38,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -207,28 +207,28 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private boolean processPushVulnerabilitiesQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		try {
 			SSCProjectConfiguration sscProjectConfiguration = configurer.pluginServices.getSSCProjectConfiguration(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-			if (sscProjectConfiguration == null || !sscProjectConfiguration.isValid()) {
-				logger.debug("SSC project configurations is missing or not valid, skipping processing for " + vulnerabilitiesQueueItem.jobId + " #" + vulnerabilitiesQueueItem.buildId);
-				return true;
-			}
+		if (sscProjectConfiguration == null || !sscProjectConfiguration.isValid()) {
+			logger.debug("SSC project configurations is missing or not valid, skipping processing for " + vulnerabilitiesQueueItem.jobId + " #" + vulnerabilitiesQueueItem.buildId);
+			return true;
+		}
 
-			//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
-			if (!vulnerabilitiesQueueItem.isRelevant) {
-				boolean relevant = preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-				if (relevant) {
-					//  set queue item value relevancy to true and continue
-					vulnerabilitiesQueueItem.isRelevant = true;
-				} else {
-					//  return with true to silently proceed to the next item
-					return true;
-				}
-			}
-			InputStream vulnerabilitiesStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem, sscProjectConfiguration);
-			if (vulnerabilitiesStream == null) {
-				return false;
+		//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
+		if (!vulnerabilitiesQueueItem.isRelevant) {
+			boolean relevant = preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+			if (relevant) {
+				//  set queue item value relevancy to true and continue
+				vulnerabilitiesQueueItem.isRelevant = true;
 			} else {
-				pushVulnerabilities(vulnerabilitiesStream, vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+				//  return with true to silently proceed to the next item
 				return true;
+			}
+		}
+		InputStream vulnerabilitiesStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem, sscProjectConfiguration);
+		if (vulnerabilitiesStream == null) {
+			return false;
+		} else {
+			pushVulnerabilities(vulnerabilitiesStream, vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+			return true;
 			}
 		} catch (IOException e) {
 			throw new PermanentException(e);
@@ -257,7 +257,29 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				sscProjectConfiguration,
 				targetDir,
 				this.restService.obtainSSCRestClient());
-		return sscHandler.getLatestScan();
+		Optional<List<OctaneIssue>> newIssues = sscHandler.getLatestScan();
+		if(!newIssues.isPresent()){
+			return null;
+		}
+		SSCOctaneClosedIssuesSync sscOctaneClosedIssuesSync = new SSCOctaneClosedIssuesSync(vulnerabilitiesQueueItem,
+				this.restService,sscProjectConfiguration,this.configurer.octaneConfiguration);
+
+		List<OctaneIssue> closeIssueInSSCOpenedInOctane = sscOctaneClosedIssuesSync.getCloseIssueInSSCOpenedInOctane();
+
+		return packUpdateAndNewIssues(targetDir, newIssues, closeIssueInSSCOpenedInOctane);
+
+	}
+
+	private InputStream packUpdateAndNewIssues(String targetDir, Optional<List<OctaneIssue>> newIssues,
+											   List<OctaneIssue> closeIssueInSSCOpenedInOctane) {
+		List<OctaneIssue> totalIssues = new ArrayList<>();
+		totalIssues.addAll(newIssues.get());
+		totalIssues.addAll(closeIssueInSSCOpenedInOctane);
+		if (totalIssues.isEmpty()) {
+			throw new PermanentException("This scan has no issues.");
+		}
+		IssuesFileSerializer issuesFileSerializer = new IssuesFileSerializer(targetDir, totalIssues);
+		return issuesFileSerializer.doSerializeAndCache();
 	}
 
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {

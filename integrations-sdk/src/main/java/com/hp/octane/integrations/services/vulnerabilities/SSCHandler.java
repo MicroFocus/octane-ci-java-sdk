@@ -25,7 +25,6 @@ import com.hp.octane.integrations.services.vulnerabilities.ssc.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -121,18 +120,13 @@ public class SSCHandler {
 		}
 	}
 
-	public InputStream getLatestScan() {
+	public Optional<List<OctaneIssue>> getLatestScan() {
 		if (!isScanProcessFinished()) {
-			return null;
+			return Optional.empty();
 		}
 		logger.warn("entered getLatestScan, read issues and serialize to:" + this.targetDir);
-		Issues issues = sscProjectConnector.readNewIssuesOfLastestScan(projectVersion.id);
-		List<OctaneIssue> octaneIssues = createOctaneIssues(issues);
-		if (octaneIssues.isEmpty()) {
-			throw new PermanentException("This scan has no issues.");
-		}
-		IssuesFileSerializer issuesFileSerializer = new IssuesFileSerializer(targetDir, octaneIssues);
-		return issuesFileSerializer.doSerializeAndCache();
+		Issues issues = sscProjectConnector.readNewIssuesOfLatestScan(projectVersion.id);
+		return Optional.of(createOctaneIssues(issues));
 	}
 
 	public List<OctaneIssue> createOctaneIssues(Issues issues) {
@@ -273,7 +267,7 @@ public class SSCHandler {
 		return logicalNameForSeverity;
 	}
 
-	private static Entity createListNodeEntity(DTOFactory dtoFactory, String id) {
+	public static Entity createListNodeEntity(DTOFactory dtoFactory, String id) {
 		if (id == null) {
 			return null;
 		}
