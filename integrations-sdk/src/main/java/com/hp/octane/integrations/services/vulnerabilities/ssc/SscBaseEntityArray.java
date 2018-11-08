@@ -25,9 +25,28 @@ import java.util.List;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SscBaseEntityArray<T> {
-    @JsonProperty("data")
-    public List<T> data;
-    @JsonProperty("count")
-    public int count;
 
+    private List<T> data;
+
+    private int count;
+
+    @JsonProperty("data")
+    public List<T> getData() {
+        return data;
+    }
+
+    @JsonProperty("data")
+    public void setData(List<T> data) {
+        this.data = data;
+    }
+
+    @JsonProperty("count")
+    public int getCount() {
+        return count;
+    }
+
+    @JsonProperty("count")
+    public void setCount(int count) {
+        this.count = count;
+    }
 }

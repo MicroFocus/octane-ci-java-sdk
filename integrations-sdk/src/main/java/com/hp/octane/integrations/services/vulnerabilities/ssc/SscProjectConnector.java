@@ -70,24 +70,24 @@ public class SscProjectConnector {
         }
         String suffix = getURLForProjectVersion(projectId);
         String rawResponse = sendGetEntity(suffix);
-        ProjectVersions projectVersions = responseToObject(rawResponse, ProjectVersions.class);
-        if (projectVersions.count == 0) {
+        ProjectVersions projectVersions = stringToObject(rawResponse, ProjectVersions.class);
+        if (projectVersions.getCount() == 0) {
             return null;
         }
-        return projectVersions.data.get(0);
+        return projectVersions.getData().get(0);
     }
 
     private Integer getProjectId() {
         String projectIdURL = getProjectIdURL();
         String rawResponse = sendGetEntity(projectIdURL);
-        Projects projects = responseToObject(rawResponse, Projects.class);
-        if (projects.count == 0) {
+        Projects projects = stringToObject(rawResponse, Projects.class);
+        if (projects.getCount() == 0) {
             return null;
         }
-        return projects.data.get(0).id;
+        return projects.getData().get(0).id;
     }
 
-    private <T> T responseToObject(String response, Class<T> type) {
+    public static <T> T stringToObject(String response, Class<T> type) {
         if (response == null) {
             return null;
         }
@@ -103,6 +103,7 @@ public class SscProjectConnector {
         String urlSuffix = getNewIssuesURL(projectVersionId);
         return readPagedEntities(urlSuffix, Issues.class);
     }
+
     public Issues readIssues(int projectVersionId, String state) {
         String urlSuffix = getIssuesURL(projectVersionId, state);
         return readPagedEntities(urlSuffix, Issues.class);
@@ -117,15 +118,15 @@ public class SscProjectConnector {
             while (!allFetched) {
                 String pagedURL = getPagedURL(url, startIndex);
                 String rawResponse = sendGetEntity(pagedURL);
-                SSCArray page = responseToObject(rawResponse, type);
-                if (total.data == null) {
-                    total.data = page.data;
+                SSCArray page = stringToObject(rawResponse, type);
+                if (total.getData() == null) {
+                    total.setData(page.getData());
                 } else {
-                    total.data.addAll(page.data);
+                    total.getData().addAll(page.getData());
                 }
-                total.count = total.data.size();
-                allFetched = (total.data.size() == page.count);
-                startIndex += total.count;
+                total.setCount(total.getData().size());
+                allFetched = (total.getData().size() == page.getCount());
+                startIndex += total.getCount();
             }
             return total;
         } catch (InstantiationException | IllegalAccessException e) {
@@ -147,7 +148,7 @@ public class SscProjectConnector {
     public Artifacts getArtifactsOfProjectVersion(Integer id, int limit) {
         String urlSuffix = getArtifactsURL(id, limit);
         String rawResponse = sendGetEntity(urlSuffix);
-        return responseToObject(rawResponse, Artifacts.class);
+        return stringToObject(rawResponse, Artifacts.class);
     }
 
     public String getProjectIdURL() {
