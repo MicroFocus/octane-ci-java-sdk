@@ -30,12 +30,12 @@ public class SSCOctaneClosedIssuesSync {
 
     private final static Logger logger = LogManager.getLogger(SSCOctaneClosedIssuesSync.class);
 
-    VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem;
-    SSCRestClient sscRestClient;
-    SSCProjectConfiguration sscProjectConfiguration;
-    OctaneRestClient octaneRestClient;
-    DTOFactory dtoFactory = DTOFactory.getInstance();
-    OctaneConfiguration octaneConfiguration;
+    private VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem;
+    private SSCRestClient sscRestClient;
+    private SSCProjectConfiguration sscProjectConfiguration;
+    private OctaneRestClient octaneRestClient;
+    private DTOFactory dtoFactory = DTOFactory.getInstance();
+    private OctaneConfiguration octaneConfiguration;
 
     public SSCOctaneClosedIssuesSync(
             VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem,
