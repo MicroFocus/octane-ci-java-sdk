@@ -41,7 +41,7 @@ public class SSCOctaneClosedIssuesSync {
             VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem,
             RestService restService,
             SSCProjectConfiguration sscProjectConfiguration,
-            OctaneConfiguration octaneConfig){
+            OctaneConfiguration octaneConfig) {
 
         vulnerabilitiesQueueItem = queueItem;
         this.sscRestClient = restService.obtainSSCRestClient();
@@ -60,7 +60,8 @@ public class SSCOctaneClosedIssuesSync {
             return getClosedInSSCOpenInOctane(issueRemoteIds, sscIssues);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
+            logger.error(e.getStackTrace());
         }
         return new ArrayList<>();
     }
@@ -68,7 +69,7 @@ public class SSCOctaneClosedIssuesSync {
 
     private List<OctaneIssue> getClosedInSSCOpenInOctane(List<String> octaneIssues, Issues sscIssues) {
 
-        if(sscIssues.count == 0){
+        if (sscIssues.count == 0) {
             return new ArrayList<>();
         }
         List<String> remoteIdsSSC =
@@ -101,20 +102,21 @@ public class SSCOctaneClosedIssuesSync {
                 .setMethod(HttpMethod.GET)
                 .setUrl(getOpenVulnerabilitiesContextPath(octaneConfiguration.getUrl(),
                         octaneConfiguration.getSharedSpace()) +
-                        "?instance-id=" + octaneConfiguration.getInstanceId()+
+                        "?instance-id=" + octaneConfiguration.getInstanceId() +
                         String.format("&job-ci-id=%s&build-ci-id=%s&state=open", jobId, runId))
                 .setHeaders(headers);
 
         OctaneResponse response = octaneRestClient.execute(request);
         logger.info("vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
         if (response.getStatus() == HttpStatus.SC_OK) {
-            logger.info("retrieved existing vulnerabilities from Octane." );
-        } else{
+            logger.info("retrieved existing vulnerabilities from Octane.");
+        } else {
             logger.error("Error retrieving existing vulnerabilities from Octane.");
             throw new IOException();
         }
         return CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), List.class);
     }
+
     private String getOpenVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {
         return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.OPEN_VULNERABILITIES_FROM_OCTANE;
     }

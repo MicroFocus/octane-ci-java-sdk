@@ -174,7 +174,8 @@ public class SSCHandler {
 			SimpleDateFormat targetDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 			return targetDateFormat.format(date);
 		} catch (ParseException e) {
-			e.printStackTrace();
+			logger.error(e.getMessage());
+			logger.error(e.getStackTrace());
 			return null;
 		}
 	}
