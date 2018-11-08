@@ -26,6 +26,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 
@@ -33,94 +35,143 @@ import java.io.IOException;
  * Created by hijaziy on 7/12/2018.
  */
 public class SscProjectConnector {
-	private final SSCProjectConfiguration sscProjectConfiguration;
-	private final SSCRestClient sscRestClient;
+    private final SSCProjectConfiguration sscProjectConfiguration;
+    private final SSCRestClient sscRestClient;
+    private final static Logger logger = LogManager.getLogger(SscProjectConnector.class);
 
-	public SscProjectConnector(SSCProjectConfiguration sscProjectConfiguration, SSCRestClient sscRestClient) {
-		this.sscProjectConfiguration = sscProjectConfiguration;
-		this.sscRestClient = sscRestClient;
-	}
+    public SscProjectConnector(SSCProjectConfiguration sscProjectConfiguration, SSCRestClient sscRestClient) {
+        this.sscProjectConfiguration = sscProjectConfiguration;
+        this.sscRestClient = sscRestClient;
+    }
 
-	private String sendGetEntity(String urlSuffix) {
-		String url = sscProjectConfiguration.getSSCUrl() + "/api/v1/" + urlSuffix;
-		CloseableHttpResponse response = sscRestClient.sendGetRequest(sscProjectConfiguration, url);
+    private String sendGetEntity(String urlSuffix) {
+        String url = sscProjectConfiguration.getSSCUrl() + "/api/v1/" + urlSuffix;
+        CloseableHttpResponse response = sscRestClient.sendGetRequest(sscProjectConfiguration, url);
 
-		if (response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
-			throw new TemporaryException("SSC Server is not available:" + response.getStatusLine().getStatusCode());
-		} else if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
-			throw new PermanentException("Error from SSC:" + response.getStatusLine().getStatusCode());
-		}
-		try {
-			return CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent());
-		} catch (IOException e) {
-			throw new PermanentException(e);
-		} finally {
-			EntityUtils.consumeQuietly(response.getEntity());
-			HttpClientUtils.closeQuietly(response);
-		}
-	}
+        if (response.getStatusLine().getStatusCode() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+            throw new TemporaryException("SSC Server is not available:" + response.getStatusLine().getStatusCode());
+        } else if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
+            throw new PermanentException("Error from SSC:" + response.getStatusLine().getStatusCode());
+        }
+        try {
+            return CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent());
+        } catch (IOException e) {
+            throw new PermanentException(e);
+        } finally {
+            EntityUtils.consumeQuietly(response.getEntity());
+            HttpClientUtils.closeQuietly(response);
+        }
+    }
 
-	public ProjectVersions.ProjectVersion getProjectVersion() {
-		Integer projectId = getProjectId();
-		if (projectId == null) {
-			return null;
-		}
-		String suffix = getURLForProjectVersion(projectId);
-		String rawResponse = sendGetEntity(suffix);
-		ProjectVersions projectVersions = responseToObject(rawResponse, ProjectVersions.class);
-		if (projectVersions.data.length == 0) {
-			return null;
-		}
-		return projectVersions.data[0];
-	}
+    public ProjectVersions.ProjectVersion getProjectVersion() {
+        Integer projectId = getProjectId();
+        if (projectId == null) {
+            return null;
+        }
+        String suffix = getURLForProjectVersion(projectId);
+        String rawResponse = sendGetEntity(suffix);
+        ProjectVersions projectVersions = stringToObject(rawResponse, ProjectVersions.class);
+        if (projectVersions.getCount() == 0) {
+            return null;
+        }
+        return projectVersions.getData().get(0);
+    }
 
-	private Integer getProjectId() {
-		String projectIdURL = getProjectIdURL();
-		String rawResponse = sendGetEntity(projectIdURL);
-		Projects projects = responseToObject(rawResponse, Projects.class);
-		if (projects.data.length == 0) {
-			return null;
-		}
-		return projects.data[0].id;
-	}
+    private Integer getProjectId() {
+        String projectIdURL = getProjectIdURL();
+        String rawResponse = sendGetEntity(projectIdURL);
+        Projects projects = stringToObject(rawResponse, Projects.class);
+        if (projects.getCount() == 0) {
+            return null;
+        }
+        return projects.getData().get(0).id;
+    }
 
-	private <T> T responseToObject(String response, Class<T> type) {
-		if (response == null) {
-			return null;
-		}
-		try {
-			return new ObjectMapper().readValue(response,
-					TypeFactory.defaultInstance().constructType(type));
-		} catch (IOException e) {
-			throw new PermanentException(e);
-		}
-	}
+    public static <T> T stringToObject(String response, Class<T> type) {
+        if (response == null) {
+            return null;
+        }
+        try {
+            return new ObjectMapper().readValue(response,
+                    TypeFactory.defaultInstance().constructType(type));
+        } catch (IOException e) {
+            throw new PermanentException(e);
+        }
+    }
 
-	public Issues readNewIssuesOfLastestScan(int projectVersionId) {
-		String urlSuffix = getNewIssuesURL(projectVersionId);
-		String rawResponse = sendGetEntity(urlSuffix);
-		return responseToObject(rawResponse, Issues.class);
-	}
+    public Issues readNewIssuesOfLatestScan(int projectVersionId) {
+        String urlSuffix = getNewIssuesURL(projectVersionId);
+        return readPagedEntities(urlSuffix, Issues.class);
+    }
 
-	public Artifacts getArtifactsOfProjectVersion(Integer id, int limit) {
-		String urlSuffix = getArtifactsURL(id, limit);
-		String rawResponse = sendGetEntity(urlSuffix);
-		return responseToObject(rawResponse, Artifacts.class);
-	}
+    public Issues readIssues(int projectVersionId, String state) {
+        String urlSuffix = getIssuesURL(projectVersionId, state);
+        return readPagedEntities(urlSuffix, Issues.class);
+    }
 
-	public String getProjectIdURL() {
-		return "projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectName());
-	}
+    public <SSCArray extends SscBaseEntityArray> SSCArray readPagedEntities(String url, Class<SSCArray> type) {
+        int startIndex = 0;
 
-	public String getNewIssuesURL(int projectVersionId) {
-		return String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
-	}
+        try {
+            boolean allFetched = false;
+            SSCArray total = type.newInstance();
+            while (!allFetched) {
+                String pagedURL = getPagedURL(url, startIndex);
+                String rawResponse = sendGetEntity(pagedURL);
+                SSCArray page = stringToObject(rawResponse, type);
+                if (total.getData() == null) {
+                    total.setData(page.getData());
+                } else {
+                    total.getData().addAll(page.getData());
+                }
+                total.setCount(total.getData().size());
+                allFetched = (total.getData().size() == page.getCount());
+                startIndex += total.getCount();
+            }
+            return total;
+        } catch (InstantiationException | IllegalAccessException e) {
+            logger.error(e.getMessage());
+        }
+        return null;
+    }
 
-	public String getArtifactsURL(Integer projectVersionId, int limit) {
-		return String.format("projectVersions/%d/artifacts?limit=%d", projectVersionId, limit);
-	}
+    private String getPagedURL(String url, int startIndex) {
 
-	public String getURLForProjectVersion(Integer projectId) {
-		return "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectVersion());
-	}
+        if (url.contains("?")) {
+            return url + "&start=" + startIndex;
+        } else {
+            return url + "?start=" + startIndex;
+        }
+    }
+
+
+    public Artifacts getArtifactsOfProjectVersion(Integer id, int limit) {
+        String urlSuffix = getArtifactsURL(id, limit);
+        String rawResponse = sendGetEntity(urlSuffix);
+        return stringToObject(rawResponse, Artifacts.class);
+    }
+
+    public String getProjectIdURL() {
+        return "projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectName());
+    }
+
+    public String getNewIssuesURL(int projectVersionId) {
+        return String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
+    }
+
+    public String getIssuesURL(int projectVersionId, String state) {
+        if ("updated".equalsIgnoreCase(state)) {
+            return String.format("projectVersions/%d/issues?q=[issue_age]:!new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false",
+                    projectVersionId);
+        }
+        return null;
+    }
+
+    public String getArtifactsURL(Integer projectVersionId, int limit) {
+        return String.format("projectVersions/%d/artifacts?limit=%d", projectVersionId, limit);
+    }
+
+    public String getURLForProjectVersion(Integer projectId) {
+        return "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectVersion());
+    }
 }

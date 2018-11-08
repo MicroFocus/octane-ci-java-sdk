@@ -24,6 +24,7 @@ public interface RestService {
 	String ANALYTICS_CI_PATH_PART = "/analytics/ci/";
 	String VULNERABILITIES = "/vulnerabilities";
 	String VULNERABILITIES_PRE_FLIGHT = "/vulnerabilities/preflight";
+	String OPEN_VULNERABILITIES_FROM_OCTANE = "/vulnerabilities/remote-issue-ids";
 	String ACCEPT_HEADER = "accept";
 	String CONTENT_TYPE_HEADER = "content-type";
 	String CONTENT_ENCODING_HEADER = "content-encoding";

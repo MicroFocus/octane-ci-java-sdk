@@ -15,6 +15,9 @@
  */
 package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -25,6 +28,7 @@ public class SSCDateUtils {
 
     public static final String sscFormat = "yyyy-MM-dd'T'HH:mm:ss";
     public static final String octaneFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private final static Logger logger = LogManager.getLogger(SSCDateUtils.class);
 
     public static String convertDateSSCToOctane(String inputFoundDate) {
         if (inputFoundDate == null) {
@@ -41,7 +45,8 @@ public class SSCDateUtils {
             sourceDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             return sourceDateFormat.parse(inputDate);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
+            logger.error(e.getStackTrace());
             return null;
         }
     }

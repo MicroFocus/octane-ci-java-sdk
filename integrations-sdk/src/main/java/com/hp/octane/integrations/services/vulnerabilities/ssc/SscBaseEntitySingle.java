@@ -23,6 +23,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SscBaseEntitySingle<T> {
+    private T data;
+
     @JsonProperty("data")
-    public T data;
+    public T getData() {
+        return data;
+    }
+
+    @JsonProperty("data")
+    public void setData(T data) {
+        this.data = data;
+    }
 }
