@@ -35,12 +35,11 @@ public class EntityConstants {
         public static final String ENTITY_NAME = "scm_repository";
     }
 
-    public static class TestRunner extends Base {
-        public static final String ENTITY_NAME = "test_runner";
-    }
-
     public static class Executors extends Base {
         public static final String COLLECTION_NAME = "executors";
+
+        public static final String TEST_RUNNER_SUBTYPE_ENTITY_NAME = "test_runner";
+        public static final String UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME = "uft_test_runner";
     }
 
     public static class Taxonomy extends Base {
