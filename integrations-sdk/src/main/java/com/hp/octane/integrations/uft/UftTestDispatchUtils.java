@@ -307,7 +307,7 @@ public class UftTestDispatchUtils {
 			Entity apiTestType = createListNodeEntity("list_node.test_type.api");
 
 			Entity scmRepository = dtoFactory.newDTO(Entity.class).setType(EntityConstants.ScmRepository.ENTITY_NAME).setId(scmRepositoryId);
-			Entity testRunner = SdkStringUtils.isNotEmpty(testRunnerId) ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.TestRunner.ENTITY_NAME).setId(testRunnerId) : null;
+			Entity testRunner = SdkStringUtils.isNotEmpty(testRunnerId) ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.Executors.ENTITY_NAME).setId(testRunnerId) : null;
 			for (AutomatedTest test : tests) {
 				Entity testType = UftTestType.API.equals(test.getUftTestType()) ? apiTestType : guiTestType;
 				EntityList testTypeList = dtoFactory.newDTO(EntityList.class).addEntity(testType);
@@ -395,7 +395,7 @@ public class UftTestDispatchUtils {
 
 	private static boolean updateTests(EntitiesService entitiesService, Collection<AutomatedTest> tests, String workspaceId, String scmRepositoryId, String testRunnerId) {
 
-		Entity testRunner = SdkStringUtils.isNotEmpty(testRunnerId) ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.TestRunner.ENTITY_NAME).setId(testRunnerId) : null;
+		Entity testRunner = SdkStringUtils.isNotEmpty(testRunnerId) ? dtoFactory.newDTO(Entity.class).setType(EntityConstants.Executors.ENTITY_NAME).setId(testRunnerId) : null;
 		try {
 			//CONVERT TO DTO
 			List<Entity> testsForUpdate = new ArrayList<>();
