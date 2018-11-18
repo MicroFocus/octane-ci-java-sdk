@@ -29,8 +29,4 @@ public interface ResponseEntityList extends EntityList {
 	ResponseEntityList setTotalCount(int totalCount);
 
 	ResponseEntityList setExceedsTotalCount(boolean exceedsTotalCount);
-
-	int getTotalErrorCount();
-
-	ResponseEntityList setTotalErrorCount(int totalErrorCount);
 }

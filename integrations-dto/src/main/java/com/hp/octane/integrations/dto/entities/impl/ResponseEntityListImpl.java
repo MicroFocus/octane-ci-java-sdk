@@ -13,9 +13,6 @@ public class ResponseEntityListImpl extends EntityListImpl implements ResponseEn
     @JsonProperty(value="exceeds_total_count")
     private boolean exceedsTotalCount;
 
-    @JsonProperty(value="total_error_count")
-    private int totalErrorCount;
-
     @Override
     public int getTotalCount() {
         return totalCount;
@@ -35,17 +32,6 @@ public class ResponseEntityListImpl extends EntityListImpl implements ResponseEn
     @Override
     public ResponseEntityList setExceedsTotalCount(boolean exceedsTotalCount) {
         this.exceedsTotalCount = exceedsTotalCount;
-        return this;
-    }
-
-    @Override
-    public int getTotalErrorCount() {
-        return totalErrorCount;
-    }
-
-    @Override
-    public ResponseEntityList setTotalErrorCount(int totalErrorCount) {
-        this.totalErrorCount = totalErrorCount;
         return this;
     }
 }
