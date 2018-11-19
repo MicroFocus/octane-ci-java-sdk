@@ -243,7 +243,7 @@ final class TestsServiceImpl implements TestsService {
 		//  push
 		try {
 			OctaneResponse response = pushTestsResult(testsResult, queueItem.jobId, queueItem.buildId);
-			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_ACCEPTED) {
 				throw new PermanentException("push request PERMANENTLY failed with status " + response.getStatus());

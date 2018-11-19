@@ -141,6 +141,9 @@ final class BridgeServiceImpl implements BridgeService {
 					logger.debug("no tasks found on server");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.debug("expected timeout disconnection on retrieval of abridged tasks");
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+					logger.error("Octane service unavailable, breathing and will retry");
+					CIPluginSDKUtils.doWait(10000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 					logger.error("connection to Octane failed: authentication error");
 					CIPluginSDKUtils.doWait(9000);
