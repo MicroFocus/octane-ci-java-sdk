@@ -173,7 +173,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				return false;
 			}
 		}
-		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("vulnerabilities preflight request FAILED, service unavailable");
 		} else {
 			throw new PermanentException("vulnerabilities preflight request FAILED with " + response.getStatus() + "");
