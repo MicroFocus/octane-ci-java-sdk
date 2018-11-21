@@ -90,7 +90,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 			VulnerabilitiesService vulnerabilitiesServiceB = clientB.getVulnerabilitiesService();
 			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", System.currentTimeMillis(), 1);
 			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", System.currentTimeMillis(), 1);
-			List<String> preflightRequests = GeneralTestUtils.waitAtMostFor(6000, () -> preflightRequestCollectors.get(spIdB));
+			List<String> preflightRequests = GeneralTestUtils.waitAtMostFor(12000, () -> preflightRequestCollectors.get(spIdB));
 			Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
 			Assert.assertEquals(2, preflightRequests.size());
 			Assert.assertEquals(clientBInstanceId + "|job-preflight-false|1", preflightRequests.get(0));
