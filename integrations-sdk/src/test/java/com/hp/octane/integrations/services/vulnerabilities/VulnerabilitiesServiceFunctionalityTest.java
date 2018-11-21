@@ -51,7 +51,7 @@ import java.util.zip.GZIPInputStream;
 public class VulnerabilitiesServiceFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceFunctionalityTest.class);
 
-	//@Test(timeout = 20000)
+	@Test(timeout = 20000)
 	public void testVulnerabilitiesFunctional() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 
