@@ -88,13 +88,13 @@ public class VulnerabilitiesServiceFunctionalityTest {
 			OctaneConfiguration configB = new OctaneConfiguration(clientBInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdB);
 			OctaneClient clientB = OctaneSDK.addClient(configB, VulnerabilitiesServicePluginServicesTest.class);
 			VulnerabilitiesService vulnerabilitiesServiceB = clientB.getVulnerabilitiesService();
-			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", System.currentTimeMillis(), 1);
 			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", System.currentTimeMillis(), 1);
+			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", System.currentTimeMillis(), 1);
 			List<String> preflightRequests = GeneralTestUtils.waitAtMostFor(12000, () -> preflightRequestCollectors.get(spIdB));
 			Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
 			Assert.assertEquals(2, preflightRequests.size());
-			Assert.assertEquals(clientBInstanceId + "|job-preflight-false|1", preflightRequests.get(0));
-			Assert.assertEquals(clientBInstanceId + "|job-preflight-true|1", preflightRequests.get(1));
+			Assert.assertEquals(clientBInstanceId + "|job-preflight-true|1", preflightRequests.get(0));
+			Assert.assertEquals(clientBInstanceId + "|job-preflight-false|1", preflightRequests.get(1));
 
 			//
 			//  III
