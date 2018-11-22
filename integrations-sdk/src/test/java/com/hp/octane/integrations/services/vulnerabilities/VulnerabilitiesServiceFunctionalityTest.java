@@ -51,7 +51,7 @@ import java.util.zip.GZIPInputStream;
 public class VulnerabilitiesServiceFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceFunctionalityTest.class);
 
-	//@Test(timeout = 20000)
+	@Test(timeout = 20000)
 	public void testVulnerabilitiesFunctional() {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 
@@ -88,13 +88,23 @@ public class VulnerabilitiesServiceFunctionalityTest {
 			OctaneConfiguration configB = new OctaneConfiguration(clientBInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdB);
 			OctaneClient clientB = OctaneSDK.addClient(configB, VulnerabilitiesServicePluginServicesTest.class);
 			VulnerabilitiesService vulnerabilitiesServiceB = clientB.getVulnerabilitiesService();
-			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", System.currentTimeMillis(), 1);
+
+			vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", System.currentTimeMillis(), 1);
+			vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", System.currentTimeMillis(), 1);
 			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", System.currentTimeMillis(), 1);
-			List<String> preflightRequests = GeneralTestUtils.waitAtMostFor(6000, () -> preflightRequestCollectors.get(spIdB));
-			Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
-			Assert.assertEquals(2, preflightRequests.size());
-			Assert.assertEquals(clientBInstanceId + "|job-preflight-false|1", preflightRequests.get(0));
-			Assert.assertEquals(clientBInstanceId + "|job-preflight-true|1", preflightRequests.get(1));
+			vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", System.currentTimeMillis(), 1);
+			GeneralTestUtils.waitAtMostFor(12000, () -> {
+				if (preflightRequestCollectors.get(spIdA) != null && preflightRequestCollectors.get(spIdA).size() == 2 &&
+						preflightRequestCollectors.get(spIdB) != null && preflightRequestCollectors.get(spIdB).size() == 2) {
+					return true;
+				} else {
+					return null;
+				}
+			});
+			Assert.assertEquals(clientAInstanceId + "|job-preflight-true|1", preflightRequestCollectors.get(spIdA).get(0));
+			Assert.assertEquals(clientAInstanceId + "|job-preflight-false|1", preflightRequestCollectors.get(spIdA).get(1));
+			Assert.assertEquals(clientBInstanceId + "|job-preflight-true|1", preflightRequestCollectors.get(spIdB).get(0));
+			Assert.assertEquals(clientBInstanceId + "|job-preflight-false|1", preflightRequestCollectors.get(spIdB).get(1));
 
 			//
 			//  III
