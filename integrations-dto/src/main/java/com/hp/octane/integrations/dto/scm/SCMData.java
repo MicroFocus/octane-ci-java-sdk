@@ -37,4 +37,10 @@ public interface SCMData extends DTOBase {
 	List<SCMCommit> getCommits();
 
 	SCMData setCommits(List<SCMCommit> commits);
+
+	List<SCMFileBlame> getFileBlameList();
+
+	SCMData setFileBlameList(List<SCMFileBlame> fileBlameList);
+
+
 }
