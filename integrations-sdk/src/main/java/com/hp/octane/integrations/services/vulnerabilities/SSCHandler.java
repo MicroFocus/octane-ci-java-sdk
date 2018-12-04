@@ -157,6 +157,8 @@ public class SSCHandler {
         octaneIssue.setIntroducedDate(convertDates(issue.foundDate));
         octaneIssue.setExternalLink(issue.hRef);
         octaneIssue.setToolName(EXTERNAL_TOOL_NAME);
+        octaneIssue.setCategory(issue.issueName);
+        octaneIssue.setPackage(issue.package1);
         logger.debug("exit createOctaneIssue");
         return octaneIssue;
     }
