@@ -273,8 +273,8 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private InputStream packUpdateAndNewIssues(String targetDir, Optional<List<OctaneIssue>> newIssues,
 											   List<OctaneIssue> closeIssueInSSCOpenedInOctane) {
 		List<OctaneIssue> totalIssues = new ArrayList<>();
-		totalIssues.addAll(newIssues.get());
 		totalIssues.addAll(closeIssueInSSCOpenedInOctane);
+		totalIssues.addAll(newIssues.get());
 		if (totalIssues.isEmpty()) {
 			throw new PermanentException("This scan has no issues.");
 		}
