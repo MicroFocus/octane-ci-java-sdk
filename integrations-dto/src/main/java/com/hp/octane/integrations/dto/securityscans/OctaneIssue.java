@@ -59,5 +59,15 @@ public interface OctaneIssue extends DTOBase {
 
     String getToolName();
 
-    void setToolName(String toolName);
+    void setToolName(String category);
+
+    String getCategory();
+
+    void setCategory(String category);
+
+    String getPackage();
+
+    void setPackage(String package1);
+
+
 }

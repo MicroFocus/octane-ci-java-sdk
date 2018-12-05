@@ -156,7 +156,7 @@ public class SscProjectConnector {
     }
 
     public String getNewIssuesURL(int projectVersionId) {
-        return String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
+        return String.format("projectVersions/%d/issues?showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
     }
 
     public String getIssuesURL(int projectVersionId, String state) {

@@ -118,7 +118,7 @@ public class SSCOctaneClosedIssuesSync {
                 .setUrl(getOpenVulnerabilitiesContextPath(octaneConfiguration.getUrl(),
                         octaneConfiguration.getSharedSpace()) +
                         "?instance-id=" + octaneConfiguration.getInstanceId() +
-                        String.format("&job-ci-id=%s&build-ci-id=%s&state=open", jobId, runId))
+                        String.format("&job-ci-id=%s&build-ci-id=%s&state=open", CIPluginSDKUtils.urlEncodeQueryParam(jobId), CIPluginSDKUtils.urlEncodeQueryParam(runId)))
                 .setHeaders(headers);
 
         OctaneResponse response = octaneRestClient.execute(request);

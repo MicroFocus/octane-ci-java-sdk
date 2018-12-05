@@ -47,6 +47,8 @@ public class Issues extends SscBaseEntityArray<Issues.Issue> {
         public String issueInstanceId;
         @JsonProperty("issueName")
         public String issueName;
+        @JsonProperty("package")
+        public String package1;
         @JsonProperty("issueStatus")
         public String issueStatus;
         @JsonProperty("kingdom")
