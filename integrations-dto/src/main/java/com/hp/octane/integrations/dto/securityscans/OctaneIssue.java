@@ -69,5 +69,9 @@ public interface OctaneIssue extends DTOBase {
 
     void setPackage(String package1);
 
+    String getRemoteTag();
+
+    void setRemoteTag(String remote_tag);
+
 
 }

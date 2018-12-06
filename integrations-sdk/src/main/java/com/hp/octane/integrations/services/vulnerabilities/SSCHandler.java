@@ -126,10 +126,10 @@ public class SSCHandler {
         }
         logger.warn("entered getLatestScan, read issues and serialize to:" + this.targetDir);
         Issues issues = sscProjectConnector.readNewIssuesOfLatestScan(projectVersion.id);
-        return Optional.of(createOctaneIssues(issues));
+        return Optional.of(createOctaneIssues(issues,sscProjectConnector.getRemoteTag()));
     }
 
-    public List<OctaneIssue> createOctaneIssues(Issues issues) {
+    public List<OctaneIssue> createOctaneIssues(Issues issues, String remoteTag) {
         if (issues == null) {
             return new ArrayList<>();
         }
@@ -137,6 +137,7 @@ public class SSCHandler {
         List<OctaneIssue> octaneIssues = new ArrayList<>();
         for (Issues.Issue issue : issues.getData()) {
             OctaneIssue octaneIssue = createOctaneIssue(dtoFactory, issue);
+            octaneIssue.setRemoteTag(remoteTag);
             octaneIssues.add(octaneIssue);
         }
 

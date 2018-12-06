@@ -58,7 +58,7 @@ public class VulnerabilitiesTests {
         sscIssues.setData(Arrays.asList(issue1, issue2, issue3, issue4));
 
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues, "1");
         for (int i = 0; i < 4; i++) {
             if (i != 3) {
                 Assert.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
@@ -84,7 +84,7 @@ public class VulnerabilitiesTests {
         sscIssues.setData(Arrays.asList(issue1, issue2, issue3, issue4, issue5));
 
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues, "1");
 
         String[] expectedValues = new String[]{
                 "list_node.issue_state_node.existing",
@@ -114,7 +114,7 @@ public class VulnerabilitiesTests {
         Issues sscIssues = new Issues();
         sscIssues.setData(Arrays.asList(issue));
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues,"1");
 
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("issueName"), "name");
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"), "likelihood");
@@ -136,7 +136,7 @@ public class VulnerabilitiesTests {
         Issues sscIssues = new Issues();
         sscIssues.setData(Arrays.asList(issue));
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues);
+        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues,"1");
 
         Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "fullFileName");
         Assert.assertEquals(String.valueOf(octaneIssues.get(0).getLine()), String.valueOf(100));
