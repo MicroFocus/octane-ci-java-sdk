@@ -167,6 +167,10 @@ public class SscProjectConnector {
         return null;
     }
 
+    public String getRemoteTag() {
+       return sscProjectConfiguration.getRemoteTag();
+    }
+
     public String getArtifactsURL(Integer projectVersionId, int limit) {
         return String.format("projectVersions/%d/artifacts?limit=%d", projectVersionId, limit);
     }
