@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.hp.octane.integrations.services.vulnerabilities.SSCHandler.createListNodeEntity;
+import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil.createListNodeEntity;
 
 public class SSCOctaneClosedIssuesSync {
 
@@ -92,7 +92,7 @@ public class SSCOctaneClosedIssuesSync {
         List<String> retVal = new ArrayList<>(octaneIssues);
         retVal.removeAll(remoteIdsSSC);
         //Make Octane issue from remote id's.
-        Entity closedListNodeEntity = createListNodeEntity(dtoFactory, "list_node.issue_state_node.closed");
+        Entity closedListNodeEntity = createListNodeEntity("list_node.issue_state_node.closed");
         return retVal.stream().map(t -> {
             OctaneIssueImpl octaneIssue = new OctaneIssueImpl();
             octaneIssue.setRemoteId(t);
@@ -104,7 +104,7 @@ public class SSCOctaneClosedIssuesSync {
 
     private Issues getOpenVulnsFromSSC(SSCProjectConfiguration sscProjectConfiguration, SSCRestClient sscRestClient) {
         SscProjectConnector projectConnector = new SscProjectConnector(sscProjectConfiguration, sscRestClient);
-        return projectConnector.readIssues(projectConnector.getProjectVersion().id, "updated");
+        return projectConnector.readIssues(projectConnector.getProjectVersion().id);
     }
 
     private List<String> getRemoteIdsOpenVulnsFromOctane(String jobId, String runId) throws IOException {

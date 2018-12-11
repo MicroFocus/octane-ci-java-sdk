@@ -20,13 +20,13 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -49,7 +49,7 @@ import java.util.concurrent.TimeUnit;
  * Default implementation of vulnerabilities service
  */
 
-final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
+public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
@@ -246,41 +246,38 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		CIPluginSDKUtils.doWait(SKIP_QUEUE_ITEM_INTERVAL);
 	}
 
-	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, SSCProjectConfiguration sscProjectConfiguration) {
-		String targetDir = getTargetDir(vulnerabilitiesQueueItem);
-		InputStream result = getCachedScanResult(targetDir);
-		if (result != null) {
-			return result;
-		}
-		SSCHandler sscHandler = new SSCHandler(
-				vulnerabilitiesQueueItem,
-				sscProjectConfiguration,
-				targetDir,
-				this.restService.obtainSSCRestClient());
-		Optional<List<OctaneIssue>> newIssues = sscHandler.getLatestScan();
-		if(!newIssues.isPresent()){
-			return null;
-		}
-		SSCOctaneClosedIssuesSync sscOctaneClosedIssuesSync = new SSCOctaneClosedIssuesSync(vulnerabilitiesQueueItem,
-				this.restService,sscProjectConfiguration,this.configurer.octaneConfiguration);
+	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
+                                                           SSCProjectConfiguration sscProjectConfiguration) throws IOException {
+        String targetDir = getTargetDir(vulnerabilitiesQueueItem);
+        InputStream result = getCachedScanResult(targetDir);
+        if (result != null) {
+            return result;
+        }
+        SSCHandler sscHandler = new SSCHandler(
+                vulnerabilitiesQueueItem,
+                sscProjectConfiguration,
+                this.restService.obtainSSCRestClient());
+        Optional<Issues> allIssues = sscHandler.getIssuesIfScanCompleted();
+        if (!allIssues.isPresent()) {
+            return null;
+        }
 
-		List<OctaneIssue> closeIssueInSSCOpenedInOctane = sscOctaneClosedIssuesSync.getCloseIssueInSSCOpenedInOctane();
+        ExistingIssuesInOctane existingIssuesInOctane = new ExistingIssuesInOctane(
+                this.restService.obtainOctaneRestClient(),
+                this.configurer.octaneConfiguration,
+                vulnerabilitiesQueueItem);
+        List<String> remoteIdsOpenVulnsFromOctane = existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane(vulnerabilitiesQueueItem.jobId,
+				vulnerabilitiesQueueItem.buildId,
+				sscProjectConfiguration.getRemoteTag());
 
-		return packUpdateAndNewIssues(targetDir, newIssues, closeIssueInSSCOpenedInOctane);
+        PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
+        return packIssuesToSendToOctane.packAllIssues(allIssues.get(),
+                remoteIdsOpenVulnsFromOctane,
+                targetDir,
+				sscProjectConfiguration.getRemoteTag());
+    }
 
-	}
 
-	private InputStream packUpdateAndNewIssues(String targetDir, Optional<List<OctaneIssue>> newIssues,
-											   List<OctaneIssue> closeIssueInSSCOpenedInOctane) {
-		List<OctaneIssue> totalIssues = new ArrayList<>();
-		totalIssues.addAll(closeIssueInSSCOpenedInOctane);
-		totalIssues.addAll(newIssues.get());
-		if (totalIssues.isEmpty()) {
-			throw new PermanentException("This scan has no issues.");
-		}
-		IssuesFileSerializer issuesFileSerializer = new IssuesFileSerializer(targetDir, totalIssues);
-		return issuesFileSerializer.doSerializeAndCache();
-	}
 
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
@@ -325,7 +322,7 @@ final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		public boolean isRelevant = false;
 
 		//  [YG] this constructor MUST be present, don't remove
-		private VulnerabilitiesQueueItem() {
+		public VulnerabilitiesQueueItem() {
 		}
 
 		private VulnerabilitiesQueueItem(String jobId, String buildId) {

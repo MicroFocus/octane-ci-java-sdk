@@ -1,3 +1,17 @@
+/*
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
+ *     Licensed under the Apache License, Version 2.0 (the "License");
+ *     you may not use this file except in compliance with the License.
+ *     You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *     Unless required by applicable law or agreed to in writing, software
+ *     distributed under the License is distributed on an "AS IS" BASIS,
+ *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *     See the License for the specific language governing permissions and
+ *     limitations under the License.
+ */
 package com.hp.octane.integrations.vulnerabilities;
 
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -13,6 +27,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil.createOctaneIssues;
 import static org.easymock.EasyMock.*;
 
 public class VulnerabilitiesTests {
@@ -31,12 +46,12 @@ public class VulnerabilitiesTests {
         SscProjectConnector sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClientMock);
 
         String projectIdURL = sscProjectConnector.getProjectIdURL();
-        String newIssuesURL = sscProjectConnector.getNewIssuesURL(1);
+        String newIssuesURL = sscProjectConnector.getIssuesURL(1);
         String artifactsURL = sscProjectConnector.getArtifactsURL(100, 1000);
         String urlForProjectVersion = sscProjectConnector.getURLForProjectVersion(500);
 
         Assert.assertEquals(projectIdURL, "projects?q=name:project");
-//        Assert.assertEquals(newIssuesURL, "projectVersions/1/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false");
+        Assert.assertEquals(newIssuesURL, "projectVersions/1/issues?showhidden=false&showremoved=false&showsuppressed=false");
         Assert.assertEquals(artifactsURL, "projectVersions/100/artifacts?limit=1000");
         Assert.assertEquals(urlForProjectVersion, "projects/500/versions?q=name:version");
     }
@@ -58,7 +73,7 @@ public class VulnerabilitiesTests {
         sscIssues.setData(Arrays.asList(issue1, issue2, issue3, issue4));
 
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues, "1");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag");
         for (int i = 0; i < 4; i++) {
             if (i != 3) {
                 Assert.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
@@ -84,7 +99,7 @@ public class VulnerabilitiesTests {
         sscIssues.setData(Arrays.asList(issue1, issue2, issue3, issue4, issue5));
 
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues, "1");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag");
 
         String[] expectedValues = new String[]{
                 "list_node.issue_state_node.existing",
@@ -114,7 +129,7 @@ public class VulnerabilitiesTests {
         Issues sscIssues = new Issues();
         sscIssues.setData(Arrays.asList(issue));
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues,"1");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(), "Tag");
 
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("issueName"), "name");
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"), "likelihood");
@@ -136,7 +151,7 @@ public class VulnerabilitiesTests {
         Issues sscIssues = new Issues();
         sscIssues.setData(Arrays.asList(issue));
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = sscHandler.createOctaneIssues(sscIssues,"1");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag");
 
         Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "fullFileName");
         Assert.assertEquals(String.valueOf(octaneIssues.get(0).getLine()), String.valueOf(100));

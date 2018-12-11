@@ -99,13 +99,8 @@ public class SscProjectConnector {
         }
     }
 
-    public Issues readNewIssuesOfLatestScan(int projectVersionId) {
-        String urlSuffix = getNewIssuesURL(projectVersionId);
-        return readPagedEntities(urlSuffix, Issues.class);
-    }
-
-    public Issues readIssues(int projectVersionId, String state) {
-        String urlSuffix = getIssuesURL(projectVersionId, state);
+    public Issues readIssues(int projectVersionId) {
+        String urlSuffix = getIssuesURL(projectVersionId);
         return readPagedEntities(urlSuffix, Issues.class);
     }
 
@@ -131,8 +126,8 @@ public class SscProjectConnector {
             return total;
         } catch (InstantiationException | IllegalAccessException e) {
             logger.error(e.getMessage());
+            throw new PermanentException("Fail to fetch Issues" ,e);
         }
-        return null;
     }
 
     private String getPagedURL(String url, int startIndex) {
@@ -155,20 +150,10 @@ public class SscProjectConnector {
         return "projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectName());
     }
 
-    public String getNewIssuesURL(int projectVersionId) {
-        return String.format("projectVersions/%d/issues?showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
-    }
 
-    public String getIssuesURL(int projectVersionId, String state) {
-        if ("updated".equalsIgnoreCase(state)) {
-            return String.format("projectVersions/%d/issues?q=[issue_age]:!new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false",
-                    projectVersionId);
-        }
-        return null;
-    }
-
-    public String getRemoteTag() {
-       return sscProjectConfiguration.getRemoteTag();
+    public String getIssuesURL(int projectVersionId) {
+        return String.format("projectVersions/%d/issues?showhidden=false&showremoved=false&showsuppressed=false",
+                projectVersionId);
     }
 
     public String getArtifactsURL(Integer projectVersionId, int limit) {
