@@ -15,10 +15,36 @@
 
 package com.hp.octane.integrations.services.tests;
 
+import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.UUID;
+
 public class TestsServiceNegativeTests {
+	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+	private static OctaneClient client;
+
+	@BeforeClass
+	public static void setupClient() {
+		String inId = UUID.randomUUID().toString();
+		String sspId = UUID.randomUUID().toString();
+		OctaneConfiguration configuration = new OctaneConfiguration(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
+		client = OctaneSDK.addClient(configuration, TestsServicePluginServicesTest.class);
+	}
+
+	@AfterClass
+	public static void removeClient() {
+		OctaneSDK.removeClient(client);
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
@@ -38,5 +64,102 @@ public class TestsServiceNegativeTests {
 	@Test(expected = ClassCastException.class)
 	public void testD() {
 		TestsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testE1() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.isTestsResultRelevant(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testE2() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.isTestsResultRelevant("");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testF1() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult((TestsResult) null, null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testF2() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(dtoFactory.newDTO(TestsResult.class), null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testF3() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(dtoFactory.newDTO(TestsResult.class), "", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testF4() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(dtoFactory.newDTO(TestsResult.class), "some", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testF5() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(dtoFactory.newDTO(TestsResult.class), "some", "");
+	}
+
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testG1() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult((TestsResult) null, null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testG2() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(new ByteArrayInputStream(new byte[]{}), null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testG3() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(new ByteArrayInputStream(new byte[]{}), "", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testG4() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(new ByteArrayInputStream(new byte[]{}), "some", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testG5() throws IOException {
+		TestsService testsService = client.getTestsService();
+		testsService.pushTestsResult(new ByteArrayInputStream(new byte[]{}), "some", "");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testH1() {
+		TestsService testsService = client.getTestsService();
+		testsService.enqueuePushTestsResult(null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testH2() {
+		TestsService testsService = client.getTestsService();
+		testsService.enqueuePushTestsResult("", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testH3() {
+		TestsService testsService = client.getTestsService();
+		testsService.enqueuePushTestsResult("some", null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testH4() {
+		TestsService testsService = client.getTestsService();
+		testsService.enqueuePushTestsResult("some", "");
 	}
 }

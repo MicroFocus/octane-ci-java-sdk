@@ -6,312 +6,143 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.octane.integrations.dto.connectivity.TaskProcessingErrorBody;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.octane.integrations.dto.parameters.CIParameter;
-import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
-import org.apache.http.HttpHeaders;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
-import org.apache.http.entity.ContentType;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.server.Response;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.GZIPInputStream;
 
-import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_PLUGIN_VERSION;
-import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_SENDING_TIME;
-import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_SERVER_TYPE;
-import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_SERVER_URL;
-import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_SERVER_VERSION;
+import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
 public class TaskingServiceE2ETests {
+	private static final Logger logger = LogManager.getLogger(TaskingServiceE2ETests.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String APIPrefix = "/nga/api/v1";
+
+	private static String inId = UUID.randomUUID().toString();
+	private static String sspId = UUID.randomUUID().toString();
 	private static OctaneClient client;
+	private static final BlockingQueue<OctaneTaskAbridged> tasks = new ArrayBlockingQueue<>(10);
+	private static final Map<String, OctaneResultAbridged> results = new HashMap<>();
 
 	@BeforeClass
-	public static void setupClient() {
-		String inId = UUID.randomUUID().toString();
-		String sspId = UUID.randomUUID().toString();
+	public static void setup() {
+		//  setup Octane simulator
+		OctaneSPEndpointSimulator octaneSPEndpointSimulator = setupOctaneEPSimulator(sspId);
+		Assert.assertNotNull(octaneSPEndpointSimulator);
+
+		//  setup Octane client
 		OctaneConfiguration configuration = new OctaneConfiguration(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
 		client = OctaneSDK.addClient(configuration, TaskingTestPluginServicesTest.class);
 	}
 
 	@AfterClass
-	public static void removeClient() {
+	public static void cleanup() {
 		OctaneSDK.removeClient(client);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void negativeTestA() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		tasksProcessor.execute(null);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void negativeTestB() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class);
-		tasksProcessor.execute(taskAbridged);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void negativeTestC() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setUrl("");
-		tasksProcessor.execute(taskAbridged);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void negativeTestD() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setUrl("some_wrong_url");
-		tasksProcessor.execute(taskAbridged);
+		OctaneSPEndpointSimulator.removeInstance(sspId);
 	}
 
 	@Test
-	public void testNonExistingAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+	public void taskingE2ETest() {
+		OctaneTaskAbridged task;
 
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/some/non/existing/url");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_NOT_FOUND, resultAbridged.getStatus());
-		Assert.assertNotNull(resultAbridged.getHeaders());
-		Assert.assertTrue(resultAbridged.getHeaders().isEmpty());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
-	}
-
-	@Test
-	public void testStatusAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
+		//  push task 1 - status
+		String statusTaskId = UUID.randomUUID().toString();
+		task = dtoFactory.newDTO(OctaneTaskAbridged.class)
+				.setId(statusTaskId)
+				.setServiceId(inId)
 				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/status");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
+		tasks.add(task);
 
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
-
-		CIProviderSummaryInfo status = dtoFactory.dtoFromJson(resultAbridged.getBody(), CIProviderSummaryInfo.class);
-		Assert.assertNotNull(status);
-
-		Assert.assertNotNull(status.getSdk());
-		Assert.assertNotNull(status.getSdk().getApiVersion());
-		Assert.assertEquals(1, (int) status.getSdk().getApiVersion());
-		Assert.assertEquals(OctaneSDK.SDK_VERSION, status.getSdk().getSdkVersion());
-
-		Assert.assertNotNull(status.getPlugin());
-		Assert.assertEquals(TEST_PLUGIN_VERSION, status.getPlugin().getVersion());
-
-		Assert.assertNotNull(status.getServer());
-		Assert.assertEquals(TEST_SERVER_URL, status.getServer().getUrl());
-		Assert.assertEquals(TEST_SERVER_TYPE, status.getServer().getType());
-		Assert.assertEquals(TEST_SERVER_VERSION, status.getServer().getVersion());
-		Assert.assertEquals(TEST_SENDING_TIME, status.getServer().getSendingTime());
-	}
-
-	@Test
-	public void testJobNoImplementedAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
+		//  push task 2 - jobs list
+		String jobsTaskId = UUID.randomUUID().toString();
+		task = dtoFactory.newDTO(OctaneTaskAbridged.class)
+				.setId(jobsTaskId)
+				.setServiceId(inId)
 				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs");
+		tasks.add(task);
 
-		TaskingTestPluginServicesTest.getJobsAPIReturnNull = true;
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-		TaskingTestPluginServicesTest.getJobsAPIReturnNull = false;
-
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_NOT_IMPLEMENTED);
-	}
-
-	@Test
-	public void testJobsWithParamsAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
-
-		CIJobsList ciJobsList = dtoFactory.dtoFromJson(resultAbridged.getBody(), CIJobsList.class);
-		Assert.assertNotNull(ciJobsList);
-		Assert.assertNotNull(ciJobsList.getJobs());
-		Assert.assertEquals(3, ciJobsList.getJobs().length);
-		for (PipelineNode ciJob : ciJobsList.getJobs()) {
-			Assert.assertNotNull(ciJob);
-			Assert.assertTrue(ciJob.getName().startsWith("Job "));
-			Assert.assertTrue(ciJob.getJobCiId().startsWith("job-"));
-			Assert.assertNotNull(ciJob.getParameters());
-			Assert.assertEquals(3, ciJob.getParameters().size());
-			for (CIParameter ciParameter : ciJob.getParameters()) {
-				Assert.assertNotNull(ciParameter);
-				Assert.assertNotNull(ciParameter.getName());
-				Assert.assertNotNull(ciParameter.getType());
-				Assert.assertNotNull(ciParameter.getValue());
+		//  wait for at least 2 tasks to arrive in results map
+		GeneralTestUtils.waitAtMostFor(10000, () -> {
+			if (results.size() < 3) {
+				return null;
+			} else {
+				return true;
 			}
-		}
+		});
+
+		//  verify status task cycle
+		Assert.assertTrue(results.containsKey(statusTaskId));
+		OctaneResultAbridged statusResult = results.get(statusTaskId);
+		Assert.assertNotNull(statusResult);
+		Assert.assertEquals(inId, statusResult.getServiceId());
+		Assert.assertEquals(HttpStatus.SC_OK, statusResult.getStatus());
+
+		//  verify jobs task cycle
+		Assert.assertTrue(results.containsKey(jobsTaskId));
+		OctaneResultAbridged jobsResult = results.get(jobsTaskId);
+		Assert.assertNotNull(jobsResult);
+		Assert.assertEquals(inId, jobsResult.getServiceId());
+		Assert.assertEquals(HttpStatus.SC_OK, jobsResult.getStatus());
 	}
 
-	@Test
-	public void testJobsNoParamsAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+	private static OctaneSPEndpointSimulator setupOctaneEPSimulator(String sspId) {
+		OctaneSPEndpointSimulator result = OctaneSPEndpointSimulator.addInstance(sspId);
 
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs?parameters=false");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
+		//  remove default NOOP GET tasks API handler
+		result.removeApiHandler(HttpMethod.GET, "^.*tasks$");
 
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
+		//  install GET tasks API handler
+		result.installApiHandler(HttpMethod.GET, "^.*tasks$", request -> {
+			try {
+				Response response = request.getResponse();
+				OctaneTaskAbridged task = tasks.poll(500, TimeUnit.MILLISECONDS);
+				if (task != null) {
+					logger.info("got task to dispatch to CI Server - " + task.getUrl() + " - " + task.getId() + "...");
+					response.setStatus(HttpStatus.SC_OK);
+					response.addHeader(CONTENT_TYPE, "application/json");
+					response.getWriter().write(dtoFactory.dtoCollectionToJson(Collections.singletonList(task)));
+					response.flushBuffer();
+					logger.info("... task dispatched");
+				} else {
+					results.put("timeout_flow_verification_part", null);
+					response.setStatus(HttpStatus.SC_REQUEST_TIMEOUT);
+				}
+			} catch (Exception e) {
+				logger.error("failed during simulation of Octane EP - GET tasks", e);
+			}
+		});
 
-		CIJobsList ciJobsList = dtoFactory.dtoFromJson(resultAbridged.getBody(), CIJobsList.class);
-		Assert.assertNotNull(ciJobsList);
-		Assert.assertNotNull(ciJobsList.getJobs());
-		Assert.assertEquals(3, ciJobsList.getJobs().length);
-		for (PipelineNode ciJob : ciJobsList.getJobs()) {
-			Assert.assertNotNull(ciJob);
-			Assert.assertTrue(ciJob.getName().startsWith("Job "));
-			Assert.assertTrue(ciJob.getJobCiId().startsWith("job-"));
-			Assert.assertNotNull(ciJob.getParameters());
-			Assert.assertTrue(ciJob.getParameters().isEmpty());
-		}
-	}
-
-	@Test
-	public void testJobNotExistsAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs/job-not-exists");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_NOT_FOUND, resultAbridged.getStatus());
-		Assert.assertNotNull(resultAbridged.getHeaders());
-		Assert.assertTrue(resultAbridged.getHeaders().isEmpty());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
-	}
-
-	@Test
-	public void testJobSpecificAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs/job-a");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
-
-		PipelineNode pipeline = dtoFactory.dtoFromJson(resultAbridged.getBody(), PipelineNode.class);
-		Assert.assertNotNull(pipeline);
-		Assert.assertEquals("job-a", pipeline.getJobCiId());
-		Assert.assertEquals("Job A", pipeline.getName());
-		Assert.assertNotNull(pipeline.getPhasesInternal());
-		Assert.assertTrue(pipeline.getPhasesInternal().isEmpty());
-		Assert.assertNotNull(pipeline.getPhasesPostBuild());
-		Assert.assertTrue(pipeline.getPhasesPostBuild().isEmpty());
-		Assert.assertNotNull(pipeline.getParameters());
-		Assert.assertTrue(pipeline.getParameters().isEmpty());
-		Assert.assertNull(pipeline.getMultiBranchType());
-	}
-
-	@Test
-	public void testRunNotImplementedAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs/job-a/run");
-
-		TaskingTestPluginServicesTest.runAPINotImplemented = true;
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-		TaskingTestPluginServicesTest.runAPINotImplemented = false;
-
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_NOT_IMPLEMENTED, resultAbridged.getStatus());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
-	}
-
-	@Test
-	public void testRunThrowsExceptionAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs/job-a/run");
-
-		TaskingTestPluginServicesTest.runAPIThrowsException = true;
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-		TaskingTestPluginServicesTest.runAPIThrowsException = false;
-
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
-
-		TaskProcessingErrorBody errorBody = dtoFactory.dtoFromJson(resultAbridged.getBody(), TaskProcessingErrorBody.class);
-		Assert.assertNotNull(errorBody);
-		Assert.assertNotNull(errorBody.getErrorMessage());
-		Assert.assertTrue(errorBody.getErrorMessage().contains("runtime exception"));
-	}
-
-	@Test
-	public void testRunAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs/job-a/run");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_CREATED, resultAbridged.getStatus());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
-	}
-
-	private void runCommonAsserts(OctaneResultAbridged resultAbridged, String taskId, int expectedStatus) {
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(expectedStatus, resultAbridged.getStatus());
-		Assert.assertEquals(ContentType.APPLICATION_JSON.getMimeType(), resultAbridged.getHeaders().get(HttpHeaders.CONTENT_TYPE));
-		Assert.assertEquals(taskId, resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNotNull(resultAbridged.getBody());
+		//  install PUT results API handler
+		result.installApiHandler(HttpMethod.PUT, "^.*result$", request -> {
+			try {
+				String rawBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+				OctaneResultAbridged taskResult = dtoFactory.dtoFromJson(rawBody, OctaneResultAbridged.class);
+				logger.info("received and parsed result for task " + taskResult.getId());
+				Assert.assertNotNull(taskResult);
+				Assert.assertNotNull(taskResult.getId());
+				results.put(taskResult.getId(), taskResult);
+			} catch (Exception e) {
+				logger.error("failed during simulation of Octane EP - PUT results", e);
+			}
+		});
+		return result;
 	}
 }

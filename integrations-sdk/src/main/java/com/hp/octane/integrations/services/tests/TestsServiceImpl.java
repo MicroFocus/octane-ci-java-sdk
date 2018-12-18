@@ -89,11 +89,8 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	@Override
-	public boolean isTestsResultRelevant(String jobId) throws IOException {
+	public boolean isTestsResultRelevant(String jobId) {
 		String serverCiId = configurer.octaneConfiguration.getInstanceId();
-		if (serverCiId == null || serverCiId.isEmpty()) {
-			throw new IllegalArgumentException("server CI ID MUST NOT be null nor empty");
-		}
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
 		}
@@ -104,8 +101,18 @@ final class TestsServiceImpl implements TestsService {
 						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
 						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight");
 
-		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
-		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
+		try {
+			OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
+			if (response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody())) {
+				return true;
+			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+				throw new TemporaryException("preflight request failed with status " + response.getStatus());
+			} else {
+				throw new PermanentException("preflight request failed with status " + response.getStatus());
+			}
+		} catch (IOException ioe) {
+			throw new TemporaryException(ioe);
+		}
 	}
 
 	@Override
@@ -192,7 +199,6 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				testsResultQueueItem = testResultsQueue.peek();
 				doPreflightAndPushTestResult(testsResultQueueItem);
-				logger.debug("successfully processed " + testsResultQueueItem);
 				testResultsQueue.remove();
 			} catch (TemporaryException tque) {
 				logger.error("temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
@@ -218,14 +224,10 @@ final class TestsServiceImpl implements TestsService {
 
 		//  preflight
 		boolean isRelevant;
-		try {
-			isRelevant = isTestsResultRelevant(queueItem.jobId);
-			if (!isRelevant) {
-				logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
-				return;
-			}
-		} catch (IOException ioe) {
-			throw new TemporaryException("failed to perform preflight request for " + queueItem, ioe);
+		isRelevant = isTestsResultRelevant(queueItem.jobId);
+		if (!isRelevant) {
+			logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
+			return;
 		}
 
 		//  [YG] TODO: TEMPORARY SOLUTION - ci server ID, job ID and build ID should move to become a query parameters
