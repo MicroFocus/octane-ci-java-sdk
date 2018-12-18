@@ -1,12 +1,10 @@
-package com.hp.octane.integrations.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.vulnerabilities.SSCHandler;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
-import com.hp.octane.integrations.vulnerabilities.Mocks.DummyContents;
-import com.hp.octane.integrations.vulnerabilities.Mocks.MockSSCRestClient;
+import com.hp.octane.integrations.services.vulnerabilities.Mocks.DummyContents;
+import com.hp.octane.integrations.services.vulnerabilities.Mocks.MockSSCRestClient;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +13,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 
-import static com.hp.octane.integrations.vulnerabilities.SSCTestUtils.*;
+import static com.hp.octane.integrations.services.vulnerabilities.SSCTestUtils.*;
 import static org.easymock.EasyMock.*;
 
 public class SSCHandlerTest {

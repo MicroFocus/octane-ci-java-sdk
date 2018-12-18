@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.vulnerabilities.Mocks;
+package com.hp.octane.integrations.services.vulnerabilities.Mocks;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;

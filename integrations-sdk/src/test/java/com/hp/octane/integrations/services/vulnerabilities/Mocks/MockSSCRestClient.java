@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.vulnerabilities.Mocks;
+package com.hp.octane.integrations.services.vulnerabilities.Mocks;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
@@ -13,7 +13,6 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 public class MockSSCRestClient implements SSCRestClient {
 

@@ -157,9 +157,7 @@ final class TestsServiceImpl implements TestsService {
 				.setUrl(uri)
 				.setHeaders(headers)
 				.setBody(testsResult);
-		OctaneResponse response = octaneRestClient.execute(request);
-		logger.info("tests result pushed; status: " + response.getStatus() + ", response: " + response.getBody());
-		return response;
+		return octaneRestClient.execute(request);
 	}
 
 	@Override
@@ -243,9 +241,11 @@ final class TestsServiceImpl implements TestsService {
 		//  push
 		try {
 			OctaneResponse response = pushTestsResult(testsResult, queueItem.jobId, queueItem.buildId);
-			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+			if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+				logger.info("successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());
+			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
-			} else if (response.getStatus() != HttpStatus.SC_ACCEPTED) {
+			} else {
 				throw new PermanentException("push request PERMANENTLY failed with status " + response.getStatus());
 			}
 		} catch (IOException ioe) {

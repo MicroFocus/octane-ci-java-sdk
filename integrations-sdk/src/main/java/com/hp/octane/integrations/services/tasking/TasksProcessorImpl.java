@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.connectivity.TaskProcessingErrorBody;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
@@ -33,7 +34,9 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ConfigurationException;
 import com.hp.octane.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -89,8 +92,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 
 		OctaneResultAbridged result = DTOFactory.getInstance().newDTO(OctaneResultAbridged.class);
 		result.setId(task.getId());
-		result.setStatus(200);
+		result.setStatus(HttpStatus.SC_OK);
 		result.setHeaders(new HashMap<>());
+		result.setServiceId(configurer.octaneConfiguration.getInstanceId());
 		String[] path = pathTokenizer(task.getUrl());
 		try {
 			if (path.length == 1 && STATUS.equals(path[0])) {
@@ -112,9 +116,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 						executeSnapshotByNumberRequest(result, path[1], path[3]);
 					}
 				} else {
-					result.setStatus(404);
+					result.setStatus(HttpStatus.SC_NOT_FOUND);
 				}
-
 			} else if (EXECUTOR.equalsIgnoreCase(path[0])) {
 				if (HttpMethod.POST.equals(task.getMethod()) && path.length == 2) {
 					if (INIT.equalsIgnoreCase(path[1])) {
@@ -126,11 +129,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 							result.setBody(dtoFactory.dtoToJson(node));
 							result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 						}
-						result.setStatus(200);
+						result.setStatus(HttpStatus.SC_OK);
 					} else if (SUITE_RUN.equalsIgnoreCase(path[1])) {
 						TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
 						configurer.pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
-						result.setStatus(200);
+						result.setStatus(HttpStatus.SC_OK);
 					} else if (TEST_CONN.equalsIgnoreCase(path[1])) {
 						TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
 						OctaneResponse connTestResult = configurer.pluginServices.checkRepositoryConnectivity(testConnectivityInfo);
@@ -139,17 +142,15 @@ final class TasksProcessorImpl implements TasksProcessor {
 					} else if (CREDENTIALS_UPSERT.equalsIgnoreCase(path[1])) {
 						CredentialsInfo credentialsInfo = dtoFactory.dtoFromJson(task.getBody(), CredentialsInfo.class);
 						executeUpsertCredentials(result, credentialsInfo);
-
 					} else {
-						result.setStatus(404);
+						result.setStatus(HttpStatus.SC_NOT_FOUND);
 					}
 				} else if (HttpMethod.DELETE.equals(task.getMethod()) && path.length == 2) {
 					String id = path[1];
 					configurer.pluginServices.deleteExecutor(id);
 				}
-
 			} else {
-				result.setStatus(404);
+				result.setStatus(HttpStatus.SC_NOT_FOUND);
 			}
 		} catch (PermissionException pe) {
 			logger.warn("task execution failed; error: " + pe.getErrorCode());
@@ -161,7 +162,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 			result.setBody(String.valueOf(ce.getErrorCode()));
 		} catch (Exception e) {
 			logger.error("task execution failed", e);
-			result.setStatus(500);
+			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 		}
 
 		logger.info("result for task '" + task.getId() + "' available with status " + result.getStatus());
@@ -211,25 +212,46 @@ final class TasksProcessorImpl implements TasksProcessor {
 
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters) {
 		CIJobsList content = configurer.pluginServices.getJobsList(includingParameters);
-		result.setBody(dtoFactory.dtoToJson(content));
+		if (content != null) {
+			result.setBody(dtoFactory.dtoToJson(content));
+		} else {
+			TaskProcessingErrorBody errorMessage = dtoFactory.newDTO(TaskProcessingErrorBody.class)
+					.setErrorMessage("'getJobsList' API is not implemented OR returns NULL, which contradicts API requirement (MAY be empty list)");
+			result.setBody(dtoFactory.dtoToJson(errorMessage));
+			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
+		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
 		PipelineNode content = configurer.pluginServices.getPipeline(jobId);
-		result.setBody(dtoFactory.dtoToJson(content));
-		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+		if (content != null) {
+			result.setBody(dtoFactory.dtoToJson(content));
+			result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+		} else {
+			result.setStatus(HttpStatus.SC_NOT_FOUND);
+		}
 	}
 
 	private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		configurer.pluginServices.runPipeline(jobId, originalBody);
-		result.setStatus(201);
+		try {
+			configurer.pluginServices.runPipeline(jobId, originalBody);
+			result.setStatus(HttpStatus.SC_CREATED);
+		} catch (SPIMethodNotImplementedException spimnie) {
+			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
+		} catch (Throwable throwable) {
+			TaskProcessingErrorBody errorBody = dtoFactory.newDTO(TaskProcessingErrorBody.class)
+					.setErrorMessage("failed to run '" + jobId + "'; server error message: " + throwable.getMessage());
+			result.setBody(dtoFactory.dtoToJson(errorBody));
+			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+		}
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void suspendCiEvents(OctaneResultAbridged result, String suspend) {
 		boolean toSuspend = Boolean.parseBoolean(suspend);
 		configurer.pluginServices.suspendCIEvents(toSuspend);
-		result.setStatus(201);
+		result.setStatus(HttpStatus.SC_CREATED);
 	}
 
 	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId) {
@@ -237,7 +259,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
-			result.setStatus(404);
+			result.setStatus(HttpStatus.SC_NOT_FOUND);
 		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
@@ -247,7 +269,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		if (data != null) {
 			result.setBody(dtoFactory.dtoToJson(data));
 		} else {
-			result.setStatus(404);
+			result.setStatus(HttpStatus.SC_NOT_FOUND);
 		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
