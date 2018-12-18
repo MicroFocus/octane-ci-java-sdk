@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.UUID;
 
 public class TestsServiceNegativeTests {
@@ -81,7 +82,8 @@ public class TestsServiceNegativeTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void testF1() throws IOException {
 		TestsService testsService = client.getTestsService();
-		testsService.pushTestsResult((TestsResult) null, null, null);
+		TestsResult tr = null;
+		testsService.pushTestsResult(tr, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -112,7 +114,8 @@ public class TestsServiceNegativeTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void testG1() throws IOException {
 		TestsService testsService = client.getTestsService();
-		testsService.pushTestsResult((TestsResult) null, null, null);
+		InputStream is = null;
+		testsService.pushTestsResult(is, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
