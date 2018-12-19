@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.services.vulnerabilities.mocks_helpers;
+package com.hp.octane.integrations.services.vulnerabilities.mocks;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
