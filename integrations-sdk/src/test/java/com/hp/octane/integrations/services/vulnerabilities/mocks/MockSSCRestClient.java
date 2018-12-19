@@ -38,7 +38,7 @@ public class MockSSCRestClient implements SSCRestClient {
 
 	static class DummyEntity implements HttpEntity {
 
-		String content;
+		private String content;
 
 		private DummyEntity(String contentString) {
 			this.content = contentString;
@@ -76,6 +76,7 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void writeTo(OutputStream outputStream) {
+			//
 		}
 
 		@Override
@@ -85,6 +86,7 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void consumeContent() {
+			//
 		}
 	}
 
@@ -98,6 +100,7 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void close() {
+			//
 		}
 
 		@Override
@@ -107,22 +110,27 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void setStatusLine(StatusLine statusLine) {
+			//
 		}
 
 		@Override
 		public void setStatusLine(ProtocolVersion protocolVersion, int i) {
+			//
 		}
 
 		@Override
 		public void setStatusLine(ProtocolVersion protocolVersion, int i, String s) {
+			//
 		}
 
 		@Override
 		public void setStatusCode(int i) throws IllegalStateException {
+			//
 		}
 
 		@Override
 		public void setReasonPhrase(String s) throws IllegalStateException {
+			//
 		}
 
 		@Override
@@ -132,6 +140,7 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void setEntity(HttpEntity httpEntity) {
+			//
 		}
 
 		@Override
@@ -141,6 +150,7 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void setLocale(Locale locale) {
+			//
 		}
 
 		@Override
@@ -175,30 +185,37 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void addHeader(Header header) {
+			//
 		}
 
 		@Override
 		public void addHeader(String s, String s1) {
+			//
 		}
 
 		@Override
 		public void setHeader(Header header) {
+			//
 		}
 
 		@Override
 		public void setHeader(String s, String s1) {
+			//
 		}
 
 		@Override
 		public void setHeaders(Header[] headers) {
+			//
 		}
 
 		@Override
 		public void removeHeader(Header header) {
+			//
 		}
 
 		@Override
 		public void removeHeaders(String s) {
+			//
 		}
 
 		@Override
@@ -218,6 +235,7 @@ public class MockSSCRestClient implements SSCRestClient {
 
 		@Override
 		public void setParams(HttpParams httpParams) {
+			//
 		}
 	}
 

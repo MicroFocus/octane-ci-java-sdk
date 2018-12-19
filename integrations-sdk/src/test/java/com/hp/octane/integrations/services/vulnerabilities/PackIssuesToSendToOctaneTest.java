@@ -25,10 +25,8 @@ public class PackIssuesToSendToOctaneTest {
 
 		String targetDir = String.join(File.separator, currentDir, "temp", "SSCTests");
 		File file = new File(targetDir);
-		if (!file.exists()) {
-			if (!file.mkdirs()) {
-				throw new IllegalStateException("failed to create temporary folder for tests output");
-			}
+		if (!file.exists() && !file.mkdirs()) {
+			throw new IllegalStateException("failed to create temporary folder for tests output");
 		}
 		this.targetDir = targetDir;
 	}
