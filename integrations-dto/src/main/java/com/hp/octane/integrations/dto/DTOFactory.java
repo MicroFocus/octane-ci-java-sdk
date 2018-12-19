@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.events.impl.DTOEventsProvider;
 import com.hp.octane.integrations.dto.executor.impl.DTOExecutorsProvider;
 import com.hp.octane.integrations.dto.general.impl.DTOGeneralProvider;
 import com.hp.octane.integrations.dto.parameters.impl.DTOParametersProvider;
+import com.hp.octane.integrations.dto.securityscans.impl.DTOSecurityContextProvider;
 import com.hp.octane.integrations.dto.pipelines.impl.DTOPipelinesProvider;
 import com.hp.octane.integrations.dto.scm.impl.DTOSCMProvider;
 import com.hp.octane.integrations.dto.snapshots.impl.DTOSnapshotsProvider;
@@ -40,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -172,7 +174,30 @@ public final class DTOFactory {
 				}
 			}
 			if (internalFactory != null) {
-				return internalFactory.toXML(dto);
+				return internalFactory.toXml(dto);
+			} else {
+				throw new RuntimeException(dto.getClass() + " is not supported in this flow");
+			}
+		} catch (JAXBException | UnsupportedEncodingException e) {
+			throw new RuntimeException("failed to serialize " + dto + " to XML", e);
+		}
+	}
+
+	public <T extends DTOBase> InputStream dtoToXmlStream(T dto) {
+		if (dto == null) {
+			throw new IllegalArgumentException("dto MUST NOT be null");
+		}
+
+		DTOInternalProviderBase internalFactory = null;
+		try {
+			for (Class<? extends DTOBase> supported : configuration.registry.keySet()) {
+				if (supported.isAssignableFrom(dto.getClass())) {
+					internalFactory = configuration.registry.get(supported);
+					break;
+				}
+			}
+			if (internalFactory != null) {
+				return internalFactory.toXmlStream(dto);
 			} else {
 				throw new RuntimeException(dto.getClass() + " is not supported in this flow");
 			}
@@ -258,6 +283,7 @@ public final class DTOFactory {
 			providers.add(new DTOExecutorsProvider(this));
 			providers.add(new DTOJUnitTestsProvider(this));
 			providers.add(new DTOEntityProvider(this));
+			providers.add(new DTOSecurityContextProvider(this));
 
 			//  register providers' data within the Factory
 			//  configure ObjectMapper with interfaces and implementations

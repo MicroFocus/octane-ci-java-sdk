@@ -16,11 +16,13 @@
 
 package com.hp.octane.integrations.dto.executor.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 
 /**
  * Created by berkovir on 27/03/2017.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TestExecutionInfoImpl implements TestExecutionInfo {
     private String testName;
     private String packageName;

@@ -11,14 +11,11 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.rest;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.api.RestClient;
-import com.hp.octane.integrations.api.RestService;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,26 +24,34 @@ import org.apache.logging.log4j.Logger;
  * REST Service - default implementation
  */
 
-public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements RestService {
+final class RestServiceImpl implements RestService {
 	private static final Logger logger = LogManager.getLogger(RestServiceImpl.class);
-	private static final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
+	private final Object DEFAULT_CLIENT_INIT_LOCK = new Object();
+	private final Object SSC_CLIENT_INIT_LOCK = new Object();
 
-	private RestClientImpl defaultClient;
+	private final OctaneSDK.SDKServicesConfigurer configurer;
+	private OctaneRestClientImpl defaultClient;
+	private SSCRestClient sscRestClient;
 
-	public RestServiceImpl(Object internalUsageValidator) {
-		super(internalUsageValidator);
+	RestServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
+
+		this.configurer = configurer;
 
 		logger.info("initializing a default Octane REST client...");
-		obtainClient();
+		obtainOctaneRestClient();
 		logger.info("...default Octane REST client initialized");
 	}
 
-	public RestClient obtainClient() {
+	@Override
+	public OctaneRestClient obtainOctaneRestClient() {
 		if (defaultClient == null) {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
-				if (defaultClient == null) {
+				if (null == defaultClient) {
 					try {
-						defaultClient = new RestClientImpl(pluginServices);
+						defaultClient = new OctaneRestClientImpl(configurer);
 					} catch (Exception e) {
 						logger.error("failed to initialize Octane's REST client");
 					}
@@ -56,8 +61,25 @@ public final class RestServiceImpl extends OctaneSDK.SDKServiceBase implements R
 		return defaultClient;
 	}
 
-	public RestClient createClient(CIProxyConfiguration proxyConfiguration) {
-		return new RestClientImpl(pluginServices);
+	@Override
+	public SSCRestClient obtainSSCRestClient() {
+		if (sscRestClient == null) {
+			synchronized (SSC_CLIENT_INIT_LOCK) {
+				if (null == sscRestClient) {
+					try {
+						sscRestClient = new SSCRestClientImpl(configurer);
+					} catch (Exception e) {
+						logger.error("failed to initialize Octane's REST client");
+					}
+				}
+			}
+		}
+		return sscRestClient;
+	}
+
+	@Override
+	public OctaneRestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration) {
+		return new OctaneRestClientImpl(configurer);
 	}
 
 	@Override

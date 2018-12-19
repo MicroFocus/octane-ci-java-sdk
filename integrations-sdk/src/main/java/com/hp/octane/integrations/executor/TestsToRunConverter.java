@@ -16,7 +16,7 @@
 
 package com.hp.octane.integrations.executor;
 
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,7 +65,7 @@ public abstract class TestsToRunConverter {
                 if (parameterParts.length != PARAMETER_SIZE) {
                     throw new IllegalArgumentException("Test' " + rawtest + "' contains illegal parameter format");
                 }
-                data.addParameters(testParts[0], testParts[1]);
+                data.addParameters(parameterParts[0], parameterParts[1]);
             }
         }
 

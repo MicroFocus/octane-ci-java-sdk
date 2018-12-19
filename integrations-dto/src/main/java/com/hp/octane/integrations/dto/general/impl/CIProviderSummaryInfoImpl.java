@@ -32,28 +32,34 @@ class CIProviderSummaryInfoImpl implements CIProviderSummaryInfo {
 	private CIPluginInfo plugin;
 	private CIPluginSDKInfo sdk;
 
+	@Override
 	public CIServerInfo getServer() {
 		return server;
 	}
 
+	@Override
 	public CIProviderSummaryInfo setServer(CIServerInfo server) {
 		this.server = server;
 		return this;
 	}
 
+	@Override
 	public CIPluginInfo getPlugin() {
 		return plugin;
 	}
 
+	@Override
 	public CIProviderSummaryInfo setPlugin(CIPluginInfo plugin) {
 		this.plugin = plugin;
 		return this;
 	}
 
+	@Override
 	public CIPluginSDKInfo getSdk() {
 		return sdk;
 	}
 
+	@Override
 	public CIProviderSummaryInfo setSdk(CIPluginSDKInfo sdk) {
 		this.sdk = sdk;
 		return this;

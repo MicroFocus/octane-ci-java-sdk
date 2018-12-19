@@ -16,15 +16,18 @@
 
 package com.hp.octane.integrations.dto.executor.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 
 /**
  * Created by berkovir on 27/03/2017.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class DiscoveryInfoImpl implements DiscoveryInfo {
 
     private String executorId;
+    private String executorType;
     private String executorLogicalName;
     private String workspaceId;
     private String scmRepositoryId;
@@ -32,6 +35,7 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     private SCMRepository scmRepository;
     private boolean forceFullDiscovery;
     private TestingToolType testingToolType;
+    private String configurationId;
 
     @Override
     public String getWorkspaceId() {
@@ -112,5 +116,25 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     public DiscoveryInfo setExecutorLogicalName(String executorLogicalName) {
         this.executorLogicalName = executorLogicalName;
         return this;
+    }
+
+    @Override
+    public String getConfigurationId() {
+        return configurationId;
+    }
+
+    @Override
+    public void setConfigurationId(String configurationId) {
+        this.configurationId = configurationId;
+    }
+
+    @Override
+    public String getExecutorType() {
+        return executorType;
+    }
+
+    @Override
+    public void setExecutorType(String executorType) {
+        this.executorType = executorType;
     }
 }

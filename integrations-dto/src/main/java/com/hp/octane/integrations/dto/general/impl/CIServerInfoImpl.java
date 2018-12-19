@@ -17,7 +17,6 @@
 package com.hp.octane.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 
 /**
@@ -46,55 +45,67 @@ class CIServerInfoImpl implements CIServerInfo {
 		this.instanceIdFrom = instanceIdFrom;
 	}
 
+	@Override
 	public String getType() {
 		return type;
 	}
 
+	@Override
 	public CIServerInfo setType(String type) {
 		this.type = type;
 		return this;
 	}
 
+	@Override
 	public String getVersion() {
 		return version;
 	}
 
+	@Override
 	public CIServerInfo setVersion(String version) {
 		this.version = version;
 		return this;
 	}
 
+	@Override
 	public String getUrl() {
 		return url;
 	}
 
+	@Override
 	public CIServerInfo setUrl(String url) {
 		this.url = normalizeURL(url);
 		return this;
 	}
 
+	@Override
 	public String getInstanceId() {
 		return instanceId;
 	}
 
+	@Override
 	public CIServerInfo setInstanceId(String instanceId) {
 		this.instanceId = instanceId;
 		return this;
 	}
 
+	@Override
 	public Long getInstanceIdFrom() {
 		return instanceIdFrom;
 	}
 
+	@Override
 	public CIServerInfo setInstanceIdFrom(Long instanceIdFrom) {
 		this.instanceIdFrom = instanceIdFrom;
 		return this;
 	}
 
+	@Override
 	public Long getSendingTime() {
 		return sendingTime;
 	}
 
+	@Override
 	public CIServerInfo setSendingTime(Long sendingTime) {
 		this.sendingTime = sendingTime;
 		return this;

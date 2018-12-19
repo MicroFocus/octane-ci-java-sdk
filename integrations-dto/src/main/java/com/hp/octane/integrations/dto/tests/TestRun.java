@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.dto.tests;
@@ -44,13 +43,13 @@ public interface TestRun extends DTOBase {
 
 	TestRun setResult(TestRunResult result);
 
-	Long getDuration();
+	long getDuration();
 
-	TestRun setDuration(Long duration);
+	TestRun setDuration(long duration);
 
-	Long getStarted();
+	long getStarted();
 
-	TestRun setStarted(Long started);
+	TestRun setStarted(long started);
 
 	TestRunError getError();
 

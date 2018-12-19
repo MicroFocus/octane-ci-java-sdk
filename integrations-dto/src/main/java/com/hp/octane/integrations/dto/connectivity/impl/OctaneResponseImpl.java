@@ -31,28 +31,34 @@ class OctaneResponseImpl implements OctaneResponse {
 	private Map<String, String> headers;
 	private String body;
 
+	@Override
 	public int getStatus() {
 		return status;
 	}
 
+	@Override
 	public OctaneResponse setStatus(int status) {
 		this.status = status;
 		return this;
 	}
 
+	@Override
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
 
+	@Override
 	public OctaneResponse setHeaders(Map<String, String> headers) {
 		this.headers = headers;
 		return this;
 	}
 
+	@Override
 	public String getBody() {
 		return body;
 	}
 
+	@Override
 	public OctaneResponse setBody(String body) {
 		this.body = body;
 		return this;

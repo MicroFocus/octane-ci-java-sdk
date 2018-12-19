@@ -28,10 +28,12 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 class CIJobsListImpl implements CIJobsList {
 	private PipelineNode[] jobs;
 
+	@Override
 	public PipelineNode[] getJobs() {
 		return jobs;
 	}
 
+	@Override
 	public CIJobsList setJobs(PipelineNode[] jobs) {
 		this.jobs = jobs;
 		return this;

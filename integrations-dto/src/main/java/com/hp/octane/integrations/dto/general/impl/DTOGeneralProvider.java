@@ -19,11 +19,7 @@ package com.hp.octane.integrations.dto.general.impl;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIPluginInfo;
-import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
-import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.*;
 
 /**
  * General purposes DTOs definitions, mostly configuration related ones
@@ -38,6 +34,8 @@ public final class DTOGeneralProvider extends DTOInternalProviderBase {
 		dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
 		dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
 		dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
+		dtoPairs.put(Taxonomy.class, TaxonomyImpl.class);
+		dtoPairs.put(ListItem.class, ListItemImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

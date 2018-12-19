@@ -1,0 +1,28 @@
+install:
+- ps: |
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    if (!(Test-Path -Path "C:\maven" )) {
+      (new-object System.Net.WebClient).DownloadFile(
+        'http://www.us.apache.org/dist/maven/maven-3/3.5.4/binaries/apache-maven-3.5.4-bin.zip',
+        'C:\maven-bin.zip'
+      )
+      [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
+    }
+- cmd: SET PATH=C:\maven\apache-maven-3.5.4\bin;%JAVA_HOME%\bin;%PATH%
+
+build_script:
+- mvn compile spotbugs:check -T8
+
+test_script:
+- mvn test -T8 -P jacoco-coverage
+
+after_test:
+- ps: |
+    $env:PATH = 'C:\msys64\usr\bin;' + $env:PATH
+    Invoke-WebRequest -Uri 'https://codecov.io/bash' -OutFile codecov.sh
+    bash codecov.sh -f "integrations-dto/target/jacoco-report/jacoco.xml" -t 96bc1054-cc9f-4095-b02e-339e8b0f74a5
+    bash codecov.sh -f "integrations-sdk/target/jacoco-report/jacoco.xml" -t 96bc1054-cc9f-4095-b02e-339e8b0f74a5
+
+cache:
+- C:\maven\
+- C:\Users\appveyor\.m2

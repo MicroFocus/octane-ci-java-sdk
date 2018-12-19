@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.uft.items;
@@ -20,14 +19,14 @@ package com.hp.octane.integrations.uft.items;
  * Created by berkovir on 20/04/2017.
  */
 public enum UftTestType {
-    GUI("gui"), API("api"), None("none");
-    private String testType;
+	GUI("gui"), API("api"), None("none");
+	private String testType;
 
-    UftTestType(String testType) {
-        this.testType = testType;
-    }
+	UftTestType(String testType) {
+		this.testType = testType;
+	}
 
-    public boolean isNone() {
-        return this.testType.equals(None.testType);
-    }
+	public boolean isNone() {
+		return this.testType.equals(None.testType);
+	}
 }

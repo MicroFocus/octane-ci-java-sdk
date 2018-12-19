@@ -17,7 +17,7 @@
 package com.hp.octane.integrations.services.entities;
 
 
-import com.hp.octane.integrations.util.SdkStringUtils;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.Collection;
 
@@ -32,6 +32,14 @@ public class QueryHelper {
 
     public static String conditionRef(String name, String refName, String value) {
         return name + "={" + condition(refName, value) + "}";
+    }
+
+    public static String conditionRefEmtpy(String name) {
+        return name + "={null}";
+    }
+
+    public static String conditionNot(String condition) {
+        return "!" + condition;
     }
 
     public static String condition(String name, String value) {

@@ -1,9 +1,10 @@
 package com.hp.octane.integrations.dto.entities.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hp.octane.integrations.dto.entities.ResponseEntityList;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ResponseEntityListImpl extends EntityListImpl implements ResponseEntityList {
 
     @JsonProperty(value="total_count")
@@ -11,7 +12,6 @@ public class ResponseEntityListImpl extends EntityListImpl implements ResponseEn
 
     @JsonProperty(value="exceeds_total_count")
     private boolean exceedsTotalCount;
-
 
     @Override
     public int getTotalCount() {
@@ -34,5 +34,4 @@ public class ResponseEntityListImpl extends EntityListImpl implements ResponseEn
         this.exceedsTotalCount = exceedsTotalCount;
         return this;
     }
-
 }

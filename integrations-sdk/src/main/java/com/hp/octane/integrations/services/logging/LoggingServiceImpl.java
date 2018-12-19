@@ -11,13 +11,13 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.services.logging;
 
 import com.hp.octane.integrations.OctaneSDK;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 
 import java.io.File;
@@ -26,22 +26,44 @@ import java.io.File;
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
  */
 
-public final class LoggingServiceImpl extends OctaneSDK.SDKServiceBase {
-	private static final Object INIT_LOCKER = new Object();
+final class LoggingServiceImpl implements LoggingService {
+	private static final Logger logger = LogManager.getLogger(LoggingServiceImpl.class);
 	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
+	private final Object INIT_LOCKER = new Object();
+	private final OctaneSDK.SDKServicesConfigurer configurer;
 
-	public LoggingServiceImpl(Object internalUsageValidator) {
-		super(internalUsageValidator);
+	private static LoggerContext commonLoggerContext;
+
+	LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+		if (configurer == null) {
+			throw new IllegalArgumentException("invalid configurer");
+		}
+		this.configurer = configurer;
 		configureLogger();
+		logger.info("logger is configured");
+	}
+
+	@Override
+	public void shutdown() {
+		if (OctaneSDK.getClients().isEmpty() && commonLoggerContext != null) {
+			logger.info("last client is closing; general logger context is STOPPING");
+			commonLoggerContext.stop();
+		}
 	}
 
 	private void configureLogger() {
-		File file = pluginServices.getAllowedOctaneStorage();
+		File file = configurer.pluginServices.getAllowedOctaneStorage();
 		if (file != null && (file.isDirectory() || !file.exists())) {
 			synchronized (INIT_LOCKER) {
-				LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+				if (commonLoggerContext == null) {
+					commonLoggerContext = LoggerContext.getContext(false);
+				}
+
+				if (!commonLoggerContext.isStarted()) {
+					commonLoggerContext.start();
+				}
 				System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
-				ctx.reconfigure();
+				commonLoggerContext.reconfigure();
 			}
 		}
 	}

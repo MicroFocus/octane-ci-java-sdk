@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
+import com.hp.octane.integrations.dto.parameters.CIParameters;
 
 /**
  * Job/Build parameters DTOs definitions provider
@@ -30,6 +31,7 @@ public final class DTOParametersProvider extends DTOInternalProviderBase {
 	public DTOParametersProvider(DTOFactory.DTOConfiguration configuration) {
 		super(configuration);
 		dtoPairs.put(CIParameter.class, CIParameterImpl.class);
+		dtoPairs.put(CIParameters.class, CIParametersImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

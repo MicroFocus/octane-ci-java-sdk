@@ -14,6 +14,7 @@ public class EntityConstants {
         public static final String COLLECTION_NAME = "automated_tests";
         public static final String ENTITY_NAME = "automated_test";
 
+        public static final String TEST_RUNNER_FIELD = "test_runner";
         public static final String SCM_REPOSITORY_FIELD = "scm_repository";
         public static final String TESTING_TOOL_TYPE_FIELD = "testing_tool_type";
         public static final String TEST_TYPE_FIELD = "test_type";
@@ -36,6 +37,25 @@ public class EntityConstants {
 
     public static class Executors extends Base {
         public static final String COLLECTION_NAME = "executors";
+		public static final String ENTITY_NAME = "executor";
+        public static final String TEST_RUNNER_SUBTYPE_ENTITY_NAME = "test_runner";
+        public static final String UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME = "uft_test_runner";
     }
 
+    public static class Taxonomy extends Base {
+        public static final String COLLECTION_NAME = "taxonomy_nodes";
+        public static final String CATEGORY_NAME = "category";
+    }
+
+    public static class Release extends Base {
+        public static final String COLLECTION_NAME = "releases";
+    }
+
+    public static class Lists extends Base {
+        public static final String COLLECTION_NAME = "list_nodes";
+    }
+
+    public static class Workspaces extends Base {
+        public static final String COLLECTION_NAME = "workspaces";
+    }
 }

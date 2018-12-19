@@ -17,14 +17,14 @@
 package com.hp.octane.integrations.uft.items;
 
 
+import org.apache.commons.codec.Charsets;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.*;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -54,7 +54,13 @@ public class UftTestDiscoveryResult {
     private String scmRepositoryId;
 
     @XmlAttribute
+    private String testRunnerId;
+
+    @XmlAttribute
     private String workspaceId;
+
+    @XmlAttribute
+    private String configurationId;
 
     @XmlAttribute
     private boolean fullScan;
@@ -170,7 +176,8 @@ public class UftTestDiscoveryResult {
     public static UftTestDiscoveryResult readFromFile(File file) throws JAXBException, FileNotFoundException {
         JAXBContext context = JAXBContext.newInstance(UftTestDiscoveryResult.class);
         Unmarshaller m = context.createUnmarshaller();
-        return (UftTestDiscoveryResult) m.unmarshal(new FileReader(file));
+        Reader reader = new InputStreamReader(new FileInputStream(file), Charsets.UTF_8);
+        return (UftTestDiscoveryResult) m.unmarshal(reader);
     }
 
     public void sortItems(){
@@ -199,5 +206,21 @@ public class UftTestDiscoveryResult {
                 return o1.getRelativePath().compareTo(o2.getRelativePath());
             }
         });
+    }
+
+    public String getTestRunnerId() {
+        return testRunnerId;
+    }
+
+    public void setTestRunnerId(String testRunnerId) {
+        this.testRunnerId = testRunnerId;
+    }
+
+    public String getConfigurationId() {
+        return configurationId;
+    }
+
+    public void setConfigurationId(String configurationId) {
+        this.configurationId = configurationId;
     }
 }
