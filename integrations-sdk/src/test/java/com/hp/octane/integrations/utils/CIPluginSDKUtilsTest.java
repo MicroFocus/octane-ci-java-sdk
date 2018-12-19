@@ -15,11 +15,13 @@
 
 package com.hp.octane.integrations.utils;
 
+import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class CIPluginSDKUtilsTest {
@@ -149,13 +151,126 @@ public class CIPluginSDKUtilsTest {
 //		Assert.assertEquals(text, test);
 	}
 
-
 	@Test
 	public void testInputStreamToStringF() throws IOException {
 		String text = "some text to test וגם בעברית и по русски чуток";
-
 		String test = CIPluginSDKUtils.inputStreamToUTF8String(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())));
 		Assert.assertEquals(text, test);
+	}
+
+	@Test
+	public void testsParseURLPos() {
+		URL url = CIPluginSDKUtils.parseURL("http://localhost:8080");
+		Assert.assertNotNull(url);
+	}
+
+	@Test(expected = OctaneSDKGeneralException.class)
+	public void testsParseURLNeg1() {
+		CIPluginSDKUtils.parseURL("something-wrong-here");
+	}
+
+	@Test(expected = OctaneSDKGeneralException.class)
+	public void testsParseURLNeg2() {
+		CIPluginSDKUtils.parseURL(null);
+	}
+
+	@Test(expected = OctaneSDKGeneralException.class)
+	public void testsParseURLNeg3() {
+		CIPluginSDKUtils.parseURL("");
+	}
+
+	@Test
+	public void testURLEncodePathParamsPos() {
+		String encoded = CIPluginSDKUtils.urlEncodePathParam("some string to . be in path");
+		Assert.assertEquals("some%20string%20to%20.%20be%20in%20path", encoded);
+	}
+
+	@Test
+	public void testURLEncodePathParamsNeg1() {
+		String encoded = CIPluginSDKUtils.urlEncodePathParam(null);
+		Assert.assertNull(encoded);
+	}
+
+	@Test
+	public void testURLEncodePathParamsPos2() {
+		String encoded = CIPluginSDKUtils.urlEncodePathParam("");
+		Assert.assertEquals("", encoded);
+	}
+
+	@Test
+	public void testURLEncodeQueryParamsPos() {
+		String encoded = CIPluginSDKUtils.urlEncodeQueryParam("some string to . be in path");
+		Assert.assertEquals("some+string+to+.+be+in+path", encoded);
+	}
+
+	@Test
+	public void testURLEncodeQueryParamsNeg1() {
+		String encoded = CIPluginSDKUtils.urlEncodeQueryParam(null);
+		Assert.assertNull(encoded);
+	}
+
+	@Test
+	public void testURLEncodeQueryParamsPos2() {
+		String encoded = CIPluginSDKUtils.urlEncodeQueryParam("");
+		Assert.assertEquals("", encoded);
+	}
+
+	//  is non-proxy host tests
+	@Test
+	public void testIsNotProxyHostNeg() {
+		boolean result = CIPluginSDKUtils.isNonProxyHost(null, null);
+		Assert.assertFalse(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("", null);
+		Assert.assertFalse(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", null);
+		Assert.assertFalse(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "");
+		Assert.assertFalse(result);
+	}
+
+	@Test
+	public void testIsNotProxyHost() {
+		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "some");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some.host", "some");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "some.host");
+		Assert.assertFalse(result);
+	}
+
+	@Test
+	public void testIsNotProxyHostWildcard() {
+		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "some*");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some.host", "*me.ho*");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "s*e");
+		Assert.assertTrue(result);
+	}
+
+	@Test
+	public void testIsNotProxyHostWildcardMulti() {
+		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "localhost|some*");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some.host", "*me.ho*|localhost");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "first|s*e|last");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "first|s*e||||last");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "first  |s*e|||    |la,st");
+		Assert.assertTrue(result);
 	}
 
 	private Object objectFromForeignThread() {
