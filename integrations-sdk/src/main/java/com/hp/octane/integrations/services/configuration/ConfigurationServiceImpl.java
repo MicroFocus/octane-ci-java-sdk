@@ -88,10 +88,4 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 				.setUrl(configuration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + CONNECTIVITY_STATUS_URL);
 		return octaneRestClientImpl.execute(request, configuration);
 	}
-
-	@Override
-	public void notifyChange() {
-		logger.info("notified about Octane Server configuration change, propagating to RestService");
-		restService.notifyConfigurationChange();
-	}
 }

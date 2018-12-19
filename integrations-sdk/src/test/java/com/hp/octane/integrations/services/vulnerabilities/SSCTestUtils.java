@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Artifacts;

@@ -200,7 +200,7 @@ final class LogsServiceImpl implements LogsService {
 					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
 							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
-			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
 				throw new PermanentException("preflight request failed with status " + response.getStatus());

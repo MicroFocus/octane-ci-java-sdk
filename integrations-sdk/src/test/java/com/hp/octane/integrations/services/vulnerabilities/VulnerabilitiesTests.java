@@ -12,7 +12,7 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
-package com.hp.octane.integrations.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;

@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.connectivity.TaskProcessingErrorBody;
 
 /**
  * Connectivity related DTOs definitions provider
@@ -36,6 +37,7 @@ public final class DTOConnectivityProvider extends DTOInternalProviderBase {
 		dtoPairs.put(OctaneResponse.class, OctaneResponseImpl.class);
 		dtoPairs.put(OctaneTaskAbridged.class, OctaneTaskAbridgedImpl.class);
 		dtoPairs.put(OctaneResultAbridged.class, OctaneResultAbridgedImpl.class);
+		dtoPairs.put(TaskProcessingErrorBody.class, TaskProcessingErrorBodyImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

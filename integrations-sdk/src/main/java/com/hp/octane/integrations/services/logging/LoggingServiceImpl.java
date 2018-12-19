@@ -45,7 +45,7 @@ final class LoggingServiceImpl implements LoggingService {
 
 	@Override
 	public void shutdown() {
-		if (OctaneSDK.getClients().isEmpty()) {
+		if (OctaneSDK.getClients().isEmpty() && commonLoggerContext != null) {
 			logger.info("last client is closing; general logger context is STOPPING");
 			commonLoggerContext.stop();
 		}

@@ -17,50 +17,23 @@
 package com.hp.octane.integrations.dto.connectivity.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-
-import java.util.Map;
+import com.hp.octane.integrations.dto.connectivity.TaskProcessingErrorBody;
 
 /**
- * OctaneResponse DTO implementation.
+ * Task error response content DTO, as to be used in abridged tasking in ALM Octane
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class OctaneResponseImpl implements OctaneResponse {
-	private int status;
-	private Map<String, String> headers;
-	private String body;
+class TaskProcessingErrorBodyImpl implements TaskProcessingErrorBody {
+	private String errorMessage;
 
-	@Override
-	public int getStatus() {
-		return status;
+	public String getErrorMessage() {
+		return errorMessage;
 	}
 
 	@Override
-	public OctaneResponse setStatus(int status) {
-		this.status = status;
-		return this;
-	}
-
-	@Override
-	public Map<String, String> getHeaders() {
-		return headers;
-	}
-
-	@Override
-	public OctaneResponse setHeaders(Map<String, String> headers) {
-		this.headers = headers;
-		return this;
-	}
-
-	@Override
-	public String getBody() {
-		return body;
-	}
-
-	@Override
-	public OctaneResponse setBody(String body) {
-		this.body = body;
+	public TaskProcessingErrorBody setErrorMessage(String errorMessage) {
+		this.errorMessage = errorMessage;
 		return this;
 	}
 }
