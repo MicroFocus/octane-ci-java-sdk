@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
+import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 
 import java.io.File;
 import java.io.InputStream;
@@ -121,7 +122,7 @@ public abstract class CIPluginServices {
 	 * Provides a list of Projects existing on this CI Server
 	 *
 	 * @param includeParameters should the jobs data include parameters or not
-	 * @return ProjectList object holding the list of the projects
+	 * @return ProjectList object holding the list of the projects; MUST NOT be NULL; MAY contain an empty list
 	 */
 	public CIJobsList getJobsList(boolean includeParameters) {
 		return null;
@@ -131,7 +132,7 @@ public abstract class CIPluginServices {
 	 * Provides Pipeline (structure) from the root CI Job
 	 *
 	 * @param rootJobId root Job CI ID to start pipeline from
-	 * @return pipeline's structure or null if CI Job not found
+	 * @return pipeline's structure or null if CI Job not found; MAY be NULL, meaning job with such ID not exists
 	 */
 	public PipelineNode getPipeline(String rootJobId) {
 		return null;
@@ -141,9 +142,10 @@ public abstract class CIPluginServices {
 	 * Executes the Pipeline, running the root job
 	 *
 	 * @param jobId        Job CI ID to execute
-	 * @param originalBody request body, expected to be JSON that holds parameters
+	 * @param originalBody request body, expected to be a JSON that holds parameters
 	 */
 	public void runPipeline(String jobId, String originalBody) {
+		throw new SPIMethodNotImplementedException("run API is not implemented");
 	}
 
 	/**

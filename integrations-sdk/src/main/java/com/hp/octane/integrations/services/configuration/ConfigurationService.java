@@ -56,9 +56,4 @@ public interface ConfigurationService {
 	 * @throws IOException in case of connection failure
 	 */
 	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
-
-	/**
-	 * Notify SDK upon Octane configuration change
-	 */
-	void notifyChange();
 }

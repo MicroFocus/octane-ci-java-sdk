@@ -1,9 +1,7 @@
-package com.hp.octane.integrations.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneConfiguration;
-import com.hp.octane.integrations.services.vulnerabilities.ExistingIssuesInOctane;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
-import com.hp.octane.integrations.vulnerabilities.Mocks.MockOctaneRestClient;
+import com.hp.octane.integrations.services.vulnerabilities.mocks.MockOctaneRestClient;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -11,7 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.hp.octane.integrations.vulnerabilities.SSCTestUtils.getJson;
+import static com.hp.octane.integrations.services.vulnerabilities.SSCTestUtils.getJson;
 
 public class ExistingIssuesInOctaneTest {
     @Test

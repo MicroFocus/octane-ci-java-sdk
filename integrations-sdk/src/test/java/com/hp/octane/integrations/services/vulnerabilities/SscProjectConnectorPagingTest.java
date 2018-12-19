@@ -1,10 +1,10 @@
-package com.hp.octane.integrations.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SscProjectConnector;
-import com.hp.octane.integrations.vulnerabilities.Mocks.DummyContents;
-import com.hp.octane.integrations.vulnerabilities.Mocks.MockSSCRestClient;
+import com.hp.octane.integrations.services.vulnerabilities.mocks.DummyContents;
+import com.hp.octane.integrations.services.vulnerabilities.mocks.MockSSCRestClient;
 import org.junit.Assert;
 import org.junit.Test;
 
