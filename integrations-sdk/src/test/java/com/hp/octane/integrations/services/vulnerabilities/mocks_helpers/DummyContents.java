@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.services.vulnerabilities.Mocks;
+package com.hp.octane.integrations.services.vulnerabilities.mocks_helpers;
 
 public class DummyContents {
     public static final String issuesPart1 = "{\n"+

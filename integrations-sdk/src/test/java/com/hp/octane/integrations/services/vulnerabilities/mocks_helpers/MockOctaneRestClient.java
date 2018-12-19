@@ -1,11 +1,10 @@
-package com.hp.octane.integrations.services.vulnerabilities.Mocks;
+package com.hp.octane.integrations.services.vulnerabilities.mocks_helpers;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 
-import java.io.IOException;
 import java.util.Map;
 
 public class MockOctaneRestClient implements OctaneRestClient {
@@ -19,12 +18,12 @@ public class MockOctaneRestClient implements OctaneRestClient {
     }
 
     @Override
-    public OctaneResponse execute(OctaneRequest request) throws IOException {
+    public OctaneResponse execute(OctaneRequest request) {
         return new DummyResponse(this.response, this.responseCode);
     }
 
     @Override
-    public OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) throws IOException {
+    public OctaneResponse execute(OctaneRequest request, OctaneConfiguration configuration) {
 
         return new DummyResponse(this.response, this.responseCode);
     }
@@ -37,7 +36,7 @@ public class MockOctaneRestClient implements OctaneRestClient {
         private final String response;
         private final int responseCode;
 
-        public DummyResponse(String response, int responseCode){
+        private DummyResponse(String response, int responseCode){
 
             this.response = response;
             this.responseCode = responseCode;
