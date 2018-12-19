@@ -67,8 +67,8 @@ public class Issues extends SscBaseEntityArray<Issues.Issue> {
         @JsonProperty("scanStatus")
         public String scanStatus;
         //@JsonProperty("friority")
-        @JsonProperty("Severity")
-        public String severity;
+        @JsonProperty("severity")
+        public Integer severity;
 
 
         @JsonProperty("likelihood")
@@ -85,5 +85,7 @@ public class Issues extends SscBaseEntityArray<Issues.Issue> {
         public String foundDate;
         @JsonProperty("_href")
         public String hRef;
+        @JsonProperty("primaryTag")
+        public String analysis;
     }
 }

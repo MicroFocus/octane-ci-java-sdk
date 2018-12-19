@@ -19,6 +19,7 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,6 +27,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil.createListNodeEntity;
@@ -34,8 +36,8 @@ import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIss
 
 public class PackIssuesToSendToOctane {
 
-    public InputStream packAllIssues(Issues sscIssues,  List<String> existingIssuesInOctane, String targetDir, String remoteTag) {
-        List<OctaneIssue> octaneIssues = packToOctaneIssues(sscIssues,existingIssuesInOctane, remoteTag);
+    public InputStream packAllIssues(Issues sscIssues,  List<String> existingIssuesInOctane, String targetDir, String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
+        List<OctaneIssue> octaneIssues = packToOctaneIssues(sscIssues,existingIssuesInOctane, remoteTag, issueDetailsById);
         if (octaneIssues.isEmpty()) {
             throw new PermanentException("This scan has no issues.");
         }
@@ -43,7 +45,7 @@ public class PackIssuesToSendToOctane {
         return issuesFileSerializer.doSerializeAndCache();
     }
 
-    private List<OctaneIssue> packToOctaneIssues(Issues sscIssues, List<String> octaneIssues, String remoteTag) {
+    private List<OctaneIssue> packToOctaneIssues(Issues sscIssues, List<String> octaneIssues, String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
         if (sscIssues.getCount() == 0 && octaneIssues.size() == 0) {
             return new ArrayList<>();
         }
@@ -63,7 +65,7 @@ public class PackIssuesToSendToOctane {
                 .filter(t -> !remoteIdsToCloseInOctane.contains(t.issueInstanceId))
                 .collect(Collectors.toList());
         //Issues.Issue
-        List<OctaneIssue> openOctaneIssues = createOctaneIssues(issuesToUpdate, remoteTag);
+        List<OctaneIssue> openOctaneIssues = createOctaneIssues(issuesToUpdate, remoteTag, issueDetailsById);
         List<OctaneIssue> total = new ArrayList<>();
         total.addAll(openOctaneIssues);
         total.addAll(closedOctaneIssues);

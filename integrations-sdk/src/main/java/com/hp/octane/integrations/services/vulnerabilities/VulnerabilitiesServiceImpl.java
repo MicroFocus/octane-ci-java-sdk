@@ -26,6 +26,7 @@ import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
@@ -44,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of vulnerabilities service
@@ -261,6 +263,11 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
         if (!allIssues.isPresent()) {
             return null;
         }
+		List<Issues.Issue> newIssues = allIssues.get().getData().stream().filter(
+				t -> t.scanStatus.equalsIgnoreCase("NEW")).collect(
+				Collectors.toList());
+		Map<Integer,IssueDetails> issueDetailsById =
+				sscHandler.getDetailsOfIssues(newIssues);
 
         ExistingIssuesInOctane existingIssuesInOctane = new ExistingIssuesInOctane(
                 this.restService.obtainOctaneRestClient(),
@@ -274,7 +281,8 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
         return packIssuesToSendToOctane.packAllIssues(allIssues.get(),
                 remoteIdsOpenVulnsFromOctane,
                 targetDir,
-				sscProjectConfiguration.getRemoteTag());
+				sscProjectConfiguration.getRemoteTag(),
+				issueDetailsById);
     }
 
 
