@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil.createOctaneIssues;
@@ -73,7 +74,7 @@ public class VulnerabilitiesTests {
         sscIssues.setData(Arrays.asList(issue1, issue2, issue3, issue4));
 
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag", new HashMap<>());
         for (int i = 0; i < 4; i++) {
             if (i != 3) {
                 Assert.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
@@ -99,7 +100,7 @@ public class VulnerabilitiesTests {
         sscIssues.setData(Arrays.asList(issue1, issue2, issue3, issue4, issue5));
 
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag", new HashMap<>());
 
         String[] expectedValues = new String[]{
                 "list_node.issue_state_node.existing",
@@ -129,7 +130,7 @@ public class VulnerabilitiesTests {
         Issues sscIssues = new Issues();
         sscIssues.setData(Arrays.asList(issue));
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(), "Tag");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(), "Tag", new HashMap<>());
 
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("issueName"), "name");
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"), "likelihood");
@@ -151,7 +152,7 @@ public class VulnerabilitiesTests {
         Issues sscIssues = new Issues();
         sscIssues.setData(Arrays.asList(issue));
         SSCHandler sscHandler = new SSCHandler();
-        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag");
+        List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag", new HashMap<>());
 
         Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "fullFileName");
         Assert.assertEquals(String.valueOf(octaneIssues.get(0).getLine()), String.valueOf(100));

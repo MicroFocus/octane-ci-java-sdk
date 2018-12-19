@@ -104,6 +104,12 @@ public class SscProjectConnector {
         return readPagedEntities(urlSuffix, Issues.class);
     }
 
+    public IssueDetails getIssueDetails(Integer id) {
+        String urlForIssueDetails = getURLForIssueDetails(id);
+        String rawResponse = sendGetEntity(urlForIssueDetails);
+        return stringToObject(rawResponse, IssueDetails.class);
+    }
+
     public <SSCArray extends SscBaseEntityArray> SSCArray readPagedEntities(String url, Class<SSCArray> type) {
         int startIndex = 0;
 
@@ -163,4 +169,10 @@ public class SscProjectConnector {
     public String getURLForProjectVersion(Integer projectId) {
         return "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectVersion());
     }
+
+    public String getURLForIssueDetails(Integer issuesId) {
+        return "issueDetails/" + issuesId;
+    }
+
+
 }

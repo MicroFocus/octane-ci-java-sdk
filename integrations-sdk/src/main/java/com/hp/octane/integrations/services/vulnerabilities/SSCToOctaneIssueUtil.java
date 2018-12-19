@@ -18,6 +18,7 @@ package com.hp.octane.integrations.services.vulnerabilities;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -36,14 +37,15 @@ public class SSCToOctaneIssueUtil {
     public static final String SEVERITY_LG_NAME_CRITICAL = "list_node.severity.urgent";
     public static final String EXTERNAL_TOOL_NAME = "Fortify SSC";
 
-    public static List<OctaneIssue> createOctaneIssues(List<Issues.Issue> issues, String remoteTag) {
+    public static List<OctaneIssue> createOctaneIssues(List<Issues.Issue> issues,String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
         if (issues == null) {
             return new ArrayList<>();
         }
         DTOFactory dtoFactory = DTOFactory.getInstance();
         List<OctaneIssue> octaneIssues = new ArrayList<>();
         for (Issues.Issue issue : issues) {
-            OctaneIssue octaneIssue = createOctaneIssue(dtoFactory, issue);
+            OctaneIssue octaneIssue = createOctaneIssue(dtoFactory, issue,
+                    issueDetailsById.get(issue.id));
             octaneIssues.add(octaneIssue);
             octaneIssue.setRemoteTag(remoteTag);
         }
@@ -51,13 +53,15 @@ public class SSCToOctaneIssueUtil {
         return octaneIssues;
     }
 
-    private static OctaneIssue createOctaneIssue(DTOFactory dtoFactory, Issues.Issue issue) {
+    private static OctaneIssue createOctaneIssue(DTOFactory dtoFactory,
+                                                 Issues.Issue issue,
+                                                 IssueDetails issueDetails) {
         logger.debug("enter createOctaneIssue");
         OctaneIssue octaneIssue = dtoFactory.newDTO(OctaneIssue.class);
         setOctaneAnalysis(dtoFactory, issue, octaneIssue);
         setOctaneSeverity(dtoFactory, issue, octaneIssue);
         setOctaneStatus(issue, octaneIssue);
-        Map<String, String> extendedData = getExtendedData(issue);
+        Map<String, String> extendedData = prepareExtendedData(issue, issueDetails);
         octaneIssue.setExtendedData(extendedData);
         octaneIssue.setPrimaryLocationFull(issue.fullFileName);
         octaneIssue.setLine(issue.lineNumber);
@@ -99,8 +103,19 @@ public class SSCToOctaneIssueUtil {
 //        "list_node.issue_analysis_node.maybe_an_issue"
 //        "list_node.issue_analysis_node.bug_submitted"
 //        "list_node.issue_analysis_node.reviewed"
-        if (isReviewed(issue)) {
-            octaneIssue.setAnalysis(createListNodeEntity("list_node.issue_analysis_node.reviewed"));
+        String listId = null;
+        if(issue.analysis != null ){
+            if("Not an Issue".equals(issue.analysis) ){
+                listId = "list_node.issue_analysis_node.not_an_issue";
+            }else{
+                    listId = "list_node.issue_analysis_node.maybe_an_issue";
+            }
+        }
+        else if (isReviewed(issue)) {
+            listId = "list_node.issue_analysis_node.reviewed";
+        }
+        if(listId != null) {
+            octaneIssue.setAnalysis(createListNodeEntity(listId));
         }
     }
 
@@ -142,7 +157,7 @@ public class SSCToOctaneIssueUtil {
         return (legalNames.contains(scanStatus));
     }
 
-    private static Map<String, String> getExtendedData(Issues.Issue issue) {
+    private static Map<String, String> prepareExtendedData(Issues.Issue issue, IssueDetails issueDetails) {
         Map<String, String> retVal = new HashMap<>();
         retVal.put("issueName", issue.issueName);
         retVal.put("likelihood", issue.likelihood);
@@ -150,6 +165,12 @@ public class SSCToOctaneIssueUtil {
         retVal.put("impact", issue.impact);
         retVal.put("confidence", issue.confidance);
         retVal.put("removedDate", issue.removedDate);
+        if(issueDetails != null){
+            retVal.put("summary",issueDetails.getData().brief);
+            retVal.put("explanation",issueDetails.getData().detail);
+            retVal.put("recommendations",issueDetails.getData().recommendation);
+            retVal.put("tips",issueDetails.getData().tips);
+        }
         return retVal;
     }
 
@@ -160,18 +181,18 @@ public class SSCToOctaneIssueUtil {
         }
     }
 
-    private static String getOctaneSeverityFromSSCValue(String severity) {
+    private static String getOctaneSeverityFromSSCValue(Integer severity) {
         if (severity == null) {
             return null;
         }
         String logicalNameForSeverity = null;
-        if (severity.startsWith("4")) {
+        if (severity.equals(4)) {
             logicalNameForSeverity = SEVERITY_LG_NAME_CRITICAL;
-        } else if (severity.startsWith("3")) {
+        } else if (severity.equals(3)) {
             logicalNameForSeverity = SEVERITY_LG_NAME_HIGH;
-        } else if (severity.startsWith("2")) {
+        } else if (severity.equals(2)) {
             logicalNameForSeverity = SEVERITY_LG_NAME_MEDIUM;
-        } else if (severity.startsWith("1")) {
+        } else if (severity.equals(1)) {
             logicalNameForSeverity = SEVERITY_LG_NAME_LOW;
         }
 
