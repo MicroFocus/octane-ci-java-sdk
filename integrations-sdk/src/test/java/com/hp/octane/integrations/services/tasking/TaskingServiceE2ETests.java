@@ -19,7 +19,6 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +42,7 @@ public class TaskingServiceE2ETests {
 	private static final Map<String, OctaneResultAbridged> results = new HashMap<>();
 
 	@BeforeClass
-	public static void setup() {
+	public static void setupEnvironment() {
 		//  setup Octane simulator
 		OctaneSPEndpointSimulator octaneSPEndpointSimulator = setupOctaneEPSimulator(sspId);
 		Assert.assertNotNull(octaneSPEndpointSimulator);
@@ -54,7 +53,7 @@ public class TaskingServiceE2ETests {
 	}
 
 	@AfterClass
-	public static void cleanup() {
+	public static void cleanupEnvironment() {
 		OctaneSDK.removeClient(client);
 		OctaneSPEndpointSimulator.removeInstance(sspId);
 	}
