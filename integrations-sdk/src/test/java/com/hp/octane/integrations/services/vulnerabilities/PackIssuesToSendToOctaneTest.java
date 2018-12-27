@@ -1,8 +1,8 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.dto.entities.Entity;
+import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.vulnerabilities.PackIssuesToSendToOctane;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import org.junit.Assert;
@@ -11,7 +11,6 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 public class PackIssuesToSendToOctaneTest {
@@ -37,7 +36,7 @@ public class PackIssuesToSendToOctaneTest {
 		Issues issues = new Issues();
 		issues.setData(new ArrayList<>());
 		ArrayList<String> existingInOctane = new ArrayList<>();
-		packIssuesToSendToOctane.packAllIssues(issues,existingInOctane,targetDir,"Tag", new HashMap<>());
+		packIssuesToSendToOctane.packAllIssues(issues.getData(),existingInOctane,"Tag", new HashMap<>());
 	}
 
 	@Test
@@ -46,19 +45,17 @@ public class PackIssuesToSendToOctaneTest {
 		Issues issues = new Issues();
 		issues.setData(new ArrayList<>());
 		List<String> toCloseInOctane = Arrays.asList("Id1","Id2");
-		InputStream inputStream = packIssuesToSendToOctane.packAllIssues(issues, toCloseInOctane, targetDir,"Tag", new HashMap<>());
-
-		List<Map> issuesToPost = getIssuesAsMaps(inputStream);
+		List<OctaneIssue> issuesToPost = packIssuesToSendToOctane.packAllIssues(issues.getData(), toCloseInOctane, "Tag", new HashMap<>());
 		Assert.assertEquals(2, issuesToPost.size());
-		Map issueState1 = (Map)issuesToPost.get(0).get("state");
-		Assert.assertEquals("list_node.issue_state_node.closed", issueState1.get("id"));
-		Assert.assertEquals("list_node", issueState1.get("type"));
-		Assert.assertEquals("Id1", issuesToPost.get(0).get("remote_id"));
+		Entity issueState1 = issuesToPost.get(0).getState();
+		Assert.assertEquals("list_node.issue_state_node.closed", issueState1.getId());
+		Assert.assertEquals("list_node", issueState1.getType());
+		Assert.assertEquals("Id1", issuesToPost.get(0).getRemoteId());
 
-		Map issueState2 = (Map)issuesToPost.get(1).get("state");
-		Assert.assertEquals("list_node.issue_state_node.closed", issueState2.get("id"));
-		Assert.assertEquals("list_node", issueState2.get("type"));
-		Assert.assertEquals("Id2", issuesToPost.get(1).get("remote_id"));
+		Entity issueState2 = issuesToPost.get(1).getState();
+		Assert.assertEquals("list_node.issue_state_node.closed", issueState2.getId());
+		Assert.assertEquals("list_node", issueState2.getType());
+		Assert.assertEquals("Id2", issuesToPost.get(1).getRemoteId());
 
 	}
 
@@ -69,43 +66,39 @@ public class PackIssuesToSendToOctaneTest {
 		Map<Integer,IssueDetails> idToDetails = getAllData();
 
 		PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
-		InputStream inputStream = packIssuesToSendToOctane.packAllIssues(issues, new ArrayList<>(),
-				this.targetDir,"Tag", idToDetails);
-		List<Map> issuesToPost = getIssuesAsMaps(inputStream);
+		List<OctaneIssue> issuesToPost = packIssuesToSendToOctane.packAllIssues(issues.getData(), new ArrayList<>(), "Tag", idToDetails);
 		Assert.assertEquals(2,issuesToPost.size());
 
-
-		Map issue1AsMap = issuesToPost.get(0);
-		validateIssueMap(issue1AsMap,
+		validateIssueMap(issuesToPost.get(0),
 				"list_node.issue_state_node.new",
 				"\\ABC\\DEF\\GHIJ.java",
-				1,
+				"1",
 				"Kingdom1",
 				"Issue1");
 
-		Map issue2AsMap = issuesToPost.get(1);
-		validateIssueMap(issue2AsMap,
+
+		validateIssueMap(issuesToPost.get(1),
 				"list_node.issue_state_node.existing",
 				"\\ABC\\DEF\\GHIJ\\KLM.java",
-				2,
+				"2",
 				"Kingdom2",
 				"Issue2");
 
-		ValidateRemoteIdAndExtendedIssues(issue1AsMap,"RemoteId1",idToDetails.get(1));
-		ValidateRemoteIdAndExtendedIssues(issue2AsMap,"RemoteId2",idToDetails.get(2));
+		ValidateRemoteIdAndExtendedIssues(issuesToPost.get(0),"RemoteId1",idToDetails.get(1));
+		ValidateRemoteIdAndExtendedIssues(issuesToPost.get(1),"RemoteId2",idToDetails.get(2));
 
 	}
 
-	private void ValidateRemoteIdAndExtendedIssues(Map issue2AsMap, String remoteId1, IssueDetails issueDetails) {
+	private void ValidateRemoteIdAndExtendedIssues(OctaneIssue issue2AsMap, String remoteId1, IssueDetails issueDetails) {
 
-		Map extended_data = (Map) (issue2AsMap.get("extended_data"));
+		Map extended_data = (issue2AsMap.getExtendedData());
 		Assert.assertEquals(issueDetails.getData().brief ,extended_data.get("summary"));
 		Assert.assertEquals(issueDetails.getData().recommendation, extended_data.get("recommendations"));
 		Assert.assertEquals(issueDetails.getData().tips, extended_data.get("tips"));
 		Assert.assertEquals(issueDetails.getData().detail, extended_data.get("explanation"));
 
 		if(remoteId1 != null) {
-			Assert.assertEquals(remoteId1, issue2AsMap.get("remote_id"));
+			Assert.assertEquals(remoteId1, issue2AsMap.getRemoteId());
 		}
 	}
 
@@ -117,39 +110,39 @@ public class PackIssuesToSendToOctaneTest {
 		Issues issues = sscIssuesToPack();
 
 
-		InputStream inputStream = packIssuesToSendToOctane.packAllIssues(issues, existingInOctane, this.targetDir,"Tag", new HashMap<>());
-		List<Map> issuesToPost = getIssuesAsMaps(inputStream);
-		Assert.assertEquals(4,issuesToPost.size());
-		Map issue1AsMap = issuesToPost.get(0);
-		validateIssueMap(issue1AsMap,
+		List<OctaneIssue> octaneIssues = packIssuesToSendToOctane.packAllIssues(issues.getData(), existingInOctane, "Tag", new HashMap<>());
+
+		Assert.assertEquals(4,octaneIssues.size());
+
+		validateIssueMap(octaneIssues.get(0),
 				"list_node.issue_state_node.new",
 				"\\ABC\\DEF\\GHIJ.java",
-				1,
+				"1",
 				"Kingdom1",
 				"Issue1");
 
-		Map issue2AsMap = issuesToPost.get(1);
-		validateIssueMap(issue2AsMap,
+
+		validateIssueMap(octaneIssues.get(1),
 				"list_node.issue_state_node.existing",
 				"\\ABC\\DEF\\GHIJ\\KLM.java",
-				2,
+				"2",
 				"Kingdom2",
 				"Issue2");
 
 
-		Map issue3AsMap = issuesToPost.get(2);
-		validateIssueMap(issue3AsMap,
+
+		validateIssueMap(octaneIssues.get(2),
 				"list_node.issue_state_node.closed",
 				null,
-				-1,
+				"-1",
 				null,
 				null);
 
-		Map issue4AsMap = issuesToPost.get(3);
-		validateIssueMap(issue4AsMap,
+
+		validateIssueMap(octaneIssues.get(3),
 				"list_node.issue_state_node.closed",
 				null,
-				-1,
+				"-1",
 				null,
 				null);
 
@@ -175,29 +168,25 @@ public class PackIssuesToSendToOctaneTest {
 		retVal.put(2,issueDetails2);
 		return retVal;
 	}
-	private List<Map> getIssuesAsMaps(InputStream inputStream) throws IOException {
-		ObjectMapper objectMapper = new ObjectMapper();
-		Map map = objectMapper.readValue(inputStream, Map.class);
-		return (List<Map>)map.get("data");
-	}
 
-	private void validateIssueMap(Map issue2AsMap, String state, String location, int line,
+
+	private void validateIssueMap(OctaneIssue octaneIssue, String state, String location, String line,
 								  String kingdom,
 								  String issueName) {
 		if(state != null) {
-			Assert.assertEquals(state, ((Map) (issue2AsMap.get("state"))).get("id"));
+			Assert.assertEquals(state, octaneIssue.getState().getId());
 		}
 		if(location != null) {
-			Assert.assertEquals(location, issue2AsMap.get("primary_location_full"));
+			Assert.assertEquals(location, octaneIssue.getPrimaryLocationFull());
 		}
-		if(line != -1) {
-			Assert.assertEquals(line, issue2AsMap.get("line"));
+		if(line != "-1") {
+			Assert.assertEquals(line, octaneIssue.getLine().toString());
 		}
 		if(kingdom != null) {
-			Assert.assertEquals(kingdom, ((Map) (issue2AsMap.get("extended_data"))).get("kingdom"));
+			Assert.assertEquals(kingdom, octaneIssue.getExtendedData().get("kingdom"));
 		}
 		if(issueName != null) {
-			Assert.assertEquals(issueName, ((Map) (issue2AsMap.get("extended_data"))).get("issueName"));
+			Assert.assertEquals(issueName, octaneIssue.getExtendedData().get("issueName"));
 		}
 	}
 

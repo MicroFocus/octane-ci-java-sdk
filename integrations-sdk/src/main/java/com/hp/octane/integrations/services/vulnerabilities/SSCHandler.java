@@ -119,7 +119,7 @@ public class SSCHandler {
         return Optional.of(issues);
     }
 
-    public Map<Integer, IssueDetails> getDetailsOfIssues(List<Issues.Issue> issues) {
+    public Map<Integer, IssueDetails> getIssuesExtendedData(List<Issues.Issue> issues) {
         HashMap<Integer,IssueDetails> idToDetails = new HashMap<>();
         for (Issues.Issue issue : issues) {
             IssueDetails issueDetails = sscProjectConnector.getIssueDetails(issue.id);

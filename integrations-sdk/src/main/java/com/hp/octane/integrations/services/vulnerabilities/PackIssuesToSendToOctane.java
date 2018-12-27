@@ -21,10 +21,7 @@ import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,21 +33,20 @@ import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIss
 
 public class PackIssuesToSendToOctane {
 
-    public InputStream packAllIssues(Issues sscIssues,  List<String> existingIssuesInOctane, String targetDir, String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
+    public List<OctaneIssue> packAllIssues(List<Issues.Issue> sscIssues, List<String> existingIssuesInOctane, String remoteTag, Map<Integer,IssueDetails> issueDetailsById) {
         List<OctaneIssue> octaneIssues = packToOctaneIssues(sscIssues,existingIssuesInOctane, remoteTag, issueDetailsById);
         if (octaneIssues.isEmpty()) {
             throw new PermanentException("This scan has no issues.");
         }
-        IssuesFileSerializer issuesFileSerializer = new IssuesFileSerializer(targetDir, octaneIssues);
-        return issuesFileSerializer.doSerializeAndCache();
+        return octaneIssues;
     }
 
-    private List<OctaneIssue> packToOctaneIssues(Issues sscIssues, List<String> octaneIssues, String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
-        if (sscIssues.getCount() == 0 && octaneIssues.size() == 0) {
+    private List<OctaneIssue> packToOctaneIssues(List<Issues.Issue> sscIssues, List<String> octaneIssues, String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
+        if (sscIssues.size() == 0 && octaneIssues.size() == 0) {
             return new ArrayList<>();
         }
         List<String> remoteIdsSSC =
-                sscIssues.getData().stream().map(t -> t.issueInstanceId).collect(Collectors.toList());
+                sscIssues.stream().map(t -> t.issueInstanceId).collect(Collectors.toList());
 
         List<String> remoteIdsToCloseInOctane = octaneIssues.stream()
                 .filter(t -> !remoteIdsSSC.contains(t))
@@ -61,7 +57,7 @@ public class PackIssuesToSendToOctane {
                 .map(t -> createClosedOctaneIssue(t)).collect(Collectors.toList());
 
         //Issues that are not closed , packed to update/create.
-        List<Issues.Issue> issuesToUpdate = sscIssues.getData().stream()
+        List<Issues.Issue> issuesToUpdate = sscIssues.stream()
                 .filter(t -> !remoteIdsToCloseInOctane.contains(t.issueInstanceId))
                 .collect(Collectors.toList());
         //Issues.Issue
