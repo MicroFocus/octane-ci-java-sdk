@@ -121,9 +121,14 @@ public class SSCHandler {
 
     public Map<Integer, IssueDetails> getIssuesExtendedData(List<Issues.Issue> issues) {
         HashMap<Integer,IssueDetails> idToDetails = new HashMap<>();
-        for (Issues.Issue issue : issues) {
-            IssueDetails issueDetails = sscProjectConnector.getIssueDetails(issue.id);
-            idToDetails.put(issue.id, issueDetails);
+        try {
+            for (Issues.Issue issue : issues) {
+                    IssueDetails issueDetails = sscProjectConnector.getIssueDetails(issue.id);
+                    idToDetails.put(issue.id, issueDetails);
+               
+            }
+        }catch (Exception e){
+            logger.error("failed to add extended data for issues",e);
         }
         return idToDetails;
     }

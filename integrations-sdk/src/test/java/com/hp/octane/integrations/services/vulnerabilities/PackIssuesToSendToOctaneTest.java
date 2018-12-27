@@ -84,12 +84,12 @@ public class PackIssuesToSendToOctaneTest {
 				"Kingdom2",
 				"Issue2");
 
-		ValidateRemoteIdAndExtendedIssues(issuesToPost.get(0),"RemoteId1",idToDetails.get(1));
-		ValidateRemoteIdAndExtendedIssues(issuesToPost.get(1),"RemoteId2",idToDetails.get(2));
+		validateRemoteIdAndExtendedIssues(issuesToPost.get(0),"RemoteId1",idToDetails.get(1));
+		validateRemoteIdAndExtendedIssues(issuesToPost.get(1),"RemoteId2",idToDetails.get(2));
 
 	}
 
-	private void ValidateRemoteIdAndExtendedIssues(OctaneIssue issue2AsMap, String remoteId1, IssueDetails issueDetails) {
+	private void validateRemoteIdAndExtendedIssues(OctaneIssue issue2AsMap, String remoteId1, IssueDetails issueDetails) {
 
 		Map extended_data = (issue2AsMap.getExtendedData());
 		Assert.assertEquals(issueDetails.getData().brief ,extended_data.get("summary"));
@@ -179,7 +179,7 @@ public class PackIssuesToSendToOctaneTest {
 		if(location != null) {
 			Assert.assertEquals(location, octaneIssue.getPrimaryLocationFull());
 		}
-		if(line != "-1") {
+		if(!"-1".equals(line)) {
 			Assert.assertEquals(line, octaneIssue.getLine().toString());
 		}
 		if(kingdom != null) {
