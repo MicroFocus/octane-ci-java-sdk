@@ -7,11 +7,11 @@
 	<version>2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>HPE ALM Octane Common libraries for CI plugins</name>
-	<description>HPE ALM Octane common libraries for developing CI plugins for Octane</description>
+	<name>MicroFocus ALM Octane Common libraries for CI plugins</name>
+	<description>MicroFocus ALM Octane common libraries for developing CI plugins for Octane</description>
 	<url>https://github.com/MicroFocus/octane-ci-java-sdk</url>
 	<organization>
-		<name>HPE</name>
+		<name>MicroFocus</name>
 	</organization>
 
 	<licenses>
@@ -24,25 +24,19 @@
 
 	<developers>
 		<developer>
-			<id>m-seldin</id>
-			<name>Michael Seldin</name>
-			<email>michael.seldin@hpe.com</email>
+			<id>radislavB</id>
+			<name>Radislav Berkovich</name>
+			<email>radislav.berkovich@microfocus.com</email>
 			<roles>
 				<role>Global owner and maintainer</role>
 			</roles>
-			<organization>HPE</organization>
-		</developer>
-		<developer>
-			<id>mgustus</id>
-			<name>Michael Gustus</name>
-			<email>michael.gustus@hpe.com</email>
-			<organization>HPE</organization>
+			<organization>MicroFocus</organization>
 		</developer>
 		<developer>
 			<id>lazara3</id>
 			<name>Ayellet Lazar</name>
-			<email>ayellet.lazar@hpe.com</email>
-			<organization>HPE</organization>
+			<email>ayellet.lazar@microfocus.com</email>
+			<organization>MicroFocus</organization>
 		</developer>
 		<developer>
 			<id>gullerya</id>
