@@ -23,36 +23,33 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * This file represents automated test for sending to Octane
  */
-@XmlRootElement(name = "test")
-@XmlAccessorType(XmlAccessType.FIELD)
+
 public class AutomatedTest implements SupportsMoveDetection, SupportsOctaneStatus {
 
-	@XmlAttribute
 	private String id;
-	@XmlAttribute
+
 	private String changeSetSrc;
-	@XmlAttribute
+
 	private String changeSetDst;
-	@XmlAttribute
+
 	private String oldName;
-	@XmlAttribute
+
 	private String oldPackageName;
-	@XmlAttribute
+
 	private Boolean isMoved;
-	@XmlAttribute
+
 	private UftTestType uftTestType;
-	@XmlAttribute
+
 	private OctaneStatus octaneStatus;
-	@XmlAttribute
+
 	private boolean missingScmRepository;
-	@XmlAttribute
+
 	private boolean missingTestRunner;
 
-	@XmlAttribute
 	private String name;
-	@XmlAttribute
+
 	private String packageName;
-	@XmlAttribute
+
 	private Boolean executable;
 
 	private String description;
