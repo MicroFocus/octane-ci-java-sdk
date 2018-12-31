@@ -27,19 +27,18 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ScmResourceFile implements SupportsMoveDetection, SupportsOctaneStatus {
 
-	@XmlAttribute
 	private String id;
-	@XmlAttribute
+
 	private String changeSetSrc;
-	@XmlAttribute
+
 	private String changeSetDst;
-	@XmlAttribute
+
 	private String oldRelativePath;
-	@XmlAttribute
+
 	private String oldName;
-	@XmlAttribute
+
 	private Boolean isMoved;
-	@XmlAttribute
+
 	private OctaneStatus octaneStatus;
 
 	private String name;
