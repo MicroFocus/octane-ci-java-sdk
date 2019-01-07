@@ -22,6 +22,8 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
+import com.hp.octane.integrations.testhelpers.RestServerSimulator;
+import com.hp.octane.integrations.testhelpers.SSCServerSimulator;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -41,6 +43,13 @@ public class VulnerabilitiesServicePluginServicesTest extends CIPluginServices {
 		);
 		projectConfigurations.put("job-preflight-true #1", dtoFactory.newDTO(SSCProjectConfiguration.class)
 				.setSSCUrl(OctaneSPEndpointSimulator.getSimulatorUrl())
+				.setSSCBaseAuthToken("sec-token")
+				.setProjectName("project-a")
+				.setProjectVersion("version-a")
+				.setMaxPollingTimeoutHours(1)
+		);
+		projectConfigurations.put("jobSSC1 #1", dtoFactory.newDTO(SSCProjectConfiguration.class)
+				.setSSCUrl(SSCServerSimulator.getSimulatorUrl())
 				.setSSCBaseAuthToken("sec-token")
 				.setProjectName("project-a")
 				.setProjectVersion("version-a")
