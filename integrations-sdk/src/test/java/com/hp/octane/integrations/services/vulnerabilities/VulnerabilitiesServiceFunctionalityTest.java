@@ -188,7 +188,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 	}
 
 	@Test(timeout = 20000)
-	public void test_AB_Updated_C_Closed_D_Missing_E_New_No_baseline() throws IOException {
+	public void testABUpdatedCClosedDMissingENewNoBaseline() throws IOException {
 
 		Issues.Issue issueA = new Issues.Issue();
 		issueA.issueInstanceId = "A";
@@ -234,7 +234,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 	}
 
 	@Test(timeout = 20000)
-	public void test_AB_Updated_C_Closed_D_Missing_E_New_FG_Before_Baseline() throws IOException {
+	public void testABUpdatedCClosedDMissingENewFGBeforeBaseline() throws IOException {
 
 
 		DateFormat sourceDateFormat = new SimpleDateFormat(SSCDateUtils.sscFormat);
@@ -302,7 +302,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 	}
 
 	@Test(timeout = 20000)
-	public void test_ABD_Missing_E_New_FG_Before_Baseline() throws IOException {
+	public void testABDMissingENewFGBeforeBaseline() throws IOException {
 
 
 		DateFormat sourceDateFormat = new SimpleDateFormat(SSCDateUtils.sscFormat);
@@ -368,7 +368,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 	}
 
 	@Test(timeout = 20000)
-	public void test_ABC_Closed_E_NEW() throws IOException {
+	public void testABCClosedENEW() throws IOException {
 
 
 		DateFormat sourceDateFormat = new SimpleDateFormat(SSCDateUtils.sscFormat);
@@ -398,7 +398,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
 	}
 
 	@Test(timeout = 20000)
-	public void test_No_push_to_octane() throws IOException {
+	public void testNoPushToOctane() throws IOException {
 
 
 		SSCInput sscInput = SSCInput.buildInputWithDefaults(new ArrayList<>());

@@ -80,7 +80,8 @@ public class IssuesValidate {
 
     }
 
-    private void validateTotalIssuesByStateId(OctaneIssuesPushed octaneIssuesPushed, ExpectedPushToOctane expectedPushToOctane) {
+    private void validateTotalIssuesByStateId(OctaneIssuesPushed octaneIssuesPushed,
+                                              ExpectedPushToOctane expectedPushToOctane) throws SSCTestFailure {
 
         String updatedStateId = "list_node.issue_state_node.existing";
         List<Issues.Issue> updatedIssues = new ArrayList<>();
@@ -136,7 +137,7 @@ public class IssuesValidate {
                     .collect(Collectors.toList());
 
             if(newOctaneIssue.size()!= 1){
-                throw new RuntimeException("New Issue was not pushed to Octane.");
+                throw new SSCTestFailure("New Issue was not pushed to Octane.");
             }
 
             validateState(newOctaneIssue.get(0),
@@ -147,28 +148,29 @@ public class IssuesValidate {
         }
     }
 
-    private  void validateExtendedDataContainsAllData(OctaneIssue octaneIssue) {
+    private  void validateExtendedDataContainsAllData(OctaneIssue octaneIssue) throws SSCTestFailure {
 
         if(octaneIssue.getExtendedData().get("summary") == null ||
                 octaneIssue.getExtendedData().get("explanation") == null ||
                 octaneIssue.getExtendedData().get("recommendations") == null ||
                 octaneIssue.getExtendedData().get("tips") == null){
             String state = octaneIssue.getState().getId().contains("new") ? "new" : "missing";
-            throw new RuntimeException("Issue Details was missing in " + state +" issue");
+            throw new SSCTestFailure("Issue Details was missing in " + state +" issue");
         }
     }
 
-    private  void validateIssueDoesNotContainsIssueDetails(OctaneIssue octaneIssue) {
+    private  void validateIssueDoesNotContainsIssueDetails(OctaneIssue octaneIssue) throws SSCTestFailure {
 
         if(octaneIssue.getExtendedData().get("summary") != null ||
                 octaneIssue.getExtendedData().get("explanation") != null ||
                 octaneIssue.getExtendedData().get("recommendations") != null ||
                 octaneIssue.getExtendedData().get("tips") != null){
-            throw new RuntimeException("Issue Details was found in an existing - not missing - issue");
+            throw new SSCTestFailure("Issue Details was found in an existing - not missing - issue");
         }
     }
 
-    private void validateExisting(OctaneIssuesPushed octaneIssuesPushed, List<Issues.Issue> existingIssues) throws SSCTestFailure {
+    private void validateExisting(OctaneIssuesPushed octaneIssuesPushed, List<Issues.Issue> existingIssues)
+            throws SSCTestFailure {
 
 
         for (Issues.Issue existingIssue : existingIssues) {
@@ -177,7 +179,7 @@ public class IssuesValidate {
                     .collect(Collectors.toList());
 
             if(existingOctaneIssue.size()!= 1){
-                throw new RuntimeException("Existing Issue was not pushed to Octane.");
+                throw new SSCTestFailure("Existing Issue was not pushed to Octane.");
             }
 
             validateState(existingOctaneIssue.get(0),
@@ -189,13 +191,13 @@ public class IssuesValidate {
     }
 
     private void validateIssuesOfState(OctaneIssuesPushed octaneIssuesPushed,
-                                       int numberInPushedIssues, String stateId) {
+                                       int numberInPushedIssues, String stateId) throws SSCTestFailure {
         List<OctaneIssue> pushedIssues = octaneIssuesPushed.octaneIssues.stream()
                 .filter(t -> t.getState().getId().equals(stateId))
                 .collect(Collectors.toList());
 
         if(pushedIssues.size() != numberInPushedIssues){
-            throw new RuntimeException("Unexpected number of " + stateId+ " issues were pushed");
+            throw new SSCTestFailure("Unexpected number of " + stateId+ " issues were pushed");
         }
     }
 
@@ -208,7 +210,7 @@ public class IssuesValidate {
                     .collect(Collectors.toList());
 
             if(missingOctaneIssue.size()!= 1){
-                throw new RuntimeException("Missing Updated Issue was not pushed to Octane.");
+                throw new SSCTestFailure("Missing Updated Issue was not pushed to Octane.");
             }
 
             validateState(missingOctaneIssue.get(0),

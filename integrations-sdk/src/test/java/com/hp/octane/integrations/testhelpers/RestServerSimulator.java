@@ -18,25 +18,26 @@ import java.util.regex.Pattern;
 
 public class RestServerSimulator extends AbstractHandler {
 
-    static class RequestHandlingRule{
-        RequestHandlingRule(String urlPattern, Predicate<Request> cond, Consumer<Request> op){
+    private int selectedPort;
+    private Server server;
+    private List<RequestHandlingRule> handlingRules = new ArrayList<>();
+    private List<Request> receivedRequests = new ArrayList<>();
+
+    public static class RequestHandlingRule{
+        public String urlPattern;
+        public Predicate<Request> condition;
+        public Consumer<Request> operationOnRequest;
+        public RequestHandlingRule(String urlPattern, Predicate<Request> cond, Consumer<Request> op){
             this.urlPattern = urlPattern;
             this.condition = cond;
             this.operationOnRequest = op;
         }
-        String urlPattern;
-        Predicate<Request> condition;
-        Consumer<Request> operationOnRequest;
     }
 
     public RestServerSimulator(int port){
         this.selectedPort = port;
     }
 
-    int selectedPort;
-    private Server server;
-    private List<RequestHandlingRule> handlingRules = new ArrayList<>();
-    List<Request> receivedRequests = new ArrayList<>();
 
     public void startServer() {
         HandlerCollection handlers = new HandlerCollection(true);
@@ -75,7 +76,8 @@ public class RestServerSimulator extends AbstractHandler {
 
         try {
             for (RequestHandlingRule handlingRule : handlingRules) {
-                boolean urlMatch = true, requestMatch = true;
+                boolean urlMatch = true,
+                        requestMatch = true;
                 if (handlingRule.urlPattern != null &&
                         !Pattern.compile(handlingRule.urlPattern).matcher(request.getOriginalURI()).matches()) {
                     urlMatch = false;

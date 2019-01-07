@@ -3,7 +3,6 @@ package com.hp.octane.integrations.services.vulnerabilities;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 public class ExpectedPushToOctane {

@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 public class SSCServerSimulator extends RestServerSimulator{
 
     static int selectedPort = 9090;
+    static SSCServerSimulator _instance;
 
     public SSCServerSimulator(int port) {
         super(port);
@@ -27,7 +28,7 @@ public class SSCServerSimulator extends RestServerSimulator{
     public static String getSimulatorUrl() {
         return "http://localhost:"+selectedPort;
     }
-    static SSCServerSimulator _instance;
+
 
     public static synchronized SSCServerSimulator instance(){
         if(_instance == null){

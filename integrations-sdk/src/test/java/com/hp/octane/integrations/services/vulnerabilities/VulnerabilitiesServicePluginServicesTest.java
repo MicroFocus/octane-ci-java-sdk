@@ -22,7 +22,6 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
-import com.hp.octane.integrations.testhelpers.RestServerSimulator;
 import com.hp.octane.integrations.testhelpers.SSCServerSimulator;
 
 import java.io.File;
