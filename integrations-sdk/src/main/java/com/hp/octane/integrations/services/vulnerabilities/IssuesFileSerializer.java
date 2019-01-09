@@ -21,6 +21,7 @@ import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +32,9 @@ public class IssuesFileSerializer {
 
 	public IssuesFileSerializer(String targetDir, List<OctaneIssue> issues) {
 		this.targetDir = targetDir;
+		if(issues==null){
+			issues = new ArrayList<>();
+		}
 		this.octaneIssues = issues;
 	}
 

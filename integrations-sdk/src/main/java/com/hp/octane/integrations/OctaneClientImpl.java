@@ -230,4 +230,8 @@ final class OctaneClientImpl implements OctaneClient {
 		}
 		return folder.delete();
 	}
+
+	void notifyCredentialsChanged(){
+		restService.notifyConfigurationChange();
+	}
 }

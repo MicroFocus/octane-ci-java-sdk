@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
@@ -28,6 +29,7 @@ import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCDateUtils;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -135,6 +137,7 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 			try {
 				vulnerabilitiesQueueItem = vulnerabilitiesQueue.peek();
 				if (processPushVulnerabilitiesQueueItem(vulnerabilitiesQueueItem)) {
+					vulnerabilitiesQueueItemCleanUp(vulnerabilitiesQueueItem);
 					vulnerabilitiesQueue.remove();
 				} else {
 					reEnqueueItem(vulnerabilitiesQueueItem);
@@ -147,16 +150,20 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
 				logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
+				vulnerabilitiesQueueItemCleanUp(vulnerabilitiesQueueItem);
 				vulnerabilitiesQueue.remove();
 			} catch (Throwable t) {
 				logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
+				vulnerabilitiesQueueItemCleanUp(vulnerabilitiesQueueItem);
 				vulnerabilitiesQueue.remove();
 			}
 		}
 		workerExited.complete(true);
 	}
 
-	private boolean preflightRequest(String jobId, String buildId) throws IOException {
+
+
+	private Date preflightRequest(String jobId, String buildId) throws IOException {
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 
@@ -167,12 +174,17 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 
 		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
 		if (response.getStatus() == HttpStatus.SC_OK) {
-			if ("true".equals(response.getBody())) {
-				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
-				return true;
-			} else {
+			if (response.getBody()==null || "".equals(response.getBody())) {
 				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
-				return false;
+				return null;
+			}else{
+				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
+				boolean forTest = false;
+				//backward compatibility with Octane
+				if("true".equals(response.getBody()) || forTest){
+					return SSCDateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd");
+				}
+				return SSCDateUtils.getDateFromUTCString(response.getBody(), SSCDateUtils.octaneFormat);
 			}
 		}
 		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
@@ -216,10 +228,15 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 
 		//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
 		if (!vulnerabilitiesQueueItem.isRelevant) {
-			boolean relevant = preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-			if (relevant) {
+
+			Date relevant = preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
+			if (relevant!=null) {
 				//  set queue item value relevancy to true and continue
 				vulnerabilitiesQueueItem.isRelevant = true;
+				//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
+				if(relevant.compareTo(SSCDateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd"))>0) {
+					vulnerabilitiesQueueItem.baselineDate = relevant;
+				}
 			} else {
 				//  return with true to silently proceed to the next item
 				return true;
@@ -251,41 +268,16 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
                                                            SSCProjectConfiguration sscProjectConfiguration) throws IOException {
         String targetDir = getTargetDir(vulnerabilitiesQueueItem);
-        InputStream result = getCachedScanResult(targetDir);
-        if (result != null) {
-            return result;
+        InputStream cachedScanResult = getCachedScanResult(targetDir);
+        if (cachedScanResult != null) {
+            return cachedScanResult;
         }
-        SSCHandler sscHandler = new SSCHandler(
-                vulnerabilitiesQueueItem,
-                sscProjectConfiguration,
-                this.restService.obtainSSCRestClient());
-        Optional<Issues> allIssues = sscHandler.getIssuesIfScanCompleted();
-        if (!allIssues.isPresent()) {
-            return null;
-        }
-		List<Issues.Issue> newIssues = allIssues.get().getData().stream().filter(
-				t -> t.scanStatus.equalsIgnoreCase("NEW")).collect(
-				Collectors.toList());
-		Map<Integer,IssueDetails> issueDetailsById =
-				sscHandler.getDetailsOfIssues(newIssues);
-
-        ExistingIssuesInOctane existingIssuesInOctane = new ExistingIssuesInOctane(
-                this.restService.obtainOctaneRestClient(),
-                this.configurer.octaneConfiguration,
-                vulnerabilitiesQueueItem);
-        List<String> remoteIdsOpenVulnsFromOctane = existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane(vulnerabilitiesQueueItem.jobId,
-				vulnerabilitiesQueueItem.buildId,
-				sscProjectConfiguration.getRemoteTag());
-
-        PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
-        return packIssuesToSendToOctane.packAllIssues(allIssues.get(),
-                remoteIdsOpenVulnsFromOctane,
-                targetDir,
-				sscProjectConfiguration.getRemoteTag(),
-				issueDetailsById);
-    }
-
-
+        List<OctaneIssue> octaneIssues = getNonCacheVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem,sscProjectConfiguration);
+        if(octaneIssues==null){
+        	return null;
+		}
+		return  new IssuesFileSerializer(targetDir, octaneIssues).doSerializeAndCache();
+	}
 
 	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 		File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
@@ -295,6 +287,94 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 		}
 		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
 	}
+
+	private boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
+		String runRootDir = getTargetDir(vulnerabilitiesQueueItem);
+		if (runRootDir == null) {
+			return false;
+		}
+		File directoryToBeDeleted = new File(runRootDir);
+		return deleteDirectory(directoryToBeDeleted);
+	}
+
+	private boolean deleteDirectory(File directoryToBeDeleted) {
+		File[] allContents = directoryToBeDeleted.listFiles();
+		if (allContents != null) {
+			for (File file : allContents) {
+				deleteDirectory(file);
+			}
+		}
+		return directoryToBeDeleted.delete();
+	}
+
+
+	//return octane issues (or null if scan not completed)
+	private List<OctaneIssue> getNonCacheVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
+																		 SSCProjectConfiguration sscProjectConfiguration) throws IOException {
+
+		SSCHandler sscHandler = new SSCHandler(
+				vulnerabilitiesQueueItem,
+				sscProjectConfiguration,
+				this.restService.obtainSSCRestClient());
+
+
+
+		List<Issues.Issue> issuesFromSecurityTool = getIssuesFromSecurityTool(sscHandler,vulnerabilitiesQueueItem);
+		if(issuesFromSecurityTool==null){
+			return null;
+		}
+
+		List<String> octaneExistsIssuesIdsList = getRemoteIdsOfExistIssuesFromOctane(vulnerabilitiesQueueItem,sscProjectConfiguration.getRemoteTag());
+
+		List<Issues.Issue> issuesRequiredExtendedData = issuesFromSecurityTool.stream().filter(
+				t -> {
+					boolean isNew = t.scanStatus.equalsIgnoreCase("NEW");
+					boolean isMissing = false;
+					if(vulnerabilitiesQueueItem.baselineDate!=null){
+						isMissing = !octaneExistsIssuesIdsList.contains(t.issueInstanceId);
+					}
+					return isNew||isMissing;
+				}).collect(
+				Collectors.toList());
+
+		Map<Integer,IssueDetails> issuesWithExtendedData = sscHandler.getIssuesExtendedData(issuesRequiredExtendedData);
+
+		PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
+		return packIssuesToSendToOctane.packAllIssues(issuesFromSecurityTool,
+				octaneExistsIssuesIdsList,
+				sscProjectConfiguration.getRemoteTag(),
+				issuesWithExtendedData);
+	}
+
+	private List<String> getRemoteIdsOfExistIssuesFromOctane(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, String remoteTag) throws IOException {
+		ExistingIssuesInOctane existingIssuesInOctane = new ExistingIssuesInOctane(
+				this.restService.obtainOctaneRestClient(),
+				this.configurer.octaneConfiguration,
+				vulnerabilitiesQueueItem);
+		return existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane(vulnerabilitiesQueueItem.jobId,
+				vulnerabilitiesQueueItem.buildId,
+				remoteTag);
+	}
+
+	//return issues from security tool (or null if scan not completed)
+	private List<Issues.Issue> getIssuesFromSecurityTool(SSCHandler sscHandler, VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+		Optional<Issues> allIssues = sscHandler.getIssuesIfScanCompleted();
+		if (!allIssues.isPresent()) {
+			return null;
+		}
+		List<Issues.Issue> filterIssuesByBaseLine = allIssues.get().getData();
+		//in case we have the baselineDate - we should filter by it to have more optimal payload
+		if(vulnerabilitiesQueueItem.baselineDate!=null) {
+			filterIssuesByBaseLine = allIssues.get().getData().stream().filter(issue -> {
+				Date foundDate = SSCDateUtils.getDateFromUTCString(issue.foundDate, SSCDateUtils.sscFormat);
+				return foundDate.compareTo(vulnerabilitiesQueueItem.baselineDate) >= 0;
+			}).collect(Collectors.toList());
+		}
+		return filterIssuesByBaseLine;
+	}
+
+
+
 
 	private InputStream getCachedScanResult(String runRootDir) {
 		if (runRootDir == null) {
@@ -328,6 +408,7 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 		public Long startTime;
 		public Long timeout;
 		public boolean isRelevant = false;
+		public Date baselineDate;
 
 		//  [YG] this constructor MUST be present, don't remove
 		public VulnerabilitiesQueueItem() {
