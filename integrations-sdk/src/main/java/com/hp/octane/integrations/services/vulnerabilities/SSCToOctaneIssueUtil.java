@@ -80,7 +80,7 @@ public class SSCToOctaneIssueUtil {
             return null;
         }
         //"2017-02-12T12:31:44.000+0000"
-        DateFormat sourceDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
+        DateFormat sourceDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
         Date date;
         try {
             date = sourceDateFormat.parse(inputFoundDate);
