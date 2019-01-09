@@ -16,10 +16,9 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Artifacts;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.ProjectVersions;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Projects;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCDateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Artifacts;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.ProjectVersions;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Projects;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -43,7 +42,7 @@ public class SSCTestUtils {
     public static String getArtificatResponse(String status) throws IOException {
         Artifacts artifacts = new Artifacts();
         Artifacts.Artifact artifact = new Artifacts.Artifact();
-        DateFormat sourceDateFormat = new SimpleDateFormat(SSCDateUtils.sscFormat);
+        DateFormat sourceDateFormat = new SimpleDateFormat(DateUtils.sscFormat);
         artifact.uploadDate = sourceDateFormat.format(new Date());
         artifact.status = status;
         artifacts.setData(Arrays.asList(artifact));

@@ -17,10 +17,10 @@ package com.hp.octane.integrations.testhelpers;
 
 import com.hp.octane.integrations.services.vulnerabilities.SSCInput;
 import com.hp.octane.integrations.services.vulnerabilities.SSCTestUtils;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.AuthToken;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.ProjectVersions;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Projects;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.AuthToken;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.ProjectVersions;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Projects;
 import org.apache.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 

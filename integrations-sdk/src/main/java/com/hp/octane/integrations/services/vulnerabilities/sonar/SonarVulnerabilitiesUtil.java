@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.services.coverage;
+package com.hp.octane.integrations.services.vulnerabilities.sonar;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -8,11 +8,12 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.coverage.dto.SonarIssue;
-import com.hp.octane.integrations.services.coverage.dto.SonarRule;
+import com.hp.octane.integrations.services.sonar.SonarUtils;
+import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarIssue;
+import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarRule;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer;
-import com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;

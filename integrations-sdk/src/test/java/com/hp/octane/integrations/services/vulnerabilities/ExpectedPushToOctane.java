@@ -15,7 +15,8 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
+
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 
 import java.util.ArrayList;
 import java.util.List;

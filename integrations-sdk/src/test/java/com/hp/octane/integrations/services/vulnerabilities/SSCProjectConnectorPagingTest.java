@@ -16,10 +16,10 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SscProjectConnector;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCProjectConnector;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.DummyContents;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.MockSSCRestClient;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ import java.util.Arrays;
 
 import static org.easymock.EasyMock.*;
 
-public class SscProjectConnectorPagingTest {
+public class SSCProjectConnectorPagingTest {
 
 
     @Test
@@ -36,7 +36,7 @@ public class SscProjectConnectorPagingTest {
         SSCProjectConfiguration configMock = createNiceMock(SSCProjectConfiguration.class);
         expect(configMock.getSSCUrl()).andReturn("DummyURL").anyTimes();
         replay(configMock);
-        SscProjectConnector sscProjectConnector = new SscProjectConnector(configMock,
+        SSCProjectConnector sscProjectConnector = new SSCProjectConnector(configMock,
                 new MockSSCRestClient(Arrays.asList(DummyContents.issuesPart1,
                         DummyContents.issuesPart2,
                         DummyContents.issuesPart3)));

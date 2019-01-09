@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.services.coverage;
+package com.hp.octane.integrations.services.sonar;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hp.octane.integrations.exceptions.PermanentException;

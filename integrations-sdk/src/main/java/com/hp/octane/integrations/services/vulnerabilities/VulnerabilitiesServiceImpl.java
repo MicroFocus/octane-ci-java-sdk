@@ -22,11 +22,11 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.services.coverage.SonarService;
+import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCDateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -34,7 +34,6 @@ import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
@@ -58,7 +57,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	protected final OctaneSDK.SDKServicesConfigurer configurer;
 	protected final RestService restService;
 
-	protected final  SSCService sscService;
+	protected final SSCService sscService;
 	protected final  SonarService sonarService;
 
 
@@ -191,9 +190,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				boolean forTest = false;
 				//backward compatibility with Octane
 				if("true".equals(response.getBody()) || forTest){
-					return SSCDateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd");
+					return DateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd");
 				}
-				return SSCDateUtils.getDateFromUTCString(response.getBody(), SSCDateUtils.octaneFormat);
+				return DateUtils.getDateFromUTCString(response.getBody(), DateUtils.octaneFormat);
 			}
 		}
 		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
@@ -216,7 +215,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 					//  set queue item value relevancy to true and continue
 					queueItem.setRelevant(true);
 					//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
-					if (relevant.compareTo(SSCDateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd")) > 0) {
+					if (relevant.compareTo(DateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd")) > 0) {
 						queueItem.setBaselineDate(relevant);
 					}
 				} else {

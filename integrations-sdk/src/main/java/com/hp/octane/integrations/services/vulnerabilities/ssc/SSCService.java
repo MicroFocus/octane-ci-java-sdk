@@ -1,7 +1,8 @@
-package com.hp.octane.integrations.services.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
 
 import java.io.InputStream;
 

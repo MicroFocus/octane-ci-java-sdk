@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.services.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,9 +8,12 @@ import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCDateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer;
+import com.hp.octane.integrations.services.vulnerabilities.DateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -116,7 +119,7 @@ public class SSCServiceImpl implements SSCService{
         //in case we have the baselineDate - we should filter by it to have more optimal payload
         if(vulnerabilitiesQueueItem.getBaselineDate()!=null) {
             filterIssuesByBaseLine = allIssues.get().getData().stream().filter(issue -> {
-                Date foundDate = SSCDateUtils.getDateFromUTCString(issue.foundDate, SSCDateUtils.sscFormat);
+                Date foundDate = DateUtils.getDateFromUTCString(issue.foundDate, DateUtils.sscFormat);
                 return foundDate.compareTo(vulnerabilitiesQueueItem.getBaselineDate()) >= 0;
             }).collect(Collectors.toList());
         }

@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
+package com.hp.octane.integrations.services.vulnerabilities.ssc.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

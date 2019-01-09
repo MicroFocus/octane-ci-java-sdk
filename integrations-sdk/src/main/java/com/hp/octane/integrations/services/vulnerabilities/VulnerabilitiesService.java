@@ -17,9 +17,10 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
-import com.hp.octane.integrations.services.coverage.SonarService;
+import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 
 import java.util.Map;
 
@@ -32,7 +33,7 @@ public interface VulnerabilitiesService extends ClosableService {
 	 * @param restService Rest Service
 	 * @return initialized service
 	 */
-	static VulnerabilitiesService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService,  SSCService sscService, SonarService sonarService) {
+	static VulnerabilitiesService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, SSCService sscService, SonarService sonarService) {
 		return new VulnerabilitiesServiceImpl(configurer, queueingService, restService,  sscService, sonarService);
 	}
 

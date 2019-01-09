@@ -13,11 +13,12 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.services.coverage;
+package com.hp.octane.integrations.services.sonar;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.services.ClosableService;
+import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
@@ -41,7 +42,7 @@ public interface SonarService extends ClosableService {
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService,  RestService restService) {
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, RestService restService) {
 		return new SonarServiceImpl(configurer, queueingService, coverageService,restService);
 	}
 

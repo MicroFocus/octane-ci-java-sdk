@@ -13,7 +13,7 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
+package com.hp.octane.integrations.services.vulnerabilities.ssc.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -22,12 +22,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Created by hijaziy on 7/23/2018.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class ProjectVersions extends SscBaseEntityArray<ProjectVersions.ProjectVersion> {
+public class AuthToken extends SscBaseEntitySingle<AuthToken.AuthTokenData> {
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ProjectVersion {
-        @JsonProperty("id")
-        public Integer id;
-        @JsonProperty("latestScanId")
-        public Integer latestScanId;
+    public static class AuthTokenData {
+        @JsonProperty("token")
+        public String token;
+        @JsonProperty("terminalDate")
+        public String terminalDate;
     }
 }

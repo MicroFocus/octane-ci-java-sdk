@@ -1,4 +1,4 @@
-package com.hp.octane.integrations.services.coverage.dto;
+package com.hp.octane.integrations.services.vulnerabilities.sonar.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

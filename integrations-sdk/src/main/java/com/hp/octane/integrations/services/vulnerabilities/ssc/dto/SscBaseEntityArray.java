@@ -13,25 +13,40 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
+package com.hp.octane.integrations.services.vulnerabilities.ssc.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * Created by hijaziy on 7/23/2018.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SscBaseEntitySingle<T> {
-    private T data;
+public class SscBaseEntityArray<T> {
+
+    private List<T> data;
+
+    private int count;
 
     @JsonProperty("data")
-    public T getData() {
+    public List<T> getData() {
         return data;
     }
 
     @JsonProperty("data")
-    public void setData(T data) {
+    public void setData(List<T> data) {
         this.data = data;
+    }
+
+    @JsonProperty("count")
+    public int getCount() {
+        return count;
+    }
+
+    @JsonProperty("count")
+    public void setCount(int count) {
+        this.count = count;
     }
 }

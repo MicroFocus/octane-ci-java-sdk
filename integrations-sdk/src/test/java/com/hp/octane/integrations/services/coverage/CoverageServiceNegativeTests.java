@@ -23,6 +23,8 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.services.sonar.SonarService;
+import com.hp.octane.integrations.services.sonar.SonarServiceImpl;
 import org.junit.Assert;
 import org.junit.Test;
 

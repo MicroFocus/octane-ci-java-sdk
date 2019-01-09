@@ -13,22 +13,22 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil.createListNodeEntity;
-import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil.createOctaneIssues;
+import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil.createListNodeEntity;
+import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil.createOctaneIssues;
 
 
 public class PackIssuesToSendToOctane {

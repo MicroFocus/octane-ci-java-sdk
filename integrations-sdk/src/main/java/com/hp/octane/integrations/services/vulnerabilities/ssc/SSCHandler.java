@@ -13,12 +13,17 @@
  *     limitations under the License.
  */
 
-package com.hp.octane.integrations.services.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.*;
+import com.hp.octane.integrations.services.vulnerabilities.DateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Artifacts;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.ProjectVersions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,7 +35,7 @@ import java.util.*;
 
 public class SSCHandler {
     private final static Logger logger = LogManager.getLogger(SSCHandler.class);
-    private SscProjectConnector sscProjectConnector;
+    private SSCProjectConnector sscProjectConnector;
     private ProjectVersions.ProjectVersion projectVersion;
     private long runStartTime;
 
@@ -69,7 +74,7 @@ public class SSCHandler {
         Date startRunDate = new Date(this.runStartTime);
 
         for (Artifacts.Artifact artifact : artifacts.getData()) {
-            Date uploadDate = SSCDateUtils.getDateFromUTCString(artifact.uploadDate, SSCDateUtils.sscFormat);
+            Date uploadDate = DateUtils.getDateFromUTCString(artifact.uploadDate, DateUtils.sscFormat);
             if (uploadDate != null && uploadDate.after(startRunDate)) {
                 theCloset = artifact;
             }
@@ -100,7 +105,7 @@ public class SSCHandler {
         if (!sscProjectConfiguration.isValid()) {
             throw new PermanentException("SSC configuration invalid, will not continue connecting to the server");
         } else {
-            sscProjectConnector = new SscProjectConnector(sscProjectConfiguration, sscRestClient);
+            sscProjectConnector = new SSCProjectConnector(sscProjectConfiguration, sscRestClient);
             projectVersion = sscProjectConnector.getProjectVersion();
         }
     }

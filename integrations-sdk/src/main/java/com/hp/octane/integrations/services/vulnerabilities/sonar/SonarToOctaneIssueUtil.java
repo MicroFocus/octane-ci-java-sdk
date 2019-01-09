@@ -1,13 +1,11 @@
-package com.hp.octane.integrations.services.coverage;
+package com.hp.octane.integrations.services.vulnerabilities.sonar;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
-import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.services.coverage.dto.SonarIssue;
-import com.hp.octane.integrations.services.coverage.dto.SonarRule;
-import com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarIssue;
+import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarRule;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

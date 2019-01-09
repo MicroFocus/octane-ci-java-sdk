@@ -18,9 +18,9 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
-import com.hp.octane.integrations.services.vulnerabilities.SSCHandler;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SscProjectConnector;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCHandler;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCProjectConnector;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -28,7 +28,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.hp.octane.integrations.services.vulnerabilities.SSCToOctaneIssueUtil.createOctaneIssues;
+import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil.createOctaneIssues;
 import static org.easymock.EasyMock.*;
 
 public class VulnerabilitiesTests {
@@ -44,7 +44,7 @@ public class VulnerabilitiesTests {
 
         SSCRestClient sscClientMock = createNiceMock(SSCRestClient.class);
         replay();
-        SscProjectConnector sscProjectConnector = new SscProjectConnector(sscFortifyConfigurations, sscClientMock);
+        SSCProjectConnector sscProjectConnector = new SSCProjectConnector(sscFortifyConfigurations, sscClientMock);
 
         String projectIdURL = sscProjectConnector.getProjectIdURL();
         String newIssuesURL = sscProjectConnector.getIssuesURL(1);
@@ -164,7 +164,7 @@ public class VulnerabilitiesTests {
     @Test
     public void deserializeIssues(){
 
-        Issues issues = SscProjectConnector.stringToObject(sampleSSCIssues, Issues.class);
+        Issues issues = SSCProjectConnector.stringToObject(sampleSSCIssues, Issues.class);
         Assert.assertEquals(1,issues.getCount());
         Assert.assertEquals(1,issues.getData().size());
         Assert.assertEquals("pom.xml",issues.getData().get(0).fullFileName);

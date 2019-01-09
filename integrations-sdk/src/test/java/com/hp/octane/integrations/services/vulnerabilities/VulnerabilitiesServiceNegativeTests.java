@@ -30,24 +30,24 @@ import java.util.UUID;
 public class VulnerabilitiesServiceNegativeTests {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	/*@Test(expected = IllegalArgumentException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new VulnerabilitiesServiceImpl(null, null, null);
+		new VulnerabilitiesServiceImpl(null, null, null,null,null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new VulnerabilitiesServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		new VulnerabilitiesServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null,null,null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		VulnerabilitiesService.newInstance(null, null, null);
+		VulnerabilitiesService.newInstance(null, null, null, null,null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		VulnerabilitiesService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		VulnerabilitiesService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null,null,null);
 	}
 
 	//  enqueue API negative testing validation
@@ -59,7 +59,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(null, null, 0, 0);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(null, null, "SSC",0, 0,null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -73,7 +73,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("", null, 0, 0);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("", null, "SSC",0, 0,null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -87,7 +87,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", null, 0, 0);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", null, "SSC", 0, 0,null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -101,7 +101,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "", 0, 0);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "", "SSC",0, 0,null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -116,7 +116,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "build-id", 0, 0);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "build-id", "SSC",0, 0,null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -133,5 +133,5 @@ public class VulnerabilitiesServiceNegativeTests {
 		public CIPluginInfo getPluginInfo() {
 			return dtoFactory.newDTO(CIPluginInfo.class);
 		}
-	}*/
+	}
 }
