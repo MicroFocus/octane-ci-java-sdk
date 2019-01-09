@@ -33,14 +33,14 @@ import static org.easymock.EasyMock.*;
 
 public class SSCHandlerTest {
 
-    VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem;
+    VulnerabilitiesQueueItem queueItem;
     SSCProjectConfiguration configMock;
 
     @Before
     public void prepareMembers(){
         queueItem = new
-                VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem();
-        queueItem.startTime = System.currentTimeMillis() - 1000*60*60; //An hour ago
+                VulnerabilitiesQueueItem();
+        queueItem.setStartTime(System.currentTimeMillis() - 1000*60*60); //An hour ago
 
         configMock = getSscProjectConfiguration();
 

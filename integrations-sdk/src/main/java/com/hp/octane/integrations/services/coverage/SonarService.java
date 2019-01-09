@@ -19,6 +19,10 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
+
+import java.io.InputStream;
 
 /**
  * Sonar service provides an integration functionality related to SonarQube
@@ -37,8 +41,8 @@ public interface SonarService extends ClosableService {
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService) {
-		return new SonarServiceImpl(configurer, queueingService, coverageService);
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService,  RestService restService) {
+		return new SonarServiceImpl(configurer, queueingService, coverageService,restService);
 	}
 
 	/**
@@ -81,4 +85,7 @@ public interface SonarService extends ClosableService {
 	 * @throws SonarIntegrationException Sonar integration exception
 	 */
 	void ensureSonarWebhookExist(String ciCallbackUrl, String sonarURL, String sonarToken) throws SonarIntegrationException;
+
+
+	InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem);
 }

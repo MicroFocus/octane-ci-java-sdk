@@ -20,15 +20,12 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.coverage.SonarService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCDateUtils;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
@@ -38,22 +35,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  * Default implementation of vulnerabilities service
  */
 
-public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
+public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
@@ -61,8 +55,14 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 	private final ExecutorService vulnerabilitiesProcessingExecutor = Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory());
 	private final Object NO_VULNERABILITIES_RESULTS_MONITOR = new Object();
 	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
-	private final OctaneSDK.SDKServicesConfigurer configurer;
-	private final RestService restService;
+	protected final OctaneSDK.SDKServicesConfigurer configurer;
+	protected final RestService restService;
+
+	protected final  SSCService sscService;
+	protected final  SonarService sonarService;
+
+
+
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 10000;
@@ -70,7 +70,10 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
 
-	VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
+	private String SONAR_TYPE = "SONAR";
+	private  String SSC_TYPE = "SSC";
+
+	public VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, SSCService sscService, SonarService sonarService) {
 		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -89,6 +92,8 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.sscService = sscService;
+		this.sonarService = sonarService;
 
 		logger.info("starting background worker...");
 		vulnerabilitiesProcessingExecutor.execute(this::worker);
@@ -98,13 +103,17 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 	@Override
 	public void enqueueRetrieveAndPushVulnerabilities(String jobId,
 	                                                  String buildId,
+	                                                  String toolType,
 	                                                  long startRunTime,
-	                                                  long queueItemTimeout) {
+	                                                  long queueItemTimeout,
+													  Map<String,Object> additionalProperties) {
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
-		vulnerabilitiesQueueItem.startTime = startRunTime;
-		vulnerabilitiesQueueItem.timeout = queueItemTimeout <= 0 ? DEFAULT_TIME_OUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000;
+		vulnerabilitiesQueueItem.setStartTime(startRunTime);
+		vulnerabilitiesQueueItem.setTimeout(queueItemTimeout <= 0 ? DEFAULT_TIME_OUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000);
+		vulnerabilitiesQueueItem.setToolType(toolType);
+		vulnerabilitiesQueueItem.setAdditionalProperties(additionalProperties);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
-		logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was added to vulnerabilities queue");
+		logger.info(vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was added to vulnerabilities queue");
 
 		synchronized (NO_VULNERABILITIES_RESULTS_MONITOR) {
 			NO_VULNERABILITIES_RESULTS_MONITOR.notify();
@@ -133,28 +142,28 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 				continue;
 			}
 
-			VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem = null;
+			VulnerabilitiesQueueItem queueItem = null;
 			try {
-				vulnerabilitiesQueueItem = vulnerabilitiesQueue.peek();
-				if (processPushVulnerabilitiesQueueItem(vulnerabilitiesQueueItem)) {
-					vulnerabilitiesQueueItemCleanUp(vulnerabilitiesQueueItem);
+				queueItem = vulnerabilitiesQueue.peek();
+				if (processPushVulnerabilitiesQueueItem(queueItem)) {
+					vulnerabilitiesQueueItemCleanUp(queueItem);
 					vulnerabilitiesQueue.remove();
 				} else {
-					reEnqueueItem(vulnerabilitiesQueueItem);
+					reEnqueueItem(queueItem);
 				}
 			} catch (TemporaryException tque) {
-				logger.error("temporary error on " + vulnerabilitiesQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
-				if (vulnerabilitiesQueueItem != null) {
-					reEnqueueItem(vulnerabilitiesQueueItem);
+				logger.error("temporary error on " + queueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				if (queueItem != null) {
+					reEnqueueItem(queueItem);
 				}
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error("permanent error on " + vulnerabilitiesQueueItem + ", passing over", pqie);
-				vulnerabilitiesQueueItemCleanUp(vulnerabilitiesQueueItem);
+				logger.error("permanent error on " + queueItem + ", passing over", pqie);
+				vulnerabilitiesQueueItemCleanUp(queueItem);
 				vulnerabilitiesQueue.remove();
 			} catch (Throwable t) {
-				logger.error("unexpected error on build log item '" + vulnerabilitiesQueueItem + "', passing over", t);
-				vulnerabilitiesQueueItemCleanUp(vulnerabilitiesQueueItem);
+				logger.error("unexpected error on build log item '" + queueItem + "', passing over", t);
+				vulnerabilitiesQueueItemCleanUp(queueItem);
 				vulnerabilitiesQueue.remove();
 			}
 		}
@@ -163,7 +172,7 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 
 
 
-	private Date preflightRequest(String jobId, String buildId) throws IOException {
+	protected Date preflightRequest(String jobId, String buildId) throws IOException {
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 
@@ -194,7 +203,51 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 		}
 	}
 
-	private void pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
+
+	public boolean processPushVulnerabilitiesQueueItem(VulnerabilitiesQueueItem queueItem) {
+
+
+		try {
+			//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
+			if (!queueItem.isRelevant()) {
+
+				Date relevant = preflightRequest(queueItem.getJobId(), queueItem.getBuildId());
+				if (relevant != null) {
+					//  set queue item value relevancy to true and continue
+					queueItem.setRelevant(true);
+					//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
+					if (relevant.compareTo(SSCDateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd")) > 0) {
+						queueItem.setBaselineDate(relevant);
+					}
+				} else {
+					//  return with true to silently proceed to the next item
+					return true;
+				}
+			}
+			InputStream vulnerabilitiesStream = null;
+
+			if (queueItem.getToolType().equals(SONAR_TYPE)){
+				vulnerabilitiesStream = sonarService.getVulnerabilitiesScanResultStream(queueItem);
+
+			}
+			else if (queueItem.getToolType().equals(SSC_TYPE)){
+				vulnerabilitiesStream = sscService.getVulnerabilitiesScanResultStream(queueItem);
+			}
+
+			if (vulnerabilitiesStream == null) {
+				return false;
+			} else {
+				pushVulnerabilities(vulnerabilitiesStream, queueItem.getJobId(), queueItem.getBuildId());
+				return true;
+			}
+		} catch (IOException e) {
+			throw new PermanentException(e);
+		}
+	}
+
+
+
+	protected void pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -218,181 +271,45 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 		}
 	}
 
-	private boolean processPushVulnerabilitiesQueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
-		try {
-			SSCProjectConfiguration sscProjectConfiguration = configurer.pluginServices.getSSCProjectConfiguration(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-		if (sscProjectConfiguration == null || !sscProjectConfiguration.isValid()) {
-			logger.debug("SSC project configurations is missing or not valid, skipping processing for " + vulnerabilitiesQueueItem.jobId + " #" + vulnerabilitiesQueueItem.buildId);
-			return true;
-		}
 
-		//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
-		if (!vulnerabilitiesQueueItem.isRelevant) {
-
-			Date relevant = preflightRequest(vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-			if (relevant!=null) {
-				//  set queue item value relevancy to true and continue
-				vulnerabilitiesQueueItem.isRelevant = true;
-				//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
-				if(relevant.compareTo(SSCDateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd"))>0) {
-					vulnerabilitiesQueueItem.baselineDate = relevant;
-				}
-			} else {
-				//  return with true to silently proceed to the next item
-				return true;
-			}
-		}
-		InputStream vulnerabilitiesStream = getVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem, sscProjectConfiguration);
-		if (vulnerabilitiesStream == null) {
-			return false;
-		} else {
-			pushVulnerabilities(vulnerabilitiesStream, vulnerabilitiesQueueItem.jobId, vulnerabilitiesQueueItem.buildId);
-			return true;
-			}
-		} catch (IOException e) {
-			throw new PermanentException(e);
-		}
-	}
 
 	private void reEnqueueItem(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
-		Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.startTime;
+		Long timePass = System.currentTimeMillis() - vulnerabilitiesQueueItem.getStartTime();
 		vulnerabilitiesQueue.remove();
-		if (timePass < vulnerabilitiesQueueItem.timeout) {
+		if (timePass < vulnerabilitiesQueueItem.getTimeout()) {
 			vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 		} else {
-			logger.info(vulnerabilitiesQueueItem.buildId + "/" + vulnerabilitiesQueueItem.jobId + " was removed from queue after timeout in queue is over");
+			logger.info(vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was removed from queue after timeout in queue is over");
 		}
 		CIPluginSDKUtils.doWait(SKIP_QUEUE_ITEM_INTERVAL);
 	}
 
-	private InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
-                                                           SSCProjectConfiguration sscProjectConfiguration) throws IOException {
-        String targetDir = getTargetDir(vulnerabilitiesQueueItem);
-        InputStream cachedScanResult = getCachedScanResult(targetDir);
-        if (cachedScanResult != null) {
-            return cachedScanResult;
-        }
-        List<OctaneIssue> octaneIssues = getNonCacheVulnerabilitiesScanResultStream(vulnerabilitiesQueueItem,sscProjectConfiguration);
-        if(octaneIssues==null){
-        	return null;
-		}
-		return  new IssuesFileSerializer(targetDir, octaneIssues).doSerializeAndCache();
-	}
 
-	private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
-		File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
-		if (allowedOctaneStorage == null) {
-			logger.info("hosting plugin does not provide storage, vulnerabilities won't be cached");
-			return null;
-		}
-		return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.jobId + File.separator + vulnerabilitiesQueueItem.buildId;
-	}
 
-	private boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
-		String runRootDir = getTargetDir(vulnerabilitiesQueueItem);
-		if (runRootDir == null) {
-			return false;
-		}
-		File directoryToBeDeleted = new File(runRootDir);
-		return deleteDirectory(directoryToBeDeleted);
-	}
 
-	private boolean deleteDirectory(File directoryToBeDeleted) {
-		File[] allContents = directoryToBeDeleted.listFiles();
-		if (allContents != null) {
-			for (File file : allContents) {
-				deleteDirectory(file);
-			}
+	private boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem queueItem){
+		if (queueItem.getToolType().equals(SSC_TYPE)){
+			return sscService.vulnerabilitiesQueueItemCleanUp(queueItem);
 		}
-		return directoryToBeDeleted.delete();
+		return true;
 	}
 
 
 	//return octane issues (or null if scan not completed)
-	private List<OctaneIssue> getNonCacheVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
-																		 SSCProjectConfiguration sscProjectConfiguration) throws IOException {
 
-		SSCHandler sscHandler = new SSCHandler(
-				vulnerabilitiesQueueItem,
-				sscProjectConfiguration,
-				this.restService.obtainSSCRestClient());
-
-
-
-		List<Issues.Issue> issuesFromSecurityTool = getIssuesFromSecurityTool(sscHandler,vulnerabilitiesQueueItem);
-		if(issuesFromSecurityTool==null){
-			return null;
-		}
-
-		List<String> octaneExistsIssuesIdsList = getRemoteIdsOfExistIssuesFromOctane(vulnerabilitiesQueueItem,sscProjectConfiguration.getRemoteTag());
-
-		List<Issues.Issue> issuesRequiredExtendedData = issuesFromSecurityTool.stream().filter(
-				t -> {
-					boolean isNew = t.scanStatus.equalsIgnoreCase("NEW");
-					boolean isMissing = false;
-					if(vulnerabilitiesQueueItem.baselineDate!=null){
-						isMissing = !octaneExistsIssuesIdsList.contains(t.issueInstanceId);
-					}
-					return isNew||isMissing;
-				}).collect(
-				Collectors.toList());
-
-		Map<Integer,IssueDetails> issuesWithExtendedData = sscHandler.getIssuesExtendedData(issuesRequiredExtendedData);
-
-		PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
-		return packIssuesToSendToOctane.packAllIssues(issuesFromSecurityTool,
-				octaneExistsIssuesIdsList,
-				sscProjectConfiguration.getRemoteTag(),
-				issuesWithExtendedData);
-	}
-
-	private List<String> getRemoteIdsOfExistIssuesFromOctane(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, String remoteTag) throws IOException {
+	public static List<String> getRemoteIdsOfExistIssuesFromOctane(VulnerabilitiesQueueItem vulnerabilitiesQueueItem, String remoteTag, RestService restService,  OctaneSDK.SDKServicesConfigurer configurer) throws IOException {
 		ExistingIssuesInOctane existingIssuesInOctane = new ExistingIssuesInOctane(
-				this.restService.obtainOctaneRestClient(),
-				this.configurer.octaneConfiguration,
+				restService.obtainOctaneRestClient(),
+				configurer.octaneConfiguration,
 				vulnerabilitiesQueueItem);
-		return existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane(vulnerabilitiesQueueItem.jobId,
-				vulnerabilitiesQueueItem.buildId,
+		return existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane(vulnerabilitiesQueueItem.getJobId(),
+				vulnerabilitiesQueueItem.getBuildId(),
 				remoteTag);
 	}
 
-	//return issues from security tool (or null if scan not completed)
-	private List<Issues.Issue> getIssuesFromSecurityTool(SSCHandler sscHandler, VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
-		Optional<Issues> allIssues = sscHandler.getIssuesIfScanCompleted();
-		if (!allIssues.isPresent()) {
-			return null;
-		}
-		List<Issues.Issue> filterIssuesByBaseLine = allIssues.get().getData();
-		//in case we have the baselineDate - we should filter by it to have more optimal payload
-		if(vulnerabilitiesQueueItem.baselineDate!=null) {
-			filterIssuesByBaseLine = allIssues.get().getData().stream().filter(issue -> {
-				Date foundDate = SSCDateUtils.getDateFromUTCString(issue.foundDate, SSCDateUtils.sscFormat);
-				return foundDate.compareTo(vulnerabilitiesQueueItem.baselineDate) >= 0;
-			}).collect(Collectors.toList());
-		}
-		return filterIssuesByBaseLine;
-	}
 
 
 
-
-	private InputStream getCachedScanResult(String runRootDir) {
-		if (runRootDir == null) {
-			return null;
-		}
-		InputStream result = null;
-		String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
-		File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
-		if (!vulnerabilitiesScanFile.exists()) {
-			return null;
-		}
-		try {
-			result = new FileInputStream(vulnerabilitiesScanFilePath);
-		} catch (IOException ioe) {
-			logger.error("failed to obtain  vulnerabilities Scan File in " + runRootDir);
-		}
-		return result;
-	}
 
 	private String getVulnerabilitiesPreFlightContextPath(String octaneBaseUrl, String sharedSpaceId) {
 		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES_PRE_FLIGHT;
@@ -402,33 +319,6 @@ public final class VulnerabilitiesServiceImpl implements VulnerabilitiesService 
 		return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.VULNERABILITIES;
 	}
 
-	public static final class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
-		public String jobId;
-		public String buildId;
-		public Long startTime;
-		public Long timeout;
-		public boolean isRelevant = false;
-		public Date baselineDate;
-
-		//  [YG] this constructor MUST be present, don't remove
-		public VulnerabilitiesQueueItem() {
-		}
-
-		private VulnerabilitiesQueueItem(String jobId, String buildId) {
-			if (jobId == null || jobId.isEmpty())
-				throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
-			if (buildId == null || buildId.isEmpty())
-				throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
-
-			this.jobId = jobId;
-			this.buildId = buildId;
-		}
-
-		@Override
-		public String toString() {
-			return "'" + jobId + " #" + buildId + "'";
-		}
-	}
 
 	private static final class VulnerabilitiesPushWorkerThreadFactory implements ThreadFactory {
 

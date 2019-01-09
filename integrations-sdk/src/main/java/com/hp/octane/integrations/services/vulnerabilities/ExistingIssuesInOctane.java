@@ -38,11 +38,11 @@ public class ExistingIssuesInOctane {
     private final static Logger logger = LogManager.getLogger(ExistingIssuesInOctane.class);
     private OctaneRestClient octaneRestClient;
     private OctaneConfiguration octaneConfiguration;
-    private VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem;
+    private VulnerabilitiesQueueItem queueItem;
 
     public ExistingIssuesInOctane(OctaneRestClient octaneRestClient,
                                   OctaneConfiguration octaneConfiguration,
-                                  VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem) {
+                                  VulnerabilitiesQueueItem queueItem) {
 
         this.octaneRestClient = octaneRestClient;
         this.octaneConfiguration = octaneConfiguration;

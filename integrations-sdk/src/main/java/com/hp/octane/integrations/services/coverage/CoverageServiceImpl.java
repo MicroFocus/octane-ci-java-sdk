@@ -110,7 +110,7 @@ class CoverageServiceImpl implements CoverageService {
 	}
 
 	@Override
-	public boolean isCoverageReportRelevant(String jobId) {
+	public boolean isSonarReportRelevant(String jobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
@@ -215,7 +215,7 @@ class CoverageServiceImpl implements CoverageService {
 
 	private void pushCoverageWithPreflight(CoverageQueueItem queueItem) {
 		//  preflight
-		if (!isCoverageReportRelevant(queueItem.jobId)) {
+		if (!isSonarReportRelevant(queueItem.jobId)) {
 			return;
 		}
 

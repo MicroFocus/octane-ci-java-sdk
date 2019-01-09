@@ -16,18 +16,12 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
-import com.hp.octane.integrations.services.rest.SSCRestClient;
-import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.entities.Entity;
-import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -88,7 +82,7 @@ public class SSCHandler {
     }
 
     public SSCHandler(
-            VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
+            VulnerabilitiesQueueItem vulnerabilitiesQueueItem,
             SSCProjectConfiguration sscProjectConfiguration,
             SSCRestClient sscRestClient) {
         if (vulnerabilitiesQueueItem == null) {
@@ -101,7 +95,7 @@ public class SSCHandler {
             throw new IllegalArgumentException("sscClient MUST NOT be null");
         }
 
-        this.runStartTime = vulnerabilitiesQueueItem.startTime;
+        this.runStartTime = vulnerabilitiesQueueItem.getStartTime();
 
         if (!sscProjectConfiguration.isValid()) {
             throw new PermanentException("SSC configuration invalid, will not continue connecting to the server");

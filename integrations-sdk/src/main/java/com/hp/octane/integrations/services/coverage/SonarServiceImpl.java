@@ -22,10 +22,12 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.coverage.BuildCoverage;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
-import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpRequest;
@@ -68,11 +70,12 @@ class SonarServiceImpl implements SonarService {
 	private final ObjectQueue<SonarBuildCoverageQueueItem> sonarIntegrationQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final CoverageService coverageService;
+	private final RestService restService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService) {
+	SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -85,6 +88,7 @@ class SonarServiceImpl implements SonarService {
 
 		this.configurer = configurer;
 		this.coverageService = coverageService;
+		this.restService = restService;
 
 		if (queueingService.isPersistenceEnabled()) {
 			sonarIntegrationQueue = queueingService.initFileQueue(SONAR_COVERAGE_QUEUE_FILE, SonarBuildCoverageQueueItem.class);
@@ -202,9 +206,21 @@ class SonarServiceImpl implements SonarService {
 		}
 	}
 
+	@Override
+	public InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem){
+		try {
+			return new SonarVulnerabilitiesUtil(queueItem,restService,configurer).getVulnerabilitiesScanResultStream(queueItem);
+		}
+		catch (Exception e){
+			throw new RuntimeException(e);
+		}
+	}
+
+
+
 	private void retrieveAndPushSonarDataToOctane(SonarBuildCoverageQueueItem queueItem) {
 		//  preflight
-		if (!coverageService.isCoverageReportRelevant(queueItem.jobId)) {
+		if (!coverageService.isSonarReportRelevant(queueItem.jobId)) {
 			return;
 		}
 
@@ -225,7 +241,7 @@ class SonarServiceImpl implements SonarService {
 				InputStream reportStream = getPageFromSonar(queueItem, pageIndex);
 				jsonReport = CIPluginSDKUtils.getObjectMapper().readTree(reportStream);
 				buildCoverageReport.mergeSonarCoverageReport(jsonReport);
-			} while (coverageReportHasAnotherPage(pageIndex, jsonReport));
+			} while (SonarUtils.sonarReportHasAnotherPage(pageIndex, jsonReport));
 
 			//  push coverage to Octane
 			OctaneResponse response = coverageService.pushCoverage(queueItem.jobId, queueItem.buildId, CoverageReportType.SONAR_REPORT, dtoFactory.dtoToJsonStream(buildCoverageReport));
@@ -243,12 +259,7 @@ class SonarServiceImpl implements SonarService {
 		}
 	}
 
-	private Boolean coverageReportHasAnotherPage(Integer pageIndex, JsonNode jsonContent) {
-		JsonNode pagingNode = jsonContent.get("paging");
-		Integer pageSize = pagingNode.get("pageSize").intValue();
-		int total = pagingNode.get("total").intValue();
-		return pageSize * pageIndex < total;
-	}
+
 
 	private String getWebhookKey(String ciNotificationUrl, String sonarURL, String token) throws SonarIntegrationException {
 		try {

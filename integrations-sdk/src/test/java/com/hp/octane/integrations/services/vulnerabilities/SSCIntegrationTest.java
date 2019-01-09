@@ -83,7 +83,7 @@ public class SSCIntegrationTest {
 
 
             vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("jobSSC1",
-                    "1", System.currentTimeMillis(), 1);
+                    "1","SSC", System.currentTimeMillis(), 1,null);
 
             if(expectedOutput.expectNoPsuh) {
                 try {

@@ -37,10 +37,10 @@ public class ExistingIssuesInOctaneTest {
 
     private ExistingIssuesInOctane buildExistingIssuesInOctane(String s) {
 
-        VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem =
-                new VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem();
-        queueItem.jobId = "ABC";
-        queueItem.buildId = "1";
+       VulnerabilitiesQueueItem queueItem =
+                new VulnerabilitiesQueueItem();
+        queueItem.setJobId("ABC");
+        queueItem.setBuildId("1");
         return new ExistingIssuesInOctane(new MockOctaneRestClient(s, 200),
                 new OctaneConfiguration("instanceID", "http://URL:8080", "1002"),
                 queueItem);
