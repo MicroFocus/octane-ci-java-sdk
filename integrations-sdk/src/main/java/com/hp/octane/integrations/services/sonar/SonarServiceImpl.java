@@ -28,6 +28,7 @@ import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.OctaneVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesUtil;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -73,12 +74,14 @@ public class SonarServiceImpl implements SonarService {
 	private final ObjectQueue<SonarBuildCoverageQueueItem> sonarIntegrationQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final CoverageService coverageService;
-	private final RestService restService;
+	private final OctaneVulnerabilitiesService octaneVulnerabilitiesService;
+
+
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 
-	public SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, RestService restService) {
+	public SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, OctaneVulnerabilitiesService octaneVulnerabilitiesService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -88,10 +91,13 @@ public class SonarServiceImpl implements SonarService {
 		if (coverageService == null) {
 			throw new IllegalArgumentException("coverage service MUST NOT be null");
 		}
+		if (octaneVulnerabilitiesService == null) {
+			throw new IllegalArgumentException("octane Vulnerabilities Service MUST NOT be null");
+		}
 
 		this.configurer = configurer;
 		this.coverageService = coverageService;
-		this.restService = restService;
+		this.octaneVulnerabilitiesService = octaneVulnerabilitiesService;
 
 		if (queueingService.isPersistenceEnabled()) {
 			sonarIntegrationQueue = queueingService.initFileQueue(SONAR_COVERAGE_QUEUE_FILE, SonarBuildCoverageQueueItem.class);
@@ -212,13 +218,17 @@ public class SonarServiceImpl implements SonarService {
 	@Override
 	public InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem){
 		try {
-			return new SonarVulnerabilitiesUtil(queueItem,restService,configurer).getVulnerabilitiesScanResultStream(queueItem);
+			return new SonarVulnerabilitiesUtil(queueItem,octaneVulnerabilitiesService).getVulnerabilitiesScanResultStream(queueItem);
 		}
 		catch (Exception e){
 			throw new RuntimeException(e);
 		}
 	}
 
+	@Override
+	public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem queueItem) {
+		return true;
+	}
 
 
 	private void retrieveAndPushSonarDataToOctane(SonarBuildCoverageQueueItem queueItem) {

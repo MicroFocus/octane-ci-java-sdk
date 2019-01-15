@@ -37,13 +37,8 @@ public class ExistingIssuesInOctaneTest {
 
     private ExistingIssuesInOctane buildExistingIssuesInOctane(String s) {
 
-       VulnerabilitiesQueueItem queueItem =
-                new VulnerabilitiesQueueItem();
-        queueItem.setJobId("ABC");
-        queueItem.setBuildId("1");
         return new ExistingIssuesInOctane(new MockOctaneRestClient(s, 200),
-                new OctaneConfiguration("instanceID", "http://URL:8080", "1002"),
-                queueItem);
+                new OctaneConfiguration("instanceID", "http://URL:8080", "1002"));
     }
 
     @Test

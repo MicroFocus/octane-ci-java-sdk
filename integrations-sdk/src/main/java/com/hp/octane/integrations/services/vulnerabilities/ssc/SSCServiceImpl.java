@@ -8,10 +8,7 @@ import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer;
-import com.hp.octane.integrations.services.vulnerabilities.DateUtils;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
+import com.hp.octane.integrations.services.vulnerabilities.*;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.apache.logging.log4j.LogManager;
@@ -26,20 +23,25 @@ public class SSCServiceImpl implements SSCService{
     private static final Logger logger = LogManager.getLogger(SSCServiceImpl.class);
     protected final OctaneSDK.SDKServicesConfigurer configurer;
     protected final RestService restService;
+    protected final OctaneVulnerabilitiesService octaneVulnerabilitiesService;
 
 
 
-    public SSCServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+
+    public SSCServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, OctaneVulnerabilitiesService octaneVulnerabilitiesService) {
         if (configurer == null) {
             throw new IllegalArgumentException("invalid configurer");
         }
         if (restService == null) {
             throw new IllegalArgumentException("rest service MUST NOT be null");
         }
+        if (octaneVulnerabilitiesService == null) {
+            throw new IllegalArgumentException("octane Vulnerabilities Service service MUST NOT be null");
+        }
 
         this.configurer = configurer;
         this.restService = restService;
-
+        this.octaneVulnerabilitiesService = octaneVulnerabilitiesService;
     }
 
     @Override
@@ -95,7 +97,7 @@ public class SSCServiceImpl implements SSCService{
             return null;
         }
 
-        List<String> octaneExistsIssuesIdsList = VulnerabilitiesServiceImpl.getRemoteIdsOfExistIssuesFromOctane(queueItem, sscProjectConfiguration.getRemoteTag(), restService, configurer);
+        List<String> octaneExistsIssuesIdsList = octaneVulnerabilitiesService.getRemoteIdsOfExistIssuesFromOctane(queueItem, sscProjectConfiguration.getRemoteTag());
 
         List<Issues.Issue> issuesRequiredExtendedData = issuesFromSecurityTool.stream().filter(
                 t -> {

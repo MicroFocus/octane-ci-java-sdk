@@ -22,6 +22,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.services.queueing.QueueingService;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -32,22 +33,22 @@ public class VulnerabilitiesServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new VulnerabilitiesServiceImpl(null, null, null,null,null);
+		new VulnerabilitiesServiceImpl(null, null, null,null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new VulnerabilitiesServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null,null,null);
+		new VulnerabilitiesServiceImpl( (QueueingService)new Object(), null,null,null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		VulnerabilitiesService.newInstance(null, null, null, null,null);
+		VulnerabilitiesService.newInstance(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		VulnerabilitiesService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null,null,null);
+		VulnerabilitiesService.newInstance((QueueingService)new Object(), null,null,null);
 	}
 
 	//  enqueue API negative testing validation

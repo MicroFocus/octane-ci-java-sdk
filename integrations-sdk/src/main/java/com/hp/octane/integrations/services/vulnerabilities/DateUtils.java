@@ -27,7 +27,7 @@ import java.util.TimeZone;
 public class DateUtils {
 
     public static final String sscFormat = "yyyy-MM-dd'T'HH:mm:ss";
-    public static final String sonarFormat = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String sonarFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
     public static final String octaneFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     private final static Logger logger = LogManager.getLogger(DateUtils.class);
 

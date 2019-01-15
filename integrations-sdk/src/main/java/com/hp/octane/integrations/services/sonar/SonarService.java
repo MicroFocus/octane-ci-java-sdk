@@ -21,7 +21,9 @@ import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.OctaneVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
 
 import java.io.InputStream;
 
@@ -34,7 +36,7 @@ import java.io.InputStream;
  * - push relevant convent to Octane
  */
 
-public interface SonarService extends ClosableService {
+public interface SonarService extends ClosableService, VulnerabilitiesToolService {
 
 	/**
 	 * Sonar integration Service instance producer - for internal usage only (protected by inaccessible configurer)
@@ -42,8 +44,8 @@ public interface SonarService extends ClosableService {
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, RestService restService) {
-		return new SonarServiceImpl(configurer, queueingService, coverageService,restService);
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, OctaneVulnerabilitiesService octaneVulnerabilitiesService) {
+		return new SonarServiceImpl(configurer, queueingService, coverageService,octaneVulnerabilitiesService);
 	}
 
 	/**
@@ -87,6 +89,4 @@ public interface SonarService extends ClosableService {
 	 */
 	void ensureSonarWebhookExist(String ciCallbackUrl, String sonarURL, String sonarToken) throws SonarIntegrationException;
 
-
-	InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem);
 }

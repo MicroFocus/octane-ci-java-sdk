@@ -9,14 +9,11 @@ import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.sonar.SonarUtils;
-import com.hp.octane.integrations.services.vulnerabilities.DateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.*;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarIssue;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarRule;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServiceImpl;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -48,24 +45,20 @@ public class SonarVulnerabilitiesUtil {
     private String sonarToken;
     private String remoteTag;
 
-    private final OctaneSDK.SDKServicesConfigurer configurer;
-    private final RestService restService;
 
-    public SonarVulnerabilitiesUtil(VulnerabilitiesQueueItem queueItem, RestService restService,  OctaneSDK.SDKServicesConfigurer configurer ){
+    private final OctaneVulnerabilitiesService octaneVulnerabilitiesService;
+
+    public SonarVulnerabilitiesUtil(VulnerabilitiesQueueItem queueItem, OctaneVulnerabilitiesService octaneVulnerabilitiesService){
         Map<String,Object> additionalProperties = queueItem.getAdditionalProperties();
         this.projectKey = (String) additionalProperties.get(PROJECT_KEY_KEY );
         this.sonarURL = (String) additionalProperties.get(SONAR_URL_KEY );
         this.sonarToken = (String) additionalProperties.get(SONAR_TOKEN_KEY );
         this.remoteTag = (String) additionalProperties.get(REMOTE_TAG_KEY );
-        this.configurer = configurer;
-        this.restService = restService;
-
+        this.octaneVulnerabilitiesService = octaneVulnerabilitiesService;
 
         if (projectKey == null || sonarURL == null || sonarToken == null || remoteTag == null){
             throw new RuntimeException("one of the following parameters can be null: PROJECT_KEY, SONAR_URL, SONAR_TOKEN, REMOTE_TAG ");
         }
-
-
     }
 
 
@@ -82,7 +75,7 @@ public class SonarVulnerabilitiesUtil {
 
         List<SonarIssue> issuesFromSecurityTool = getIssuesFromSecurityTool(queueItem);
 
-        List<String> octaneExistsIssuesIdsList = VulnerabilitiesServiceImpl.getRemoteIdsOfExistIssuesFromOctane(queueItem, this.remoteTag, restService, configurer);
+        List<String> octaneExistsIssuesIdsList = octaneVulnerabilitiesService.getRemoteIdsOfExistIssuesFromOctane(queueItem, this.remoteTag);
 
         List<SonarIssue> issuesRequiredExtendedData = issuesFromSecurityTool.stream()
                 .filter(issue -> !octaneExistsIssuesIdsList.contains(issue.getKey()))

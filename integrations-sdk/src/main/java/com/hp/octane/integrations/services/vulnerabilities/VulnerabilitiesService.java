@@ -29,12 +29,10 @@ public interface VulnerabilitiesService extends ClosableService {
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
-	 * @param configurer  SDK services configurer object
-	 * @param restService Rest Service
 	 * @return initialized service
 	 */
-	static VulnerabilitiesService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, SSCService sscService, SonarService sonarService) {
-		return new VulnerabilitiesServiceImpl(configurer, queueingService, restService,  sscService, sonarService);
+	static VulnerabilitiesService newInstance (QueueingService queueingService, SSCService sscService, SonarService sonarService, OctaneVulnerabilitiesService octaneVulnerabilitiesService) {
+		return new VulnerabilitiesServiceImpl(queueingService, sscService, sonarService, octaneVulnerabilitiesService);
 	}
 
 	/**
