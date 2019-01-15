@@ -31,7 +31,7 @@ import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctan
 import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil.createOctaneIssues;
 
 
-public class PackIssuesToSendToOctane {
+public class PackSSCIssuesToSendToOctane {
 
     public List<OctaneIssue> packAllIssues(List<Issues.Issue> sscIssues, List<String> existingIssuesInOctane, String remoteTag, Map<Integer,IssueDetails> issueDetailsById) {
         List<OctaneIssue> octaneIssues = packToOctaneIssues(sscIssues,existingIssuesInOctane, remoteTag, issueDetailsById);

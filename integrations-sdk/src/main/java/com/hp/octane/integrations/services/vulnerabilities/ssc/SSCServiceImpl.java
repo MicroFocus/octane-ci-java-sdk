@@ -61,9 +61,17 @@ public class SSCServiceImpl implements SSCService{
         catch (IOException e){
             throw new RuntimeException(e);
         }
-
     }
 
+    @Override
+    public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
+        String runRootDir = getTargetDir(vulnerabilitiesQueueItem);
+        if (runRootDir == null) {
+            return false;
+        }
+        File directoryToBeDeleted = new File(runRootDir);
+        return deleteDirectory(directoryToBeDeleted);
+    }
 
 
     private List<OctaneIssue> getNonCacheVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem
@@ -102,8 +110,8 @@ public class SSCServiceImpl implements SSCService{
 
         Map<Integer, IssueDetails> issuesWithExtendedData = sscHandler.getIssuesExtendedData(issuesRequiredExtendedData);
 
-        PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
-        return packIssuesToSendToOctane.packAllIssues(issuesFromSecurityTool,
+        PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
+        return packSSCIssuesToSendToOctane.packAllIssues(issuesFromSecurityTool,
                 octaneExistsIssuesIdsList,
                 sscProjectConfiguration.getRemoteTag(),
                 issuesWithExtendedData);
@@ -126,7 +134,7 @@ public class SSCServiceImpl implements SSCService{
         return filterIssuesByBaseLine;
     }
 
-    protected String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+    private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
         File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
         if (allowedOctaneStorage == null) {
             logger.info("hosting plugin does not provide storage, vulnerabilities won't be cached");
@@ -135,14 +143,7 @@ public class SSCServiceImpl implements SSCService{
         return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.getJobId() + File.separator + vulnerabilitiesQueueItem.getBuildId();
     }
 
-    public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
-        String runRootDir = getTargetDir(vulnerabilitiesQueueItem);
-        if (runRootDir == null) {
-            return false;
-        }
-        File directoryToBeDeleted = new File(runRootDir);
-        return deleteDirectory(directoryToBeDeleted);
-    }
+
 
     private boolean deleteDirectory(File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();
@@ -154,7 +155,7 @@ public class SSCServiceImpl implements SSCService{
         return directoryToBeDeleted.delete();
     }
 
-    protected InputStream getCachedScanResult(String runRootDir) {
+    private InputStream getCachedScanResult(String runRootDir) {
         if (runRootDir == null) {
             return null;
         }
@@ -172,7 +173,7 @@ public class SSCServiceImpl implements SSCService{
         return result;
     }
 
-    public static void cacheIssues(String targetDir, List<OctaneIssue> octaneIssues) {
+    private static void cacheIssues(String targetDir, List<OctaneIssue> octaneIssues) {
         try {
             if (targetDir != null) {
                 validateFolderExists(targetDir);

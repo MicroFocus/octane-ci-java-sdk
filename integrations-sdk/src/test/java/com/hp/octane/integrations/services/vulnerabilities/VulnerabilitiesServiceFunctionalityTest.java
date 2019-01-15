@@ -93,10 +93,10 @@ public class VulnerabilitiesServiceFunctionalityTest {
             OctaneClient clientB = OctaneSDK.addClient(configB, VulnerabilitiesServicePluginServicesTest.class);
             VulnerabilitiesService vulnerabilitiesServiceB = clientB.getVulnerabilitiesService();
 
-            vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", "SSC", System.currentTimeMillis(), 1,null);
-            vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1","SSC", System.currentTimeMillis(), 1,null);
-            vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", "SSC", System.currentTimeMillis(), 1, null);
-            vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", "SSC", System.currentTimeMillis(), 1, null);
+            vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", ToolType.SSC, System.currentTimeMillis(), 1,null);
+            vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1",ToolType.SSC, System.currentTimeMillis(), 1,null);
+            vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-true", "1", ToolType.SSC, System.currentTimeMillis(), 1, null);
+            vulnerabilitiesServiceB.enqueueRetrieveAndPushVulnerabilities("job-preflight-false", "1", ToolType.SSC, System.currentTimeMillis(), 1, null);
             GeneralTestUtils.waitAtMostFor(12000, () -> {
                 if (preflightRequestCollectors.get(spIdA) != null && preflightRequestCollectors.get(spIdA).size() == 2 &&
                         preflightRequestCollectors.get(spIdB) != null && preflightRequestCollectors.get(spIdB).size() == 2) {
@@ -158,7 +158,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
             VulnerabilitiesService vulnerabilitiesServiceA = clientA.getVulnerabilitiesService();
 
             prepareSSCSimulator();
-            vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("jobSSC1", "1","SSC", System.currentTimeMillis(), 1,null);
+            vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("jobSSC1", "1",ToolType.SSC, System.currentTimeMillis(), 1,null);
 
 
             GeneralTestUtils.waitAtMostFor(12000, () -> {

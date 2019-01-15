@@ -29,23 +29,24 @@ public class SonarToOctaneIssueUtil {
     public static final String SONAR_SEVERITY_MINOR = "MINOR";
 
 
-
-
     public static final String EXTERNAL_TOOL_NAME = "SonarQube";
 
-    public static List<OctaneIssue> createOctaneIssues(List<SonarIssue> issues, String remoteTag, String sonarUrl,  Set<String> issuesRequiredExtendedDataKeys,  Map<String, SonarRule> rules) {
+    public static List<OctaneIssue> createOctaneIssues(List<SonarIssue> issues, String remoteTag, String sonarUrl, Set<String> issuesRequiredExtendedDataKeys, Map<String, SonarRule> rules) {
         if (issues == null) {
             return new ArrayList<>();
         }
         DTOFactory dtoFactory = DTOFactory.getInstance();
         List<OctaneIssue> octaneIssues = new ArrayList<>();
         for (SonarIssue issue : issues) {
-            OctaneIssue octaneIssue = createOctaneIssue(dtoFactory, issue, rules,sonarUrl);
+            OctaneIssue octaneIssue = createOctaneIssue(dtoFactory, issue, rules, sonarUrl);
             octaneIssue.setRemoteTag(remoteTag);
             octaneIssues.add(octaneIssue);
-            if (issuesRequiredExtendedDataKeys.contains(issue.getKey())){
+            if (issuesRequiredExtendedDataKeys.contains(issue.getKey())) {
                 Map<String, String> extendedData = prepareExtendedData(issue, rules);
                 octaneIssue.setExtendedData(extendedData);
+                setOctaneStatus(issue, octaneIssue, true);
+            } else {
+                setOctaneStatus(issue, octaneIssue, false);
             }
         }
 
@@ -60,10 +61,8 @@ public class SonarToOctaneIssueUtil {
         logger.debug("enter createOctaneIssue");
         OctaneIssue octaneIssue = dtoFactory.newDTO(OctaneIssue.class);
         setOctaneSeverity(issue, octaneIssue);
-        setOctaneStatus(issue, octaneIssue);
-
-        setPrimaryLocationFull(issue,octaneIssue);
-        setExternalLink(issue, octaneIssue,sonarUrl);
+        setPrimaryLocationFull(issue, octaneIssue);
+        setExternalLink(issue, octaneIssue, sonarUrl);
         octaneIssue.setLine(issue.getLine());
         octaneIssue.setRemoteId(issue.getKey());
         octaneIssue.setIntroducedDate(convertDates(issue.getCreationDate()));
@@ -93,13 +92,14 @@ public class SonarToOctaneIssueUtil {
     }
 
 
-    private static void setOctaneStatus(SonarIssue issue, OctaneIssue octaneIssue) {
+    private static void setOctaneStatus(SonarIssue issue, OctaneIssue octaneIssue, boolean isNew) {
         if (issue.getStatus() != null) {
-            String listNodeId = null;
-            if (issue.getStatus().equalsIgnoreCase("CONFIRMED") || issue.getStatus().equalsIgnoreCase("RESOLVED")) {
+            String listNodeId = "";
+
+            if (issue.getStatus().equalsIgnoreCase("OPEN")) {
+                listNodeId = isNew ? "list_node.issue_state_node.new" : "list_node.issue_state_node.existing";
+            } else if (issue.getStatus().equalsIgnoreCase("CONFIRMED") || issue.getStatus().equalsIgnoreCase("RESOLVED")) {
                 listNodeId = "list_node.issue_state_node.existing";
-            } else if (issue.getStatus().equalsIgnoreCase("OPEN")) {
-                listNodeId = "list_node.issue_state_node.new";
             } else if (issue.getStatus().equalsIgnoreCase("REOPENED")) {
                 listNodeId = "list_node.issue_state_node.reopen";
             } else if (issue.getStatus().equalsIgnoreCase("CLOSED")) {
@@ -111,16 +111,16 @@ public class SonarToOctaneIssueUtil {
         }
     }
 
-    private static void setPrimaryLocationFull(SonarIssue issue,OctaneIssue octaneIssue){
-        Integer offset =  issue.getProject().length();
-        String path =  issue.getComponent().substring(offset);
+    private static void setPrimaryLocationFull(SonarIssue issue, OctaneIssue octaneIssue) {
+        Integer offset = issue.getProject().length();
+        String path = issue.getComponent().substring(offset);
         octaneIssue.setPrimaryLocationFull(path);
     }
 
-    private static void setExternalLink(SonarIssue issue,OctaneIssue octaneIssue,String sonarUrl){
+    private static void setExternalLink(SonarIssue issue, OctaneIssue octaneIssue, String sonarUrl) {
         String encodedProject = CIPluginSDKUtils.urlEncodeQueryParam(issue.getProject());
         String encodedKey = CIPluginSDKUtils.urlEncodeQueryParam(issue.getKey());
-        octaneIssue.setExternalLink(String.format("%sproject/issues?id=%s&open=%s",sonarUrl, encodedProject,encodedKey));
+        octaneIssue.setExternalLink(String.format("%sproject/issues?id=%s&open=%s", sonarUrl, encodedProject, encodedKey));
     }
 
 
@@ -132,12 +132,12 @@ public class SonarToOctaneIssueUtil {
         return (legalNames.contains(scanStatus));
     }
 
-    private static Map<String, String> prepareExtendedData(SonarIssue issue,  Map<String, SonarRule> rules) {
-        String ruleKey =   issue.getRule();
+    private static Map<String, String> prepareExtendedData(SonarIssue issue, Map<String, SonarRule> rules) {
+        String ruleKey = issue.getRule();
         SonarRule rule = rules.get(ruleKey);
         Map<String, String> retVal = new HashMap<>();
         retVal.put("ruleName", rule.getName());
-        if (rule.getHtmlDesc() != null){
+        if (rule.getHtmlDesc() != null) {
             retVal.put("htmlDesc", rule.getHtmlDesc());
         }
         return retVal;
@@ -158,7 +158,7 @@ public class SonarToOctaneIssueUtil {
         }
 
         String logicalNameForSeverity = null;
-        if (severity.equals(SONAR_SEVERITY_BLOCKER )|| severity.equals(SONAR_SEVERITY_CRITICAL)) {
+        if (severity.equals(SONAR_SEVERITY_BLOCKER) || severity.equals(SONAR_SEVERITY_CRITICAL)) {
             logicalNameForSeverity = SEVERITY_LG_NAME_CRITICAL;
         } else if (severity.equals(SONAR_SEVERITY_MAJOR)) {
             logicalNameForSeverity = SEVERITY_LG_NAME_HIGH;

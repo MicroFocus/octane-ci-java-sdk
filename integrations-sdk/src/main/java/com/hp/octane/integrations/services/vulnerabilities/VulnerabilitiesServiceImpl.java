@@ -69,8 +69,6 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
 
-	private String SONAR_TYPE = "SONAR";
-	private  String SSC_TYPE = "SSC";
 
 	public VulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, SSCService sscService, SonarService sonarService) {
 		if (configurer == null) {
@@ -102,7 +100,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	@Override
 	public void enqueueRetrieveAndPushVulnerabilities(String jobId,
 	                                                  String buildId,
-	                                                  String toolType,
+	                                                  ToolType toolType,
 	                                                  long startRunTime,
 	                                                  long queueItemTimeout,
 													  Map<String,Object> additionalProperties) {
@@ -225,11 +223,11 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			}
 			InputStream vulnerabilitiesStream = null;
 
-			if (queueItem.getToolType().equals(SONAR_TYPE)){
+			if (queueItem.getToolType().equals(ToolType.SONAR)){
 				vulnerabilitiesStream = sonarService.getVulnerabilitiesScanResultStream(queueItem);
 
 			}
-			else if (queueItem.getToolType().equals(SSC_TYPE)){
+			else if (queueItem.getToolType().equals(ToolType.SSC)){
 				vulnerabilitiesStream = sscService.getVulnerabilitiesScanResultStream(queueItem);
 			}
 
@@ -287,7 +285,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 
 	private boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem queueItem){
-		if (queueItem.getToolType().equals(SSC_TYPE)){
+		if (queueItem.getToolType().equals(ToolType.SSC)){
 			return sscService.vulnerabilitiesQueueItemCleanUp(queueItem);
 		}
 		return true;

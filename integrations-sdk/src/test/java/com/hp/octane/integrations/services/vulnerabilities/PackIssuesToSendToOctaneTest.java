@@ -18,7 +18,7 @@ package com.hp.octane.integrations.services.vulnerabilities;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.PackIssuesToSendToOctane;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.PackSSCIssuesToSendToOctane;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.junit.Assert;
@@ -48,20 +48,20 @@ public class PackIssuesToSendToOctaneTest {
 
 	@Test(expected = PermanentException.class)
 	public void packBasicNoIssuesToClose(){
-		PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
+		PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
 		Issues issues = new Issues();
 		issues.setData(new ArrayList<>());
 		ArrayList<String> existingInOctane = new ArrayList<>();
-		packIssuesToSendToOctane.packAllIssues(issues.getData(),existingInOctane,"Tag", new HashMap<>());
+		packSSCIssuesToSendToOctane.packAllIssues(issues.getData(),existingInOctane,"Tag", new HashMap<>());
 	}
 
 	@Test
 	public void packIssuesToClose() throws IOException {
-		PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
+		PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
 		Issues issues = new Issues();
 		issues.setData(new ArrayList<>());
 		List<String> toCloseInOctane = Arrays.asList("Id1","Id2");
-		List<OctaneIssue> issuesToPost = packIssuesToSendToOctane.packAllIssues(issues.getData(), toCloseInOctane, "Tag", new HashMap<>());
+		List<OctaneIssue> issuesToPost = packSSCIssuesToSendToOctane.packAllIssues(issues.getData(), toCloseInOctane, "Tag", new HashMap<>());
 		Assert.assertEquals(2, issuesToPost.size());
 		Entity issueState1 = issuesToPost.get(0).getState();
 		Assert.assertEquals("list_node.issue_state_node.closed", issueState1.getId());
@@ -81,8 +81,8 @@ public class PackIssuesToSendToOctaneTest {
 		Issues issues = sscIssuesToPack();
 		Map<Integer,IssueDetails> idToDetails = getAllData();
 
-		PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
-		List<OctaneIssue> issuesToPost = packIssuesToSendToOctane.packAllIssues(issues.getData(), new ArrayList<>(), "Tag", idToDetails);
+		PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
+		List<OctaneIssue> issuesToPost = packSSCIssuesToSendToOctane.packAllIssues(issues.getData(), new ArrayList<>(), "Tag", idToDetails);
 		Assert.assertEquals(2,issuesToPost.size());
 
 		validateIssueMap(issuesToPost.get(0),
@@ -121,12 +121,12 @@ public class PackIssuesToSendToOctaneTest {
 
 	@Test
 	public void packSomeToCloseAndSomeToNewAndUpdate() throws IOException {
-		PackIssuesToSendToOctane packIssuesToSendToOctane = new PackIssuesToSendToOctane();
+		PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
 		List<String> existingInOctane = Arrays.asList("Id1","Id2","RemoteId2");
 		Issues issues = sscIssuesToPack();
 
 
-		List<OctaneIssue> octaneIssues = packIssuesToSendToOctane.packAllIssues(issues.getData(), existingInOctane, "Tag", new HashMap<>());
+		List<OctaneIssue> octaneIssues = packSSCIssuesToSendToOctane.packAllIssues(issues.getData(), existingInOctane, "Tag", new HashMap<>());
 
 		Assert.assertEquals(4,octaneIssues.size());
 

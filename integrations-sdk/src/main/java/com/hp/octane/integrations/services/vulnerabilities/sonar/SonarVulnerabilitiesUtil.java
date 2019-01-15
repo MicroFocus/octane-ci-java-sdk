@@ -9,6 +9,7 @@ import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.sonar.SonarUtils;
+import com.hp.octane.integrations.services.vulnerabilities.DateUtils;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarIssue;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarRule;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -24,10 +25,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -86,15 +84,12 @@ public class SonarVulnerabilitiesUtil {
 
         List<String> octaneExistsIssuesIdsList = VulnerabilitiesServiceImpl.getRemoteIdsOfExistIssuesFromOctane(queueItem, this.remoteTag, restService, configurer);
 
-        List<SonarIssue> issuesRequiredExtendedData = issuesFromSecurityTool.stream().filter(
-                issue -> {
-                    boolean isMissing = !octaneExistsIssuesIdsList.contains(issue.getKey());
-                    return isMissing;
-                }).collect(
-                Collectors.toList());
+        List<SonarIssue> issuesRequiredExtendedData = issuesFromSecurityTool.stream()
+                .filter(issue -> !octaneExistsIssuesIdsList.contains(issue.getKey()))
+                .collect(Collectors.toList());
 
-        Set<String> sonarRulesKeys = issuesRequiredExtendedData.stream().map(issue -> issue.getRule()).collect(Collectors.toSet());
-        Set<String>  issuesRequiredExtendedDataKeys = issuesRequiredExtendedData.stream().map(issue -> issue.getKey()).collect(Collectors.toSet());
+        Set<String> sonarRulesKeys = issuesRequiredExtendedData.stream().map(SonarIssue::getRule).collect(Collectors.toSet());
+        Set<String>  issuesRequiredExtendedDataKeys = issuesRequiredExtendedData.stream().map(SonarIssue::getKey).collect(Collectors.toSet());
 
 
         Map<String, SonarRule> rules = retrieveRulesFromSonar(sonarRulesKeys, queueItem);
@@ -123,7 +118,7 @@ public class SonarVulnerabilitiesUtil {
             JsonNode jsonReport;
             do {
                 pageIndex++;
-                URIBuilder vulnerabilityQuery = createQueryForSonarVulnerability(pageIndex);
+                URIBuilder vulnerabilityQuery = createQueryForSonarVulnerability(pageIndex,queueItem.getBaselineDate());
                 InputStream reportStream = SonarUtils.getDataFromSonar(this.projectKey, this.sonarToken, vulnerabilityQuery);
                 jsonReport = CIPluginSDKUtils.getObjectMapper().readTree(reportStream);
                 sonarIssues.addAll(getSonarIssuesFromReport(jsonReport));
@@ -203,14 +198,19 @@ public class SonarVulnerabilitiesUtil {
     }
 
 
-    private URIBuilder createQueryForSonarVulnerability(Integer page) {
+    private URIBuilder createQueryForSonarVulnerability(Integer page, Date date) {
         URIBuilder uriBuilder = null;
         try {
             uriBuilder = new URIBuilder(this.sonarURL + ISSUES_SEARCH_URI);
             uriBuilder.setParameter("types", "VULNERABILITY")
                     .setParameter("componentKeys", this.projectKey)
+                    .setParameter("severities","MINOR,MAJOR,CRITICAL,BLOCKER")
                     .setParameter("ps", "500")
                     .setParameter("p", page.toString());
+
+            if (date != null){
+                uriBuilder.setParameter("createdAfter", DateUtils.convertDateToString(date, DateUtils.sonarFormat));
+            }
 
         } catch (URISyntaxException e) {
             logger.error(e);
@@ -225,7 +225,7 @@ public class SonarVulnerabilitiesUtil {
             return new ArrayList<>();
         }
         List<String> remoteIssuesKeys =
-                sonarIssues.stream().map(issue -> issue.getKey()).collect(Collectors.toList());
+                sonarIssues.stream().map(SonarIssue::getKey).collect(Collectors.toList());
 
         List<String> remoteIdsToCloseInOctane = octaneIssues.stream()
                 .filter(oIssue -> !remoteIssuesKeys.contains(oIssue))
@@ -233,7 +233,7 @@ public class SonarVulnerabilitiesUtil {
 
         //Make Octane issue from remote id's.
         List<OctaneIssue> closedOctaneIssues = remoteIdsToCloseInOctane.stream()
-                .map(t -> createClosedOctaneIssue(t)).collect(Collectors.toList());
+                .map(this::createClosedOctaneIssue).collect(Collectors.toList());
 
         //Issues that are not closed , packed to update/create.
         List<SonarIssue> issuesToUpdate = sonarIssues.stream()

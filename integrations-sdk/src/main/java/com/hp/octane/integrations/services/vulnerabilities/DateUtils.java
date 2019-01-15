@@ -40,6 +40,10 @@ public class DateUtils {
         return targetDateFormat.format(date);
     }
 
+    public static String convertDateToString(Date date, String format){
+        return new SimpleDateFormat(format).format(date);
+    }
+
     public static Date getDateFromUTCString(String inputDate, String format) {
         try {
             DateFormat sourceDateFormat = new SimpleDateFormat(format);

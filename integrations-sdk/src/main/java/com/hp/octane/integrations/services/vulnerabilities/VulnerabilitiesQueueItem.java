@@ -11,7 +11,7 @@ public class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
     private String buildId;
     private long startTime;
     private long timeout;
-    private String toolType;
+    private ToolType toolType;
     private boolean isRelevant;
     private Date baselineDate;
 
@@ -58,12 +58,11 @@ public class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
         this.timeout = timeout;
     }
 
-
-    public String getToolType() {
+    public ToolType getToolType() {
         return toolType;
     }
 
-    public void setToolType(String toolType) {
+    public void setToolType(ToolType toolType) {
         this.toolType = toolType;
     }
 

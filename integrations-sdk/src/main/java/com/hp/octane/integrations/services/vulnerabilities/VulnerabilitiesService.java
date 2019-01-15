@@ -48,7 +48,7 @@ public interface VulnerabilitiesService extends ClosableService {
 	 */
 	void enqueueRetrieveAndPushVulnerabilities(String jobId,
 											   String buildId,
-											   String toolType,
+											   ToolType toolType,
 											   long startRunTime,
 											   long queueItemTimeout,
 											   Map<String,Object> additionalProperties);
