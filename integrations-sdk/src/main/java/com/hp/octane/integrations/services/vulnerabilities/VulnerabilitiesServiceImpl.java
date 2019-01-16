@@ -15,6 +15,9 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
@@ -22,6 +25,7 @@ import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -44,7 +48,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private final Object NO_VULNERABILITIES_RESULTS_MONITOR = new Object();
 	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 	Map<ToolType,VulnerabilitiesToolService> vulnerabilitiesToolServiceMap = new HashMap<>();
-	protected final OctaneVulnerabilitiesService octaneVulnerabilitiesService;
+	protected final OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService;
 
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
@@ -54,12 +58,12 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private CompletableFuture<Boolean> workerExited;
 
 
-	public VulnerabilitiesServiceImpl(QueueingService queueingService, SSCService sscService, SonarService sonarService, OctaneVulnerabilitiesService octaneVulnerabilitiesService) {
+	public VulnerabilitiesServiceImpl(QueueingService queueingService, SSCService sscService, SonarService sonarService, OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService) {
 
 		if (queueingService == null) {
 			throw new IllegalArgumentException("queue Service MUST NOT be null");
 		}
-		if (octaneVulnerabilitiesService == null) {
+		if (octaneVulnerabilitiesConnectorService == null) {
 			throw new IllegalArgumentException("octane Vulnerabilities Service service MUST NOT be null");
 		}
 		if (sonarService == null) {
@@ -80,7 +84,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		vulnerabilitiesToolServiceMap.put(ToolType.SONAR,sonarService);
 
 
-		this.octaneVulnerabilitiesService = octaneVulnerabilitiesService;
+		this.octaneVulnerabilitiesConnectorService = octaneVulnerabilitiesConnectorService;
 
 		logger.info("starting background worker...");
 		vulnerabilitiesProcessingExecutor.execute(this::worker);
@@ -164,7 +168,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
 			if (!queueItem.isRelevant()) {
 
-				Date relevant = octaneVulnerabilitiesService.vulnerabilitiesPreflightRequest(queueItem.getJobId(), queueItem.getBuildId());
+				Date relevant =  vulnerabilitiesPreflightRequest(queueItem.getJobId(), queueItem.getBuildId());
 				if (relevant != null) {
 					//  set queue item value relevancy to true and continue
 					queueItem.setRelevant(true);
@@ -184,11 +188,36 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			if (vulnerabilitiesStream == null) {
 				return false;
 			} else {
-				 octaneVulnerabilitiesService.pushVulnerabilities(vulnerabilitiesStream, queueItem.getJobId(), queueItem.getBuildId());
+				 octaneVulnerabilitiesConnectorService.pushVulnerabilities(vulnerabilitiesStream, queueItem.getJobId(), queueItem.getBuildId());
 				return true;
 			}
 		} catch (IOException e) {
 			throw new PermanentException(e);
+		}
+	}
+
+	private Date vulnerabilitiesPreflightRequest(String jobId, String buildId) throws IOException {
+
+		OctaneResponse response = octaneVulnerabilitiesConnectorService.getBaselineDateFromOctane(jobId, buildId);
+
+		if (response.getStatus() == HttpStatus.SC_OK) {
+			if (response.getBody()==null || "".equals(response.getBody())) {
+				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
+				return null;
+			}else{
+				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
+				boolean forTest = false;
+				//backward compatibility with Octane
+				if("true".equals(response.getBody()) || forTest){
+					return DateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd");
+				}
+				return DateUtils.getDateFromUTCString(response.getBody(), DateUtils.octaneFormat);
+			}
+		}
+		if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+			throw new TemporaryException("vulnerabilities preflight request FAILED, service unavailable");
+		} else {
+			throw new PermanentException("vulnerabilities preflight request FAILED with " + response.getStatus() + "");
 		}
 	}
 

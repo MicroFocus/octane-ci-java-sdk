@@ -23,25 +23,25 @@ public class SSCServiceImpl implements SSCService{
     private static final Logger logger = LogManager.getLogger(SSCServiceImpl.class);
     protected final OctaneSDK.SDKServicesConfigurer configurer;
     protected final RestService restService;
-    protected final OctaneVulnerabilitiesService octaneVulnerabilitiesService;
+    protected final OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService;
 
 
 
 
-    public SSCServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, OctaneVulnerabilitiesService octaneVulnerabilitiesService) {
+    public SSCServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService) {
         if (configurer == null) {
             throw new IllegalArgumentException("invalid configurer");
         }
         if (restService == null) {
             throw new IllegalArgumentException("rest service MUST NOT be null");
         }
-        if (octaneVulnerabilitiesService == null) {
+        if (octaneVulnerabilitiesConnectorService == null) {
             throw new IllegalArgumentException("octane Vulnerabilities Service service MUST NOT be null");
         }
 
         this.configurer = configurer;
         this.restService = restService;
-        this.octaneVulnerabilitiesService = octaneVulnerabilitiesService;
+        this.octaneVulnerabilitiesConnectorService = octaneVulnerabilitiesConnectorService;
     }
 
     @Override
@@ -97,7 +97,7 @@ public class SSCServiceImpl implements SSCService{
             return null;
         }
 
-        List<String> octaneExistsIssuesIdsList = octaneVulnerabilitiesService.getRemoteIdsOfExistIssuesFromOctane(queueItem, sscProjectConfiguration.getRemoteTag());
+        List<String> octaneExistsIssuesIdsList = octaneVulnerabilitiesConnectorService.getRemoteIdsOfExistIssuesFromOctane(queueItem, sscProjectConfiguration.getRemoteTag());
 
         List<Issues.Issue> issuesRequiredExtendedData = issuesFromSecurityTool.stream().filter(
                 t -> {

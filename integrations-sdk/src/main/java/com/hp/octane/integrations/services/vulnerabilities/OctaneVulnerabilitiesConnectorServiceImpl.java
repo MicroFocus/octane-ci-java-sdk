@@ -22,15 +22,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class OctaneVulnerabilitiesServiceImpl implements OctaneVulnerabilitiesService {
+public class OctaneVulnerabilitiesConnectorServiceImpl implements OctaneVulnerabilitiesConnectorService {
 
 
-    private static final Logger logger = LogManager.getLogger(OctaneVulnerabilitiesServiceImpl.class);
+    private static final Logger logger = LogManager.getLogger(OctaneVulnerabilitiesConnectorServiceImpl.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
     private OctaneSDK.SDKServicesConfigurer configurer;
     private  RestService restService;
 
-    public OctaneVulnerabilitiesServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+    public OctaneVulnerabilitiesConnectorServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 
         if (configurer == null) {
             throw new IllegalArgumentException("invalid configurer");
@@ -82,7 +82,7 @@ public class OctaneVulnerabilitiesServiceImpl implements OctaneVulnerabilitiesSe
     }
 
     @Override
-    public Date vulnerabilitiesPreflightRequest(String jobId, String buildId) throws IOException {
+    public OctaneResponse getBaselineDateFromOctane(String jobId, String buildId) throws IOException {
         String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
         String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 
@@ -91,26 +91,7 @@ public class OctaneVulnerabilitiesServiceImpl implements OctaneVulnerabilitiesSe
                 .setUrl(getVulnerabilitiesPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
                         "?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId);
 
-        OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
-        if (response.getStatus() == HttpStatus.SC_OK) {
-            if (response.getBody()==null || "".equals(response.getBody())) {
-                logger.info("vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
-                return null;
-            }else{
-                logger.info("vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
-                boolean forTest = false;
-                //backward compatibility with Octane
-                if("true".equals(response.getBody()) || forTest){
-                    return DateUtils.getDateFromUTCString("2000-01-01", "yyyy-MM-dd");
-                }
-                return DateUtils.getDateFromUTCString(response.getBody(), DateUtils.octaneFormat);
-            }
-        }
-        if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
-            throw new TemporaryException("vulnerabilities preflight request FAILED, service unavailable");
-        } else {
-            throw new PermanentException("vulnerabilities preflight request FAILED with " + response.getStatus() + "");
-        }
+        return restService.obtainOctaneRestClient().execute(preflightRequest);
     }
 
     private String getVulnerabilitiesContextPath(String octaneBaseUrl, String sharedSpaceId) {

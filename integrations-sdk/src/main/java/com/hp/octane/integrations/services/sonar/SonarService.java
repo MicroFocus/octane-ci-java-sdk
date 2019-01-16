@@ -20,12 +20,8 @@ import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
-import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.OctaneVulnerabilitiesService;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
+import com.hp.octane.integrations.services.vulnerabilities.OctaneVulnerabilitiesConnectorService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
-
-import java.io.InputStream;
 
 /**
  * Sonar service provides an integration functionality related to SonarQube
@@ -44,8 +40,8 @@ public interface SonarService extends ClosableService, VulnerabilitiesToolServic
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, OctaneVulnerabilitiesService octaneVulnerabilitiesService) {
-		return new SonarServiceImpl(configurer, queueingService, coverageService,octaneVulnerabilitiesService);
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService) {
+		return new SonarServiceImpl(configurer, queueingService, coverageService, octaneVulnerabilitiesConnectorService);
 	}
 
 	/**

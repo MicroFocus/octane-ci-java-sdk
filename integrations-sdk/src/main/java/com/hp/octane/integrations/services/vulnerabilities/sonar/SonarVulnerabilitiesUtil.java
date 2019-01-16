@@ -3,7 +3,6 @@ package com.hp.octane.integrations.services.vulnerabilities.sonar;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
@@ -12,7 +11,6 @@ import com.hp.octane.integrations.services.sonar.SonarUtils;
 import com.hp.octane.integrations.services.vulnerabilities.*;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarIssue;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.dto.SonarRule;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -31,7 +29,7 @@ public class SonarVulnerabilitiesUtil {
     private static final String ISSUES_SEARCH_URI = "/api/issues/search";
     private static final String RULES_SEARCH_URI = "/api/rules/search";
 
-    private String PROJECT_KEY_KEY = "PROJECT_KEY" ;
+    private String PROJECT_KEY_KEY = "PROJECT_KEY";
     private String SONAR_URL_KEY = "SONAR_URL";
     private String SONAR_TOKEN_KEY = "SONAR_TOKEN";
     private String REMOTE_TAG_KEY = "REMOTE_TAG";
@@ -46,17 +44,17 @@ public class SonarVulnerabilitiesUtil {
     private String remoteTag;
 
 
-    private final OctaneVulnerabilitiesService octaneVulnerabilitiesService;
+    private final OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService;
 
-    public SonarVulnerabilitiesUtil(VulnerabilitiesQueueItem queueItem, OctaneVulnerabilitiesService octaneVulnerabilitiesService){
-        Map<String,Object> additionalProperties = queueItem.getAdditionalProperties();
-        this.projectKey = (String) additionalProperties.get(PROJECT_KEY_KEY );
-        this.sonarURL = (String) additionalProperties.get(SONAR_URL_KEY );
-        this.sonarToken = (String) additionalProperties.get(SONAR_TOKEN_KEY );
-        this.remoteTag = (String) additionalProperties.get(REMOTE_TAG_KEY );
-        this.octaneVulnerabilitiesService = octaneVulnerabilitiesService;
+    public SonarVulnerabilitiesUtil(VulnerabilitiesQueueItem queueItem, OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService) {
+        Map<String, Object> additionalProperties = queueItem.getAdditionalProperties();
+        this.projectKey = (String) additionalProperties.get(PROJECT_KEY_KEY);
+        this.sonarURL = (String) additionalProperties.get(SONAR_URL_KEY);
+        this.sonarToken = (String) additionalProperties.get(SONAR_TOKEN_KEY);
+        this.remoteTag = (String) additionalProperties.get(REMOTE_TAG_KEY);
+        this.octaneVulnerabilitiesConnectorService = octaneVulnerabilitiesConnectorService;
 
-        if (projectKey == null || sonarURL == null || sonarToken == null || remoteTag == null){
+        if (projectKey == null || sonarURL == null || sonarToken == null || remoteTag == null) {
             throw new RuntimeException("one of the following parameters can be null: PROJECT_KEY, SONAR_URL, SONAR_TOKEN, REMOTE_TAG ");
         }
     }
@@ -74,19 +72,16 @@ public class SonarVulnerabilitiesUtil {
             throws IOException {
 
         List<SonarIssue> issuesFromSecurityTool = getIssuesFromSecurityTool(queueItem);
+        Set<String> sonarRulesKeys = issuesFromSecurityTool.stream().map(SonarIssue::getRule).collect(Collectors.toSet());
+        Map<String, SonarRule> rules = retrieveRulesFromSonar(sonarRulesKeys);
 
-        List<String> octaneExistsIssuesIdsList = octaneVulnerabilitiesService.getRemoteIdsOfExistIssuesFromOctane(queueItem, this.remoteTag);
+        List<String> octaneExistsIssuesIdsList = octaneVulnerabilitiesConnectorService.getRemoteIdsOfExistIssuesFromOctane(queueItem, this.remoteTag);
 
         List<SonarIssue> issuesRequiredExtendedData = issuesFromSecurityTool.stream()
                 .filter(issue -> !octaneExistsIssuesIdsList.contains(issue.getKey()))
                 .collect(Collectors.toList());
 
-        Set<String> sonarRulesKeys = issuesRequiredExtendedData.stream().map(SonarIssue::getRule).collect(Collectors.toSet());
-        Set<String>  issuesRequiredExtendedDataKeys = issuesRequiredExtendedData.stream().map(SonarIssue::getKey).collect(Collectors.toSet());
-
-
-        Map<String, SonarRule> rules = retrieveRulesFromSonar(sonarRulesKeys, queueItem);
-
+        Set<String> issuesRequiredExtendedDataKeys = issuesRequiredExtendedData.stream().map(SonarIssue::getKey).collect(Collectors.toSet());
 
         return packAllIssues(issuesFromSecurityTool,
                 octaneExistsIssuesIdsList,
@@ -95,7 +90,7 @@ public class SonarVulnerabilitiesUtil {
     }
 
 
-    public List<SonarIssue> getIssuesFromSecurityTool(VulnerabilitiesQueueItem queueItem ) {
+    public List<SonarIssue> getIssuesFromSecurityTool(VulnerabilitiesQueueItem queueItem) {
         StringBuilder errorMessage = new StringBuilder()
                 .append("failed to get sonarqube vulnerability data for project key: ")
                 .append(this.projectKey)
@@ -111,38 +106,31 @@ public class SonarVulnerabilitiesUtil {
             JsonNode jsonReport;
             do {
                 pageIndex++;
-                URIBuilder vulnerabilityQuery = createQueryForSonarVulnerability(pageIndex,queueItem.getBaselineDate());
+                URIBuilder vulnerabilityQuery = createQueryForSonarVulnerability(pageIndex, queueItem.getBaselineDate());
                 InputStream reportStream = SonarUtils.getDataFromSonar(this.projectKey, this.sonarToken, vulnerabilityQuery);
                 jsonReport = CIPluginSDKUtils.getObjectMapper().readTree(reportStream);
                 sonarIssues.addAll(getSonarIssuesFromReport(jsonReport));
             } while (SonarUtils.sonarReportHasAnotherPage(pageIndex, jsonReport));
             return sonarIssues;
 
-        } catch (Throwable throwable) {
-            logger.error(errorMessage, throwable);
-            throw new PermanentException(throwable);
+        } catch (IOException e) {
+            logger.error(errorMessage, e);
+            throw new PermanentException(e);
         }
     }
 
-    public Map<String, SonarRule> retrieveRulesFromSonar(Set<String> sonarRulesKeys, VulnerabilitiesQueueItem queueItem) {
+    public Map<String, SonarRule> retrieveRulesFromSonar(Set<String> sonarRulesKeys) throws IOException {
 
         List<SonarRule> sonarRules = new ArrayList<>();
-        try {
 
-            //  retrieve coverage report from Sonar
-            JsonNode jsonReport;
+        //  retrieve coverage report from Sonar
+        JsonNode jsonReport;
 
-            for (String ruleKey : sonarRulesKeys) {
-                URIBuilder ruleQuery = createQueryForSonarRule(this.sonarURL, ruleKey);
-                InputStream reportStream = SonarUtils.getDataFromSonar(this.projectKey, this.sonarToken, ruleQuery);
-                jsonReport = CIPluginSDKUtils.getObjectMapper().readTree(reportStream);
-                sonarRules.add(getSonarRuleFromReport(jsonReport));
-            }
-
-
-        } catch (Throwable throwable) {
-            logger.error("error when retrieving sonar rules ", throwable);
-            throw new PermanentException(throwable);
+        for (String ruleKey : sonarRulesKeys) {
+            URIBuilder ruleQuery = createQueryForSonarRule(this.sonarURL, ruleKey);
+            InputStream reportStream = SonarUtils.getDataFromSonar(this.projectKey, this.sonarToken, ruleQuery);
+            jsonReport = CIPluginSDKUtils.getObjectMapper().readTree(reportStream);
+            sonarRules.add(getSonarRuleFromReport(jsonReport));
         }
         return sonarRules.stream().collect(Collectors.toMap(SonarRule::getKey, Function.identity()));
     }
@@ -197,11 +185,11 @@ public class SonarVulnerabilitiesUtil {
             uriBuilder = new URIBuilder(this.sonarURL + ISSUES_SEARCH_URI);
             uriBuilder.setParameter("types", "VULNERABILITY")
                     .setParameter("componentKeys", this.projectKey)
-                    .setParameter("severities","MINOR,MAJOR,CRITICAL,BLOCKER")
+                    .setParameter("severities", "MINOR,MAJOR,CRITICAL,BLOCKER")
                     .setParameter("ps", "500")
                     .setParameter("p", page.toString());
 
-            if (date != null){
+            if (date != null) {
                 uriBuilder.setParameter("createdAfter", DateUtils.convertDateToString(date, DateUtils.sonarFormat));
             }
 
@@ -213,7 +201,7 @@ public class SonarVulnerabilitiesUtil {
     }
 
 
-    private List<OctaneIssue> packAllIssues(List<SonarIssue> sonarIssues, List<String> octaneIssues,   Set<String> issuesRequiredExtendedDataKeys, Map<String, SonarRule> rules) {
+    private List<OctaneIssue> packAllIssues(List<SonarIssue> sonarIssues, List<String> octaneIssues, Set<String> issuesRequiredExtendedDataKeys, Map<String, SonarRule> rules) {
         if (sonarIssues.size() == 0 && octaneIssues.size() == 0) {
             return new ArrayList<>();
         }
@@ -233,7 +221,7 @@ public class SonarVulnerabilitiesUtil {
                 .filter(sonarIssue -> !remoteIdsToCloseInOctane.contains(sonarIssue.getKey()))
                 .collect(Collectors.toList());
         //Issues.Issue
-        List<OctaneIssue> openOctaneIssues = SonarToOctaneIssueUtil.createOctaneIssues(issuesToUpdate,this.remoteTag, this.sonarURL, issuesRequiredExtendedDataKeys, rules);
+        List<OctaneIssue> openOctaneIssues = SonarToOctaneIssueUtil.createOctaneIssues(issuesToUpdate, this.remoteTag, this.sonarURL, issuesRequiredExtendedDataKeys, rules);
         List<OctaneIssue> total = new ArrayList<>();
         total.addAll(openOctaneIssues);
         total.addAll(closedOctaneIssues);

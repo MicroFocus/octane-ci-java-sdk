@@ -28,7 +28,7 @@ import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
-import com.hp.octane.integrations.services.vulnerabilities.OctaneVulnerabilitiesService;
+import com.hp.octane.integrations.services.vulnerabilities.OctaneVulnerabilitiesConnectorService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 import org.apache.logging.log4j.LogManager;
@@ -53,7 +53,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final SonarService sonarService;
 	private final SSCService sscService;
 	private final EntitiesService entitiesService;
-	private final OctaneVulnerabilitiesService octaneVulnerabilitiesService;
+	private final OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService;
 	private final PipelineContextService pipelineContextService;
 	private final EventsService eventsService;
 	private final LogsService logsService;
@@ -81,7 +81,7 @@ final class OctaneClientImpl implements OctaneClient {
 		tasksProcessor = TasksProcessor.newInstance(configurer);
 
 		//  dependent services init
-		octaneVulnerabilitiesService = OctaneVulnerabilitiesService.newInstance(configurer,restService);
+		octaneVulnerabilitiesConnectorService = OctaneVulnerabilitiesConnectorService.newInstance(configurer,restService);
 		configurationService = ConfigurationService.newInstance(configurer, restService);
 		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
@@ -90,9 +90,9 @@ final class OctaneClientImpl implements OctaneClient {
 		logsService = LogsService.newInstance(configurer, queueingService, restService);
 		testsService = TestsService.newInstance(configurer, queueingService, restService);
 
-		sscService = SSCService.newInstance(configurer,restService, octaneVulnerabilitiesService);
-		sonarService = SonarService.newInstance(configurer, queueingService,coverageService,octaneVulnerabilitiesService);
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, sscService,sonarService,octaneVulnerabilitiesService);
+		sscService = SSCService.newInstance(configurer,restService, octaneVulnerabilitiesConnectorService);
+		sonarService = SonarService.newInstance(configurer, queueingService,coverageService, octaneVulnerabilitiesConnectorService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, sscService,sonarService, octaneVulnerabilitiesConnectorService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);

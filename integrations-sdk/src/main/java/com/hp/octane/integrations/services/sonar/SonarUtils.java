@@ -2,35 +2,54 @@ package com.hp.octane.integrations.services.sonar;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthenticationException;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 
 import java.io.InputStream;
 
 public class SonarUtils {
 
-    public static InputStream getDataFromSonar(String projectKey , String token, URIBuilder uriQuery) {
+    public static InputStream getDataFromSonar(String projectKey, String token, URIBuilder uriQuery) {
+        StringBuilder errorMessage = new StringBuilder()
+                .append("failed to get data from sonar for project key: ")
+                .append(projectKey);
+
         try {
 
             HttpClient httpClient = HttpClientBuilder.create().build();
             HttpGet request = new HttpGet(uriQuery.build());
             setTokenInHttpRequest(request, token);
-
             HttpResponse httpResponse = httpClient.execute(request);
-            return httpResponse.getEntity().getContent();
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
 
-        } catch (Exception e) {
-            String errorMessage = ""
-                    .concat("failed to get data from sonar for project: ")
-                    .concat(projectKey);
-            throw new PermanentException(errorMessage, e);
+            if (statusCode == HttpStatus.SC_OK) {
+                return httpResponse.getEntity().getContent();
+            } else if (statusCode == HttpStatus.SC_BAD_REQUEST) {
+                errorMessage.append(" with status code: ").append(statusCode)
+                        .append(" and response body: ").append(EntityUtils.toString(httpResponse.getEntity(), "UTF-8"));
+                throw new TemporaryException(errorMessage.toString());
+            } else {
+                errorMessage.append(" with status code: ").append(statusCode)
+                        .append(" and response body: ").append(EntityUtils.toString(httpResponse.getEntity(), "UTF-8"));
+                throw new PermanentException(errorMessage.toString());
+            }
+
+        } catch (HttpHostConnectException e) {
+             throw new TemporaryException(errorMessage.toString(), e);
+        }
+        catch (Exception e){
+            throw new PermanentException(errorMessage.toString(),e);
         }
     }
 
@@ -41,7 +60,7 @@ public class SonarUtils {
         return pageSize * pageIndex < total;
     }
 
-    private static  void setTokenInHttpRequest(HttpRequest request, String token) throws AuthenticationException {
+    private static void setTokenInHttpRequest(HttpRequest request, String token) throws AuthenticationException {
         UsernamePasswordCredentials creds = new UsernamePasswordCredentials(token, "");
         request.addHeader(new BasicScheme().authenticate(creds, request, null));
     }
