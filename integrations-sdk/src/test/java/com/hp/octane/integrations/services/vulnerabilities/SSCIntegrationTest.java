@@ -19,7 +19,6 @@ import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCDateUtils;
 import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 import com.hp.octane.integrations.testhelpers.SSCServerSimulator;
@@ -83,7 +82,7 @@ public class SSCIntegrationTest {
 
 
             vulnerabilitiesServiceA.enqueueRetrieveAndPushVulnerabilities("jobSSC1",
-                    "1", System.currentTimeMillis(), 1);
+                    "1",ToolType.SSC, System.currentTimeMillis(), 1,null);
 
             if(expectedOutput.expectNoPsuh) {
                 try {
@@ -168,7 +167,7 @@ public class SSCIntegrationTest {
                                     request.getQueryParameters().getString("job-ci-id") + "|" +
                                     request.getQueryParameters().getString("build-ci-id"));
                     request.getResponse().setStatus(HttpStatus.SC_OK);
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(SSCDateUtils.octaneFormat);
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.octaneFormat);
 
                     request.getResponse().getWriter().write(getOctaneInput().baseline == null ? "true" :
                              simpleDateFormat.format(getOctaneInput().baseline));

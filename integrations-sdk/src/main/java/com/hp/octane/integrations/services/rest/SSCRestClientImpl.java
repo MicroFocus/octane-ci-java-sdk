@@ -21,7 +21,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.AuthToken;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.AuthToken;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;

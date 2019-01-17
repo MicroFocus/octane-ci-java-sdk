@@ -17,7 +17,8 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCHandler;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.DummyContents;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.MockSSCRestClient;
 import org.junit.Assert;
@@ -33,14 +34,14 @@ import static org.easymock.EasyMock.*;
 
 public class SSCHandlerTest {
 
-    VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem;
+    VulnerabilitiesQueueItem queueItem;
     SSCProjectConfiguration configMock;
 
     @Before
     public void prepareMembers(){
         queueItem = new
-                VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem();
-        queueItem.startTime = System.currentTimeMillis() - 1000*60*60; //An hour ago
+                VulnerabilitiesQueueItem();
+        queueItem.setStartTime(System.currentTimeMillis() - 1000*60*60); //An hour ago
 
         configMock = getSscProjectConfiguration();
 

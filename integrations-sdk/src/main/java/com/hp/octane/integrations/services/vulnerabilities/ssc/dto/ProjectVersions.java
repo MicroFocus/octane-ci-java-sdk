@@ -11,22 +11,23 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
+ *
  */
+package com.hp.octane.integrations.services.vulnerabilities.ssc.dto;
 
-package com.hp.octane.integrations.services.vulnerabilities;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-
-import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class ExpectedPushToOctane {
-    public List<Issues.Issue> updateIssues = new ArrayList<>();
-    public List<Issues.Issue> newIssues = new ArrayList<>();
-    public List<String> closedIssuesStillExistingInOctane = new ArrayList<>();
-    public List<Issues.Issue> beforeBaselineIssues = new ArrayList<>();
-    public List<Issues.Issue> missingIssues = new ArrayList<>();
-    public boolean missingHasExtendedData = true;
-    public boolean expectNoPsuh = false;
+/**
+ * Created by hijaziy on 7/23/2018.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ProjectVersions extends SscBaseEntityArray<ProjectVersions.ProjectVersion> {
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ProjectVersion {
+        @JsonProperty("id")
+        public Integer id;
+        @JsonProperty("latestScanId")
+        public Integer latestScanId;
+    }
 }

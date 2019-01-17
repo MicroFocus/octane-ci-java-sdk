@@ -13,13 +13,13 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities;
+package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.IssueDetails;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

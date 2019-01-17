@@ -38,15 +38,12 @@ public class ExistingIssuesInOctane {
     private final static Logger logger = LogManager.getLogger(ExistingIssuesInOctane.class);
     private OctaneRestClient octaneRestClient;
     private OctaneConfiguration octaneConfiguration;
-    private VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem;
 
     public ExistingIssuesInOctane(OctaneRestClient octaneRestClient,
-                                  OctaneConfiguration octaneConfiguration,
-                                  VulnerabilitiesServiceImpl.VulnerabilitiesQueueItem queueItem) {
+                                  OctaneConfiguration octaneConfiguration) {
 
         this.octaneRestClient = octaneRestClient;
         this.octaneConfiguration = octaneConfiguration;
-        this.queueItem = queueItem;
     }
     public List<String> getRemoteIdsOpenVulnsFromOctane(String jobId, String runId, String remoteTag) throws IOException {
 

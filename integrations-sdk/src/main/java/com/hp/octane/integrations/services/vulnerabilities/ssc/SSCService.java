@@ -11,23 +11,22 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
+
 package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
 
-/**
- * Created by hijaziy on 7/23/2018.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class ProjectVersions extends SscBaseEntityArray<ProjectVersions.ProjectVersion> {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class ProjectVersion {
-        @JsonProperty("id")
-        public Integer id;
-        @JsonProperty("latestScanId")
-        public Integer latestScanId;
+public interface SSCService extends VulnerabilitiesToolService {
+
+    /**
+     * Service instance producer - for internal usage only (protected by inaccessible configurer)
+     *
+     * @return initialized service
+     */
+    static SSCService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+       return new SSCServiceImpl(configurer,restService);
     }
 }

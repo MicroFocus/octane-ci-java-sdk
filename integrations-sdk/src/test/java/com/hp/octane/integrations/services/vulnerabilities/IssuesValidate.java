@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 
 import java.io.IOException;
 import java.io.StringWriter;

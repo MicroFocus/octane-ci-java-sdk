@@ -23,6 +23,8 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.services.sonar.SonarService;
+import com.hp.octane.integrations.services.sonar.SonarServiceImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -238,7 +240,7 @@ public class CoverageServiceNegativeTests {
 
 		CoverageService coverageService = client.getCoverageService();
 		try {
-			coverageService.isCoverageReportRelevant(null);
+			coverageService.isSonarReportRelevant(null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -252,7 +254,7 @@ public class CoverageServiceNegativeTests {
 
 		CoverageService coverageService = client.getCoverageService();
 		try {
-			coverageService.isCoverageReportRelevant("");
+			coverageService.isSonarReportRelevant("");
 		} finally {
 			OctaneSDK.removeClient(client);
 		}

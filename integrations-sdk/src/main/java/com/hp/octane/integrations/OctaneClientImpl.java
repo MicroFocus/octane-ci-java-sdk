@@ -18,7 +18,7 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
-import com.hp.octane.integrations.services.coverage.SonarService;
+import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logging.LoggingService;
@@ -28,6 +28,8 @@ import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
+import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,7 +51,9 @@ final class OctaneClientImpl implements OctaneClient {
 	private final ConfigurationService configurationService;
 	private final CoverageService coverageService;
 	private final SonarService sonarService;
+	private final SSCService sscService;
 	private final EntitiesService entitiesService;
+	private final SonarVulnerabilitiesService sonarVulnerabilitiesService;
 	private final PipelineContextService pipelineContextService;
 	private final EventsService eventsService;
 	private final LogsService logsService;
@@ -59,6 +63,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final TestsService testsService;
 	private final VulnerabilitiesService vulnerabilitiesService;
 	private final Thread shutdownHook;
+
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -78,13 +83,17 @@ final class OctaneClientImpl implements OctaneClient {
 		//  dependent services init
 		configurationService = ConfigurationService.newInstance(configurer, restService);
 		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
-		sonarService = SonarService.newInstance(configurer, queueingService, coverageService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		pipelineContextService = PipelineContextService.newInstance(configurer, restService);
 		eventsService = EventsService.newInstance(configurer, restService);
 		logsService = LogsService.newInstance(configurer, queueingService, restService);
 		testsService = TestsService.newInstance(configurer, queueingService, restService);
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(configurer, queueingService, restService);
+
+		sscService = SSCService.newInstance(configurer,restService);
+		sonarService = SonarService.newInstance(configurer, queueingService,coverageService);
+        sonarVulnerabilitiesService = SonarVulnerabilitiesService.newInstance(configurer,restService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, sscService, sonarVulnerabilitiesService, configurer,restService);
+
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);

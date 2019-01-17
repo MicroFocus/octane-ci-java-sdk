@@ -15,9 +15,9 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Artifacts;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.Issues;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCDateUtils;
+
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Artifacts;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -83,7 +83,7 @@ public class SSCInput {
         Artifacts.Artifact artifact = new Artifacts.Artifact();
         artifact.id =1;
         artifact.status = artifactStatus;
-        DateFormat sourceDateFormat = new SimpleDateFormat(SSCDateUtils.sscFormat);
+        DateFormat sourceDateFormat = new SimpleDateFormat(DateUtils.sscFormat);
         Date date = new Date(startTimeOfBuild + 7000);
         artifact.uploadDate = sourceDateFormat.format(date);
         Artifacts artifacts = new Artifacts();

@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import java.util.Map;
 
 public interface OctaneIssue extends DTOBase {
+
     void setExtendedData(Map extendedData);
 
     void setPrimaryLocationFull(String primaryLocationFull);

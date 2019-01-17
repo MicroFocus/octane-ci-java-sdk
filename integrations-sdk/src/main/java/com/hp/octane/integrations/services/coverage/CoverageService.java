@@ -46,7 +46,7 @@ public interface CoverageService extends ClosableService {
 	 * @param jobId Job CI ID of a context job
 	 * @return an array of interested Workspace IDs
 	 */
-	boolean isCoverageReportRelevant(String jobId);
+	boolean isSonarReportRelevant(String jobId);
 
 	/**
 	 * push coverage, directly pushes the report to Octane
