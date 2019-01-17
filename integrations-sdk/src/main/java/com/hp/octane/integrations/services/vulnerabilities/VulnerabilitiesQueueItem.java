@@ -14,9 +14,7 @@ public class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
     private ToolType toolType;
     private boolean isRelevant;
     private Date baselineDate;
-
-
-    public Map<String,Object> additionalProperties = new HashMap<>();
+    private Map<String,String> additionalProperties = new HashMap<>();
 
     public String getJobId() {
         return jobId;
@@ -34,11 +32,11 @@ public class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
         this.buildId = buildId;
     }
 
-    public Map<String, Object> getAdditionalProperties() {
+    public Map<String, String> getAdditionalProperties() {
         return additionalProperties;
     }
 
-    public void setAdditionalProperties(Map<String, Object> additionalProperties) {
+    public void setAdditionalProperties(Map<String, String> additionalProperties) {
         this.additionalProperties = additionalProperties;
     }
 

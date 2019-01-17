@@ -57,22 +57,22 @@ public class CoverageServiceNegativeTests {
 	//  Sonar service
 	@Test(expected = IllegalArgumentException.class)
 	public void testB1() {
-		new SonarServiceImpl(null, null, null, null);
+		new SonarServiceImpl(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB2() {
-		new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
+		new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testB3() {
-		SonarService.newInstance(null, null, null,null);
+		SonarService.newInstance(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB4() {
-		SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null,null);
+		SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	//  enqueue API negative testing validation

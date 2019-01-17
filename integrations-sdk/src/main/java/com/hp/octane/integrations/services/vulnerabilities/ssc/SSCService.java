@@ -2,7 +2,6 @@ package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.OctaneVulnerabilitiesConnectorService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
 
 public interface SSCService extends VulnerabilitiesToolService {
@@ -12,7 +11,7 @@ public interface SSCService extends VulnerabilitiesToolService {
      *
      * @return initialized service
      */
-    static SSCService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, OctaneVulnerabilitiesConnectorService octaneVulnerabilitiesConnectorService) {
-       return new SSCServiceImpl(configurer,restService, octaneVulnerabilitiesConnectorService);
+    static SSCService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+       return new SSCServiceImpl(configurer,restService);
     }
 }
