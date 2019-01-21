@@ -11,26 +11,49 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
+
+package com.hp.octane.integrations.services.vulnerabilities.sonar.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Artifacts extends SscBaseEntityArray<Artifacts.Artifact>  {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Artifact{
-        @JsonProperty("status")
-        public String status;
-        @JsonProperty("id")
-        public Integer id;
-        @JsonProperty("uploadDate")
-        public String uploadDate;
-        //"IGNORED"
-        @JsonProperty("scaStatus")
-        public String scaStatus;
+public class SonarRule {
 
+    private String key;
+    private String name;
+    private String createdAt;
+    private String  htmlDesc;
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getHtmlDesc() {
+        return htmlDesc;
+    }
+
+    public void setHtmlDesc(String htmlDesc) {
+        this.htmlDesc = htmlDesc;
     }
 }

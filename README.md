@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![AppVeyor](https://img.shields.io/appveyor/ci/m-seldin/octane-ci-java-sdk.svg)](https://ci.appveyor.com/project/m-seldin/octane-ci-java-sdk)
+[![AppVeyor](https://img.shields.io/appveyor/ci/OctaneCIPlugins/octane-ci-java-sdk/master.svg?logo=appveyor)](https://ci.appveyor.com/project/OctaneCIPlugins/octane-ci-java-sdk/branch/master)
 [![codecov](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk)
 
 

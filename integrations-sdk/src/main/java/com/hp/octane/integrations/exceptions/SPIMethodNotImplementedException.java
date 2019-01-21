@@ -11,27 +11,13 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.hp.octane.integrations.exceptions;
 
-/**
- * Created by hijaziy on 7/23/2018.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class SscBaseEntitySingle<T> {
-    private T data;
+public class SPIMethodNotImplementedException extends RuntimeException {
 
-    @JsonProperty("data")
-    public T getData() {
-        return data;
-    }
-
-    @JsonProperty("data")
-    public void setData(T data) {
-        this.data = data;
-    }
+	public SPIMethodNotImplementedException(String message) {
+		super(message);
+	}
 }

@@ -33,46 +33,56 @@ class OctaneResultAbridgedImpl implements OctaneResultAbridged {
 	private Map<String, String> headers;
 	private String body;
 
+	@Override
 	public String getId() {
 		return id;
 	}
 
+	@Override
 	public OctaneResultAbridged setId(String id) {
 		this.id = id;
 		return this;
 	}
 
+	@Override
 	public String getServiceId() {
 		return serviceId;
 	}
 
+	@Override
 	public OctaneResultAbridged setServiceId(String serviceId) {
 		this.serviceId = serviceId;
 		return this;
 	}
 
+	@Override
 	public int getStatus() {
 		return status;
 	}
 
+	@Override
 	public OctaneResultAbridged setStatus(int status) {
 		this.status = status;
 		return this;
 	}
 
+	@Override
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
 
+	@Override
 	public OctaneResultAbridged setHeaders(Map<String, String> headers) {
 		this.headers = headers;
 		return this;
 	}
 
+	@Override
 	public String getBody() {
 		return body;
 	}
 
+	@Override
 	public OctaneResultAbridged setBody(String body) {
 		this.body = body;
 		return this;

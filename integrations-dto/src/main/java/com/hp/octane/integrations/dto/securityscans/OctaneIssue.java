@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import java.util.Map;
 
 public interface OctaneIssue extends DTOBase {
+
     void setExtendedData(Map extendedData);
 
     void setPrimaryLocationFull(String primaryLocationFull);
@@ -59,5 +60,19 @@ public interface OctaneIssue extends DTOBase {
 
     String getToolName();
 
-    void setToolName(String toolName);
+    void setToolName(String category);
+
+    String getCategory();
+
+    void setCategory(String category);
+
+    String getPackage();
+
+    void setPackage(String package1);
+
+    String getRemoteTag();
+
+    void setRemoteTag(String remote_tag);
+
+
 }

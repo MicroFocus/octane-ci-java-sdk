@@ -13,7 +13,7 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
+package com.hp.octane.integrations.services.vulnerabilities.ssc.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -47,6 +47,8 @@ public class Issues extends SscBaseEntityArray<Issues.Issue> {
         public String issueInstanceId;
         @JsonProperty("issueName")
         public String issueName;
+        @JsonProperty("package")
+        public String package1;
         @JsonProperty("issueStatus")
         public String issueStatus;
         @JsonProperty("kingdom")
@@ -65,8 +67,8 @@ public class Issues extends SscBaseEntityArray<Issues.Issue> {
         @JsonProperty("scanStatus")
         public String scanStatus;
         //@JsonProperty("friority")
-        @JsonProperty("Severity")
-        public String severity;
+        @JsonProperty("severity")
+        public Integer severity;
 
 
         @JsonProperty("likelihood")
@@ -83,5 +85,7 @@ public class Issues extends SscBaseEntityArray<Issues.Issue> {
         public String foundDate;
         @JsonProperty("_href")
         public String hRef;
+        @JsonProperty("primaryTag")
+        public String analysis;
     }
 }

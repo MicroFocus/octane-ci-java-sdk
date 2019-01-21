@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.*;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -34,12 +35,12 @@ import java.io.IOException;
 /**
  * Created by hijaziy on 7/12/2018.
  */
-public class SscProjectConnector {
+public class SSCProjectConnector {
     private final SSCProjectConfiguration sscProjectConfiguration;
     private final SSCRestClient sscRestClient;
-    private final static Logger logger = LogManager.getLogger(SscProjectConnector.class);
+    private final static Logger logger = LogManager.getLogger(SSCProjectConnector.class);
 
-    public SscProjectConnector(SSCProjectConfiguration sscProjectConfiguration, SSCRestClient sscRestClient) {
+    public SSCProjectConnector(SSCProjectConfiguration sscProjectConfiguration, SSCRestClient sscRestClient) {
         this.sscProjectConfiguration = sscProjectConfiguration;
         this.sscRestClient = sscRestClient;
     }
@@ -99,14 +100,15 @@ public class SscProjectConnector {
         }
     }
 
-    public Issues readNewIssuesOfLatestScan(int projectVersionId) {
-        String urlSuffix = getNewIssuesURL(projectVersionId);
+    public Issues readIssues(int projectVersionId) {
+        String urlSuffix = getIssuesURL(projectVersionId);
         return readPagedEntities(urlSuffix, Issues.class);
     }
 
-    public Issues readIssues(int projectVersionId, String state) {
-        String urlSuffix = getIssuesURL(projectVersionId, state);
-        return readPagedEntities(urlSuffix, Issues.class);
+    public IssueDetails getIssueDetails(Integer id) {
+        String urlForIssueDetails = getURLForIssueDetails(id);
+        String rawResponse = sendGetEntity(urlForIssueDetails);
+        return stringToObject(rawResponse, IssueDetails.class);
     }
 
     public <SSCArray extends SscBaseEntityArray> SSCArray readPagedEntities(String url, Class<SSCArray> type) {
@@ -131,8 +133,8 @@ public class SscProjectConnector {
             return total;
         } catch (InstantiationException | IllegalAccessException e) {
             logger.error(e.getMessage());
+            throw new PermanentException("Fail to fetch Issues" ,e);
         }
-        return null;
     }
 
     private String getPagedURL(String url, int startIndex) {
@@ -155,16 +157,10 @@ public class SscProjectConnector {
         return "projects?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectName());
     }
 
-    public String getNewIssuesURL(int projectVersionId) {
-        return String.format("projectVersions/%d/issues?q=[issue_age]:new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false", projectVersionId);
-    }
 
-    public String getIssuesURL(int projectVersionId, String state) {
-        if ("updated".equalsIgnoreCase(state)) {
-            return String.format("projectVersions/%d/issues?q=[issue_age]:!new&qm=issues&showhidden=false&showremoved=false&showsuppressed=false",
-                    projectVersionId);
-        }
-        return null;
+    public String getIssuesURL(int projectVersionId) {
+        return String.format("projectVersions/%d/issues?showhidden=false&showremoved=false&showsuppressed=false",
+                projectVersionId);
     }
 
     public String getArtifactsURL(Integer projectVersionId, int limit) {
@@ -174,4 +170,10 @@ public class SscProjectConnector {
     public String getURLForProjectVersion(Integer projectId) {
         return "projects/" + projectId + "/versions?q=name:" + CIPluginSDKUtils.urlEncodePathParam(this.sscProjectConfiguration.getProjectVersion());
     }
+
+    public String getURLForIssueDetails(Integer issuesId) {
+        return "issueDetails/" + issuesId;
+    }
+
+
 }

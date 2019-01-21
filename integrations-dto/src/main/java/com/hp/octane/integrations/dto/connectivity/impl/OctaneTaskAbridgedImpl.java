@@ -35,55 +35,67 @@ class OctaneTaskAbridgedImpl implements OctaneTaskAbridged {
 	private Map<String, String> headers;
 	private String body;
 
+	@Override
 	public String getId() {
 		return id;
 	}
 
+	@Override
 	public OctaneTaskAbridged setId(String id) {
 		this.id = id;
 		return this;
 	}
 
+	@Override
 	public String getServiceId() {
 		return serviceId;
 	}
 
+	@Override
 	public OctaneTaskAbridged setServiceId(String serviceId) {
 		this.serviceId = serviceId;
 		return this;
 	}
 
+	@Override
 	public String getUrl() {
 		return url;
 	}
 
+	@Override
 	public OctaneTaskAbridged setUrl(String url) {
 		this.url = url;
 		return this;
 	}
 
+	@Override
 	public HttpMethod getMethod() {
 		return method;
 	}
 
+	@Override
 	public OctaneTaskAbridged setMethod(HttpMethod method) {
 		this.method = method;
 		return this;
 	}
 
+	@Override
 	public Map<String, String> getHeaders() {
 		return headers;
 	}
 
+	@Override
 	public OctaneTaskAbridged setHeaders(Map<String, String> headers) {
 		this.headers = headers;
 		return this;
 	}
 
+	@Override
 	public String getBody() {
 		return body;
 	}
 
+	@Override
 	public OctaneTaskAbridged setBody(String body) {
 		this.body = body;
 		return this;

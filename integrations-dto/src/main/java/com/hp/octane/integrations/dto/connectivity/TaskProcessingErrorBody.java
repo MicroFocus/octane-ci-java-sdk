@@ -13,21 +13,21 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.hp.octane.integrations.dto.connectivity;
+
+import com.hp.octane.integrations.dto.DTOBase;
+
+import java.io.Serializable;
 
 /**
- * Created by hijaziy on 7/23/2018.
+ * Task error response content DTO, as to be used in abridged tasking in ALM Octane
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Projects extends SscBaseEntityArray<Projects.Project> {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class Project {
-        @JsonProperty("id")
-        public Integer id;
-        @JsonProperty("name")
-        public String name;
-    }
+
+public interface TaskProcessingErrorBody extends DTOBase, Serializable {
+
+	String getErrorMessage();
+
+	TaskProcessingErrorBody setErrorMessage(String errorMessage);
+
 }

@@ -87,6 +87,9 @@ class SSCProjectConfigurationImpl implements SSCProjectConfiguration {
 	}
 
 	@Override
+	public String getRemoteTag() {return getProjectName()+getProjectVersion();}
+
+	@Override
 	public boolean isValid() {
 		return sscURL != null && !sscURL.isEmpty() &&
 				projectName != null && !projectName.isEmpty() &&

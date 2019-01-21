@@ -98,29 +98,36 @@ public class CIPluginSDKUtils {
 	 * This function verifies if the target host matches one of the non-proxy hosts and returns boolean result for that
 	 *
 	 * @param targetHost       host of request
-	 * @param nonProxyHostsStr list of hosts, separated by the '|' character. The wildcard '*' can be used:  localhost|*.mydomain.com)
+	 * @param nonProxyHostsStr list of hosts, separated by the '|' character. The wildcard '*' can be used. Example: localhost|*.mydomain.com)
 	 * @return result of verification
 	 */
 	public static boolean isNonProxyHost(String targetHost, String nonProxyHostsStr) {
-		boolean noProxyHost = false;
-		List<Pattern> noProxyHosts = new LinkedList<>();
+		boolean nonProxyHost = false;
+		List<Pattern> nonProxyHostPatterns = new LinkedList<>();
 		if (nonProxyHostsStr != null && !nonProxyHostsStr.isEmpty()) {
-			String[] hosts = nonProxyHostsStr.split("[ \t\n,|]+");
-			for (String host : hosts) {
-				if (!host.isEmpty()) {
-					noProxyHosts.add(Pattern.compile(host.replace(".", "\\.").replace("*", ".*")));
+			String[] nonProxyHosts = nonProxyHostsStr.split("[ \t\n,|]+");
+			for (String nph : nonProxyHosts) {
+				if (!nph.isEmpty()) {
+					nonProxyHostPatterns.add(Pattern.compile(nph.replace(".", "\\.").replace("*", ".*")));
 				}
 			}
 		}
-		for (Pattern pattern : noProxyHosts) {
+		for (Pattern pattern : nonProxyHostPatterns) {
 			if (pattern.matcher(targetHost).find()) {
-				noProxyHost = true;
+				nonProxyHost = true;
 				break;
 			}
 		}
-		return noProxyHost;
+		return nonProxyHost;
 	}
 
+	/**
+	 * parses string as URL
+	 *
+	 * @param input valid URL sting
+	 * @return parsed URL
+	 * @throws OctaneSDKGeneralException exception on any incorrect URL input
+	 */
 	public static URL parseURL(String input) {
 		try {
 			return new URL(input);
@@ -129,22 +136,42 @@ public class CIPluginSDKUtils {
 		}
 	}
 
+	/**
+	 * encodes string as path param
+	 * - this method WILL NOT fail on wrong input, but just return it as is, writing the error to the log
+	 * - although caught in the method, we do NOT expect to fail on UnsupportedEncodingException
+	 *
+	 * @param input input that is intended to be used as path param
+	 * @return encoded string or the same input if NULL passed or failed otherwise
+	 */
 	public static String urlEncodePathParam(String input) {
 		String result = input;
-		try {
-			result = URLEncoder.encode(input, StandardCharsets.UTF_8.name()).replace("+", "%20");
-		} catch (UnsupportedEncodingException uee) {
-			logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
+		if (input != null) {
+			try {
+				result = URLEncoder.encode(input, StandardCharsets.UTF_8.name()).replace("+", "%20");
+			} catch (UnsupportedEncodingException uee) {
+				logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
+			}
 		}
 		return result;
 	}
 
+	/**
+	 * encodes string as query param
+	 * - this method WILL NOT fail on wrong input, but just return it as is, writing the error to the log
+	 * - although caught in the method, we do NOT expect to fail on UnsupportedEncodingException
+	 *
+	 * @param input input that is intended to be used as query param
+	 * @return encoded string or the same input if NULL passed or failed otherwise
+	 */
 	public static String urlEncodeQueryParam(String input) {
 		String result = input;
-		try {
-			result = URLEncoder.encode(input, StandardCharsets.UTF_8.name());
-		} catch (UnsupportedEncodingException uee) {
-			logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
+		if (input != null) {
+			try {
+				result = URLEncoder.encode(input, StandardCharsets.UTF_8.name());
+			} catch (UnsupportedEncodingException uee) {
+				logger.error("failed to URL encode '" + input + "', continuing with unchanged original value", uee);
+			}
 		}
 		return result;
 	}
