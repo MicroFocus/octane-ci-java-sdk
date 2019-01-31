@@ -103,8 +103,8 @@ final class TestsServiceImpl implements TestsService {
 
 		try {
 			OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
-			if (response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody())) {
-				return true;
+			if (response.getStatus() == HttpStatus.SC_OK) {
+				return String.valueOf(true).equals(response.getBody());
 			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else {
