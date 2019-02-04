@@ -34,6 +34,14 @@ public class QueryHelper {
         return name + "={" + condition(refName, value) + "}";
     }
 
+    public static String conditionRefEmtpy(String name) {
+        return name + "={null}";
+    }
+
+    public static String conditionNot(String condition) {
+        return "!" + condition;
+    }
+
     public static String condition(String name, String value) {
         return name + "='" + escapeQueryValue(value) + "'";
     }

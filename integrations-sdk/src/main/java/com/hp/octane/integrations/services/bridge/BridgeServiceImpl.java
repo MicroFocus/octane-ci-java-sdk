@@ -141,15 +141,18 @@ final class BridgeServiceImpl implements BridgeService {
 					logger.debug("no tasks found on server");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.debug("expected timeout disconnection on retrieval of abridged tasks");
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+					logger.error("Octane service unavailable, breathing and will retry");
+					CIPluginSDKUtils.doWait(10000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 					logger.error("connection to Octane failed: authentication error");
-					CIPluginSDKUtils.doWait(9000);
+					CIPluginSDKUtils.doWait(10000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
 					logger.error("connection to Octane failed: authorization error");
-					CIPluginSDKUtils.doWait(9000);
+					CIPluginSDKUtils.doWait(10000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
 					logger.error("connection to Octane failed: 404, API changes? version problem?");
-					CIPluginSDKUtils.doWait(20000);
+					CIPluginSDKUtils.doWait(60000);
 				} else {
 					logger.error("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
 					CIPluginSDKUtils.doWait(10000);
@@ -157,7 +160,7 @@ final class BridgeServiceImpl implements BridgeService {
 			}
 		} catch (IOException ioe) {
 			logger.error("failed to retrieve abridged tasks", ioe);
-			CIPluginSDKUtils.doWait(8000);
+			CIPluginSDKUtils.doWait(10000);
 		} catch (Throwable t) {
 			logger.error("unexpected error during retrieval of abridged tasks", t);
 			CIPluginSDKUtils.doWait(10000);

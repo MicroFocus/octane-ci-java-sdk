@@ -13,7 +13,10 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
+package com.hp.octane.integrations.services.vulnerabilities;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -21,18 +24,24 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class SSCDateUtils {
+public class DateUtils {
 
     public static final String sscFormat = "yyyy-MM-dd'T'HH:mm:ss";
+    public static final String sonarFormat = "yyyy-MM-dd'T'HH:mm:ssZ";
     public static final String octaneFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+    private final static Logger logger = LogManager.getLogger(DateUtils.class);
 
-    public static String convertDateSSCToOctane(String inputFoundDate) {
+    public static String convertDateSSCToOctane(String inputFoundDate, String srcFormat) {
         if (inputFoundDate == null) {
             return null;
         }
-        Date date = getDateFromUTCString(inputFoundDate, sscFormat);
+        Date date = getDateFromUTCString(inputFoundDate, srcFormat);
         SimpleDateFormat targetDateFormat = new SimpleDateFormat(octaneFormat);
         return targetDateFormat.format(date);
+    }
+
+    public static String convertDateToString(Date date, String format){
+        return new SimpleDateFormat(format).format(date);
     }
 
     public static Date getDateFromUTCString(String inputDate, String format) {
@@ -41,7 +50,8 @@ public class SSCDateUtils {
             sourceDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             return sourceDateFormat.parse(inputDate);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage());
+            logger.error(e.getStackTrace());
             return null;
         }
     }

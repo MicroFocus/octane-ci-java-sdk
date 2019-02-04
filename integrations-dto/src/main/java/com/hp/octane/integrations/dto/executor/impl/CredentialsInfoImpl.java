@@ -16,11 +16,13 @@
 
 package com.hp.octane.integrations.dto.executor.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 
 /**
  * Created by shitritn on 4/3/2017.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class CredentialsInfoImpl implements CredentialsInfo {
 
     private String username;

@@ -17,13 +17,15 @@
 package com.hp.octane.integrations.uft.items;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.apache.commons.codec.Charsets;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,41 +35,27 @@ import java.util.List;
 /**
  * This file represents result of UFT discovery (tests and data tables)
  */
-@XmlRootElement(name = "discoveryResult")
-@XmlAccessorType(XmlAccessType.FIELD)
 public class UftTestDiscoveryResult {
 
-
-    @XmlElementWrapper(name = "tests")
-    @XmlElement(name = "test")
     private List<AutomatedTest> tests = new ArrayList<>();
 
-    @XmlElementWrapper(name = "dataTables")
-    @XmlElement(name = "dataTable")
     private List<ScmResourceFile> scmResourceFiles = new ArrayList<>();
 
-    @XmlElementWrapper(name = "deletedFolders")
-    @XmlElement(name = "folder")
     private List<String> deletedFolders = new ArrayList<>();
 
-    @XmlAttribute
     private String scmRepositoryId;
 
-    @XmlAttribute
     private String testRunnerId;
 
-    @XmlAttribute
     private String workspaceId;
 
-    @XmlAttribute
     private String configurationId;
 
-    @XmlAttribute
     private boolean fullScan;
 
-    @XmlAttribute
     private boolean hasQuotedPaths;
 
+    @JsonIgnore
     private List<AutomatedTest> getTestByOctaneStatus(OctaneStatus status) {
         List<AutomatedTest> filtered = new ArrayList<>();
         for (AutomatedTest test : tests) {
@@ -78,6 +66,7 @@ public class UftTestDiscoveryResult {
         return Collections.unmodifiableList(filtered);
     }
 
+    @JsonIgnore
     private List<ScmResourceFile> getResourceFilesByOctaneStatus(OctaneStatus status) {
         List<ScmResourceFile> filtered = new ArrayList<>();
         for (ScmResourceFile file : scmResourceFiles) {
@@ -88,14 +77,17 @@ public class UftTestDiscoveryResult {
         return Collections.unmodifiableList(filtered);
     }
 
+    @JsonIgnore
     public List<AutomatedTest> getNewTests() {
         return getTestByOctaneStatus(OctaneStatus.NEW);
     }
 
+    @JsonIgnore
     public List<AutomatedTest> getDeletedTests() {
         return getTestByOctaneStatus(OctaneStatus.DELETED);
     }
 
+    @JsonIgnore
     public List<AutomatedTest> getUpdatedTests() {
         return getTestByOctaneStatus(OctaneStatus.MODIFIED);
     }
@@ -124,18 +116,22 @@ public class UftTestDiscoveryResult {
         this.fullScan = fullScan;
     }
 
+    @JsonIgnore
     public boolean hasChanges() {
         return !getAllScmResourceFiles().isEmpty() || !getAllTests().isEmpty() || !getDeletedFolders().isEmpty();
     }
 
+    @JsonIgnore
     public List<ScmResourceFile> getNewScmResourceFiles() {
         return getResourceFilesByOctaneStatus(OctaneStatus.NEW);
     }
 
+    @JsonIgnore
     public List<ScmResourceFile> getDeletedScmResourceFiles() {
         return getResourceFilesByOctaneStatus(OctaneStatus.DELETED);
     }
 
+    @JsonIgnore
     public List<ScmResourceFile> getUpdatedScmResourceFiles() {
         return getResourceFilesByOctaneStatus(OctaneStatus.MODIFIED);
     }
@@ -148,6 +144,7 @@ public class UftTestDiscoveryResult {
         this.hasQuotedPaths = hasQuotedPaths;
     }
 
+
     public List<String> getDeletedFolders() {
         return deletedFolders;
     }
@@ -156,31 +153,44 @@ public class UftTestDiscoveryResult {
         this.deletedFolders = deletedFolders;
     }
 
+    @JsonProperty("tests")
     public List<AutomatedTest> getAllTests() {
         return tests;
     }
 
+    @JsonProperty("tests")
+    public void setAllTests(List<AutomatedTest> tests) {
+        this.tests = tests;
+    }
+
+    @JsonProperty("dataTables")
     public List<ScmResourceFile> getAllScmResourceFiles() {
         return scmResourceFiles;
     }
 
-    public void writeToFile(File fileToWriteTo) throws JAXBException {
-
-        JAXBContext jaxbContext = JAXBContext.newInstance(UftTestDiscoveryResult.class);
-        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-        jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        jaxbMarshaller.marshal(this, fileToWriteTo);
+    @JsonProperty("dataTables")
+    public void setAllScmResourceFiles(List<ScmResourceFile> scmResourceFiles) {
+        this.scmResourceFiles = scmResourceFiles;
     }
 
-    public static UftTestDiscoveryResult readFromFile(File file) throws JAXBException, FileNotFoundException {
-        JAXBContext context = JAXBContext.newInstance(UftTestDiscoveryResult.class);
-        Unmarshaller m = context.createUnmarshaller();
+    public void writeToFile(File fileToWriteTo) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
+        writer.writeValue(fileToWriteTo, this);//write with UTF8
+
+    }
+
+    public static UftTestDiscoveryResult readFromFile(File file) throws IOException {
         Reader reader = new InputStreamReader(new FileInputStream(file), Charsets.UTF_8);
-        return (UftTestDiscoveryResult) m.unmarshal(reader);
+        ObjectMapper mapper = new ObjectMapper();
+        UftTestDiscoveryResult result = mapper.readValue(reader, UftTestDiscoveryResult.class);
+        return result;
     }
 
-    public void sortItems(){
+    public void sortItems() {
         sortTests(tests);
         sortDataTables(scmResourceFiles);
     }

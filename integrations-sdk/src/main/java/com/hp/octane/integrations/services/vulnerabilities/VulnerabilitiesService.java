@@ -17,20 +17,22 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
-import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.queueing.QueueingService;
+import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
+
+import java.util.Map;
 
 public interface VulnerabilitiesService extends ClosableService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
-	 * @param configurer  SDK services configurer object
-	 * @param restService Rest Service
 	 * @return initialized service
 	 */
-	static VulnerabilitiesService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		return new VulnerabilitiesServiceImpl(configurer, queueingService, restService);
+	static VulnerabilitiesService newInstance (QueueingService queueingService, SSCService sscService, SonarVulnerabilitiesService sonarVulnerabilitiesService, OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		return new VulnerabilitiesServiceImpl(queueingService, sscService, sonarVulnerabilitiesService, configurer, restService);
 	}
 
 	/**
@@ -43,7 +45,9 @@ public interface VulnerabilitiesService extends ClosableService {
 	 * @param queueItemTimeout timeout defined for this queue item
 	 */
 	void enqueueRetrieveAndPushVulnerabilities(String jobId,
-	                                           String buildId,
-	                                           long startRunTime,
-	                                           long queueItemTimeout);
+											   String buildId,
+											   ToolType toolType,
+											   long startRunTime,
+											   long queueItemTimeout,
+											   Map<String,String> additionalProperties);
 }

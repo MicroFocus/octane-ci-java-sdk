@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![AppVeyor](https://img.shields.io/appveyor/ci/m-seldin/octane-ci-java-sdk.svg)](https://ci.appveyor.com/project/m-seldin/octane-ci-java-sdk)
+[![AppVeyor](https://img.shields.io/appveyor/ci/OctaneCIPlugins/octane-ci-java-sdk/master.svg?logo=appveyor)](https://ci.appveyor.com/project/OctaneCIPlugins/octane-ci-java-sdk/branch/master)
 [![codecov](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk)
 
 
@@ -32,8 +32,8 @@ Typical SDK-based ALM Octane integrated CI Plugin development would walk along t
    2. to [push builds' artifacts](#providing-test-results) (tests results etc) to ALM Octane
 
 This Java SDK project has two sub-projects:
-- **integrations-sdk**, which is the main source of the CI Plugin SDK
-- **integrations-dto**, which contains the definition and building factory of all DTO objects used for communication with ALM Octane
+- **integrations-sdk**: the main source of the CI Plugin SDK
+- **integrations-dto**: the definition and building factory of all DTO objects used for communication with ALM Octane
 
 See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK APIs.
 

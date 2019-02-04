@@ -110,7 +110,7 @@ class CoverageServiceImpl implements CoverageService {
 	}
 
 	@Override
-	public boolean isCoverageReportRelevant(String jobId) {
+	public boolean isSonarReportRelevant(String jobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
@@ -126,7 +126,7 @@ class CoverageServiceImpl implements CoverageService {
 							"servers/" + CIPluginSDKUtils.urlEncodePathParam(configurer.octaneConfiguration.getInstanceId()) +
 							"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/workspaceId");
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
-			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
@@ -215,7 +215,7 @@ class CoverageServiceImpl implements CoverageService {
 
 	private void pushCoverageWithPreflight(CoverageQueueItem queueItem) {
 		//  preflight
-		if (!isCoverageReportRelevant(queueItem.jobId)) {
+		if (!isSonarReportRelevant(queueItem.jobId)) {
 			return;
 		}
 
@@ -230,7 +230,7 @@ class CoverageServiceImpl implements CoverageService {
 		OctaneResponse response = pushCoverage(queueItem.jobId, queueItem.buildId, queueItem.reportType, coverageReport);
 		if (response.getStatus() == HttpStatus.SC_OK) {
 			logger.info("successfully pushed coverage of " + queueItem);
-		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("temporary failed to push coverage of " + queueItem + ", status: " + HttpStatus.SC_SERVICE_UNAVAILABLE);
 		} else {
 			throw new PermanentException("permanently failed to push coverage of " + queueItem + ", status: " + response.getStatus());

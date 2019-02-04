@@ -13,7 +13,7 @@
  *     limitations under the License.
  *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
+package com.hp.octane.integrations.services.vulnerabilities.ssc.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -23,6 +23,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SscBaseEntitySingle<T> {
+    private T data;
+
     @JsonProperty("data")
-    public T data;
+    public T getData() {
+        return data;
+    }
+
+    @JsonProperty("data")
+    public void setData(T data) {
+        this.data = data;
+    }
 }

@@ -16,6 +16,7 @@
 
 package com.hp.octane.integrations.dto.executor.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.executor.TestExecutionInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
@@ -25,6 +26,7 @@ import java.util.List;
 /**
  * Created by berkovir on 27/03/2017.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TestSuiteExecutionInfoImpl implements TestSuiteExecutionInfo {
 
     private List<TestExecutionInfo> tests;

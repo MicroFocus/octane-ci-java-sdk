@@ -41,6 +41,10 @@ public interface DiscoveryInfo extends DTOBase {
 
     DiscoveryInfo setExecutorId(String executorId);
 
+    String getExecutorType() ;
+
+    void setExecutorType(String executorType);
+
     TestingToolType getTestingToolType();
 
     DiscoveryInfo setTestingToolType(TestingToolType testingToolType);

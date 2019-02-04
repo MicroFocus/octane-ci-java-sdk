@@ -21,7 +21,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.AuthToken;
+import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.AuthToken;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
@@ -50,111 +50,111 @@ import java.nio.charset.StandardCharsets;
 
 class SSCRestClientImpl implements SSCRestClient {
 
-	private static final int MAX_TOTAL_CONNECTIONS = 20;
+    private static final int MAX_TOTAL_CONNECTIONS = 20;
 
-	private final CloseableHttpClient httpClient;
-	private AuthToken.AuthTokenData authTokenData;
+    private final CloseableHttpClient httpClient;
+    private AuthToken.AuthTokenData authTokenData;
 
-	SSCRestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null || configurer.pluginServices == null) {
-			throw new IllegalArgumentException("invalid configurer");
-		}
+    SSCRestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+        if (configurer == null || configurer.pluginServices == null) {
+            throw new IllegalArgumentException("invalid configurer");
+        }
 
-		SSLContext sslContext = SSLContexts.createSystemDefault();
-		HostnameVerifier hostnameVerifier = new OctaneRestClientImpl.CustomHostnameVerifier();
-		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
-		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-				.register("http", PlainConnectionSocketFactory.getSocketFactory())
-				.register("https", sslSocketFactory)
-				.build();
-		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-		connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
-		connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
+        SSLContext sslContext = SSLContexts.createSystemDefault();
+        HostnameVerifier hostnameVerifier = new OctaneRestClientImpl.CustomHostnameVerifier();
+        SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", PlainConnectionSocketFactory.getSocketFactory())
+                .register("https", sslSocketFactory)
+                .build();
+        PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);
+        connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_CONNECTIONS);
 
-		HttpClientBuilder clientBuilder = HttpClients.custom()
-				.setConnectionManager(connectionManager);
+        HttpClientBuilder clientBuilder = HttpClients.custom()
+                .setConnectionManager(connectionManager);
 
-		httpClient = clientBuilder.build();
-	}
+        httpClient = clientBuilder.build();
+    }
 
-	@Override
-	public CloseableHttpResponse sendGetRequest(SSCProjectConfiguration sscProjectConfiguration, String url) {
-		HttpGet request = new HttpGet(url);
-		request.addHeader("Authorization", "FortifyToken " +
-				getToken(sscProjectConfiguration, false));
-		request.addHeader("Accept", "application/json");
-		request.addHeader("Host", getNetHost(sscProjectConfiguration.getSSCUrl()));
+    @Override
+    public CloseableHttpResponse sendGetRequest(SSCProjectConfiguration sscProjectConfiguration, String url) {
+        HttpGet request = new HttpGet(url);
+        request.addHeader("Authorization", "FortifyToken " +
+                getToken(sscProjectConfiguration, false));
+        request.addHeader("Accept", "application/json");
+        request.addHeader("Host", getNetHost(sscProjectConfiguration.getSSCUrl()));
 
-		CloseableHttpResponse response;
-		try {
-			response = httpClient.execute(request);
-			//401. Access..
-			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				request.removeHeaders("Authorization");
-				request.addHeader("Authorization", "FortifyToken " +
-						getToken(sscProjectConfiguration, true));
-				response = httpClient.execute(request);
-			}
-			return response;
-		} catch (IOException e) {
-			throw new TemporaryException(e);
-		} catch (Exception e) {
-			throw new PermanentException(e);
-		}
-	}
+        CloseableHttpResponse response;
+        try {
+            response = httpClient.execute(request);
+            //401. Access..
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                request.removeHeaders("Authorization");
+                request.addHeader("Authorization", "FortifyToken " +
+                        getToken(sscProjectConfiguration, true));
+                response = httpClient.execute(request);
+            }
+            return response;
+        } catch (IOException e) {
+            throw new TemporaryException(e);
+        } catch (Exception e) {
+            throw new PermanentException(e);
+        }
+    }
 
-	private String getToken(SSCProjectConfiguration sscProjectConfiguration, boolean forceRenew) {
-		if (forceRenew || authTokenData == null) {
-			authTokenData = sendReqAuth(sscProjectConfiguration);
-		}
-		return authTokenData.token;
-	}
+    private String getToken(SSCProjectConfiguration sscProjectConfiguration, boolean forceRenew) {
+        if (forceRenew || authTokenData == null) {
+            authTokenData = sendReqAuth(sscProjectConfiguration);
+        }
+        return authTokenData.token;
+    }
 
-	private AuthToken.AuthTokenData sendReqAuth(SSCProjectConfiguration sscProjectConfiguration) {
-		//"/{SSC Server Context}/api/v1"
-		//String url = "http://" + serverURL + "/ssc/api/v1/projects?q=id:2743&fulltextsearch=true";
-		String url = sscProjectConfiguration.getSSCUrl() + "/api/v1/tokens";
-		HttpPost request = new HttpPost(url);
-		request.addHeader("Authorization", sscProjectConfiguration.getSSCBaseAuthToken());
-		request.addHeader("Accept", "application/json");
-		request.addHeader("Host", getNetHost(sscProjectConfiguration.getSSCUrl()));
-		request.addHeader("Content-Type", "application/json;charset=UTF-8");
+    private AuthToken.AuthTokenData sendReqAuth(SSCProjectConfiguration sscProjectConfiguration) {
+        //"/{SSC Server Context}/api/v1"
+        //String url = "http://" + serverURL + "/ssc/api/v1/projects?q=id:2743&fulltextsearch=true";
+        String url = sscProjectConfiguration.getSSCUrl() + "/api/v1/tokens";
+        HttpPost request = new HttpPost(url);
+        request.addHeader("Authorization", sscProjectConfiguration.getSSCBaseAuthToken());
+        request.addHeader("Accept", "application/json");
+        request.addHeader("Host", getNetHost(sscProjectConfiguration.getSSCUrl()));
+        request.addHeader("Content-Type", "application/json;charset=UTF-8");
 
-		String body = "{\"type\": \"UnifiedLoginToken\"}";
-		CloseableHttpResponse response = null;
-		try {
-			HttpEntity entity = new ByteArrayEntity(body.getBytes(StandardCharsets.UTF_8));
-			request.setEntity(entity);
-			response = httpClient.execute(request);
-			if (succeeded(response.getStatusLine().getStatusCode())) {
-				String toString = CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent());
-				AuthToken authToken = new ObjectMapper().readValue(toString, TypeFactory.defaultInstance().constructType(AuthToken.class));
-				return authToken.data;
-			} else {
-				throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");
-			}
-		} catch (Throwable t) {
-			throw new PermanentException(t);
-		} finally {
-			if (response != null) {
-				EntityUtils.consumeQuietly(response.getEntity());
-				HttpClientUtils.closeQuietly(response);
-			}
-		}
-	}
+        String body = "{\"type\": \"UnifiedLoginToken\"}";
+        CloseableHttpResponse response = null;
+        try {
+            HttpEntity entity = new ByteArrayEntity(body.getBytes(StandardCharsets.UTF_8));
+            request.setEntity(entity);
+            response = httpClient.execute(request);
+            if (succeeded(response.getStatusLine().getStatusCode())) {
+                String toString = CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent());
+                AuthToken authToken = new ObjectMapper().readValue(toString, TypeFactory.defaultInstance().constructType(AuthToken.class));
+                return authToken.getData();
+            } else {
+                throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");
+            }
+        } catch (Throwable t) {
+            throw new PermanentException(t);
+        } finally {
+            if (response != null) {
+                EntityUtils.consumeQuietly(response.getEntity());
+                HttpClientUtils.closeQuietly(response);
+            }
+        }
+    }
 
-	private String getNetHost(String serverURL) {
-		//http://myd-vma00564.swinfra.net:8180/ssc
-		String prefix = "http://";
-		int indexOfStart = serverURL.toLowerCase().indexOf(prefix) + prefix.length();
-		int indexOfEnd = serverURL.lastIndexOf("/");
-		if (indexOfEnd < 0 || indexOfEnd <= indexOfStart) {
-			return serverURL.substring(indexOfStart);
-		}
-		return serverURL.substring(indexOfStart, indexOfEnd);
-	}
+    private String getNetHost(String serverURL) {
+        //http://myd-vma00564.swinfra.net:8180/ssc
+        String prefix = "http://";
+        int indexOfStart = serverURL.toLowerCase().indexOf(prefix) + prefix.length();
+        int indexOfEnd = serverURL.lastIndexOf("/");
+        if (indexOfEnd < 0 || indexOfEnd <= indexOfStart) {
+            return serverURL.substring(indexOfStart);
+        }
+        return serverURL.substring(indexOfStart, indexOfEnd);
+    }
 
-	private boolean succeeded(int statusCode) {
-		return statusCode == 200 || statusCode == 201;
-	}
+    private boolean succeeded(int statusCode) {
+        return statusCode == 200 || statusCode == 201;
+    }
 }

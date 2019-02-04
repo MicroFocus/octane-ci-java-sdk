@@ -22,11 +22,11 @@ package com.hp.octane.integrations.dto.entities;
 
 public interface ResponseEntityList extends EntityList {
 
-    int getTotalCount();
+	int getTotalCount();
 
-    boolean getExceedsTotalCount();
+	boolean getExceedsTotalCount();
 
-    ResponseEntityList setTotalCount(int totalCount);
+	ResponseEntityList setTotalCount(int totalCount);
 
-    ResponseEntityList setExceedsTotalCount(boolean exceedsTotalCount);
+	ResponseEntityList setExceedsTotalCount(boolean exceedsTotalCount);
 }

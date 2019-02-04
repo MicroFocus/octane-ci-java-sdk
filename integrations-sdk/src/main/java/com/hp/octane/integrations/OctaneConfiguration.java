@@ -1,5 +1,7 @@
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.utils.SdkStringUtils;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -78,6 +80,14 @@ public class OctaneConfiguration {
 	}
 
 	public void setClient(String client) {
+		if (this.client != null && !SdkStringUtils.equals(this.client, client)) {
+			try {
+				((OctaneClientImpl) OctaneSDK.getClientByInstanceId(this.instanceId)).notifyCredentialsChanged();
+			} catch (IllegalArgumentException e) {
+				//failed to get client by instance id, possibly client not valid and no need to notify ,
+				// therefore do nothing
+			}
+		}
 		this.client = client;
 	}
 

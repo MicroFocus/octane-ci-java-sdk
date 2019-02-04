@@ -279,9 +279,8 @@ final class EntitiesServiceImpl implements EntitiesService {
 
 	private static String resolveTemplate(String template, Map<String, ?> params) {
 		String result = template;
-		for (String param : params.keySet()) {
-			Object value = params.get(param);
-			result = result.replaceAll(Pattern.quote("{" + param + "}"), encodeParam(value == null ? "" : value.toString()));
+		for (Map.Entry<String, ?> param : params.entrySet()) {
+			result = result.replaceAll(Pattern.quote("{" + param.getKey() + "}"), encodeParam(param.getValue() == null ? "" : param.getValue().toString()));
 		}
 		return result;
 	}

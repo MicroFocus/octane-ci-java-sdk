@@ -64,9 +64,9 @@ final class EventsServiceImpl implements EventsService {
 	private final Object NO_EVENTS_MONITOR = new Object();
 	private final int EVENTS_CHUNK_SIZE = System.getProperty("octane.sdk.events.chunk-size") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.chunk-size")) : 10;
 	private final int MAX_EVENTS_TO_KEEP = System.getProperty("octane.sdk.events.max-to-keep") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.max-to-keep")) : 3000;
+	private final long REGULAR_CYCLE_PAUSE = System.getProperty("octane.sdk.events.regular-cycle-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.regular-cycle-pause")) : 2000;
 	private final long NO_EVENTS_PAUSE = System.getProperty("octane.sdk.events.empty-list-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.empty-list-pause")) : 15000;
-	private final long OCTANE_CONFIGURATION_UNAVAILABLE_PAUSE = 20000;
-	private final long TEMPORARY_FAILURE_PAUSE = 15000;
+	private final long TEMPORARY_FAILURE_PAUSE = System.getProperty("octane.sdk.events.temp-fail-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.temp-fail-pause")) : 15000;
 
 	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -117,6 +117,8 @@ final class EventsServiceImpl implements EventsService {
 	//  infallible everlasting worker function
 	private void worker() {
 		while (!eventsPushExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+
 			//  have any events to send?
 			if (events.isEmpty()) {
 				CIPluginSDKUtils.doBreakableWait(NO_EVENTS_PAUSE, NO_EVENTS_MONITOR);
@@ -144,7 +146,7 @@ final class EventsServiceImpl implements EventsService {
 				logEventsToBeSent(configurer.octaneConfiguration, eventsSnapshot);
 				sendEventsData(configurer.octaneConfiguration, eventsSnapshot);
 				removeEvents(eventsChunk);
-				logger.info("... done, left to send " + events.size() + " events");
+				logger.info("... done; as of now, left to send " + events.size() + " events");
 			} catch (TemporaryException tqie) {
 				logger.error("failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
@@ -178,7 +180,7 @@ final class EventsServiceImpl implements EventsService {
 				.setMethod(HttpMethod.PUT)
 				.setUrl(configuration.getUrl() +
 						SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() +
-						ANALYTICS_CI_PATH_PART + "events")
+						ANALYTICS_CI_PATH_PART + "events?ci_server_identity=" + configurer.octaneConfiguration.getInstanceId())
 				.setHeaders(headers)
 				.setBody(dtoFactory.dtoToJsonStream(eventsList));
 		OctaneResponse octaneResponse;
@@ -187,7 +189,7 @@ final class EventsServiceImpl implements EventsService {
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
 		}
-		if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+		if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("PUT events failed with status " + octaneResponse.getStatus());
 		} else if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
 			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());

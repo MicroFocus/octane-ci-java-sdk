@@ -1,12 +1,13 @@
 package com.hp.octane.integrations.dto.entities.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityList;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityListImpl implements EntityList {
 
     private List<Entity> data;

@@ -41,6 +41,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -177,8 +178,8 @@ public final class DTOFactory {
 			} else {
 				throw new RuntimeException(dto.getClass() + " is not supported in this flow");
 			}
-		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to serialize " + dto + " to XML", jaxbe);
+		} catch (JAXBException | UnsupportedEncodingException e) {
+			throw new RuntimeException("failed to serialize " + dto + " to XML", e);
 		}
 	}
 

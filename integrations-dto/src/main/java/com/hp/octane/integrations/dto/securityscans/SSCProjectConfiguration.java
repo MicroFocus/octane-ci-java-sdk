@@ -43,6 +43,8 @@ public interface SSCProjectConfiguration extends DTOBase {
 
 	SSCProjectConfiguration setMaxPollingTimeoutHours(long maxPollingTimeoutHours);
 
+	String getRemoteTag();
+
 	boolean isValid();
 }
 

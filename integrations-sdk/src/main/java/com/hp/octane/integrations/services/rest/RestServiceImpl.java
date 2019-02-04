@@ -49,7 +49,7 @@ final class RestServiceImpl implements RestService {
 	public OctaneRestClient obtainOctaneRestClient() {
 		if (defaultClient == null) {
 			synchronized (DEFAULT_CLIENT_INIT_LOCK) {
-				if (defaultClient == null) {
+				if (null == defaultClient) {
 					try {
 						defaultClient = new OctaneRestClientImpl(configurer);
 					} catch (Exception e) {
@@ -65,7 +65,7 @@ final class RestServiceImpl implements RestService {
 	public SSCRestClient obtainSSCRestClient() {
 		if (sscRestClient == null) {
 			synchronized (SSC_CLIENT_INIT_LOCK) {
-				if (sscRestClient == null) {
+				if (null == sscRestClient) {
 					try {
 						sscRestClient = new SSCRestClientImpl(configurer);
 					} catch (Exception e) {

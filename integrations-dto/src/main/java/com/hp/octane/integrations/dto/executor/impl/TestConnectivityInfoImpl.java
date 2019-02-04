@@ -16,12 +16,14 @@
 
 package com.hp.octane.integrations.dto.executor.impl;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 
 /**
  * Created by shitritn on 4/3/2017.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TestConnectivityInfoImpl implements TestConnectivityInfo {
     private SCMRepository scmRepository;
     private String username;

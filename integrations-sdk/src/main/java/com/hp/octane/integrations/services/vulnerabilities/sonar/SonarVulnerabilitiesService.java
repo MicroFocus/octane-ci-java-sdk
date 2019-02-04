@@ -11,23 +11,18 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
-package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.hp.octane.integrations.services.vulnerabilities.sonar;
 
-/**
- * Created by hijaziy on 7/23/2018.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class AuthToken extends SscBaseEntitySingle<AuthToken.AuthTokenData> {
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class AuthTokenData {
-        @JsonProperty("token")
-        public String token;
-        @JsonProperty("terminalDate")
-        public String terminalDate;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
+
+public interface SonarVulnerabilitiesService extends VulnerabilitiesToolService {
+
+    static SonarVulnerabilitiesService newInstance (OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+        return new SonarVulnerabilitiesServiceImpl(configurer,restService);
     }
+
 }

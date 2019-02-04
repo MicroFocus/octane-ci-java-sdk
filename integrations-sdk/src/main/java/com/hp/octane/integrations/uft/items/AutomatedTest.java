@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.uft.items;
@@ -24,139 +23,156 @@ import javax.xml.bind.annotation.XmlRootElement;
 /**
  * This file represents automated test for sending to Octane
  */
-@XmlRootElement(name = "test")
-@XmlAccessorType(XmlAccessType.FIELD)
+
 public class AutomatedTest implements SupportsMoveDetection, SupportsOctaneStatus {
 
-    @XmlAttribute
-    private String id;
-    @XmlAttribute
-    private String changeSetSrc;
-    @XmlAttribute
-    private String changeSetDst;
-    @XmlAttribute
-    private String oldName;
-    @XmlAttribute
-    private String oldPackageName;
-    @XmlAttribute
-    private Boolean isMoved;
-    @XmlAttribute
-    private UftTestType uftTestType;
-    @XmlAttribute
-    private OctaneStatus octaneStatus;
+	private String id;
 
-    @XmlAttribute
-    private String name;
-    @XmlAttribute
-    private String packageName;
-    @XmlAttribute
-    private Boolean executable;
+	private String changeSetSrc;
 
-    private String description;
+	private String changeSetDst;
 
-    public String getName() {
-        return name;
-    }
+	private String oldName;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	private String oldPackageName;
 
-    public String getPackage() {
-        return packageName;
-    }
+	private Boolean isMoved;
 
-    public void setPackage(String packageName) {
-        this.packageName = packageName;
-    }
+	private UftTestType uftTestType;
 
-    public String getDescription() {
-        return description;
-    }
+	private OctaneStatus octaneStatus;
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+	private boolean missingScmRepository;
 
-    public void setUftTestType(UftTestType uftTestType) {
-        this.uftTestType = uftTestType;
-    }
+	private boolean missingTestRunner;
 
-    public UftTestType getUftTestType() {
-        return uftTestType;
-    }
+	private String name;
 
-    public String getId() {
-        return id;
-    }
+	private String packageName;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	private Boolean executable;
 
-    public Boolean getExecutable() {
-        return executable;
-    }
+	private String description;
 
-    public void setExecutable(Boolean executable) {
-        this.executable = executable;
-    }
+	public String getName() {
+		return name;
+	}
 
-    @Override
-    public String toString() {
-        return "#" + getId() == null ? "0" : getId() + " - " + getPackage() + "@" + getName();
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    @Override
-    public String getChangeSetSrc() {
-        return changeSetSrc;
-    }
+	public String getPackage() {
+		return packageName;
+	}
 
-    @Override
-    public void setChangeSetSrc(String changeSetSrc) {
-        this.changeSetSrc = changeSetSrc;
-    }
+	public void setPackage(String packageName) {
+		this.packageName = packageName;
+	}
 
-    @Override
-    public String getChangeSetDst() {
-        return changeSetDst;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    @Override
-    public void setChangeSetDst(String changeSetDst) {
-        this.changeSetDst = changeSetDst;
-    }
+	public void setDescription(String description) {
+		this.description = description;
+	}
 
-    public String getOldName() {
-        return oldName;
-    }
+	public void setUftTestType(UftTestType uftTestType) {
+		this.uftTestType = uftTestType;
+	}
 
-    public void setOldName(String oldName) {
-        this.oldName = oldName;
-    }
+	public UftTestType getUftTestType() {
+		return uftTestType;
+	}
 
-    public String getOldPackage() {
-        return oldPackageName;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public void setOldPackage(String oldPackageName) {
-        this.oldPackageName = oldPackageName;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public Boolean getIsMoved() {
-        return isMoved == null ? false : isMoved;
-    }
+	public Boolean getExecutable() {
+		return executable;
+	}
 
-    public void setIsMoved(Boolean moved) {
-        isMoved = moved;
-    }
+	public void setExecutable(Boolean executable) {
+		this.executable = executable;
+	}
 
-    @Override
-    public OctaneStatus getOctaneStatus() {
-        return octaneStatus;
-    }
+	@Override
+	public String toString() {
+		return "#" + (getId() == null ? "0" : getId()) + " - " + getPackage() + "@" + getName();
+	}
 
-    public void setOctaneStatus(OctaneStatus octaneStatus) {
-        this.octaneStatus = octaneStatus;
-    }
+	@Override
+	public String getChangeSetSrc() {
+		return changeSetSrc;
+	}
+
+	@Override
+	public void setChangeSetSrc(String changeSetSrc) {
+		this.changeSetSrc = changeSetSrc;
+	}
+
+	@Override
+	public String getChangeSetDst() {
+		return changeSetDst;
+	}
+
+	@Override
+	public void setChangeSetDst(String changeSetDst) {
+		this.changeSetDst = changeSetDst;
+	}
+
+	public String getOldName() {
+		return oldName;
+	}
+
+	public void setOldName(String oldName) {
+		this.oldName = oldName;
+	}
+
+	public String getOldPackage() {
+		return oldPackageName;
+	}
+
+	public void setOldPackage(String oldPackageName) {
+		this.oldPackageName = oldPackageName;
+	}
+
+	public Boolean getIsMoved() {
+		return isMoved != null ? isMoved : false;
+	}
+
+	public void setIsMoved(Boolean moved) {
+		isMoved = moved;
+	}
+
+	@Override
+	public OctaneStatus getOctaneStatus() {
+		return octaneStatus;
+	}
+
+	public void setOctaneStatus(OctaneStatus octaneStatus) {
+		this.octaneStatus = octaneStatus;
+	}
+
+	public boolean isMissingScmRepository() {
+		return missingScmRepository;
+	}
+
+	public void setMissingScmRepository(boolean missingScmRepository) {
+		this.missingScmRepository = missingScmRepository;
+	}
+
+	public boolean isMissingTestRunner() {
+		return missingTestRunner;
+	}
+
+	public void setMissingTestRunner(boolean missingTestRunner) {
+		this.missingTestRunner = missingTestRunner;
+	}
 }

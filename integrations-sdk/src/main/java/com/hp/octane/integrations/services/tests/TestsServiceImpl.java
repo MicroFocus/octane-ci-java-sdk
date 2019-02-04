@@ -39,6 +39,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -88,11 +89,8 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	@Override
-	public boolean isTestsResultRelevant(String jobId) throws IOException {
+	public boolean isTestsResultRelevant(String jobId) {
 		String serverCiId = configurer.octaneConfiguration.getInstanceId();
-		if (serverCiId == null || serverCiId.isEmpty()) {
-			throw new IllegalArgumentException("server CI ID MUST NOT be null nor empty");
-		}
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
 		}
@@ -103,8 +101,18 @@ final class TestsServiceImpl implements TestsService {
 						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
 						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight");
 
-		OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
-		return response.getStatus() == HttpStatus.SC_OK && String.valueOf(true).equals(response.getBody());
+		try {
+			OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
+			if (response.getStatus() == HttpStatus.SC_OK) {
+				return String.valueOf(true).equals(response.getBody());
+			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+				throw new TemporaryException("preflight request failed with status " + response.getStatus());
+			} else {
+				throw new PermanentException("preflight request failed with status " + response.getStatus());
+			}
+		} catch (IOException ioe) {
+			throw new TemporaryException(ioe);
+		}
 	}
 
 	@Override
@@ -120,7 +128,7 @@ final class TestsServiceImpl implements TestsService {
 		}
 
 		String testsResultAsXml = dtoFactory.dtoToXml(testsResult);
-		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes());
+		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes(Charset.defaultCharset()));
 		return pushTestsResult(testsResultAsStream, jobId, buildId);
 	}
 
@@ -156,9 +164,7 @@ final class TestsServiceImpl implements TestsService {
 				.setUrl(uri)
 				.setHeaders(headers)
 				.setBody(testsResult);
-		OctaneResponse response = octaneRestClient.execute(request);
-		logger.info("tests result pushed; status: " + response.getStatus() + ", response: " + response.getBody());
-		return response;
+		return octaneRestClient.execute(request);
 	}
 
 	@Override
@@ -193,7 +199,6 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				testsResultQueueItem = testResultsQueue.peek();
 				doPreflightAndPushTestResult(testsResultQueueItem);
-				logger.debug("successfully processed " + testsResultQueueItem);
 				testResultsQueue.remove();
 			} catch (TemporaryException tque) {
 				logger.error("temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
@@ -219,14 +224,10 @@ final class TestsServiceImpl implements TestsService {
 
 		//  preflight
 		boolean isRelevant;
-		try {
-			isRelevant = isTestsResultRelevant(queueItem.jobId);
-			if (!isRelevant) {
-				logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
-				return;
-			}
-		} catch (IOException ioe) {
-			throw new TemporaryException("failed to perform preflight request for " + queueItem, ioe);
+		isRelevant = isTestsResultRelevant(queueItem.jobId);
+		if (!isRelevant) {
+			logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
+			return;
 		}
 
 		//  [YG] TODO: TEMPORARY SOLUTION - ci server ID, job ID and build ID should move to become a query parameters
@@ -242,9 +243,11 @@ final class TestsServiceImpl implements TestsService {
 		//  push
 		try {
 			OctaneResponse response = pushTestsResult(testsResult, queueItem.jobId, queueItem.buildId);
-			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
+			if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+				logger.info("successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());
+			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
-			} else if (response.getStatus() != HttpStatus.SC_ACCEPTED) {
+			} else {
 				throw new PermanentException("push request PERMANENTLY failed with status " + response.getStatus());
 			}
 		} catch (IOException ioe) {

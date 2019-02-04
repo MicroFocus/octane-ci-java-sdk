@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.uft.items;
@@ -28,99 +27,98 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class ScmResourceFile implements SupportsMoveDetection, SupportsOctaneStatus {
 
-    @XmlAttribute
-    private String id;
-    @XmlAttribute
-    private String changeSetSrc;
-    @XmlAttribute
-    private String changeSetDst;
-    @XmlAttribute
-    private String oldRelativePath;
-    @XmlAttribute
-    private String oldName;
-    @XmlAttribute
-    private Boolean isMoved;
-    @XmlAttribute
-    private OctaneStatus octaneStatus;
+	private String id;
 
-    private String name;
+	private String changeSetSrc;
 
-    private String relativePath;
+	private String changeSetDst;
 
-    public String getName() {
-        return name;
-    }
+	private String oldRelativePath;
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	private String oldName;
 
-    public String getId() {
-        return id;
-    }
+	private Boolean isMoved;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+	private OctaneStatus octaneStatus;
 
-    public String getRelativePath() {
-        return relativePath;
-    }
+	private String name;
 
-    public void setRelativePath(String relativePath) {
-        this.relativePath = relativePath;
-    }
+	private String relativePath;
 
-    @Override
-    public String getChangeSetSrc() {
-        return changeSetSrc;
-    }
+	public String getName() {
+		return name;
+	}
 
-    @Override
-    public void setChangeSetSrc(String changeSetSrc) {
-        this.changeSetSrc = changeSetSrc;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    @Override
-    public String getChangeSetDst() {
-        return changeSetDst;
-    }
+	public String getId() {
+		return id;
+	}
 
-    @Override
-    public void setChangeSetDst(String changeSetDst) {
-        this.changeSetDst = changeSetDst;
-    }
+	public void setId(String id) {
+		this.id = id;
+	}
 
-    public String getOldRelativePath() {
-        return oldRelativePath;
-    }
+	public String getRelativePath() {
+		return relativePath;
+	}
 
-    public void setOldRelativePath(String oldRelativePath) {
-        this.oldRelativePath = oldRelativePath;
-    }
+	public void setRelativePath(String relativePath) {
+		this.relativePath = relativePath;
+	}
 
-    public String getOldName() {
-        return oldName;
-    }
+	@Override
+	public String getChangeSetSrc() {
+		return changeSetSrc;
+	}
 
-    public void setOldName(String oldName) {
-        this.oldName = oldName;
-    }
+	@Override
+	public void setChangeSetSrc(String changeSetSrc) {
+		this.changeSetSrc = changeSetSrc;
+	}
 
-    public Boolean getIsMoved() {
-        return isMoved == null ? false : isMoved;
-    }
+	@Override
+	public String getChangeSetDst() {
+		return changeSetDst;
+	}
 
-    public void setIsMoved(Boolean moved) {
-        isMoved = moved;
-    }
+	@Override
+	public void setChangeSetDst(String changeSetDst) {
+		this.changeSetDst = changeSetDst;
+	}
 
-    @Override
-    public OctaneStatus getOctaneStatus() {
-        return octaneStatus;
-    }
+	public String getOldRelativePath() {
+		return oldRelativePath;
+	}
 
-    public void setOctaneStatus(OctaneStatus octaneStatus) {
-        this.octaneStatus = octaneStatus;
-    }
+	public void setOldRelativePath(String oldRelativePath) {
+		this.oldRelativePath = oldRelativePath;
+	}
+
+	public String getOldName() {
+		return oldName;
+	}
+
+	public void setOldName(String oldName) {
+		this.oldName = oldName;
+	}
+
+	public Boolean getIsMoved() {
+		return isMoved != null ? isMoved : false;
+	}
+
+	public void setIsMoved(Boolean moved) {
+		isMoved = moved;
+	}
+
+	@Override
+	public OctaneStatus getOctaneStatus() {
+		return octaneStatus;
+	}
+
+	public void setOctaneStatus(OctaneStatus octaneStatus) {
+		this.octaneStatus = octaneStatus;
+	}
 }
