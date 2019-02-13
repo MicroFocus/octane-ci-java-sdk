@@ -221,37 +221,44 @@ final class TestsServiceImpl implements TestsService {
 			logger.warn("test result of " + queueItem + " resolved to be NULL, skipping");
 			return;
 		}
-
-		//  preflight
-		boolean isRelevant;
-		isRelevant = isTestsResultRelevant(queueItem.jobId);
-		if (!isRelevant) {
-			logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
-			return;
-		}
-
-		//  [YG] TODO: TEMPORARY SOLUTION - ci server ID, job ID and build ID should move to become a query parameters
-		try {
-			String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResult);
-			testResultXML = testResultXML.replaceAll("<build.*?>",
-					"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>");
-			testsResult = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
-		} catch (Exception e) {
-			throw new PermanentException("failed to update ci server instance ID in the test results XML");
-		}
-
-		//  push
-		try {
-			OctaneResponse response = pushTestsResult(testsResult, queueItem.jobId, queueItem.buildId);
-			if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-				logger.info("successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());
-			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
-				throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
-			} else {
-				throw new PermanentException("push request PERMANENTLY failed with status " + response.getStatus());
+		try{
+			//  preflight
+			boolean isRelevant;
+			isRelevant = isTestsResultRelevant(queueItem.jobId);
+			if (!isRelevant) {
+				logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
+				return;
 			}
-		} catch (IOException ioe) {
-			throw new TemporaryException("failed to perform push test results request for " + queueItem, ioe);
+
+			//  [YG] TODO: TEMPORARY SOLUTION - ci server ID, job ID and build ID should move to become a query parameters
+			try {
+				String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResult);
+				testResultXML = testResultXML.replaceAll("<build.*?>",
+						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>");
+				testsResult = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
+			} catch (Exception e) {
+				throw new PermanentException("failed to update ci server instance ID in the test results XML");
+			}
+
+			//  push
+			try {
+				OctaneResponse response = pushTestsResult(testsResult, queueItem.jobId, queueItem.buildId);
+				if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
+					logger.info("successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());
+				} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+					throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
+				} else {
+					throw new PermanentException("push request PERMANENTLY failed with status " + response.getStatus());
+				}
+			} catch (IOException ioe) {
+				throw new TemporaryException("failed to perform push test results request for " + queueItem, ioe);
+			}
+		} finally {
+			try {
+				testsResult.close();
+			} catch (IOException e) {
+				logger.warn("failed to close test result file after push test for " + queueItem);
+			}
 		}
 	}
 
