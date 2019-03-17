@@ -18,6 +18,7 @@ package com.hp.octane.integrations.executor;
 
 import com.hp.octane.integrations.executor.converters.MavenSurefireAndFailsafeConverter;
 import com.hp.octane.integrations.executor.converters.MfUftConverter;
+import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 
 
 public class TestsToRunConvertersFactory {
@@ -28,6 +29,8 @@ public class TestsToRunConvertersFactory {
                 return new MavenSurefireAndFailsafeConverter();
             case MF_UFT:
                 return new MfUftConverter();
+            case Protractor:
+                return new ProtractorConverter();
             default:
                 throw new UnsupportedOperationException(framework.name() + " framework does not have supported converter");
         }

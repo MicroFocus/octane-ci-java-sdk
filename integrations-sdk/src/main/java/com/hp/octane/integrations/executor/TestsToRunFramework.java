@@ -20,7 +20,8 @@ import com.hp.octane.integrations.utils.SdkStringUtils;
 public enum TestsToRunFramework {
 
     JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe"),
-    MF_UFT("uft", "Micro Focus UFT");
+    MF_UFT("uft", "Micro Focus UFT"),
+    Protractor("protractor", "Protractor");
 
     private final String value;
     private final String desc;

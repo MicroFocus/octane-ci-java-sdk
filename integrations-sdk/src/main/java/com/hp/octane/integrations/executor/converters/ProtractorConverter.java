@@ -14,33 +14,23 @@
  *
  */
 
-package com.hp.octane.integrations.dto.scm;
+package com.hp.octane.integrations.executor.converters;
 
-import com.hp.octane.integrations.dto.DTOBase;
+import com.hp.octane.integrations.executor.TestToRunData;
+import com.hp.octane.integrations.executor.TestsToRunConverter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-/**
- * SCMData DTO
+/*
+ * Converter to protractor format : protractor conf.js --grep="spec1 case1|spec2 case2"
  */
+public class ProtractorConverter extends TestsToRunConverter {
 
-public interface SCMData extends DTOBase {
-
-	SCMRepository getRepository();
-
-	SCMData setRepository(SCMRepository repository);
-
-	String getBuiltRevId();
-
-	SCMData setBuiltRevId(String builtRevId);
-
-	List<SCMCommit> getCommits();
-
-	SCMData setCommits(List<SCMCommit> commits);
-
-	List<SCMFileBlame> getFileBlameList();
-
-	SCMData setFileBlameList(List<SCMFileBlame> fileBlameList);
-
-
+    @Override
+    public String convert(List<TestToRunData> data, String executionDirectory) {
+        return data.stream()
+                .map( n -> n.getClassName() +" " + n.getTestName())
+                .collect( Collectors.joining( "|" ) );
+    }
 }

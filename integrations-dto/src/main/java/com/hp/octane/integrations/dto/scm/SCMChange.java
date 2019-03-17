@@ -17,6 +17,9 @@
 package com.hp.octane.integrations.dto.scm;
 
 import com.hp.octane.integrations.dto.DTOBase;
+import com.hp.octane.integrations.dto.scm.impl.LineRange;
+
+import java.util.List;
 
 /**
  * SCM Change DTO
@@ -30,5 +33,27 @@ public interface SCMChange extends DTOBase {
 
 	String getFile();
 
+	List<LineRange> getAddedLines();
+
+	void setAddedLines(List<LineRange> lines);
+
+	void insertAddedLines(LineRange newRange);
+
+	void insertDeletedLines(LineRange newRange);
+
+	List<LineRange> getDeletedLines();
+
+	void setDeletedLines(List<LineRange> lines);
+
 	SCMChange setFile(String file);
+
+	/**
+	 * in case it's delete type (that came from renaming),
+	 * we want to enrich the new renamed file as part of the SCMChange.
+	 * this field will be filled as part of the lines enrichment process
+	 * @param file
+	 */
+	void setRenamedToFile(String file);
+
+	String getRenamedToFile();
 }
