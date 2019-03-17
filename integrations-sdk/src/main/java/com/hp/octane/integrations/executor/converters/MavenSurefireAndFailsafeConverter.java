@@ -28,6 +28,10 @@ import java.util.stream.Collectors;
  * Converter for JUnit/TestNg over  Maven Surefire And Failsafe  plugins
  * Expected command line : mvn -Dtest=TestCircle#test* test
  * The class create string in format : package1.className1#testNameA+testNameB,package2.className2#testNameC;
+ *
+ *
+ * Failsafe : mvn -Dit.test=package1.className1#testNameA verify
+ * Surefire : mvn -Dtest=package1.className1#testNameA test
  */
 public class MavenSurefireAndFailsafeConverter extends TestsToRunConverter {
     @Override
