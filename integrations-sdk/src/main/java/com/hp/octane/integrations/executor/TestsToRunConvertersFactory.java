@@ -16,6 +16,7 @@
 
 package com.hp.octane.integrations.executor;
 
+import com.hp.octane.integrations.executor.converters.GradleConverter;
 import com.hp.octane.integrations.executor.converters.MavenSurefireAndFailsafeConverter;
 import com.hp.octane.integrations.executor.converters.MfUftConverter;
 import com.hp.octane.integrations.executor.converters.ProtractorConverter;
@@ -31,6 +32,8 @@ public class TestsToRunConvertersFactory {
                 return new MfUftConverter();
             case Protractor:
                 return new ProtractorConverter();
+            case Gradle:
+                return new GradleConverter();
             default:
                 throw new UnsupportedOperationException(framework.name() + " framework does not have supported converter");
         }
