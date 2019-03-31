@@ -191,6 +191,9 @@ final class EventsServiceImpl implements EventsService {
 		}
 		if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("PUT events failed with status " + octaneResponse.getStatus());
+		} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED || octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
+			CIPluginSDKUtils.doWait(30000);
+			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());
 		} else if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
 			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());
 		}
