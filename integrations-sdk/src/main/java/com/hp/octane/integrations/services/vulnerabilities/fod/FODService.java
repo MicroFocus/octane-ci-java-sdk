@@ -18,8 +18,6 @@ package com.hp.octane.integrations.services.vulnerabilities.fod;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCServiceImpl;
 
 public interface FODService extends VulnerabilitiesToolService {
     /**

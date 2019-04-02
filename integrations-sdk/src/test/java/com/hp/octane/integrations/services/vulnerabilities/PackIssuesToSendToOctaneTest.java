@@ -51,11 +51,11 @@ public class PackIssuesToSendToOctaneTest {
 
 	@Test(expected = PermanentException.class)
 	public void packBasicNoIssuesToClose(){
-		PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
+
 		Issues issues = new Issues();
 		issues.setData(new ArrayList<>());
 		ArrayList<String> existingInOctane = new ArrayList<>();
-		PackIssuesToOctaneUtils.SortedIssues<Issues.Issue> aNew = PackIssuesToOctaneUtils.packToOctaneIssues(issues.getData(), existingInOctane,
+		PackIssuesToOctaneUtils.packToOctaneIssues(issues.getData(), existingInOctane,
 				 true);
 
 	}

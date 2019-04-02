@@ -22,10 +22,8 @@ import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil.createOctaneIssues;
 

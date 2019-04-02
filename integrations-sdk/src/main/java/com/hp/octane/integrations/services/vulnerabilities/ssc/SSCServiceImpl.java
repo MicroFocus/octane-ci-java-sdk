@@ -15,22 +15,23 @@
 
 package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
-import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
-import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.*;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
+import com.hp.octane.integrations.services.vulnerabilities.DateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer.*;

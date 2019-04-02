@@ -1,10 +1,10 @@
-package com.hp.octane.integrations.services.vulnerabilities.fod.dto.Mock;
+package com.hp.octane.integrations.services.vulnerabilities.fod.dto.mock;
 
 
 
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FODEntityCollection;
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FODSource;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.POJOs.*;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;

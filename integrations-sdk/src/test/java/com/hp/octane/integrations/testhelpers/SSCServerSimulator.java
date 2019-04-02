@@ -33,7 +33,7 @@ public class SSCServerSimulator extends RestServerSimulator{
     static int selectedPort = 9090;
     static SSCServerSimulator _instance;
 
-    public SSCServerSimulator(int port) {
+    private SSCServerSimulator(int port) {
         super(port);
     }
 

@@ -5,23 +5,20 @@ import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.ExistingIssuesInOctane;
-import com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer;
 import com.hp.octane.integrations.services.vulnerabilities.PackIssuesToOctaneUtils;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.POJOs.Scan;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.POJOs.Vulnerability;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.POJOs.VulnerabilityAllData;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.Services.FODReleaseService;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.Services.FODVulnerabilityService;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.Scan;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.Vulnerability;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.VulnerabilityAllData;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.services.FODReleaseService;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.services.FODVulnerabilityService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import static com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer.*;
 import static com.hp.octane.integrations.services.vulnerabilities.fod.SecurityIssueValuesHelper.sameDay;
@@ -62,7 +59,7 @@ public class FODServiceImpl implements FODService {
         } else if (pplnRunStatus.tryGetIssues) {
             List<OctaneIssue> octaneIssues =  fetchIssues(queueItem, getRelease(queueItem).toString());
             cacheIssues(targetDir,octaneIssues);
-            return  IssuesFileSerializer.serializeIssues(octaneIssues);
+            return  serializeIssues(octaneIssues);
 
         } else {
             throw new PermanentException(queueItem.getJobId() +"#"+ queueItem.getBuildId() +
@@ -104,7 +101,9 @@ public class FODServiceImpl implements FODService {
             logger.debug("scanId is already retrieved from previous polling:" + getScan(queueItem));
         }
         if (getScan(queueItem) != null) {
-            if (scanIsCompleted(getRelease(queueItem), getScan(queueItem))) {
+            Long release = getRelease(queueItem);
+            Long scan = getScan(queueItem);
+            if (scanIsCompleted(release, scan)) {
                 return new PplnRunStatus(false, true);
             }
         }
@@ -198,11 +197,6 @@ public class FODServiceImpl implements FODService {
 
     }
 
-    private long getUpperLimitOfIssues() {
-        return 1000;
-    }
-
-
     private boolean scanIsCompleted(Long releaseId, Long scanId) {
         try {
             Scan completeScan = FODReleaseService.getCompleteScan(releaseId, scanId);
@@ -215,12 +209,9 @@ public class FODServiceImpl implements FODService {
             if (completeScan.status == null) {
                 return false;
             }
-
-            if (!completeScan.status.equals(Scan.IN_PROGRESS) &&
-                    !completeScan.status.equals(Scan.NOT_STARTED)) {
-                return true;
-            }
-            return false;
+            //Scan that has not started, and not in progress is completed.
+            return (!Scan.IN_PROGRESS.equals(completeScan.status) &&
+                    !Scan.NOT_STARTED.equals(completeScan.status));
         } catch (Exception e) {
             return false;
         }
@@ -240,7 +231,7 @@ public class FODServiceImpl implements FODService {
             return scanByNotes.scanId;
         }
         for (Scan scan : scans) {
-            if (scan.status.equals("In_Progress")) {
+            if (Scan.IN_PROGRESS.equals(scan.status)) {
                 return scan.scanId;
             }
         }

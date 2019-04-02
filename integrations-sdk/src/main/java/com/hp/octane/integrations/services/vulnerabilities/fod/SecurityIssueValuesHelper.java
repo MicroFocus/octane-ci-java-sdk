@@ -5,8 +5,8 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FODConstants;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.POJOs.Vulnerability;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.POJOs.VulnerabilityAllData;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.Vulnerability;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.VulnerabilityAllData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -167,6 +167,7 @@ public class SecurityIssueValuesHelper {
 				break;
 			default:
 					returnValue = null;
+					break;
 		}
 		return returnValue;
 	}

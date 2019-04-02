@@ -1,11 +1,7 @@
-package com.hp.octane.integrations.services.vulnerabilities.fod.dto.Services;
+package com.hp.octane.integrations.services.vulnerabilities.fod.dto.services;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;

@@ -3,7 +3,7 @@ package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.Mock.FodMockSource;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.mock.FodMockSource;
 
 /**
  * Created by hijaziy on 9/27/2017.

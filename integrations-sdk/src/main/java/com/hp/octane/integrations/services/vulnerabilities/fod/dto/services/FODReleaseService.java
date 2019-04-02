@@ -1,7 +1,7 @@
-package com.hp.octane.integrations.services.vulnerabilities.fod.dto.Services;
+package com.hp.octane.integrations.services.vulnerabilities.fod.dto.services;
 
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FodConnectionFactory;
-import com.hp.octane.integrations.services.vulnerabilities.fod.dto.POJOs.Scan;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.Scan;
 
 import java.util.List;
 import java.util.function.Predicate;

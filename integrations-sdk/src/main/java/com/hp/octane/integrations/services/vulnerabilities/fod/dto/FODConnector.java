@@ -2,6 +2,7 @@ package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.hp.octane.integrations.exceptions.PermanentException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -180,7 +181,7 @@ public class FODConnector implements FODSource {
 			response = httpClient.execute(post);
 			if (response.getStatusLine().getStatusCode() != 200 &&
 					response.getStatusLine().getStatusCode() != 201) {
-				throw new RuntimeException(response.getStatusLine().getReasonPhrase());
+				throw new PermanentException("Cannot authenticate:" +response.getStatusLine().getReasonPhrase());
 			}
 
 			String secToken = isToString(response.getEntity().getContent());
@@ -194,7 +195,7 @@ public class FODConnector implements FODSource {
 				EntityUtils.consumeQuietly(response.getEntity());
 				HttpClientUtils.closeQuietly(response);
 			}
-			throw new RuntimeException(e.getMessage());
+			throw new PermanentException("Cannot authenticate:" + e.getMessage());
 		} finally {
 			if (response != null) {
 				EntityUtils.consumeQuietly(response.getEntity());

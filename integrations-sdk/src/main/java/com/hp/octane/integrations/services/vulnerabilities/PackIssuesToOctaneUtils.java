@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 public class PackIssuesToOctaneUtils {
 
     public static class  SortedIssues<T>{
+        public List<T> issuesToUpdate;
+        public List<T> issuesRequiredExtendedData;
+        public List<OctaneIssue> issuesToClose;
+
         public SortedIssues(){
             this.issuesToUpdate = new ArrayList<>();
             this.issuesToClose = new ArrayList<>();
@@ -21,9 +25,6 @@ public class PackIssuesToOctaneUtils {
             this.issuesToClose = issuesToClose;
             this.issuesRequiredExtendedData = issuesRequiredExtendedData;
         }
-        public List<T> issuesToUpdate;
-        public List<T> issuesRequiredExtendedData;
-        public List<OctaneIssue> issuesToClose;
     }
 
 
