@@ -15,65 +15,64 @@
  */
 package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
-import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.services.vulnerabilities.PackIssuesToOctaneUtils;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil.createListNodeEntity;
 import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil.createOctaneIssues;
 
 
 public class PackSSCIssuesToSendToOctane {
 
-    public List<OctaneIssue> packAllIssues(List<Issues.Issue> sscIssues, List<String> existingIssuesInOctane, String remoteTag, Map<Integer,IssueDetails> issueDetailsById) {
-        List<OctaneIssue> octaneIssues = packToOctaneIssues(sscIssues,existingIssuesInOctane, remoteTag, issueDetailsById);
-        if (octaneIssues.isEmpty()) {
-            throw new PermanentException("This scan has no issues.");
-        }
-        return octaneIssues;
-    }
+    private List<Issues.Issue> sscIssues;
+    private List<String> octaneIssues;
+    private String remoteTag;
+    private boolean considerMissing;
+    private SSCHandler sscHandler;
 
-    private List<OctaneIssue> packToOctaneIssues(List<Issues.Issue> sscIssues, List<String> octaneIssues, String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
-        if (sscIssues.size() == 0 && octaneIssues.size() == 0) {
-            return new ArrayList<>();
-        }
-        List<String> remoteIdsSSC =
-                sscIssues.stream().map(t -> t.issueInstanceId).collect(Collectors.toList());
 
-        List<String> remoteIdsToCloseInOctane = octaneIssues.stream()
-                .filter(t -> !remoteIdsSSC.contains(t))
-                .collect(Collectors.toList());
+    public List<OctaneIssue> packToOctaneIssues() {
 
-        //Make Octane issue from remote id's.
-        List<OctaneIssue> closedOctaneIssues = remoteIdsToCloseInOctane.stream()
-                .map(t -> createClosedOctaneIssue(t)).collect(Collectors.toList());
+        PackIssuesToOctaneUtils.SortedIssues<Issues.Issue> issueSortedIssues =
+                PackIssuesToOctaneUtils.packToOctaneIssues(sscIssues, octaneIssues, considerMissing);
 
-        //Issues that are not closed , packed to update/create.
-        List<Issues.Issue> issuesToUpdate = sscIssues.stream()
-                .filter(t -> !remoteIdsToCloseInOctane.contains(t.issueInstanceId))
-                .collect(Collectors.toList());
-        //Issues.Issue
-        List<OctaneIssue> openOctaneIssues = createOctaneIssues(issuesToUpdate, remoteTag, issueDetailsById);
+        Map<Integer, IssueDetails> issuesWithExtendedData = sscHandler.getIssuesExtendedData(issueSortedIssues.issuesRequiredExtendedData);
+        List<OctaneIssue> openOctaneIssues = createOctaneIssues(issueSortedIssues.issuesToUpdate, remoteTag, issuesWithExtendedData);
         List<OctaneIssue> total = new ArrayList<>();
         total.addAll(openOctaneIssues);
-        total.addAll(closedOctaneIssues);
+        total.addAll(issueSortedIssues.issuesToClose);
+
+        if (total.isEmpty()) {
+            throw new PermanentException("This scan has no issues.");
+        }
         return total;
     }
 
-    private OctaneIssue createClosedOctaneIssue(String remoteId) {
-        Entity closedListNodeEntity = createListNodeEntity("list_node.issue_state_node.closed");
-        OctaneIssueImpl octaneIssue = new OctaneIssueImpl();
-        octaneIssue.setRemoteId(remoteId);
-        octaneIssue.setState(closedListNodeEntity);
-        return octaneIssue;
+    public void setSscIssues(List<Issues.Issue> sscIssues) {
+        this.sscIssues = sscIssues;
     }
 
+    public void setOctaneIssues(List<String> octaneIssues) {
+        this.octaneIssues = octaneIssues;
+    }
+
+    public void setRemoteTag(String remoteTag) {
+        this.remoteTag = remoteTag;
+    }
+
+    public void setConsiderMissing(boolean considerMissing) {
+        this.considerMissing = considerMissing;
+    }
+
+    public void setSscHandler(SSCHandler sscHandler) {
+        this.sscHandler = sscHandler;
+    }
 }

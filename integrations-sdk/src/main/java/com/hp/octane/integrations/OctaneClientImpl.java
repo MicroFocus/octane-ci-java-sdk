@@ -28,6 +28,8 @@ import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
+import com.hp.octane.integrations.services.vulnerabilities.fod.FODService;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
@@ -35,6 +37,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * protected implementation of the OctaneClient
@@ -54,6 +58,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final SSCService sscService;
 	private final EntitiesService entitiesService;
 	private final SonarVulnerabilitiesService sonarVulnerabilitiesService;
+	private final FODService fodService;
 	private final PipelineContextService pipelineContextService;
 	private final EventsService eventsService;
 	private final LogsService logsService;
@@ -92,7 +97,10 @@ final class OctaneClientImpl implements OctaneClient {
 		sscService = SSCService.newInstance(configurer,restService);
 		sonarService = SonarService.newInstance(configurer, queueingService,coverageService);
         sonarVulnerabilitiesService = SonarVulnerabilitiesService.newInstance(configurer,restService);
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, sscService, sonarVulnerabilitiesService, configurer,restService);
+		fodService = FODService.newInstance(configurer,restService);
+
+		VulnerabilitiesToolService[] vulnerabilitiesToolServices = {sscService, sonarVulnerabilitiesService, fodService};
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer,restService);
 
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
