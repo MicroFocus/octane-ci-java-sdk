@@ -58,7 +58,7 @@ public class FodConnectionFactory {
             FODConnector instance = new FODConnector(new FODConfig.CredentialsFODConfig(securityToolEntity.getToolUrl(),
                     securityToolEntity.getApiKey(),
                     securityToolEntity.getSecret()));
-            instance.initConnection();
+            instance.initConnection(configurer);
             return instance;
         }
 

@@ -139,7 +139,7 @@ public class FODServiceImpl implements FODService {
             releaseId = this.configurer.pluginServices.getFodRelease(queueItem.getJobId(), queueItem.getBuildId()).toString();
             queueItem.getAdditionalProperties().put("releaseId", releaseId);
         }
-        logger.warn("ReleaseId:" + releaseId);
+        logger.warn("FOD ReleaseId:" + releaseId);
     }
 
     Long getRelease(VulnerabilitiesQueueItem item){

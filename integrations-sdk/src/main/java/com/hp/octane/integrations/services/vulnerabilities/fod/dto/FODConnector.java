@@ -2,6 +2,8 @@ package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -15,10 +17,14 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.function.Predicate;
@@ -28,6 +34,7 @@ import java.util.function.Predicate;
  */
 public class FODConnector implements FODSource {
 
+	private static final Logger logger = LogManager.getLogger(FODConnector.class);
 	private CloseableHttpClient httpClient;
 	private String access_token;
 	private long accessTokenTime;
@@ -39,19 +46,26 @@ public class FODConnector implements FODSource {
 
 	}
 
-	public void initConnection() {
+	public void initConnection(OctaneSDK.SDKServicesConfigurer configurer) {
+		logger.debug("init FOD connector");
+		try {
+			CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(new URL(this.fodConfig.authURL));
+			if (proxyConfiguration != null) {
+				logger.warn("FOD connection needs proxy");
+				HttpClientBuilder clientBuilder = HttpClients.custom();
+				String proxyHost = proxyConfiguration.getHost();
+				Integer proxyPortNumber = proxyConfiguration.getPort();
 
-		String proxyHost = System.getProperty("http.proxyHost");//"proxy.il.hpecorp.net";
-		String proxyPort = System.getProperty("http.proxyPort");
-		Integer proxyPortNumber = proxyPort != null ? Integer.valueOf(proxyPort) : null;//8080;
-		if (proxyHost != null && !proxyHost.isEmpty() && proxyPortNumber != null) {
-			HttpClientBuilder clientBuilder = HttpClients.custom();
-			clientBuilder.setProxy(new HttpHost(proxyHost, proxyPortNumber));
-			httpClient = clientBuilder.build();
-		} else {
-			httpClient = HttpClients.createDefault();
+				clientBuilder.setProxy(new HttpHost(proxyHost, proxyPortNumber));
+				httpClient = clientBuilder.build();
+			} else {
+				logger.warn("FOD connection does not need proxy");
+				httpClient = HttpClients.createDefault();
+			}
+			getAccessToken();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
 		}
-		getAccessToken();
 	}
 
 	@Override
