@@ -20,12 +20,10 @@ import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCHandler;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCServiceImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

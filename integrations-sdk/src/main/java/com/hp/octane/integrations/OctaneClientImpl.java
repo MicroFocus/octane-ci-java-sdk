@@ -18,7 +18,6 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
-import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logging.LoggingService;
@@ -26,19 +25,18 @@ import com.hp.octane.integrations.services.logs.LogsService;
 import com.hp.octane.integrations.services.pipelines.PipelineContextService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
 import com.hp.octane.integrations.services.vulnerabilities.fod.FODService;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
-import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * protected implementation of the OctaneClient

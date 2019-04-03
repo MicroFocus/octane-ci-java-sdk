@@ -96,25 +96,23 @@ public class FodMockSource implements FODSource {
     public <T> T getSpeceficFODEntity(String rawURL, Class<T> targetClass) {
 
         try {
-            if (targetClass == Scan.class) {
-                if (rawURL.endsWith("/2")) {
-                    T retObj = null;
-                    Scan retScan;
+            if (targetClass == Scan.class && rawURL.endsWith("/2")) {
 
-                    retObj = targetClass.newInstance();
-                    retScan = (Scan) retObj;
+                T retObj = null;
+                Scan retScan;
 
-                    retScan.scanId = 2L;
-                    scansRequestCounter++;
-                    if (scansRequestCounter < requestsUntilCompleted) {
-                        retScan.status = "In_Progress";
-                    } else {
-                        retScan.status = "Completed";
-                        scansRequestCounter = 0;
-                    }
-                    return retObj;
+                retObj = targetClass.newInstance();
+                retScan = (Scan) retObj;
 
+                retScan.scanId = 2L;
+                scansRequestCounter++;
+                if (scansRequestCounter < requestsUntilCompleted) {
+                    retScan.status = "In_Progress";
+                } else {
+                    retScan.status = "Completed";
+                    scansRequestCounter = 0;
                 }
+                return retObj;
             }
 //            if (targetClass == VulnerabilityAllData.class) {
 //                T retObj = null;
