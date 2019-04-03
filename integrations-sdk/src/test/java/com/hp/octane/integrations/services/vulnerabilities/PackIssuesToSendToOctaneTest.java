@@ -18,8 +18,6 @@ package com.hp.octane.integrations.services.vulnerabilities;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.PackSSCIssuesToSendToOctane;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctaneIssueUtil;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.junit.Assert;
