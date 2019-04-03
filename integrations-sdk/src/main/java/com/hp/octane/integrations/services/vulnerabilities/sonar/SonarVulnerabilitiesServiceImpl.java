@@ -45,6 +45,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.hp.octane.integrations.services.vulnerabilities.OctaneIssueConsts.ISSUE_STATE_CLOSED;
+
 public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesService {
 
     private static final String ISSUES_SEARCH_URI = "/api/issues/search";
@@ -266,7 +268,7 @@ public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesSer
     }
 
     private OctaneIssue createClosedOctaneIssue(String remoteId) {
-        Entity closedListNodeEntity = SSCToOctaneIssueUtil.createListNodeEntity("list_node.issue_state_node.closed");
+        Entity closedListNodeEntity = SSCToOctaneIssueUtil.createListNodeEntity(ISSUE_STATE_CLOSED);
         OctaneIssueImpl octaneIssue = new OctaneIssueImpl();
         octaneIssue.setRemoteId(remoteId);
         octaneIssue.setState(closedListNodeEntity);

@@ -18,6 +18,7 @@ package com.hp.octane.integrations.dto.securityscans.impl;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.DTOInternalProviderBase;
+import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 
@@ -31,6 +32,7 @@ public class DTOSecurityContextProvider extends DTOInternalProviderBase {
 		super(configuration);
 		dtoPairs.put(SSCProjectConfiguration.class, SSCProjectConfigurationImpl.class);
 		dtoPairs.put(OctaneIssue.class, OctaneIssueImpl.class);
+		dtoPairs.put(FodServerConfiguration.class, FodServerConfigurationImpl.class);
 	}
 
 	@Override
