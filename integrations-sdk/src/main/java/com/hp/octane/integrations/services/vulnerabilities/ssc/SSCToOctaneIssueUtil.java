@@ -28,19 +28,19 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.hp.octane.integrations.services.vulnerabilities.OctaneIssueConsts.*;
+
 public class SSCToOctaneIssueUtil {
 
     private final static Logger logger = LogManager.getLogger(SSCToOctaneIssueUtil.class);
-    public static final String SEVERITY_LG_NAME_LOW = "list_node.severity.low";
-    public static final String SEVERITY_LG_NAME_MEDIUM = "list_node.severity.medium";
-    public static final String SEVERITY_LG_NAME_HIGH = "list_node.severity.high";
-    public static final String SEVERITY_LG_NAME_CRITICAL = "list_node.severity.urgent";
     public static final String EXTERNAL_TOOL_NAME = "Fortify SSC";
+    public static final String STATUS_NEW = "NEW";
 
     public static List<OctaneIssue> createOctaneIssues(List<Issues.Issue> issues,String remoteTag, Map<Integer, IssueDetails> issueDetailsById) {
         if (issues == null) {
             return new ArrayList<>();
         }
+        logger.warn("SSCToOctane.createOctaneIssues");
         DTOFactory dtoFactory = DTOFactory.getInstance();
         List<OctaneIssue> octaneIssues = new ArrayList<>();
         for (Issues.Issue issue : issues) {
@@ -106,13 +106,13 @@ public class SSCToOctaneIssueUtil {
         String listId = null;
         if(issue.analysis != null ){
             if("Not an Issue".equals(issue.analysis) ){
-                listId = "list_node.issue_analysis_node.not_an_issue";
+                listId = NOT_AN_ISSUE;
             }else{
-                    listId = "list_node.issue_analysis_node.maybe_an_issue";
+                    listId = MAYBE_AN_ISSUE;
             }
         }
         else if (isReviewed(issue)) {
-            listId = "list_node.issue_analysis_node.reviewed";
+            listId = REVIEWED;
         }
         if(listId != null) {
             octaneIssue.setAnalysis(createListNodeEntity(listId));
@@ -135,13 +135,13 @@ public class SSCToOctaneIssueUtil {
         if (issue.scanStatus != null) {
             String listNodeId = null;
             if (issue.scanStatus.equalsIgnoreCase("UPDATED")) {
-                listNodeId = "list_node.issue_state_node.existing";
+                listNodeId = ISSUE_STATE_EXISTING;
             } else if (issue.scanStatus.equalsIgnoreCase("NEW")) {
-                listNodeId = "list_node.issue_state_node.new";
+                listNodeId = ISSUE_STATE_NEW;
             } else if (issue.scanStatus.equalsIgnoreCase("REINTRODUCED")) {
-                listNodeId = "list_node.issue_state_node.reopen";
+                listNodeId = ISSUE_STATE_REOPEN;
             } else if (issue.scanStatus.equalsIgnoreCase("REMOVED")) {
-                listNodeId = "list_node.issue_state_node.closed";
+                listNodeId = ISSUE_STATE_CLOSED;
             }
             if (isLegalOctaneState(listNodeId)) {
                 octaneIssue.setState(createListNodeEntity(listNodeId));
@@ -149,13 +149,6 @@ public class SSCToOctaneIssueUtil {
         }
     }
 
-    private static boolean isLegalOctaneState(String scanStatus) {
-        List<String> legalNames = Arrays.asList("list_node.issue_state_node.new",
-                "list_node.issue_state_node.existing",
-                "list_node.issue_state_node.closed",
-                "list_node.issue_state_node.reopen");
-        return (legalNames.contains(scanStatus));
-    }
 
     private static Map<String, String> prepareExtendedData(Issues.Issue issue, IssueDetails issueDetails) {
         Map<String, String> retVal = new HashMap<>();

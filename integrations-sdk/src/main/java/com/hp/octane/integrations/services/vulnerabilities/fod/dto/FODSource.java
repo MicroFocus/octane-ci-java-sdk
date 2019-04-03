@@ -12,9 +12,17 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 
-package com.hp.octane.integrations.services.vulnerabilities;
+import java.util.function.Predicate;
 
-public enum ToolType {
-    SONAR, SSC, FOD;
+/**
+ * Created by hijaziy on 12/24/2017.
+ */
+public interface FODSource {
+    <T extends FODEntityCollection> T getAllFODEntities(String rawURL, Class<T> targetClass, Predicate<T> whenToStopFetch);
+
+    <T> T getSpeceficFODEntity(String rawURL, Class<T> targetClass);
+
+    String getEntitiesURL();
 }
