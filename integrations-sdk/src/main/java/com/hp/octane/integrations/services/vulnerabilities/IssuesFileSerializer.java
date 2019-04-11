@@ -59,7 +59,7 @@ public class IssuesFileSerializer {
     }
 
     public static InputStream getCachedScanResult(String runRootDir) {
-        logger.debug("entered getCachedScanResult");
+
         if (runRootDir == null) {
             logger.debug("exit getCachedScanResult, no runRootDir");
             return null;
@@ -68,7 +68,6 @@ public class IssuesFileSerializer {
         String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
         File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
         if (!vulnerabilitiesScanFile.exists()) {
-            logger.debug("exit getCachedScanResult");
             return null;
         }
         try {
@@ -76,7 +75,6 @@ public class IssuesFileSerializer {
         } catch (IOException ioe) {
             logger.error("failed to obtain  vulnerabilities Scan File in " + runRootDir);
         }
-        logger.debug("exit getCachedScanResult");
         return result;
     }
 

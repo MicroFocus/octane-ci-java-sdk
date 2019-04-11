@@ -116,9 +116,7 @@ public class SSCHandler {
         if (!isScanProcessFinished()) {
             return Optional.empty();
         }
-        logger.debug("before read issues");
         Issues issues = sscProjectConnector.readIssues(projectVersion.id);
-        logger.debug("after read issues");
         return Optional.of(issues);
     }
 

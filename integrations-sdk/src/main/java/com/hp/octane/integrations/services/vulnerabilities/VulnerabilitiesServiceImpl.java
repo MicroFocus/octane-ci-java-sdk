@@ -188,7 +188,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 				Date relevant =  vulnerabilitiesPreflightRequest(queueItem.getJobId(), queueItem.getBuildId());
 				if (relevant != null) {
-					logger.debug("Relevant:" + relevant);
+					logger.debug(queueItem.toString() + " , Relevant:" + relevant);
 					//  set queue item value relevancy to true and continue
 					queueItem.setRelevant(true);
 					//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
