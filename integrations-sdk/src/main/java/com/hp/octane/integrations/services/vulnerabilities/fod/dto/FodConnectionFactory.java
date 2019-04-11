@@ -55,7 +55,7 @@ public class FodConnectionFactory {
         return false;
     }
 
-    private static SecurityTool getFODSecTool() {
+    public static SecurityTool getFODSecTool() {
         FodServerConfiguration fodProjectConfiguration =
                 configurer.pluginServices.getFodServerConfiguration();
         return new SecurityTool(fodProjectConfiguration.getBaseUrl(),
