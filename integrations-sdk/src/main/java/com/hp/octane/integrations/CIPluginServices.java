@@ -150,6 +150,16 @@ public abstract class CIPluginServices {
 	}
 
 	/**
+	 * Stops the Pipeline, running the root job
+	 *
+	 * @param jobId        Job CI ID to stop
+	 * @param originalBody request body, expected to be a JSON that holds parameters
+	 */
+	public void stopPipelineRun(String jobId, String originalBody) {
+		throw new SPIMethodNotImplementedException("stop API is not implemented");
+	}
+
+	/**
 	 * Suspends events
 	 *
 	 * @param suspend desired state of CI events suspension
