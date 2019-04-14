@@ -173,7 +173,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		String[] path = Pattern.compile("^.*" + NGA_API + "/?").matcher(url).replaceFirst("").split("/");
 		params.put(0, path[0]);
 		for (int i = 1; i < path.length; i++) {
-			if ((path[i].equals(BUILDS) || path[i].equals(RUN)) && i == path.length - 1) { // last token
+			if ((path[i].equals(BUILDS) || path[i].equals(RUN) || path[i].equals(STOP)) && i == path.length - 1) { // last token
 				params.put(2, path[i]);
 			} else if (path[i].equals(BUILDS) && i == path.length - 2) {        // one before last token
 				params.put(2, path[i]);
