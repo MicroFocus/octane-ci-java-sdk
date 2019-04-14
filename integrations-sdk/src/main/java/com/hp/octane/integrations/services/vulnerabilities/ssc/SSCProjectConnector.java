@@ -128,7 +128,7 @@ public class SSCProjectConnector {
                 }
                 total.setCount(total.getData().size());
                 allFetched = (total.getData().size() == page.getCount());
-                startIndex += total.getCount();
+                startIndex = total.getCount();
             }
             return total;
         } catch (InstantiationException | IllegalAccessException e) {

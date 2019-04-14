@@ -59,7 +59,9 @@ public class IssuesFileSerializer {
     }
 
     public static InputStream getCachedScanResult(String runRootDir) {
+
         if (runRootDir == null) {
+            logger.debug("exit getCachedScanResult, no runRootDir");
             return null;
         }
         InputStream result = null;

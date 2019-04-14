@@ -20,6 +20,8 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.vulnerabilities.PackIssuesToOctaneUtils;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +32,8 @@ import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctan
 
 public class PackSSCIssuesToSendToOctane {
 
+    private static final Logger logger = LogManager.getLogger(PackSSCIssuesToSendToOctane.class);
+
     private List<Issues.Issue> sscIssues;
     private List<String> octaneIssues;
     private String remoteTag;
@@ -39,11 +43,15 @@ public class PackSSCIssuesToSendToOctane {
 
     public List<OctaneIssue> packToOctaneIssues() {
 
+        logger.debug("started packing");
         PackIssuesToOctaneUtils.SortedIssues<Issues.Issue> issueSortedIssues =
                 PackIssuesToOctaneUtils.packToOctaneIssues(sscIssues, octaneIssues, considerMissing);
 
         Map<Integer, IssueDetails> issuesWithExtendedData = sscHandler.getIssuesExtendedData(issueSortedIssues.issuesRequiredExtendedData);
+        logger.debug("before creating octane issues");
         List<OctaneIssue> openOctaneIssues = createOctaneIssues(issueSortedIssues.issuesToUpdate, remoteTag, issuesWithExtendedData);
+        logger.debug("after creating octane issues");
+
         List<OctaneIssue> total = new ArrayList<>();
         total.addAll(openOctaneIssues);
         total.addAll(issueSortedIssues.issuesToClose);

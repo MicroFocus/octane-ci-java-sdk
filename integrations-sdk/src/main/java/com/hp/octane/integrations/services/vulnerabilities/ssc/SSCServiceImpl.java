@@ -74,11 +74,14 @@ public class SSCServiceImpl implements SSCService{
             String targetDir = getTargetDir(getConfigurer().pluginServices.getAllowedOctaneStorage(),
                     queueItem.getJobId(),
                     queueItem.getBuildId());
+            logger.debug("targetDir:" + targetDir);
             InputStream cachedScanResult = getCachedScanResult(targetDir);
             if (cachedScanResult != null) {
+                logger.warn("Results are cached.");
                 return cachedScanResult;
             }
             List<OctaneIssue> octaneIssues = getNonCacheVulnerabilitiesScanResultStream(queueItem);
+            logger.debug("Done retrieving non-cached.");
             if(octaneIssues==null){
                 return null;
             }
@@ -105,8 +108,10 @@ public class SSCServiceImpl implements SSCService{
 
     private List<OctaneIssue> getNonCacheVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem
                                                                          ) throws IOException {
+
         SSCProjectConfiguration sscProjectConfiguration = configurer.pluginServices.getSSCProjectConfiguration(queueItem.getJobId(), queueItem.getBuildId());
         if (sscProjectConfiguration == null || !sscProjectConfiguration.isValid()) {
+            logger.error("cannot retrieve SSC Project CFG.");
             logger.debug("SSC project configurations is missing or not valid, skipping processing for " + queueItem.getJobId() + " #" + queueItem.getBuildId());
             return null;
         }
@@ -116,12 +121,15 @@ public class SSCServiceImpl implements SSCService{
                 sscProjectConfiguration,
                 this.restService.obtainSSCRestClient());
 
+        logger.debug("retrieve issues from SSC");
         List<Issues.Issue> issuesFromSecurityTool = getIssuesFromSSC(sscHandler,queueItem);
         if(issuesFromSecurityTool==null){
             return null;
         }
+        logger.debug("retrieve octane remote ids");
 
         List<String> octaneExistsIssuesIdsList = getRemoteIdsOfExistIssuesFromOctane(queueItem, sscProjectConfiguration.getRemoteTag());
+        logger.debug("done retrieveing octane remote ids");
 
         PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
         packSSCIssuesToSendToOctane.setConsiderMissing(queueItem.getBaselineDate() != null);
@@ -135,10 +143,13 @@ public class SSCServiceImpl implements SSCService{
 
     //return issues from security tool (or null if scan not completed)
     private List<Issues.Issue> getIssuesFromSSC(SSCHandler sscHandler, VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+
         Optional<Issues> allIssues = sscHandler.getIssuesIfScanCompleted();
         if (!allIssues.isPresent()) {
+            logger.debug( vulnerabilitiesQueueItem.toString() + " not completed yet");
             return null;
         }
+        logger.debug( vulnerabilitiesQueueItem.toString() + " completed SSC scan.");
         List<Issues.Issue> filterIssuesByBaseLine = allIssues.get().getData();
         //in case we have the baselineDate - we should filter by it to have more optimal payload
         if(vulnerabilitiesQueueItem.getBaselineDate()!=null) {
@@ -147,6 +158,7 @@ public class SSCServiceImpl implements SSCService{
                 return foundDate.compareTo(vulnerabilitiesQueueItem.getBaselineDate()) >= 0;
             }).collect(Collectors.toList());
         }
+        logger.debug("filterIssuesByBaseLine.size():" + filterIssuesByBaseLine.size());
         return filterIssuesByBaseLine;
     }
 
