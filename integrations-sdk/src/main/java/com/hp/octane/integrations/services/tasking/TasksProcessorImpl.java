@@ -17,11 +17,7 @@ package com.hp.octane.integrations.services.tasking;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.connectivity.HttpMethod;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
-import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
-import com.hp.octane.integrations.dto.connectivity.TaskProcessingErrorBody;
+import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
@@ -60,6 +56,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String SUSPEND_STATUS = "suspend_status";
 	private static final String JOBS = "jobs";
 	private static final String RUN = "run";
+	private static final String STOP = "stop";
 	private static final String BUILDS = "builds";
 	private static final String LATEST = "latest";
 	private static final String EXECUTOR = "executor";
@@ -107,7 +104,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 				} else if (path.length == 2) {
 					executePipelineRequest(result, path[1]);
 				} else if (path.length == 3 && RUN.equals(path[2])) {
-					executePipelineRunRequest(result, path[1], task.getBody());
+					executePipelineRunExecuteRequest(result, path[1], task.getBody());
+				} else if (path.length == 3 && STOP.equals(path[2])) {
+					executePipelineRunStopRequest(result, path[1], task.getBody());
 				} else if (path.length == 4 && BUILDS.equals(path[2])) {
 					//TODO: in the future should take the last parameter from the request
 					if (LATEST.equals(path[3])) {
@@ -233,15 +232,25 @@ final class TasksProcessorImpl implements TasksProcessor {
 		}
 	}
 
-	private void executePipelineRunRequest(OctaneResultAbridged result, String jobId, String originalBody) {
+	private void executePipelineRunExecuteRequest(OctaneResultAbridged result, String jobId, String originalBody) {
+		executePipelineRunRequest(result, () -> configurer.pluginServices.runPipeline(jobId, originalBody),
+				HttpStatus.SC_CREATED, "Failed to run '" + jobId + "'");
+	}
+
+	private void executePipelineRunStopRequest(OctaneResultAbridged result, String jobId, String originalBody) {
+		executePipelineRunRequest(result, () -> configurer.pluginServices.stopPipelineRun(jobId, originalBody),
+				HttpStatus.SC_OK, "Failed to stop '" + jobId + "'");
+	}
+
+	private void executePipelineRunRequest(OctaneResultAbridged result, Runnable method, int successStatus, String errorMessage) {
 		try {
-			configurer.pluginServices.runPipeline(jobId, originalBody);
-			result.setStatus(HttpStatus.SC_CREATED);
+			method.run();
+			result.setStatus(successStatus);
 		} catch (SPIMethodNotImplementedException spimnie) {
 			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
 		} catch (Throwable throwable) {
 			TaskProcessingErrorBody errorBody = dtoFactory.newDTO(TaskProcessingErrorBody.class)
-					.setErrorMessage("failed to run '" + jobId + "'; server error message: " + throwable.getMessage());
+					.setErrorMessage(errorMessage + ". Server error message: " + throwable.getMessage());
 			result.setBody(dtoFactory.dtoToJson(errorBody));
 			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 		}
