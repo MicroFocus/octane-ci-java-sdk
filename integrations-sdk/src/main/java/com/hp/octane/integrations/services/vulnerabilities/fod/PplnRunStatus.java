@@ -12,9 +12,14 @@
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
  */
+package com.hp.octane.integrations.services.vulnerabilities.fod;
 
-package com.hp.octane.integrations.services.vulnerabilities;
+public class PplnRunStatus {
+    boolean continuePolling;
+    boolean tryGetIssues;
 
-public enum ToolType {
-    SONAR, SSC, FOD;
+    public PplnRunStatus(boolean continuePolling, boolean tryGetIssues) {
+        this.continuePolling = continuePolling;
+        this.tryGetIssues = tryGetIssues;
+    }
 }

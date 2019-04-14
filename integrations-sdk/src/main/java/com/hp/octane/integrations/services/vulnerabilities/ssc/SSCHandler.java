@@ -99,6 +99,7 @@ public class SSCHandler {
         if (sscRestClient == null) {
             throw new IllegalArgumentException("sscClient MUST NOT be null");
         }
+        logger.debug("real initializing code");
 
         this.runStartTime = vulnerabilitiesQueueItem.getStartTime();
 
@@ -107,6 +108,7 @@ public class SSCHandler {
         } else {
             sscProjectConnector = new SSCProjectConnector(sscProjectConfiguration, sscRestClient);
             projectVersion = sscProjectConnector.getProjectVersion();
+            logger.debug("Project version Id:" + projectVersion.id);
         }
     }
 

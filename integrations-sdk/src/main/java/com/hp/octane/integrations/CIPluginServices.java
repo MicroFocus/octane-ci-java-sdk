@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
@@ -235,6 +236,12 @@ public abstract class CIPluginServices {
 		return null;
 	}
 
+	public FodServerConfiguration getFodServerConfiguration(){
+		return null;
+	}
+	public Long getFodRelease(String jobId, String buildId){
+		return null;
+	}
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 	}
 

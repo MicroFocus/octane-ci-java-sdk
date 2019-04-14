@@ -140,19 +140,19 @@ final class BridgeServiceImpl implements BridgeService {
 				if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
 					logger.debug("no tasks found on server");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
-					logger.debug("expected timeout disconnection on retrieval of abridged tasks");
+					logger.debug("expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 					logger.error("Octane service unavailable, breathing and will retry");
 					CIPluginSDKUtils.doWait(10000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 					logger.error("connection to Octane failed: authentication error");
-					CIPluginSDKUtils.doWait(10000);
+					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
 					logger.error("connection to Octane failed: authorization error");
-					CIPluginSDKUtils.doWait(10000);
+					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
 					logger.error("connection to Octane failed: 404, API changes? version problem?");
-					CIPluginSDKUtils.doWait(60000);
+					CIPluginSDKUtils.doWait(180000);
 				} else {
 					logger.error("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
 					CIPluginSDKUtils.doWait(10000);

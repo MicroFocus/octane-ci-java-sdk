@@ -11,10 +11,28 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
+ *
  */
+package com.hp.octane.integrations.dto.securityscans;
 
-package com.hp.octane.integrations.services.vulnerabilities;
+import com.hp.octane.integrations.dto.DTOBase;
 
-public enum ToolType {
-    SONAR, SSC, FOD;
+public interface FodServerConfiguration extends DTOBase {
+
+    String getApiUrl();
+    FodServerConfiguration setApiUrl(String sscUrl);
+
+    String getClientId();
+    FodServerConfiguration setClientId(String sscBaseAuthToken);
+
+    String getClientSecret();
+    FodServerConfiguration setClientSecret(String sscBaseAuthToken);
+
+    long getMaxPollingTimeoutHours();
+    FodServerConfiguration setMaxPollingTimeoutHours(long maxPollingTimeoutHours);
+
+    boolean isValid();
+
+    FodServerConfiguration setBaseUrl(String baseUrl);
+    String getBaseUrl();
 }

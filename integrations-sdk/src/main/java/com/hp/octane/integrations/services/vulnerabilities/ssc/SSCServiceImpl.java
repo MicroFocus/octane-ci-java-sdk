@@ -15,23 +15,26 @@
 
 package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
-import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
-import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.*;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
+import com.hp.octane.integrations.services.vulnerabilities.DateUtils;
+import com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer;
+import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesQueueItem;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer.*;
 
 public class SSCServiceImpl implements SSCService{
 
@@ -68,12 +71,17 @@ public class SSCServiceImpl implements SSCService{
     public InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem) {
 
         try {
-            String targetDir = getTargetDir(queueItem);
+            String targetDir = getTargetDir(getConfigurer().pluginServices.getAllowedOctaneStorage(),
+                    queueItem.getJobId(),
+                    queueItem.getBuildId());
+            logger.debug("targetDir:" + targetDir);
             InputStream cachedScanResult = getCachedScanResult(targetDir);
             if (cachedScanResult != null) {
+                logger.warn("Results are cached.");
                 return cachedScanResult;
             }
             List<OctaneIssue> octaneIssues = getNonCacheVulnerabilitiesScanResultStream(queueItem);
+            logger.debug("Done retrieving non-cached.");
             if(octaneIssues==null){
                 return null;
             }
@@ -87,7 +95,9 @@ public class SSCServiceImpl implements SSCService{
 
     @Override
     public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem vulnerabilitiesQueueItem){
-        String runRootDir = getTargetDir(vulnerabilitiesQueueItem);
+        String runRootDir = getTargetDir(configurer.pluginServices.getAllowedOctaneStorage(),
+                vulnerabilitiesQueueItem.getJobId(),
+                vulnerabilitiesQueueItem.getBuildId());
         if (runRootDir == null) {
             return false;
         }
@@ -98,53 +108,48 @@ public class SSCServiceImpl implements SSCService{
 
     private List<OctaneIssue> getNonCacheVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem
                                                                          ) throws IOException {
+
         SSCProjectConfiguration sscProjectConfiguration = configurer.pluginServices.getSSCProjectConfiguration(queueItem.getJobId(), queueItem.getBuildId());
         if (sscProjectConfiguration == null || !sscProjectConfiguration.isValid()) {
+            logger.error("cannot retrieve SSC Project CFG.");
             logger.debug("SSC project configurations is missing or not valid, skipping processing for " + queueItem.getJobId() + " #" + queueItem.getBuildId());
             return null;
         }
-
 
         SSCHandler sscHandler = new SSCHandler(
                 queueItem,
                 sscProjectConfiguration,
                 this.restService.obtainSSCRestClient());
 
-
-
+        logger.debug("retrieve issues from SSC");
         List<Issues.Issue> issuesFromSecurityTool = getIssuesFromSSC(sscHandler,queueItem);
         if(issuesFromSecurityTool==null){
             return null;
         }
+        logger.debug("retrieve octane remote ids");
 
         List<String> octaneExistsIssuesIdsList = getRemoteIdsOfExistIssuesFromOctane(queueItem, sscProjectConfiguration.getRemoteTag());
-
-        List<Issues.Issue> issuesRequiredExtendedData = issuesFromSecurityTool.stream().filter(
-                t -> {
-                    boolean isNew = t.scanStatus.equalsIgnoreCase("NEW");
-                    boolean isMissing = false;
-                    if(queueItem.getBaselineDate()!=null){
-                        isMissing = !octaneExistsIssuesIdsList.contains(t.issueInstanceId);
-                    }
-                    return isNew||isMissing;
-                }).collect(
-                Collectors.toList());
-
-        Map<Integer, IssueDetails> issuesWithExtendedData = sscHandler.getIssuesExtendedData(issuesRequiredExtendedData);
+        logger.debug("done retrieveing octane remote ids");
 
         PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
-        return packSSCIssuesToSendToOctane.packAllIssues(issuesFromSecurityTool,
-                octaneExistsIssuesIdsList,
-                sscProjectConfiguration.getRemoteTag(),
-                issuesWithExtendedData);
+        packSSCIssuesToSendToOctane.setConsiderMissing(queueItem.getBaselineDate() != null);
+        packSSCIssuesToSendToOctane.setOctaneIssues(octaneExistsIssuesIdsList);
+        packSSCIssuesToSendToOctane.setRemoteTag(sscProjectConfiguration.getRemoteTag());
+        packSSCIssuesToSendToOctane.setSscHandler(sscHandler);
+        packSSCIssuesToSendToOctane.setSscIssues(issuesFromSecurityTool);
+
+        return packSSCIssuesToSendToOctane.packToOctaneIssues();
     }
 
     //return issues from security tool (or null if scan not completed)
     private List<Issues.Issue> getIssuesFromSSC(SSCHandler sscHandler, VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+
         Optional<Issues> allIssues = sscHandler.getIssuesIfScanCompleted();
         if (!allIssues.isPresent()) {
+            logger.debug( vulnerabilitiesQueueItem.toString() + " not completed yet");
             return null;
         }
+        logger.debug( vulnerabilitiesQueueItem.toString() + " completed SSC scan.");
         List<Issues.Issue> filterIssuesByBaseLine = allIssues.get().getData();
         //in case we have the baselineDate - we should filter by it to have more optimal payload
         if(vulnerabilitiesQueueItem.getBaselineDate()!=null) {
@@ -153,74 +158,8 @@ public class SSCServiceImpl implements SSCService{
                 return foundDate.compareTo(vulnerabilitiesQueueItem.getBaselineDate()) >= 0;
             }).collect(Collectors.toList());
         }
+        logger.debug("filterIssuesByBaseLine.size():" + filterIssuesByBaseLine.size());
         return filterIssuesByBaseLine;
-    }
-
-    private String getTargetDir(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
-        File allowedOctaneStorage = configurer.pluginServices.getAllowedOctaneStorage();
-        if (allowedOctaneStorage == null) {
-            logger.info("hosting plugin does not provide storage, vulnerabilities won't be cached");
-            return null;
-        }
-        return allowedOctaneStorage.getPath() + File.separator + vulnerabilitiesQueueItem.getJobId() + File.separator + vulnerabilitiesQueueItem.getBuildId();
-    }
-
-
-
-    private boolean deleteDirectory(File directoryToBeDeleted) {
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
-                deleteDirectory(file);
-            }
-        }
-        return directoryToBeDeleted.delete();
-    }
-
-    private InputStream getCachedScanResult(String runRootDir) {
-        if (runRootDir == null) {
-            return null;
-        }
-        InputStream result = null;
-        String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
-        File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
-        if (!vulnerabilitiesScanFile.exists()) {
-            return null;
-        }
-        try {
-            result = new FileInputStream(vulnerabilitiesScanFilePath);
-        } catch (IOException ioe) {
-            logger.error("failed to obtain  vulnerabilities Scan File in " + runRootDir);
-        }
-        return result;
-    }
-
-    private static void cacheIssues(String targetDir, List<OctaneIssue> octaneIssues) {
-        try {
-            if (targetDir != null) {
-                validateFolderExists(targetDir);
-                Map<String, List<OctaneIssue>> dataFormat = new HashMap<>();
-                dataFormat.put("data", octaneIssues);
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-                //send to cache
-
-                String vulnerabilitiesScanFilePath = targetDir + File.separator + SSCHandler.SCAN_RESULT_FILE;
-                PrintWriter fw = new PrintWriter(vulnerabilitiesScanFilePath, "UTF-8");
-                mapper.writeValue(fw, dataFormat);
-                fw.flush();
-                fw.close();
-            }
-        } catch (Exception e) {
-            throw new PermanentException(e);
-        }
-    }
-
-    private static void validateFolderExists(String targetDir) {
-        File file = new File(targetDir);
-        if (!file.exists() && !file.mkdirs()) {
-            throw new OctaneSDKGeneralException("target directory was missing and failed to create one");
-        }
     }
 
 

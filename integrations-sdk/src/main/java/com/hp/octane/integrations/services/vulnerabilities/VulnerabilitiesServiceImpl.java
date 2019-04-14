@@ -25,6 +25,8 @@ import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.fod.FODService;
+import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FodConnectionFactory;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -54,8 +56,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 	protected final RestService restService;
 	protected final OctaneSDK.SDKServicesConfigurer configurer;
-	protected final SSCService sscService;
-	protected final  SonarVulnerabilitiesService sonarVulnerabilitiesService;
+	protected SSCService sscService;
+	protected FODService fodService;
+	protected SonarVulnerabilitiesService sonarVulnerabilitiesService;
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 
@@ -67,7 +70,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private CompletableFuture<Boolean> workerExited;
 
 
-	public VulnerabilitiesServiceImpl(QueueingService queueingService, SSCService sscService, SonarVulnerabilitiesService sonarVulnerabilitiesService, OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+	public VulnerabilitiesServiceImpl(QueueingService queueingService, VulnerabilitiesToolService[] vulnerabilitiesToolServices,
+									  OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 
 		if (queueingService == null) {
 			throw new IllegalArgumentException("queue Service MUST NOT be null");
@@ -78,17 +82,21 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (configurer == null) {
 			throw new IllegalArgumentException("configurer service MUST NOT be null");
 		}
-		if (sonarVulnerabilitiesService == null) {
-			throw new IllegalArgumentException("sonar Vulnerabilities Service MUST NOT be null");
-		}
-		if (sscService == null) {
-			throw new IllegalArgumentException("ssc service MUST NOT be null");
-		}
+
 
 		this.restService = restService;
 		this.configurer = configurer;
-		this.sonarVulnerabilitiesService = sonarVulnerabilitiesService;
-		this.sscService = sscService;
+		FodConnectionFactory.setConfigurer(this.configurer);
+
+		for (VulnerabilitiesToolService vulnToolService : vulnerabilitiesToolServices) {
+			if(vulnToolService instanceof  SonarVulnerabilitiesService) {
+				this.sonarVulnerabilitiesService = (SonarVulnerabilitiesService)vulnToolService;
+			} else if(vulnToolService instanceof  SSCService) {
+				this.sscService = (SSCService)vulnToolService;
+			} else if(vulnToolService instanceof  FODService){
+				this.fodService = (FODService)vulnToolService;
+			}
+		}
 
 		if (queueingService.isPersistenceEnabled()) {
 			vulnerabilitiesQueue = queueingService.initFileQueue(VULNERABILITIES_QUEUE_FILE, VulnerabilitiesQueueItem.class);
@@ -180,6 +188,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 				Date relevant =  vulnerabilitiesPreflightRequest(queueItem.getJobId(), queueItem.getBuildId());
 				if (relevant != null) {
+					logger.debug(queueItem.toString() + " , Relevant:" + relevant);
 					//  set queue item value relevancy to true and continue
 					queueItem.setRelevant(true);
 					//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
@@ -199,7 +208,12 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 			}
 			else if (queueItem.getToolType().equals(ToolType.SSC)){
+				logger.debug("SSC flow as expected");
 				vulnerabilitiesStream = sscService.getVulnerabilitiesScanResultStream(queueItem);
+			}
+			else if (queueItem.getToolType().equals(ToolType.FOD)){
+				logger.debug("Handling FOD queueItem");
+				vulnerabilitiesStream = fodService.getVulnerabilitiesScanResultStream(queueItem);
 			}
 
 			if (vulnerabilitiesStream == null) {

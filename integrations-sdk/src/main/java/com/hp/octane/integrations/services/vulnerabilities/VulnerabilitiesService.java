@@ -31,8 +31,9 @@ public interface VulnerabilitiesService extends ClosableService {
 	 *
 	 * @return initialized service
 	 */
-	static VulnerabilitiesService newInstance (QueueingService queueingService, SSCService sscService, SonarVulnerabilitiesService sonarVulnerabilitiesService, OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		return new VulnerabilitiesServiceImpl(queueingService, sscService, sonarVulnerabilitiesService, configurer, restService);
+	static VulnerabilitiesService newInstance (QueueingService queueingService,VulnerabilitiesToolService[] vulnerabilitiesToolServices,
+											   OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+		return new VulnerabilitiesServiceImpl(queueingService, vulnerabilitiesToolServices, configurer, restService);
 	}
 
 	/**

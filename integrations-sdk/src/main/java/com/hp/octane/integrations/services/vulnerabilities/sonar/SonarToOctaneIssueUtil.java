@@ -30,13 +30,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static com.hp.octane.integrations.services.vulnerabilities.OctaneIssueConsts.*;
+
 public class SonarToOctaneIssueUtil {
 
     private final static Logger logger = LogManager.getLogger(SSCToOctaneIssueUtil.class);
-    public static final String SEVERITY_LG_NAME_LOW = "list_node.severity.low";
-    public static final String SEVERITY_LG_NAME_MEDIUM = "list_node.severity.medium";
-    public static final String SEVERITY_LG_NAME_HIGH = "list_node.severity.high";
-    public static final String SEVERITY_LG_NAME_CRITICAL = "list_node.severity.urgent";
+
 
     public static final String SONAR_SEVERITY_BLOCKER = "BLOCKER";
     public static final String SONAR_SEVERITY_CRITICAL = "CRITICAL";
@@ -112,13 +111,13 @@ public class SonarToOctaneIssueUtil {
             String listNodeId = "";
 
             if (issue.getStatus().equalsIgnoreCase("OPEN")) {
-                listNodeId = isNew ? "list_node.issue_state_node.new" : "list_node.issue_state_node.existing";
+                listNodeId = isNew ? ISSUE_STATE_NEW : ISSUE_STATE_EXISTING;
             } else if (issue.getStatus().equalsIgnoreCase("CONFIRMED") || issue.getStatus().equalsIgnoreCase("RESOLVED")) {
-                listNodeId = "list_node.issue_state_node.existing";
+                listNodeId = ISSUE_STATE_EXISTING;
             } else if (issue.getStatus().equalsIgnoreCase("REOPENED")) {
-                listNodeId = "list_node.issue_state_node.reopen";
+                listNodeId = ISSUE_STATE_REOPEN;
             } else if (issue.getStatus().equalsIgnoreCase("CLOSED")) {
-                listNodeId = "list_node.issue_state_node.closed";
+                listNodeId = ISSUE_STATE_CLOSED;
             }
             if (isLegalOctaneState(listNodeId)) {
                 octaneIssue.setState(createListNodeEntity(listNodeId));
@@ -135,17 +134,12 @@ public class SonarToOctaneIssueUtil {
     private static void setExternalLink(SonarIssue issue, OctaneIssue octaneIssue, String sonarUrl) {
         String encodedProject = CIPluginSDKUtils.urlEncodeQueryParam(issue.getProject());
         String encodedKey = CIPluginSDKUtils.urlEncodeQueryParam(issue.getKey());
+        if (!sonarUrl.substring(sonarUrl.length() -1).equals("/")){
+            sonarUrl += "/";
+        }
         octaneIssue.setExternalLink(String.format("%sproject/issues?id=%s&open=%s", sonarUrl, encodedProject, encodedKey));
     }
 
-
-    private static boolean isLegalOctaneState(String scanStatus) {
-        List<String> legalNames = Arrays.asList("list_node.issue_state_node.new",
-                "list_node.issue_state_node.existing",
-                "list_node.issue_state_node.closed",
-                "list_node.issue_state_node.reopen");
-        return (legalNames.contains(scanStatus));
-    }
 
     private static Map<String, String> prepareExtendedData(SonarIssue issue, Map<String, SonarRule> rules) {
         String ruleKey = issue.getRule();

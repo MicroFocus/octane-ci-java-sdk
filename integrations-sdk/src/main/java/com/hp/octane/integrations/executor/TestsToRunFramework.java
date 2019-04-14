@@ -21,7 +21,8 @@ public enum TestsToRunFramework {
 
     JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe"),
     MF_UFT("uft", "Micro Focus UFT"),
-    Protractor("protractor", "Protractor");
+    Protractor("protractor", "Protractor"),
+    Gradle("gradle","Gradle");
 
     private final String value;
     private final String desc;

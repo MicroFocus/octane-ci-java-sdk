@@ -107,6 +107,9 @@ final class TestsServiceImpl implements TestsService {
 				return String.valueOf(true).equals(response.getBody());
 			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
+			} else if (response.getStatus() == HttpStatus.SC_UNAUTHORIZED || response.getStatus() == HttpStatus.SC_FORBIDDEN) {
+				CIPluginSDKUtils.doWait(30000);
+				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			} else {
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			}
