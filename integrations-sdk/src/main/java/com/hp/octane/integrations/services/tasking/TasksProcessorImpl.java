@@ -28,8 +28,7 @@ import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
-import com.hp.octane.integrations.exceptions.ConfigurationException;
-import com.hp.octane.integrations.exceptions.PermissionException;
+import com.hp.octane.integrations.exceptions.ErrorCodeBasedException;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -151,17 +150,21 @@ final class TasksProcessorImpl implements TasksProcessor {
 			} else {
 				result.setStatus(HttpStatus.SC_NOT_FOUND);
 			}
-		} catch (PermissionException pe) {
+		} catch (ErrorCodeBasedException pe) {
 			logger.warn("task execution failed; error: " + pe.getErrorCode());
 			result.setStatus(pe.getErrorCode());
 			result.setBody(String.valueOf(pe.getErrorCode()));
-		} catch (ConfigurationException ce) {
-			logger.warn("task execution failed; error: " + ce.getErrorCode());
-			result.setStatus(ce.getErrorCode());
-			result.setBody(String.valueOf(ce.getErrorCode()));
-		} catch (Exception e) {
+		} catch (SPIMethodNotImplementedException spimnie) {
+			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
+		} catch (Throwable e) {
 			logger.error("task execution failed", e);
 			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
+
+			TaskProcessingErrorBody errorBody = dtoFactory.newDTO(TaskProcessingErrorBody.class)
+					.setErrorMessage("Task " + task.getUrl() + " is failed. Server error message: " + e.getMessage());
+			result.setBody(dtoFactory.dtoToJson(errorBody));
+			result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+			logger.warn("OctaneResultAbridged.execute failed : " + e.getMessage());
 		}
 
 		logger.info("result for task '" + task.getId() + "' available with status " + result.getStatus());
@@ -233,28 +236,15 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executePipelineRunExecuteRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		executePipelineRunRequest(result, () -> configurer.pluginServices.runPipeline(jobId, originalBody),
-				HttpStatus.SC_CREATED, "Failed to run '" + jobId + "'");
+		logger.info("RunExecute job " + jobId);
+		configurer.pluginServices.runPipeline(jobId, originalBody);
+		result.setStatus(HttpStatus.SC_CREATED);
 	}
 
 	private void executePipelineRunStopRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		executePipelineRunRequest(result, () -> configurer.pluginServices.stopPipelineRun(jobId, originalBody),
-				HttpStatus.SC_OK, "Failed to stop '" + jobId + "'");
-	}
-
-	private void executePipelineRunRequest(OctaneResultAbridged result, Runnable method, int successStatus, String errorMessage) {
-		try {
-			method.run();
-			result.setStatus(successStatus);
-		} catch (SPIMethodNotImplementedException spimnie) {
-			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
-		} catch (Throwable throwable) {
-			TaskProcessingErrorBody errorBody = dtoFactory.newDTO(TaskProcessingErrorBody.class)
-					.setErrorMessage(errorMessage + ". Server error message: " + throwable.getMessage());
-			result.setBody(dtoFactory.dtoToJson(errorBody));
-			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
-		}
-		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+		logger.info("RunStop job " + jobId);
+		configurer.pluginServices.stopPipelineRun(jobId, originalBody);
+		result.setStatus(HttpStatus.SC_OK);
 	}
 
 	private void suspendCiEvents(OctaneResultAbridged result, String suspend) {
