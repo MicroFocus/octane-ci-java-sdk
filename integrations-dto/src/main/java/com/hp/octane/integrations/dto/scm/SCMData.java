@@ -18,13 +18,14 @@ package com.hp.octane.integrations.dto.scm;
 
 import com.hp.octane.integrations.dto.DTOBase;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * SCMData DTO
  */
 
-public interface SCMData extends DTOBase {
+public interface SCMData extends DTOBase, Serializable {
 
 	SCMRepository getRepository();
 
