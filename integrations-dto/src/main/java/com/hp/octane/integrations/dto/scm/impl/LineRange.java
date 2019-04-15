@@ -12,10 +12,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 @JsonSerialize(using = LineRange.RangeSerializer.class)
 @JsonDeserialize(using = LineRange.RangeDeserializer.class)
-public class LineRange {
+public class LineRange implements Serializable {
     private int start;
     private int end;
 

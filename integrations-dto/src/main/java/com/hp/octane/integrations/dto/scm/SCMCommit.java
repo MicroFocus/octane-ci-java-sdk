@@ -18,13 +18,14 @@ package com.hp.octane.integrations.dto.scm;
 
 import com.hp.octane.integrations.dto.DTOBase;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * SCMCommit DTO
  */
 
-public interface SCMCommit extends DTOBase {
+public interface SCMCommit extends DTOBase, Serializable {
 
 	Long getTime();
 

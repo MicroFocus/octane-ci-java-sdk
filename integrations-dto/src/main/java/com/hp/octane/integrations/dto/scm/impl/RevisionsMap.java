@@ -2,11 +2,12 @@ package com.hp.octane.integrations.dto.scm.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class RevisionsMap extends HashMap<String, List<LineRange>> {
+public class RevisionsMap extends HashMap<String, List<LineRange>> implements Serializable {
 
     @JsonIgnore
     public List<LineRange> getRangeList(String revision){

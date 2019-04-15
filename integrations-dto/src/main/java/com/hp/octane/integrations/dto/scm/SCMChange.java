@@ -19,13 +19,14 @@ package com.hp.octane.integrations.dto.scm;
 import com.hp.octane.integrations.dto.DTOBase;
 import com.hp.octane.integrations.dto.scm.impl.LineRange;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * SCM Change DTO
  */
 
-public interface SCMChange extends DTOBase {
+public interface SCMChange extends DTOBase, Serializable {
 
 	String getType();
 
