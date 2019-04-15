@@ -17,18 +17,10 @@
 package com.hp.octane.integrations.exceptions;
 
 
-public class ConfigurationException extends RuntimeException {
-	private int errorCode;
+public class ConfigurationException extends ErrorCodeBasedException {
 
-	public ConfigurationException(int errorCode) {
-		this.errorCode = errorCode;
-	}
+    public ConfigurationException(int errorCode) {
+        super(errorCode);
+    }
 
-	public int getErrorCode() {
-		return errorCode;
-	}
-
-	public void setErrorCode(int errorCode) {
-		this.errorCode = errorCode;
-	}
 }

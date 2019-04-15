@@ -11,13 +11,24 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
+ *
  */
 
 package com.hp.octane.integrations.exceptions;
 
-public class PermissionException extends ErrorCodeBasedException {
 
-    public PermissionException(int errorCode) {
-        super(errorCode);
-    }
+public abstract class ErrorCodeBasedException extends RuntimeException {
+	private int errorCode;
+
+	public ErrorCodeBasedException(int errorCode) {
+		this.errorCode = errorCode;
+	}
+
+	public int getErrorCode() {
+		return errorCode;
+	}
+
+	public void setErrorCode(int errorCode) {
+		this.errorCode = errorCode;
+	}
 }
