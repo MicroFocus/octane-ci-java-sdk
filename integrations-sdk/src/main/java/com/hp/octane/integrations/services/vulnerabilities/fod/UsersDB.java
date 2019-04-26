@@ -18,6 +18,7 @@ import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.FODUser
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.services.UsersService;
 
 import java.util.List;
+import java.util.Optional;
 
 public class UsersDB {
     private List<FODUser> allUsers;
@@ -42,19 +43,19 @@ public class UsersDB {
     }
 
     private String searchByUserName(String assignedUser) {
-        for(FODUser user : allUsers){
-            if(assignedUser.equals(user.userName)){
-                return user.email;
-            }
+        Optional<FODUser> foundOptional =  allUsers.stream().filter(
+                user->assignedUser.equals(user.userName)).findFirst();
+        if(foundOptional.isPresent()){
+            return foundOptional.get().email;
         }
         return null;
     }
 
     private String searchByLastFirstComb(String assignedUser) {
-        for(FODUser user : allUsers){
-            if(assignedUser.equals(getFullName(user))){
-                return user.email;
-            }
+        Optional<FODUser> foundOptional =  allUsers.stream().filter(
+                user->assignedUser.equals(getFullName(user))).findFirst();
+        if(foundOptional.isPresent()){
+            return foundOptional.get().email;
         }
         return null;
     }
