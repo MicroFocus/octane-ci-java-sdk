@@ -74,5 +74,7 @@ public interface OctaneIssue extends DTOBase {
 
     void setRemoteTag(String remote_tag);
 
+    String getOwnerEmail();
+    void setOwnerEmail(String ownerEmail);
 
 }

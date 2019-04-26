@@ -180,7 +180,7 @@ public class FODServiceImpl implements FODService {
                 PackIssuesToOctaneUtils.packToOctaneIssues(nonClosedIssues, existingIssuesInOc,true);
 
         SecurityIssueValuesHelper securityIssueValuesHelper = new SecurityIssueValuesHelper();
-
+        securityIssueValuesHelper.init();
         Map<String,VulnerabilityAllData> idToAllData = new HashMap<>();
         sortedIssues.issuesRequiredExtendedData.stream()
                 .forEach(t -> idToAllData.put(t.id,

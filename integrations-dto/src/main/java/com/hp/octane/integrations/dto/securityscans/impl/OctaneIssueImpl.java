@@ -38,6 +38,7 @@ public class OctaneIssueImpl implements OctaneIssue {
     private String category;
     private String package1;
     private String remote_tag;
+    private String owner_email;
 
     @Override
     @JsonProperty(value = "extended_data")
@@ -186,5 +187,17 @@ public class OctaneIssueImpl implements OctaneIssue {
     @JsonProperty(value = "remote_tag")
     public void setRemoteTag(String remoteTag){
         this.remote_tag = remoteTag;
+    }
+
+    @Override
+    @JsonProperty(value = "owner_email")
+    public String getOwnerEmail() {
+        return owner_email;
+    }
+
+    @Override
+    @JsonProperty(value = "owner_email")
+    public void setOwnerEmail(String ownerEmail){
+        this.owner_email = ownerEmail;
     }
 }
