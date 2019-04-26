@@ -36,8 +36,8 @@ import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctan
 /**
  * Created by hijaziy on 11/6/2017.
  */
-public class SecurityIssueValuesHelper {
-	private static final Logger logger = LogManager.getLogger(SecurityIssueValuesHelper.class);
+public class FODValuesConverter {
+	private static final Logger logger = LogManager.getLogger(FODValuesConverter.class);
 	UsersDB usersDB;
 
 
