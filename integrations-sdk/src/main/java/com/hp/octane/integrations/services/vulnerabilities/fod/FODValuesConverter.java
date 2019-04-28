@@ -36,8 +36,15 @@ import static com.hp.octane.integrations.services.vulnerabilities.ssc.SSCToOctan
 /**
  * Created by hijaziy on 11/6/2017.
  */
-public class SecurityIssueValuesHelper {
-	private static final Logger logger = LogManager.getLogger(SecurityIssueValuesHelper.class);
+public class FODValuesConverter {
+	private static final Logger logger = LogManager.getLogger(FODValuesConverter.class);
+	UsersDB usersDB;
+
+
+	public void init() {
+		usersDB = new UsersDB();
+		usersDB.init();
+	}
 	private OctaneIssue createIssue(Vulnerability vulnerability,
 									String remoteTag,
 									VulnerabilityAllData vulnerabilityAllData,
@@ -61,8 +68,7 @@ public class SecurityIssueValuesHelper {
 		setSeverity(entity, vulnerability.severity);
 		entity.setRemoteId(vulnerability.getRemoteId());
 		setExternalLink(vulnerability, entity);
-		//TODO: Assigned User
-		//setAssignedUser(entity, vulnerability.assignedUser, pipelineRunEntity);
+		setAssignedUser(entity, vulnerability.assignedUser);
 		setAnalysis(entity, vulnerability);
 		entity.setRemoteTag(remoteTag);
 		//TODO:
@@ -70,11 +76,18 @@ public class SecurityIssueValuesHelper {
 		return entity;
 	}
 
+	private void setAssignedUser(OctaneIssue entity, String assignedUser) {
+		String email = usersDB.getEmailFromAssignedUser(assignedUser);
+		if(email != null && !email.isEmpty()) {
+			entity.setOwnerEmail(email);
+		}
+	}
+
 	private void setExternalLink(Vulnerability vulnerability, OctaneIssue entity) {
 		String entitiesURL = FodConnectionFactory.instance().getEntitiesURL();
 		String externalLink = String.format("%s/releases/%s/vulnerabilities/%s/all-data",entitiesURL,
 				vulnerability.releaseId,
-				vulnerability.vulnId);
+				vulnerability.id);
 		//https://api.sandbox.fortify.com/api/v3/releases/4302/vulnerabilities/217b64f9-9e73-4578-a9ea-bbe41005f858/all-data
 		if(externalLink != null) {
 			entity.setExternalLink(externalLink);
@@ -226,6 +239,13 @@ public class SecurityIssueValuesHelper {
 		String returnValue = null;
 		if("Pending Review".equalsIgnoreCase(auditorStatus)){
 			returnValue = MAYBE_AN_ISSUE;
+		} else if("Not an Issue".equalsIgnoreCase(auditorStatus) ||
+				"Risk accepted".equalsIgnoreCase(auditorStatus)){
+			returnValue = NOT_AN_ISSUE;
+		} else if("Remediation Required".equalsIgnoreCase(auditorStatus) ||
+				"Remediation Deferred".equalsIgnoreCase(auditorStatus) ||
+				"Risk Mitigated".equalsIgnoreCase(auditorStatus) ){
+			returnValue = IS_AN_ISSUE;
 		}
 		return returnValue;
 	}

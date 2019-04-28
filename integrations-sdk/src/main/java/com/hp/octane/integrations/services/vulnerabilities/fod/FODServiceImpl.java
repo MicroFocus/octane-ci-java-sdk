@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer.*;
-import static com.hp.octane.integrations.services.vulnerabilities.fod.SecurityIssueValuesHelper.sameDay;
+import static com.hp.octane.integrations.services.vulnerabilities.fod.FODValuesConverter.sameDay;
 
 public class FODServiceImpl implements FODService {
 
@@ -179,8 +179,8 @@ public class FODServiceImpl implements FODService {
         PackIssuesToOctaneUtils.SortedIssues<Vulnerability> sortedIssues =
                 PackIssuesToOctaneUtils.packToOctaneIssues(nonClosedIssues, existingIssuesInOc,true);
 
-        SecurityIssueValuesHelper securityIssueValuesHelper = new SecurityIssueValuesHelper();
-
+        FODValuesConverter securityIssueValuesHelper = new FODValuesConverter();
+        securityIssueValuesHelper.init();
         Map<String,VulnerabilityAllData> idToAllData = new HashMap<>();
         sortedIssues.issuesRequiredExtendedData.stream()
                 .forEach(t -> idToAllData.put(t.id,
@@ -203,7 +203,7 @@ public class FODServiceImpl implements FODService {
 
         return allVulnerabilities.stream().filter(
                 t -> {
-                    Date date = SecurityIssueValuesHelper.dateOfDateString(t.introducedDate);
+                    Date date = FODValuesConverter.dateOfDateString(t.introducedDate);
                     return date.after(baseline) ||
                     sameDay(date, baseline);
                 })

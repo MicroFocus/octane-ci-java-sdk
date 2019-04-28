@@ -29,6 +29,7 @@ public class OctaneIssueConsts {
 
     public static final String NOT_AN_ISSUE = "list_node.issue_analysis_node.not_an_issue";
     public static final String MAYBE_AN_ISSUE = "list_node.issue_analysis_node.maybe_an_issue";
+    public static final String IS_AN_ISSUE = "list_node.issue_analysis_node.is_an_issue";
     public static final String REVIEWED = "list_node.issue_analysis_node.reviewed";
     public static final String BUG_SUBMITTED = "list_node.issue_analysis_node.bug_submitted";
 
