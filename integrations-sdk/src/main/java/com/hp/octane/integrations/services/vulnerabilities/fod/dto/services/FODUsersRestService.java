@@ -20,7 +20,7 @@ import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.FODUser
 
 import java.util.List;
 
-public class UsersService {
+public class FODUsersRestService {
     public static final String urlUsers = "%s/users";
 
     public static List<FODUser> getAllUsers(){
