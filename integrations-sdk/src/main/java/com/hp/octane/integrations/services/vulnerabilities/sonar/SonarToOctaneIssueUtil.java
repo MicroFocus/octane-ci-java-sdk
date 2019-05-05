@@ -137,7 +137,7 @@ public class SonarToOctaneIssueUtil {
         if (!sonarUrl.substring(sonarUrl.length() -1).equals("/")){
             sonarUrl += "/";
         }
-        octaneIssue.setExternalLink(String.format("%sproject/issues?id=%s&open=%s", sonarUrl, encodedProject, encodedKey));
+        octaneIssue.setExternalLink(String.format("%sproject/issues?issues=%s&id=%s&open=%s", sonarUrl, encodedKey, encodedProject, encodedKey));
     }
 
 
