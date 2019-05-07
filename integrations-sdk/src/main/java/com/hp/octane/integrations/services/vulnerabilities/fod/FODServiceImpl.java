@@ -36,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.services.vulnerabilities.IssuesFileSerializer.*;
 import static com.hp.octane.integrations.services.vulnerabilities.fod.FODValuesConverter.sameDay;
+import static com.hp.octane.integrations.utils.CIPluginSDKUtils.doWait;
 
 public class FODServiceImpl implements FODService {
 
@@ -181,10 +182,8 @@ public class FODServiceImpl implements FODService {
 
         FODValuesConverter securityIssueValuesHelper = new FODValuesConverter();
         securityIssueValuesHelper.init();
-        Map<String,VulnerabilityAllData> idToAllData = new HashMap<>();
-        sortedIssues.issuesRequiredExtendedData.stream()
-                .forEach(t -> idToAllData.put(t.id,
-                        FODVulnerabilityService.getSingleVulnAlldata(getRelease(queueItem),t.vulnId)));
+        Map<String, VulnerabilityAllData> idToAllData = getVulnerabilityAllDataMap(getRelease(queueItem),
+                sortedIssues.issuesRequiredExtendedData);
 
         List<OctaneIssue> octaneIssuesToUpdate =
                 securityIssueValuesHelper.createOctaneIssuesFromVulns(sortedIssues.issuesToUpdate, remoteTag, idToAllData,
@@ -196,6 +195,21 @@ public class FODServiceImpl implements FODService {
         total.addAll(sortedIssues.issuesToClose);
         logger.warn("ToClose:" + sortedIssues.issuesToClose);
         return total;
+    }
+
+    private Map<String, VulnerabilityAllData> getVulnerabilityAllDataMap(Long releaseId,
+                                                                         List<Vulnerability> requiredExtendedData) {
+        Map<String,VulnerabilityAllData> idToAllData = new HashMap<>();
+
+                for(int i =0; i< requiredExtendedData.size(); i++){
+                    Vulnerability t = requiredExtendedData.get(i);
+                    if(i > 0){
+                        doWait(1200);
+                    }
+                    idToAllData.put(t.id,
+                        FODVulnerabilityService.getSingleVulnAlldata(releaseId, t.vulnId));
+                }
+        return idToAllData;
     }
 
     private List<Vulnerability> filterOutBeforeBaselineIssues(Date baseline,

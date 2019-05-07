@@ -28,7 +28,7 @@ public class FodConnectionFactory {
     public final static Object syncObject = new Object();
     private static SecurityTool securityToolEntity;
     private static OctaneSDK.SDKServicesConfigurer configurer;
-
+    public final static String API_SUFFIX = "/api/v3";
     public static void setConfigurer(OctaneSDK.SDKServicesConfigurer configurer){
         FodConnectionFactory.configurer = configurer;
     }
