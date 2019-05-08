@@ -68,7 +68,9 @@ public class FODValuesConverter {
         setStatus(entity, vulnerability.status);
         setSeverity(entity, vulnerability.severity);
         entity.setRemoteId(vulnerability.getRemoteId());
-        setExternalLink(vulnerability, entity);
+        if(vulnerabilityAllData != null) {
+            setExternalLink(vulnerability, entity);
+        }
         setAssignedUser(entity, vulnerability.assignedUser);
         setAnalysis(entity, vulnerability);
         entity.setRemoteTag(remoteTag);
