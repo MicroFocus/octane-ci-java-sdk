@@ -204,7 +204,7 @@ public class FODServiceImpl implements FODService {
                 for(int i =0; i< requiredExtendedData.size(); i++){
                     Vulnerability t = requiredExtendedData.get(i);
                     if(i > 0){
-                        doWait(1200);
+                        doWait(2000);
                     }
                     idToAllData.put(t.id,
                         FODVulnerabilityService.getSingleVulnAlldata(releaseId, t.vulnId));
