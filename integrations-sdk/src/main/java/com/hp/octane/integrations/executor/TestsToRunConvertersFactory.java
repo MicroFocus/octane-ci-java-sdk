@@ -16,10 +16,7 @@
 
 package com.hp.octane.integrations.executor;
 
-import com.hp.octane.integrations.executor.converters.GradleConverter;
-import com.hp.octane.integrations.executor.converters.MavenSurefireAndFailsafeConverter;
-import com.hp.octane.integrations.executor.converters.MfUftConverter;
-import com.hp.octane.integrations.executor.converters.ProtractorConverter;
+import com.hp.octane.integrations.executor.converters.*;
 
 
 public class TestsToRunConvertersFactory {
@@ -27,13 +24,15 @@ public class TestsToRunConvertersFactory {
     public static TestsToRunConverter createConverter(TestsToRunFramework framework) {
         switch (framework) {
             case JUnit4:
-                return new MavenSurefireAndFailsafeConverter();
+                return new MavenSurefireAndFailsafeConverter(framework.getFormat(), framework.getDelimiter());
             case MF_UFT:
-                return new MfUftConverter();
+                return new MfUftConverter(framework.getFormat(), framework.getDelimiter());
             case Protractor:
-                return new ProtractorConverter();
+                return new ProtractorConverter(framework.getFormat(), framework.getDelimiter());
             case Gradle:
-                return new GradleConverter();
+                return new GradleConverter(framework.getFormat(), framework.getDelimiter());
+            case Custom:
+                return new CustomConverter(framework.getFormat(), framework.getDelimiter());
             default:
                 throw new UnsupportedOperationException(framework.name() + " framework does not have supported converter");
         }

@@ -19,17 +19,22 @@ import com.hp.octane.integrations.utils.SdkStringUtils;
 
 public enum TestsToRunFramework {
 
-    JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe"),
-    MF_UFT("uft", "Micro Focus UFT"),
-    Protractor("protractor", "Protractor"),
-    Gradle("gradle","Gradle");
+    JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe", "$package.$class#$testName", ","),
+    MF_UFT("uft", "Micro Focus UFT", "", ""),
+    Protractor("protractor", "Protractor", "$class $testName", "|"),
+    Gradle("gradle","Gradle", " --tests $package.$class.$testName", ""),
+    Custom("custom","Custom", "$package.$class#$testName", ",");
 
     private final String value;
     private final String desc;
+    protected final String format;
+    protected final String delimiter;
 
-    TestsToRunFramework(String value, String desc) {
+    TestsToRunFramework(String value, String desc, String format, String delimiter) {
         this.value = value;
         this.desc = desc;
+        this.format = format;
+        this.delimiter = delimiter;
     }
 
     public String value() {
@@ -52,5 +57,13 @@ public enum TestsToRunFramework {
 
     public String getDesc() {
         return desc;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public String getDelimiter() {
+        return delimiter;
     }
 }
