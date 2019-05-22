@@ -30,8 +30,12 @@ import java.util.List;
  */
 public class MfUftConverter extends TestsToRunConverter {
 
-    public static final String DATA_TABLE_PARAMETER = "dataTable";
+    private static final String DATA_TABLE_PARAMETER = "dataTable";
     private final DTOFactory dtoFactory = DTOFactory.getInstance();
+
+    public MfUftConverter(String format, String delimiter) {
+        super(format, delimiter);
+    }
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {

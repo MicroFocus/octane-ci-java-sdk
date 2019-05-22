@@ -11,6 +11,11 @@ import java.util.stream.Collectors;
  * Converter to gradle format : gradle test --tests integTest1 --tests integTest12
  */
 public class GradleConverter extends TestsToRunConverter {
+
+    public GradleConverter(String format, String delimiter) {
+        super(format, delimiter);
+    }
+
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         return data.stream()

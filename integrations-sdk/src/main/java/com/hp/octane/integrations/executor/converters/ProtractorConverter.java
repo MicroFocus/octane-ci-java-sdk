@@ -27,6 +27,10 @@ import java.util.stream.Collectors;
  */
 public class ProtractorConverter extends TestsToRunConverter {
 
+    public ProtractorConverter(String format, String delimiter) {
+        super(format, delimiter);
+    }
+
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         return data.stream()

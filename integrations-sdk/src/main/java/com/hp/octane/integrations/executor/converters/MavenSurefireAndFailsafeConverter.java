@@ -34,6 +34,11 @@ import java.util.stream.Collectors;
  * Surefire : mvn -Dtest=package1.className1#testNameA test
  */
 public class MavenSurefireAndFailsafeConverter extends TestsToRunConverter {
+
+    public MavenSurefireAndFailsafeConverter(String format, String delimiter) {
+        super(format, delimiter);
+    }
+
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         StringBuilder sb = new StringBuilder();
