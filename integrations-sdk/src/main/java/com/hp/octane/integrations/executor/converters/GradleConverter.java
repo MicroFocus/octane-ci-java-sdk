@@ -10,27 +10,10 @@ import java.util.stream.Collectors;
 /*
  * Converter to gradle format : gradle test --tests integTest1 --tests integTest12
  */
-public class GradleConverter extends TestsToRunConverter {
+public class GradleConverter extends CustomConverter {
 
     public GradleConverter(String format, String delimiter) {
         super(format, delimiter);
-    }
-
-    @Override
-    public String convert(List<TestToRunData> data, String executionDirectory) {
-        return data.stream()
-                .map( n -> " --tests " + getTestFullPath(n))
-                .collect( Collectors.joining( "" ) );
-    }
-
-    private String getTestFullPath(TestToRunData testToRunData) {
-        String res = "";
-        if (SdkStringUtils.isNotEmpty(testToRunData.getPackageName())) {
-            res = testToRunData.getPackageName() + ".";
-        }
-        res += testToRunData.getClassName() + "." + testToRunData.getTestName();
-
-        return res;
     }
 
 }

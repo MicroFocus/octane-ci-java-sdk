@@ -25,16 +25,10 @@ import java.util.stream.Collectors;
 /*
  * Converter to protractor format : protractor conf.js --grep="spec1 case1|spec2 case2"
  */
-public class ProtractorConverter extends TestsToRunConverter {
+public class ProtractorConverter extends CustomConverter {
 
     public ProtractorConverter(String format, String delimiter) {
         super(format, delimiter);
     }
 
-    @Override
-    public String convert(List<TestToRunData> data, String executionDirectory) {
-        return data.stream()
-                .map( n -> n.getClassName() +" " + n.getTestName())
-                .collect( Collectors.joining( "|" ) );
-    }
 }

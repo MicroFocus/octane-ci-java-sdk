@@ -17,7 +17,6 @@ package com.hp.octane.integrations.executor;
 
 import com.hp.octane.integrations.executor.converters.CustomConverter;
 import com.hp.octane.integrations.executor.converters.GradleConverter;
-import com.hp.octane.integrations.executor.converters.MavenSurefireAndFailsafeConverter;
 import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 import org.junit.Assert;
 import org.junit.Test;
