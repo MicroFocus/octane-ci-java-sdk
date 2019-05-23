@@ -28,41 +28,48 @@ import org.junit.Test;
 
 public class CustomConverterTest {
 
-	private final static String rawTests = "v1:MF.simple.tests|AppTest|testAlwaysFail;MF.simple.tests|App2Test|testSendGet";
+	private final static String fullFormatRawData = "v1:MF.simple.tests|AppTest|testAlwaysFail;MF.simple.tests|App2Test|testSendGet";
+	private final static String noPackageRawData = "v1:|AppTest|testAlwaysFail;|App2Test|testSendGet";
+	private final static String noClassRawData = "v1:||testAlwaysFail;||testSendGet";
 
 	@Test
-	public void convertTestA()  {
+	public void mavenConverterTest()  {
 		CustomConverter converter = new CustomConverter("$package.$class#$testName", ",");
-		MavenSurefireAndFailsafeConverter mvnConverter = new MavenSurefireAndFailsafeConverter("$package.$class#$testName", ",");
+		String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
-		String actual = converter.convert(rawTests, "").getConvertedTestsString();
-		String expected = mvnConverter.convert(rawTests, "").getConvertedTestsString();
-
-	// TODO: fix tests order in mvn or custom convertor: groupBy in mvn changes the tests order
-		//  Assert.assertEquals(expected, actual);
 		Assert.assertEquals("MF.simple.tests.AppTest#testAlwaysFail,MF.simple.tests.App2Test#testSendGet", actual);
 	}
 
 	@Test
-	public void convertTestB()  {
-		CustomConverter converter = new CustomConverter("$class $testName", "|");
+	public void protractorConverterTest()  {
 		ProtractorConverter protractorConverter = new ProtractorConverter("$class $testName", "|");
+		String actual = protractorConverter.convert(fullFormatRawData, "").getConvertedTestsString();
 
-		String actual = converter.convert(rawTests, "").getConvertedTestsString();
-		String expected = protractorConverter.convert(rawTests, "").getConvertedTestsString();
-
-		Assert.assertEquals(expected, actual);
+		Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
 	}
 
 	@Test
-	public void convertTestC()  {
-		CustomConverter converter = new CustomConverter(" --tests $package.$class.$testName", "");
+	public void gradleConverterTest()  {
 		GradleConverter gradleConverter = new GradleConverter(" --tests $package.$class.$testName", "");
+		String actual = gradleConverter.convert(fullFormatRawData, "").getConvertedTestsString();
 
-		String actual = converter.convert(rawTests, "").getConvertedTestsString();
-		String expected = gradleConverter.convert(rawTests, "").getConvertedTestsString();
-
-		Assert.assertEquals(expected, actual);
+		Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail --tests MF.simple.tests.App2Test.testSendGet", actual);
 	}
+
+    @Test
+    public void gradleConverterNoPackageTest()  {
+        GradleConverter gradleConverter = new GradleConverter(" --tests $package.$class.$testName", "");
+        String actual = gradleConverter.convert(noPackageRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals(" --tests AppTest.testAlwaysFail --tests App2Test.testSendGet", actual);
+    }
+
+    @Test
+    public void gradleConverteNoClassTest()  {
+        GradleConverter gradleConverter = new GradleConverter(" --tests $package.$class.$testName", "");
+        String actual = gradleConverter.convert(noClassRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals(" --tests testAlwaysFail --tests testSendGet", actual);
+    }
 
 }

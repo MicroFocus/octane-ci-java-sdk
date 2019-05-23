@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /*
- * Converter custom format : //fromat="$package.$class#$testName" delimiter="|"
- * mvn clean -Dtest=MF.simple.tests.App2Test#testSendGet,MF.simple.tests.AppTest#testAlwaysFail test
+ * Converter to any given format
  */
 public class CustomConverter extends TestsToRunConverter {
 
@@ -23,7 +22,6 @@ public class CustomConverter extends TestsToRunConverter {
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
-
         String collect = data.stream()
                 .map(n -> convertToFormat(n) )
                 .collect(Collectors.joining(delimiter));
@@ -31,23 +29,28 @@ public class CustomConverter extends TestsToRunConverter {
     }
 
     private String convertToFormat(TestToRunData testToRunData) {
-
         boolean formatContainsPackage = format.contains($_PACKAGE);
         boolean formatContainsClass = format.contains($_CLASS);
-        int indPackage = format.indexOf($_PACKAGE);
-        int indClass = format.indexOf($_CLASS);
+        int packageIndex = format.indexOf($_PACKAGE);
 
         String res = format;
 
         if (formatContainsPackage){
             String packageName = testToRunData.getPackageName();
             if (SdkStringUtils.isNotEmpty(packageName)) {
-                res = format.replace($_PACKAGE, packageName);
+                res = res.replace($_PACKAGE, packageName);
             } else {
+                // remove $package part of format including its delimiter
                 if (formatContainsClass) {
-                    res = res.substring(0, indPackage - 1) + res.substring(indClass);
+                    // the $class expresion exists in given format - remove the part till $class
+                    //      for example: the format is XXXX$package.||.$class.||.$testName
+                    //      the result: XXXX$class.||.$testName
+                    res = splice(res, packageIndex, res.indexOf($_CLASS));
                 } else {
-                    res = res.substring(0, indPackage) + res.substring(format.indexOf($_TEST_NAME));
+                    // no $class expresion exists in given format - remove the part till $testName
+                    //      for example: the format is XXXX$package.||.$testName
+                    //      the result: XXXX$testName
+                    res = splice(res, packageIndex, res.indexOf($_TEST_NAME));
                 }
             }
         }
@@ -57,14 +60,30 @@ public class CustomConverter extends TestsToRunConverter {
             if (SdkStringUtils.isNotEmpty(className)) {
                 res = res.replace($_CLASS, className);
             } else {
-                res = res.substring(0, indClass) + res.substring(res.indexOf($_TEST_NAME));
-
+                // remove $class part of format including its delimiter (till $testName)
+                //      for example: the format is XXXX$class.||.$testName
+                //      the result: XXXX$testName
+                res = splice(res, res.indexOf($_CLASS), res.indexOf($_TEST_NAME));
             }
         }
 
         res = res.replace($_TEST_NAME, testToRunData.getTestName());
 
         return res;
+    }
+
+
+    /**
+     * method changes the contents of a string by removing existing elements form index to index
+     *
+     * @param string the original string
+     * @param beginIndex the begin index to remove the characters
+     * @param endIndex the begin index to remove the characters
+     * @return a new string contains the a part of the given string without existing substring form begin to end
+     *
+      */
+    private String splice(String string, int beginIndex, int endIndex) {
+        return string.substring(0, beginIndex) + string.substring(endIndex);
     }
 
 }

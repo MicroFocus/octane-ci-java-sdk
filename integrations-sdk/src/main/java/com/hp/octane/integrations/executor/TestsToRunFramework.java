@@ -19,7 +19,7 @@ import com.hp.octane.integrations.utils.SdkStringUtils;
 
 public enum TestsToRunFramework {
 
-    JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe", "$package.$class#$testName", ","),
+    JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe", "", ""),
     MF_UFT("uft", "Micro Focus UFT", "", ""),
     Protractor("protractor", "Protractor", "$class $testName", "|"),
     Gradle("gradle","Gradle", " --tests $package.$class.$testName", ""),
