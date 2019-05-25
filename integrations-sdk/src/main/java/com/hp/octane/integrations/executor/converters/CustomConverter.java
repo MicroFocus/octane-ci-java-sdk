@@ -16,8 +16,12 @@ public class CustomConverter extends TestsToRunConverter {
     private static final String $_CLASS = "$class";
     private static final String $_TEST_NAME = "$testName";
 
+    protected String format;
+    protected String delimiter;
+
     public CustomConverter(String format, String delimiter) {
-        super(format, delimiter);
+        this.format = format;
+        this.delimiter = delimiter;
     }
 
     @Override

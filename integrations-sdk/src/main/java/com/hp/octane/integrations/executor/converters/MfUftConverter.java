@@ -28,13 +28,13 @@ import java.util.List;
 /*
  * Converter to uft format (MTBX)
  */
-public class MfUftConverter extends TestsToRunConverter {
+public class MfUftConverter extends CustomConverter {
 
     private static final String DATA_TABLE_PARAMETER = "dataTable";
     private final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    public MfUftConverter(String format, String delimiter) {
-        super(format, delimiter);
+    public MfUftConverter() {
+        super("", "");
     }
 
     @Override

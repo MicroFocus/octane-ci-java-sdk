@@ -41,7 +41,7 @@ public class CustomConverterTest {
 
 	@Test
 	public void protractorConverterTest()  {
-		ProtractorConverter protractorConverter = new ProtractorConverter("$class $testName", "|");
+		ProtractorConverter protractorConverter = new ProtractorConverter();
 		String actual = protractorConverter.convert(fullFormatRawData, "").getConvertedTestsString();
 
 		Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
@@ -49,7 +49,7 @@ public class CustomConverterTest {
 
 	@Test
 	public void gradleConverterTest()  {
-		GradleConverter gradleConverter = new GradleConverter(" --tests $package.$class.$testName", "");
+		GradleConverter gradleConverter = new GradleConverter();
 		String actual = gradleConverter.convert(fullFormatRawData, "").getConvertedTestsString();
 
 		Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail --tests MF.simple.tests.App2Test.testSendGet", actual);
@@ -57,7 +57,7 @@ public class CustomConverterTest {
 
     @Test
     public void gradleConverterNoPackageTest()  {
-        GradleConverter gradleConverter = new GradleConverter(" --tests $package.$class.$testName", "");
+        GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noPackageRawData, "").getConvertedTestsString();
 
         Assert.assertEquals(" --tests AppTest.testAlwaysFail --tests App2Test.testSendGet", actual);
@@ -65,7 +65,7 @@ public class CustomConverterTest {
 
     @Test
     public void gradleConverteNoClassTest()  {
-        GradleConverter gradleConverter = new GradleConverter(" --tests $package.$class.$testName", "");
+        GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noClassRawData, "").getConvertedTestsString();
 
         Assert.assertEquals(" --tests testAlwaysFail --tests testSendGet", actual);

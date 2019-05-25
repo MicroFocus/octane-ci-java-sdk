@@ -23,14 +23,6 @@ import java.util.List;
 
 public abstract class TestsToRunConverter {
 
-    protected String format;
-    protected String delimiter;
-
-    public TestsToRunConverter(String format, String delimiter) {
-        this.format = format;
-        this.delimiter = delimiter;
-    }
-
     public TestsToRunConverterResult convert(String rawTests, String executionDirectory) {
 
         List<TestToRunData> data = parse(rawTests);

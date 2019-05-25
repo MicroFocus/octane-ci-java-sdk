@@ -12,8 +12,11 @@ import java.util.stream.Collectors;
  */
 public class GradleConverter extends CustomConverter {
 
-    public GradleConverter(String format, String delimiter) {
-        super(format, delimiter);
+    private static final String GRADLE_FORMAT = " --tests $package.$class.$testName";
+    private static final String GRADLE_DELIMITER = "";
+
+    public GradleConverter() {
+        super(GRADLE_FORMAT, GRADLE_DELIMITER);
     }
 
 }

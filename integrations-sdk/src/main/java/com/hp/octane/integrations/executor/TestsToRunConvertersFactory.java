@@ -24,13 +24,13 @@ public class TestsToRunConvertersFactory {
     public static TestsToRunConverter createConverter(TestsToRunFramework framework) {
         switch (framework) {
             case JUnit4:
-                return new MavenSurefireAndFailsafeConverter(framework.getFormat(), framework.getDelimiter());
+                return new MavenSurefireAndFailsafeConverter();
             case MF_UFT:
-                return new MfUftConverter(framework.getFormat(), framework.getDelimiter());
+                return new MfUftConverter();
             case Protractor:
-                return new ProtractorConverter(framework.getFormat(), framework.getDelimiter());
+                return new ProtractorConverter();
             case Gradle:
-                return new GradleConverter(framework.getFormat(), framework.getDelimiter());
+                return new GradleConverter();
             case Custom:
                 return new CustomConverter(framework.getFormat(), framework.getDelimiter());
             default:
