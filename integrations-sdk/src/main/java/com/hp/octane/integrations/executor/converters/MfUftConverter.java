@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class MfUftConverter extends TestsToRunConverter {
 
-    private static final String DATA_TABLE_PARAMETER = "dataTable";
+    public static final String DATA_TABLE_PARAMETER = "dataTable";
     private final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     @Override
