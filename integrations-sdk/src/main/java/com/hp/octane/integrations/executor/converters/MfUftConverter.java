@@ -28,14 +28,10 @@ import java.util.List;
 /*
  * Converter to uft format (MTBX)
  */
-public class MfUftConverter extends CustomConverter {
+public class MfUftConverter extends TestsToRunConverter {
 
     private static final String DATA_TABLE_PARAMETER = "dataTable";
     private final DTOFactory dtoFactory = DTOFactory.getInstance();
-
-    public MfUftConverter() {
-        super("", "");
-    }
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {

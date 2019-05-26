@@ -33,11 +33,7 @@ import java.util.stream.Collectors;
  * Failsafe : mvn -Dit.test=package1.className1#testNameA verify
  * Surefire : mvn -Dtest=package1.className1#testNameA test
  */
-public class MavenSurefireAndFailsafeConverter extends CustomConverter {
-
-    public MavenSurefireAndFailsafeConverter() {
-        super("", "");
-    }
+public class MavenSurefireAndFailsafeConverter extends TestsToRunConverter {
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {

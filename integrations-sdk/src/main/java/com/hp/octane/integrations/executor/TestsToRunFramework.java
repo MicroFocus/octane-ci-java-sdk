@@ -15,15 +15,17 @@
  */
 package com.hp.octane.integrations.executor;
 
+import com.hp.octane.integrations.executor.converters.GradleConverter;
+import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
 public enum TestsToRunFramework {
 
     JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe", "", ""),
     MF_UFT("uft", "Micro Focus UFT", "", ""),
-    Protractor("protractor", "Protractor", "$class $testName", "|"),
-    Gradle("gradle","Gradle", " --tests $package.$class.$testName", ""),
-    Custom("custom","Custom", "$package.$class#$testName", ",");
+    Protractor("protractor", "Protractor", ProtractorConverter.PROTRACTOR_FORMAT, ProtractorConverter.PROTRACTOR_DELIMITER),
+    Gradle("gradle","Gradle", GradleConverter.GRADLE_FORMAT, GradleConverter.GRADLE_DELIMITER),
+    Custom("custom","Custom", "", "");
 
     private final String value;
     private final String desc;

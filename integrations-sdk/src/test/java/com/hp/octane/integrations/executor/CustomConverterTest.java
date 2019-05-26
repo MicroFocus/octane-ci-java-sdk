@@ -30,6 +30,7 @@ public class CustomConverterTest {
 	private final static String fullFormatRawData = "v1:MF.simple.tests|AppTest|testAlwaysFail;MF.simple.tests|App2Test|testSendGet";
 	private final static String noPackageRawData = "v1:|AppTest|testAlwaysFail;|App2Test|testSendGet";
 	private final static String noClassRawData = "v1:||testAlwaysFail;||testSendGet";
+	private final static String singleRawData = "v1:MF.simple.tests|AppTest|testAlwaysFail";
 
 	@Test
 	public void mavenConverterTest()  {
@@ -45,6 +46,22 @@ public class CustomConverterTest {
 		String actual = protractorConverter.convert(fullFormatRawData, "").getConvertedTestsString();
 
 		Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+	}
+
+	@Test
+	public void protractorConverterNoPackageTest()  {
+		ProtractorConverter protractorConverter = new ProtractorConverter();
+		String actual = protractorConverter.convert(noPackageRawData, "").getConvertedTestsString();
+
+		Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+	}
+
+	@Test
+	public void protractorConverterSingleTest()  {
+		ProtractorConverter protractorConverter = new ProtractorConverter();
+		String actual = protractorConverter.convert(singleRawData, "").getConvertedTestsString();
+
+		Assert.assertEquals("AppTest testAlwaysFail", actual);
 	}
 
 	@Test
@@ -71,4 +88,11 @@ public class CustomConverterTest {
         Assert.assertEquals(" --tests testAlwaysFail --tests testSendGet", actual);
     }
 
+	@Test
+	public void gradleConverteSingleTest()  {
+		GradleConverter gradleConverter = new GradleConverter();
+		String actual = gradleConverter.convert(singleRawData, "").getConvertedTestsString();
+
+		Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail", actual);
+	}
 }

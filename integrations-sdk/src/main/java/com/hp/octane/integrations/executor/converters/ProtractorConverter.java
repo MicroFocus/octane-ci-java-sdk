@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
  */
 public class ProtractorConverter extends CustomConverter {
 
-    private static final String PROTRACTOR_FORMAT = "$class $testName";
-    private static final String PROTRACTOR_DELIMITER = "|";
+    public static final String PROTRACTOR_FORMAT = "$class $testName";
+    public static final String PROTRACTOR_DELIMITER = "|";
 
     public ProtractorConverter() {
         super(PROTRACTOR_FORMAT, PROTRACTOR_DELIMITER);
