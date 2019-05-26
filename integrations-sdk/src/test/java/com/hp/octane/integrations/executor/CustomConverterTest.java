@@ -41,7 +41,7 @@ public class CustomConverterTest {
 	}
 
 	@Test
-	public void protractorConverterTest()  {
+	public void protractorConverterMultipleCaseTest()  {
 		ProtractorConverter protractorConverter = new ProtractorConverter();
 		String actual = protractorConverter.convert(fullFormatRawData, "").getConvertedTestsString();
 
@@ -49,7 +49,7 @@ public class CustomConverterTest {
 	}
 
 	@Test
-	public void protractorConverterNoPackageTest()  {
+	public void protractorConverterMultipleCaseNoPackageTest()  {
 		ProtractorConverter protractorConverter = new ProtractorConverter();
 		String actual = protractorConverter.convert(noPackageRawData, "").getConvertedTestsString();
 
@@ -57,7 +57,7 @@ public class CustomConverterTest {
 	}
 
 	@Test
-	public void protractorConverterSingleTest()  {
+	public void protractorConverterSingleCaseTest()  {
 		ProtractorConverter protractorConverter = new ProtractorConverter();
 		String actual = protractorConverter.convert(singleRawData, "").getConvertedTestsString();
 
@@ -65,7 +65,7 @@ public class CustomConverterTest {
 	}
 
 	@Test
-	public void gradleConverterTest()  {
+	public void gradleConverterMultipleCaseTest()  {
 		GradleConverter gradleConverter = new GradleConverter();
 		String actual = gradleConverter.convert(fullFormatRawData, "").getConvertedTestsString();
 
@@ -73,7 +73,7 @@ public class CustomConverterTest {
 	}
 
     @Test
-    public void gradleConverterNoPackageTest()  {
+    public void gradleConverterMultipleCaseNoPackageTest()  {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noPackageRawData, "").getConvertedTestsString();
 
@@ -81,7 +81,7 @@ public class CustomConverterTest {
     }
 
     @Test
-    public void gradleConverteNoClassTest()  {
+    public void gradleConverteMultipleCaseNoClassTest()  {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noClassRawData, "").getConvertedTestsString();
 
@@ -89,7 +89,7 @@ public class CustomConverterTest {
     }
 
 	@Test
-	public void gradleConverteSingleTest()  {
+	public void gradleConverteSingleCaseTest()  {
 		GradleConverter gradleConverter = new GradleConverter();
 		String actual = gradleConverter.convert(singleRawData, "").getConvertedTestsString();
 
