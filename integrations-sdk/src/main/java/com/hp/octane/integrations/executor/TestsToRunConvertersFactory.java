@@ -21,7 +21,7 @@ import com.hp.octane.integrations.executor.converters.*;
 
 public class TestsToRunConvertersFactory {
 
-    public static TestsToRunConverter createConverter(TestsToRunFramework framework) {
+    public static TestsToRunConverter createConverter(TestsToRunFramework framework, String format, String delimiter) {
         switch (framework) {
             case JUnit4:
                 return new MavenSurefireAndFailsafeConverter();
@@ -32,7 +32,7 @@ public class TestsToRunConvertersFactory {
             case Gradle:
                 return new GradleConverter();
             case Custom:
-                return new CustomConverter(framework.getFormat(), framework.getDelimiter());
+                return new CustomConverter(format, delimiter);
             default:
                 throw new UnsupportedOperationException(framework.name() + " framework does not have supported converter");
         }
