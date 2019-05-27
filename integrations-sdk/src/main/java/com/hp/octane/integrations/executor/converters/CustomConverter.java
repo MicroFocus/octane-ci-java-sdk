@@ -34,7 +34,7 @@ public class CustomConverter extends TestsToRunConverter {
     }
 
     @Override
-    public CustomConverter setProperties(Map<String, String> properties) {
+    public TestsToRunConverter setProperties(Map<String, String> properties) {
         properties.entrySet().forEach(property -> setProperty(property));
         return this;
     }
