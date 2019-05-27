@@ -20,8 +20,14 @@ import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public abstract class TestsToRunConverter {
+
+    public static final String CONVERTER_FORMAT = "format";
+    public static final String CONVERTER_DELIMITER = "delimiter";
+
+    public TestsToRunConverter setProperties(Map<String, String> properties) { return this; }
 
     public TestsToRunConverterResult convert(String rawTests, String executionDirectory) {
 
