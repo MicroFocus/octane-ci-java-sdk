@@ -5,6 +5,7 @@ import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /*
@@ -30,6 +31,12 @@ public class CustomConverter extends TestsToRunConverter {
                 .map(n -> convertToFormat(n) )
                 .collect(Collectors.joining(delimiter));
         return collect;
+    }
+
+    @Override
+    public TestsToRunConverter setProperties(Map<String, String> properties) {
+        properties.entrySet().forEach(property -> setProperty(property));
+        return this;
     }
 
     private String convertToFormat(TestToRunData testToRunData) {
@@ -76,7 +83,18 @@ public class CustomConverter extends TestsToRunConverter {
         return res;
     }
 
-
+    private void setProperty(Map.Entry<String, String> property) {
+        switch(property.getKey()) {
+            case CONVERTER_FORMAT:
+                this.format = property.getValue();
+                break;
+            case CONVERTER_DELIMITER:
+                this.delimiter = property.getValue();
+                break;
+            default:
+                break;
+        }
+    }
     /**
      * method changes the contents of a string by removing existing elements form index to index
      *
