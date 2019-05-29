@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.services.logging;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.utils.OctaneAllowedStorageUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
@@ -28,7 +29,7 @@ import java.io.File;
 
 final class LoggingServiceImpl implements LoggingService {
 	private static final Logger logger = LogManager.getLogger(LoggingServiceImpl.class);
-	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
+
 	private final Object INIT_LOCKER = new Object();
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 
@@ -62,7 +63,7 @@ final class LoggingServiceImpl implements LoggingService {
 				if (!commonLoggerContext.isStarted()) {
 					commonLoggerContext.start();
 				}
-				System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
+				OctaneAllowedStorageUtils.setAllowedStorage(file);
 				commonLoggerContext.reconfigure();
 			}
 		}
