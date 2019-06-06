@@ -116,6 +116,14 @@ public final class OctaneSDK {
 	}
 
 	/**
+	 * Returns true if sdk defined clients
+	 * @return
+	 */
+	public static boolean hasClients() {
+		return !clients.isEmpty();
+	}
+
+	/**
 	 * provides specific OctaneClient (the first one found) - claiming for specified instance ID
 	 * attentions: since instance ID is not owned by OctaneClient and may be changed after the initialization, we may effectively have duplicate instance ID at some point of time
 	 * if no client instance found for the specified instance ID - IllegalStateException will be thrown
