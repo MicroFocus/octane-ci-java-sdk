@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -28,19 +28,23 @@ class CIPluginSDKInfoImpl implements CIPluginSDKInfo {
 	private Integer apiVersion;
 	private String sdkVersion;
 
+	@Override
 	public Integer getApiVersion() {
 		return apiVersion;
 	}
 
+	@Override
 	public CIPluginSDKInfo setApiVersion(Integer apiVersion) {
 		this.apiVersion = apiVersion;
 		return this;
 	}
 
+	@Override
 	public String getSdkVersion() {
 		return sdkVersion;
 	}
 
+	@Override
 	public CIPluginSDKInfo setSdkVersion(String sdkVersion) {
 		this.sdkVersion = sdkVersion;
 		return this;

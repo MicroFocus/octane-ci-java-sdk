@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.dto.tests.impl;
 
 import com.hp.octane.integrations.dto.tests.BuildContext;
+import com.hp.octane.integrations.dto.tests.TestField;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.dto.tests.TestRun;
 
@@ -35,28 +36,43 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.NONE)
 class TestsResultImpl implements TestsResult {
 
-	@XmlAnyElement(lax = true)
-	private BuildContext buildContext;
+    @XmlAnyElement(lax = true)
+    private BuildContext buildContext;
 
-	@XmlElementWrapper(name = "test_runs")
-	@XmlAnyElement(lax = true)
-	private List<TestRun> testRuns;
+    @XmlElementWrapper(name = "test_fields")
+    @XmlAnyElement(lax = true)
+    private List<TestField> testFields;
 
-	public BuildContext getBuildContext() {
-		return buildContext;
-	}
+    @XmlElementWrapper(name = "test_runs")
+    @XmlAnyElement(lax = true)
+    private List<TestRun> testRuns;
 
-	public TestsResult setBuildContext(BuildContext buildContext) {
-		this.buildContext = buildContext;
-		return this;
-	}
+    public BuildContext getBuildContext() {
+        return buildContext;
+    }
 
-	public List<TestRun> getTestRuns() {
-		return testRuns;
-	}
+    public TestsResult setBuildContext(BuildContext buildContext) {
+        this.buildContext = buildContext;
+        return this;
+    }
 
-	public TestsResult setTestRuns(List<TestRun> testRuns) {
-		this.testRuns = testRuns;
-		return this;
-	}
+    public List<TestRun> getTestRuns() {
+        return testRuns;
+    }
+
+    public TestsResult setTestRuns(List<TestRun> testRuns) {
+        this.testRuns = testRuns;
+        return this;
+    }
+
+    @Override
+    public List<TestField> getTestFields() {
+        return testFields;
+    }
+
+    @Override
+    public TestsResult setTestFields(List<TestField> testFields) {
+        this.testFields = testFields;
+        return this;
+    }
 }

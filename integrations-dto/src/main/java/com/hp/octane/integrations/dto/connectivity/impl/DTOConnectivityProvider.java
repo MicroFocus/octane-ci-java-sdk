@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.dto.connectivity.TaskProcessingErrorBody;
 
 /**
  * Connectivity related DTOs definitions provider
@@ -31,10 +32,12 @@ import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 public final class DTOConnectivityProvider extends DTOInternalProviderBase {
 
 	public DTOConnectivityProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
 		dtoPairs.put(OctaneRequest.class, OctaneRequestImpl.class);
 		dtoPairs.put(OctaneResponse.class, OctaneResponseImpl.class);
 		dtoPairs.put(OctaneTaskAbridged.class, OctaneTaskAbridgedImpl.class);
 		dtoPairs.put(OctaneResultAbridged.class, OctaneResultAbridgedImpl.class);
+		dtoPairs.put(TaskProcessingErrorBody.class, TaskProcessingErrorBodyImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

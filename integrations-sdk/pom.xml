@@ -4,7 +4,7 @@
 	<parent>
 		<artifactId>java-sdk</artifactId>
 		<groupId>com.hpe.adm.octane.ciplugins</groupId>
-		<version>1.5-SNAPSHOT</version>
+		<version>2.0-SNAPSHOT</version>
 	</parent>
 
 	<modelVersion>4.0.0</modelVersion>
@@ -14,9 +14,10 @@
 	<properties>
 		<log4j.version>2.9.1</log4j.version>
 		<commons-logging.version>1.2</commons-logging.version>
-		<httpcore.version>4.4.4</httpcore.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<squareup-tape.version>1.2.3</squareup-tape.version>
+
+		<jetty-server.version>9.4.17.v20190418</jetty-server.version>
 	</properties>
 
 	<dependencies>
@@ -41,9 +42,9 @@
 			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
-			<artifactId>httpcore</artifactId>
-			<groupId>org.apache.httpcomponents</groupId>
-			<version>${httpcore.version}</version>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-web</artifactId>
+			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
 			<artifactId>httpclient</artifactId>
@@ -57,6 +58,13 @@
 			<version>${squareup-tape.version}</version>
 		</dependency>
 
+		<!-- uft *.tsp file reading -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>3.7</version>
+		</dependency>
+
 		<!-- TESTING -->
 		<dependency>
 			<artifactId>junit</artifactId>
@@ -66,6 +74,12 @@
 		<dependency>
 			<artifactId>easymock</artifactId>
 			<groupId>org.easymock</groupId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<artifactId>jetty-server</artifactId>
+			<groupId>org.eclipse.jetty</groupId>
+			<version>${jetty-server.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -92,6 +106,16 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<groupId>org.apache.maven.plugins</groupId>
+				<configuration>
+					<sourcepath>${basedir}/src/main/java/com/hp/octane/integrations</sourcepath>
+					<sourceFileExcludes>
+						<sourceFileExclude>*Impl.java</sourceFileExclude>
+					</sourceFileExcludes>
+				</configuration>
+			</plugin>
 		</plugins>
 		<resources>
 			<resource>
@@ -115,8 +139,8 @@
 						<artifactId>maven-source-plugin</artifactId>
 					</plugin>
 					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
+						<groupId>org.apache.maven.plugins</groupId>
 					</plugin>
 				</plugins>
 			</build>

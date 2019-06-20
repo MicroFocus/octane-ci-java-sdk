@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -32,28 +32,34 @@ class CIProviderSummaryInfoImpl implements CIProviderSummaryInfo {
 	private CIPluginInfo plugin;
 	private CIPluginSDKInfo sdk;
 
+	@Override
 	public CIServerInfo getServer() {
 		return server;
 	}
 
+	@Override
 	public CIProviderSummaryInfo setServer(CIServerInfo server) {
 		this.server = server;
 		return this;
 	}
 
+	@Override
 	public CIPluginInfo getPlugin() {
 		return plugin;
 	}
 
+	@Override
 	public CIProviderSummaryInfo setPlugin(CIPluginInfo plugin) {
 		this.plugin = plugin;
 		return this;
 	}
 
+	@Override
 	public CIPluginSDKInfo getSdk() {
 		return sdk;
 	}
 
+	@Override
 	public CIProviderSummaryInfo setSdk(CIPluginSDKInfo sdk) {
 		this.sdk = sdk;
 		return this;

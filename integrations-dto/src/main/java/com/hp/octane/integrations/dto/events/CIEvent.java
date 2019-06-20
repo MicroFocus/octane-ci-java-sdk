@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -48,6 +48,14 @@ public interface CIEvent extends DTOBase {
 
 	CIEvent setProject(String project);
 
+	String getParentCiId();
+
+	CIEvent setParentCiId(String parentCiId);
+
+	MultiBranchType getMultiBranchType();
+
+	CIEvent setMultiBranchType(MultiBranchType multiBranchType);
+
 	String getNumber();
 
 	CIEvent setNumber(String number);
@@ -83,4 +91,12 @@ public interface CIEvent extends DTOBase {
 	Boolean getTestResultExpected();
 
 	CIEvent setTestResultExpected(boolean expected);
+
+	String getCommonHashId();
+
+	CIEvent setCommonHashId(String commonHashId);
+
+	String getBranchName();
+
+	CIEvent setBranchName(String commonHashId);
 }

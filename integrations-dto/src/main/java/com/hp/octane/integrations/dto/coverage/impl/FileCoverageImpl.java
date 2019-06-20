@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -11,14 +11,12 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.dto.coverage.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.coverage.FileCoverage;
-import com.hp.octane.integrations.dto.coverage.LineCoverage;
 
 /**
  * FileCoverage DTO implementation.
@@ -26,24 +24,34 @@ import com.hp.octane.integrations.dto.coverage.LineCoverage;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class FileCoverageImpl implements FileCoverage {
-	private String file;
-	private LineCoverage[] lines;
+	private String path;
+	private Integer sumOfCoveredLines;
+	private Integer totalCoverableLines;
 
-	public String getFile() {
-		return file;
+	public String getPath() {
+		return path;
 	}
 
-	public FileCoverage setFile(String file) {
-		this.file = file;
+	public FileCoverage setPath(String path) {
+		this.path = path;
 		return this;
 	}
 
-	public LineCoverage[] getLines() {
-		return lines;
+	public Integer getSumOfCoveredLines() {
+		return sumOfCoveredLines;
 	}
 
-	public FileCoverage setLines(LineCoverage[] lines) {
-		this.lines = lines;
+	public FileCoverage setSumOfCoveredLines(Integer sumOfCoveredLines) {
+		this.sumOfCoveredLines = sumOfCoveredLines;
+		return this;
+	}
+
+	public Integer getTotalCoverableLines() {
+		return totalCoverableLines;
+	}
+
+	public FileCoverage setTotalCoverableLines(Integer totalCodeLinesInFile) {
+		this.totalCoverableLines = totalCodeLinesInFile;
 		return this;
 	}
 }

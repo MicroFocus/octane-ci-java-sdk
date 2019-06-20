@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -18,13 +18,14 @@ package com.hp.octane.integrations.dto.scm;
 
 import com.hp.octane.integrations.dto.DTOBase;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * SCMCommit DTO
  */
 
-public interface SCMCommit extends DTOBase {
+public interface SCMCommit extends DTOBase, Serializable {
 
 	Long getTime();
 

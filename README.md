@@ -1,35 +1,41 @@
-# CI Plugin SDK for ALM Octane
-  
-  
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![AppVeyor](https://img.shields.io/appveyor/ci/OctaneCIPlugins/octane-ci-java-sdk/master.svg?logo=appveyor)](https://ci.appveyor.com/project/OctaneCIPlugins/octane-ci-java-sdk/branch/master)
+[![codecov](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk/branch/master/graph/badge.svg)](https://codecov.io/gh/MicroFocus/octane-ci-java-sdk)
+
+
+# SDK for CI Plugins to integrate with ALM Octane
+
 ## Introduction
 
 Octane's CI Plugin Development Kit provides an easy and robust way to integrate CI Environment with [ALM Octane](https://software.microfocus.com/en-us/products/alm-octane/overview) application server.
 In vast majority of cases, SDK will be used as a part of a bigger integration unit - CI server's plugin/addon, therefore we'll be referring to the whole integration component as **CI Plugin** henceforth.
  
-The SDK exposes several services allowing to *push* CI artifacts to ALM Octane (test results as of now, coverage, build logs and more in the future), where this data will undergo further analysis and linkage to the relevant application management context.
->_SDK's services are accessible via the methods exposed on  `OctaneSDK` instance.
-For example, accessing EventsService would be: `OctaneSDK.getInstance().getEventsService()`._
-
-From the other side, SDK knows to establish steady connectivity (by means of long polling over HTTP/S protocol) with ALM Octane, thus being able to handle tasks submitted from ALM Octane and return results if/where relevant.
+SDK knows to establish steady connectivity (by means of long polling over HTTP/S protocol) with ALM Octane, thus being able to handle tasks submitted from ALM Octane and return results if/where relevant.
 There is a predefined set of tasks that are supported by such a flow (discover projects/jobs or job's/project's structure, trigger build etc).
 
-In order to inter-operate with the 'hosting' CI environment, SDK employs a Service Provider Interface pattern (SPI).
-Currently SPI consists of a single interface, namely `CIPluginServices`, that is required to be implemented by an SDK's consumer and instance of which is a must parameter of SDK's initialization method.
-Data provided by `CIPluginServices` implementation will be used by SDK in order to connect to the ALM Octane, notify about server/plugin info and rest of functionalities.
+There are 3 architectural entities that are essential to understand in order to work with SDK easily:
+1) `OctaneSDK` is a top level entry point, SDK manager. This class provides static methods to add, get or remove `OctaneClient` instances.
+Runtime flow will typically start from the point when `addClient` method of `OctaneSDK` is called
+2) `OctaneClient` is the actual 'job doer'.
+In a normal functional cases there is a need to init only one instance of `OctaneClient`, yet this class if fully thread safe and multiple instances of it may be intact.
+Each `OctaneClient` is designed to provide full functionality of work with a single specific SharedSpace/Tenant of Octane server.
+Client is responsible for establishing the connectivity with Octane, receive and dispatch tasks coming from Octane and provide services to push contents to Octane.
+3) In order to inter-operate with the 'hosting' CI environment, SDK employs a Service Provider Interface pattern (SPI).
+SPI consists of a single interface, `CIPluginServices`, that is required to be implemented by an SDK's consumer and instance of which is a must parameter of SDK's `OctaneClient` initialization method.
 
 Typical SDK-based ALM Octane integrated CI Plugin development would walk along the following path:
 1. [Including](#include-in-your-project) the SDK into the CI Plugin (be it new or an existing one) as maven dependency 
 2. Implementing an SPI interface/s (or extending `CIPluginServicesBase` abstract class, convenient for partial implementation)
-3. Adding [SDK initialization](#initialization) to the initialization flow of the CI Plugin
+3. Adding [`OctaneClient` initialization](#initialization) to the initialization flow of the CI Plugin
 4. Hooking into the specific CI environment's event mechanism in order:
    1. to [push builds' events](#updating-alm-octane-with-ci-events) to ALM Octane
    2. to [push builds' artifacts](#providing-test-results) (tests results etc) to ALM Octane
 
 This Java SDK project has two sub-projects:
-- **integrations-sdk**, which is the main source of the CI Plugin SDK.
-- **integrations-dto**, which contains the definition and building factory of all DTO objects used for communication with ALM Octane.
+- **integrations-sdk**: the main source of the CI Plugin SDK
+- **integrations-dto**: the definition and building factory of all DTO objects used for communication with ALM Octane
 
-See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK API.
+See the [Javadoc](#creating-javadoc) for more information about the CI Plugin SDK APIs.
 
 See [change log](changelog.md) for the released versions of this library.
   
@@ -53,12 +59,12 @@ mvn javadoc:aggregate
   
 ## Include in Your Project
 
-Add the following dependency to the pom.xml to use this SDK in your project:
+Add the following dependency to the `pom.xml` to use this SDK in your project (providing the relevant version, of course):
 ```
 <dependency>
     <artifactId>integrations-sdk</artifactId>
     <groupId>com.hpe.adm.octane.plugins</groupId>
-    <version>1.0</version>
+    <version>${integrations-sdk.version}</version>
 </dependency>
 ```
 
@@ -72,12 +78,15 @@ The following CI Plugins are already using **CI Plugin SDK for ALM Octane** to c
 
 ## Initialization
 
-To start using the CI Plugin SDK, first initialize an OctaneSDK instance. This class provides the main entry point of interaction between the SDK and its services, and interaction between the concrete CI Plugin and its services:
+To start using the SDK's services, first initialize an `OctaneClient` instance. This class provides the main entry point of interaction between the SDK and its services, and interaction between the concrete CI Plugin and its services:
 ```java
-OctaneSDK.init(new MyPluginServices(), true);
+OctaneSDK.addClient(new MyPluginServices());
 ```
-The `init()` method expects to get a valid implementation of the `CIPluginServices` SPI. This object is actually a composite API of all the endpoints to be implemented by a hosting CI Plugin for an ALM Octane use cases.
->_Second parameter, `boolean`, reads: 'establish connectivity with ALM Octane'; it always should be set to `true` unless there are very specific need to make an *offline* integration (which may be achieved by providing empty OctaneConfiguration from SPI as well, so still no excuses for `false` here)._
+The `addClient()` method expects to get an instance of a valid implementation of the `CIPluginServices` SPI.
+This object is actually a composite API of all the endpoints to be implemented by a hosting CI Plugin for an ALM Octane use cases.
+Same instance of `CIPluginServices` MAY NOT be used for more than a single `OctaneClient` initialization.
+Moreover, different instances of `CIPluginServices` MAY NOT provide the same `instanceId` value, the one that is effectively identifying `OctaneClient` instances.
+
 
 ## Communicating with ALM Octane using Data Transfer Objects (DTO)
 
@@ -108,7 +117,7 @@ CIEvent ciEvent = DTOFactory.getInstance().newDTO(CIEvent.class)
       .setStartTime(startTime)
       .setPhaseType(phaseType);
 
-OctaneSDK.getInstance().getEventsService().publishEvent(ciEvent);
+octaneClient.getEventsService().publishEvent(ciEvent);
 ```
 
 One of the capabilities of `CIEvent` is to transfer SCM data as part of it.
@@ -165,7 +174,7 @@ The preferred flow is somewhat asynchronous and it is crucial to understand it, 
 1. When tests result are fully accessible, CI Plugin should ensure, that those may be identified and accessed later on; for identification we use a notion of `jobCiId` and `buildCiId` which are a simple strings; pay attention, that in some/most CI systems tests results (with their full data, like duration, exceptions etc) are not available for a prolonged period of time, in such a cases it is required to store this data somewhere for later retrieval
 2. Next, CI Plugin should 'notify' the SDK that tests results are available for such a `buildCiId` of such a `jobCiId`, whatever they are, using the following API:
    ```java
-   OctaneSDK.getInstance().getTestsService().enqueuePushTestsResult(someJobCiId, someBuildCiId);
+   octaneClient.getTestsService().enqueuePushTestsResult(someJobCiId, someBuildCiId);
    ```
 3. SDK will enqueue this info internally (not persisted, as of now) and somewhat later, usually almost immediately, but it depends on the system load of course, turn back to an SPI and will ask for a full report of tests results of the said above `jobCiId`/`buildCiId`; CI Plugin is expected to be able to retrieve the correct tests results (probably stored somewhere, as we mentioned in punkt 1 above) and return them; to be sure, relevant SPI method is:
    ```java
@@ -179,7 +188,7 @@ The preferred flow is somewhat asynchronous and it is crucial to understand it, 
 
 Another, less preferred way to push tests results to ALM Octane is a synchronous push, which may be done by calling the below API somewhere within punkt 1 above:
 ```java
-OctaneSDK.getInstance().getTestsService().pushTestsResult(pushTestsResult);
+octaneClient.getTestsService().pushTestsResult(pushTestsResult);
 ```
 >_Pay attention, that usually executing time consuming actions within the CI event call effectively means holding the main CI system execution thread, since most of the CI system's events are executing on the main thread.
 Don't do that._

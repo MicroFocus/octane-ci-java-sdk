@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.events.PhaseType;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.scm.SCMData;
@@ -36,6 +37,8 @@ class CIEventImpl implements CIEvent {
 	private CIEventType eventType;
 	private String buildCiId;
 	private String project;
+	private String parentCiId;
+	private MultiBranchType multiBranchType;
 	private String number;
 	private List<CIEventCause> causes;
 	private List<CIParameter> parameters;
@@ -47,6 +50,9 @@ class CIEventImpl implements CIEvent {
 	private Boolean testResultExpected;
 	private String projectDisplayName;
 	private PhaseType phaseType;
+	private String commonHashId;
+	private String branchName;
+
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -91,6 +97,28 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setProject(String project) {
 		this.project = project;
+		return this;
+	}
+
+	@Override
+	public String getParentCiId() {
+		return this.parentCiId;
+	}
+
+	@Override
+	public CIEvent setParentCiId(String parentCiId) {
+		this.parentCiId = parentCiId;
+		return this;
+	}
+
+	@Override
+	public MultiBranchType getMultiBranchType() {
+		return multiBranchType;
+	}
+
+	@Override
+	public CIEvent setMultiBranchType(MultiBranchType multiBranchType) {
+		this.multiBranchType = multiBranchType;
 		return this;
 	}
 
@@ -163,6 +191,26 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setScmData(SCMData scmData) {
 		this.scmData = scmData;
+		return this;
+	}
+
+	public String getCommonHashId() {
+		return commonHashId;
+	}
+
+	public CIEvent setCommonHashId(String commonHashId) {
+		this.commonHashId = commonHashId;
+		return this;
+	}
+
+
+
+	public String getBranchName() {
+		return branchName;
+	}
+
+	public CIEvent setBranchName(String branchName) {
+		this.branchName = branchName;
 		return this;
 	}
 

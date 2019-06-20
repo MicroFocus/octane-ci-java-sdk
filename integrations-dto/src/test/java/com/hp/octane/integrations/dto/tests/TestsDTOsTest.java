@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -37,8 +37,8 @@ public class TestsDTOsTest {
 	private static final String className = "class";
 	private static final String testName = "test";
 	private static final TestRunResult result = TestRunResult.PASSED;
-	private static final Long duration = 3000L;
-	private static final Long started = System.currentTimeMillis();
+	private static final long duration = 3000;
+	private static final long started = System.currentTimeMillis();
 
 	@Test
 	public void test_A() throws JAXBException {

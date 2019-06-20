@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -11,7 +11,6 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
 package com.hp.octane.integrations.dto.tests.impl;
@@ -50,10 +49,10 @@ class TestRunImpl implements TestRun {
 	private TestRunResult result;
 
 	@XmlAttribute(name = "duration")
-	private Long duration;
+	private long duration;
 
 	@XmlAttribute(name = "started")
-	private Long started;
+	private long started;
 
 	@XmlAnyElement(lax = true)
 	private TestRunError error;
@@ -106,20 +105,20 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
-	public Long getDuration() {
+	public long getDuration() {
 		return duration;
 	}
 
-	public TestRun setDuration(Long duration) {
+	public TestRun setDuration(long duration) {
 		this.duration = duration;
 		return this;
 	}
 
-	public Long getStarted() {
+	public long getStarted() {
 		return started;
 	}
 
-	public TestRun setStarted(Long started) {
+	public TestRun setStarted(long started) {
 		this.started = started;
 		return this;
 	}

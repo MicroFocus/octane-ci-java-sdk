@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -19,6 +19,7 @@ package com.hp.octane.integrations.dto.scm.impl;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.scm.SCMCommit;
 import com.hp.octane.integrations.dto.scm.SCMData;
+import com.hp.octane.integrations.dto.scm.SCMFileBlame;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 
 import java.util.List;
@@ -29,9 +30,13 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class SCMDataImpl implements SCMData {
+
+
 	private SCMRepository repository;
 	private String builtRevId;
 	private List<SCMCommit> commits;
+	private List<SCMFileBlame> fileBlameList;
+
 
 	public SCMRepository getRepository() {
 		return repository;
@@ -57,6 +62,17 @@ class SCMDataImpl implements SCMData {
 
 	public SCMData setCommits(List<SCMCommit> commits) {
 		this.commits = commits;
+		return this;
+	}
+
+	@Override
+	public List<SCMFileBlame> getFileBlameList() {
+		return this.fileBlameList;
+	}
+
+	@Override
+	public SCMData setFileBlameList(List<SCMFileBlame> fileBlameList) {
+		this.fileBlameList = fileBlameList;
 		return this;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -17,18 +17,10 @@
 package com.hp.octane.integrations.exceptions;
 
 
-public class ConfigurationException extends RuntimeException {
-	private int errorCode;
+public class ConfigurationException extends ErrorCodeBasedException {
 
-	public ConfigurationException(int errorCode) {
-		this.errorCode = errorCode;
-	}
+    public ConfigurationException(int errorCode) {
+        super(errorCode);
+    }
 
-	public int getErrorCode() {
-		return errorCode;
-	}
-
-	public void setErrorCode(int errorCode) {
-		this.errorCode = errorCode;
-	}
 }

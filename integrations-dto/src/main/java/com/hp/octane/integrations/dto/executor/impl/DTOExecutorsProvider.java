@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -26,19 +26,20 @@ import com.hp.octane.integrations.dto.executor.*;
 
 public final class DTOExecutorsProvider extends DTOInternalProviderBase {
 
-    public DTOExecutorsProvider(DTOFactory.DTOConfiguration configuration) {
-        dtoPairs.put(DiscoveryInfo.class, DiscoveryInfoImpl.class);
-        dtoPairs.put(TestSuiteExecutionInfo.class, TestSuiteExecutionInfoImpl.class);
-        dtoPairs.put(TestExecutionInfo.class, TestExecutionInfoImpl.class);
-        dtoPairs.put(TestConnectivityInfo.class, TestConnectivityInfoImpl.class);
-        dtoPairs.put(CredentialsInfo.class, CredentialsInfoImpl.class);
-    }
+	public DTOExecutorsProvider(DTOFactory.DTOConfiguration configuration) {
+		super(configuration);
+		dtoPairs.put(DiscoveryInfo.class, DiscoveryInfoImpl.class);
+		dtoPairs.put(TestSuiteExecutionInfo.class, TestSuiteExecutionInfoImpl.class);
+		dtoPairs.put(TestExecutionInfo.class, TestExecutionInfoImpl.class);
+		dtoPairs.put(TestConnectivityInfo.class, TestConnectivityInfoImpl.class);
+		dtoPairs.put(CredentialsInfo.class, CredentialsInfoImpl.class);
+	}
 
-    protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
-        T result = null;
-        if (dtoPairs.containsKey(targetType)) {
-            result = (T) dtoPairs.get(targetType).newInstance();
-        }
-        return result;
-    }
+	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+		T result = null;
+		if (dtoPairs.containsKey(targetType)) {
+			result = (T) dtoPairs.get(targetType).newInstance();
+		}
+		return result;
+	}
 }

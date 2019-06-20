@@ -1,5 +1,5 @@
 /*
- *     Copyright 2017 Hewlett-Packard Development Company, L.P.
+ *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
  *     Licensed under the Apache License, Version 2.0 (the "License");
  *     you may not use this file except in compliance with the License.
  *     You may obtain a copy of the License at
@@ -41,6 +41,10 @@ public interface DiscoveryInfo extends DTOBase {
 
     DiscoveryInfo setExecutorId(String executorId);
 
+    String getExecutorType() ;
+
+    void setExecutorType(String executorType);
+
     TestingToolType getTestingToolType();
 
     DiscoveryInfo setTestingToolType(TestingToolType testingToolType);
@@ -56,4 +60,8 @@ public interface DiscoveryInfo extends DTOBase {
     String getExecutorLogicalName();
 
     DiscoveryInfo setExecutorLogicalName(String executorLogicalName);
+
+	String getConfigurationId();
+
+	void setConfigurationId(String configurationId);
 }
