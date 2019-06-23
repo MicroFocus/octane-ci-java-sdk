@@ -74,6 +74,7 @@ public class SonarServiceImpl implements SonarService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
+	private int REGULAR_CYCLE_PAUSE = 250;
 
 	public SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -103,6 +104,7 @@ public class SonarServiceImpl implements SonarService {
 	// infallible everlasting background worker
 	private void worker() {
 		while (!sonarIntegrationExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 			if (sonarIntegrationQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_SONAR_COVERAGE_ITEMS_MONITOR);
 				continue;

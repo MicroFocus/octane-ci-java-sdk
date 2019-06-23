@@ -65,6 +65,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 10000;
+	private int REGULAR_CYCLE_PAUSE = 250;
+
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
@@ -145,6 +147,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  infallible everlasting background worker
 	private void worker() {
+		CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 		while (!vulnerabilitiesProcessingExecutor.isShutdown()) {
 			if (vulnerabilitiesQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_VULNERABILITIES_RESULTS_MONITOR);
