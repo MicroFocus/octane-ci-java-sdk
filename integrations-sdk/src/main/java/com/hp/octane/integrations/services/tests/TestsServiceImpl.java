@@ -62,6 +62,7 @@ final class TestsServiceImpl implements TestsService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
+	private int REGULAR_CYCLE_PAUSE = 250;
 
 	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
@@ -193,6 +194,7 @@ final class TestsServiceImpl implements TestsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!testsPushExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 			if (testResultsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_TEST_RESULTS_MONITOR);
 				continue;

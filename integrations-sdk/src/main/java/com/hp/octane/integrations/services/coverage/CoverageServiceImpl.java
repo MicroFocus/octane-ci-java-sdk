@@ -56,6 +56,7 @@ class CoverageServiceImpl implements CoverageService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
+	private int REGULAR_CYCLE_PAUSE = 250;
 
 	CoverageServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -85,6 +86,7 @@ class CoverageServiceImpl implements CoverageService {
 	// infallible everlasting background worker
 	private void worker() {
 		while (!coveragePushExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 			if (coveragePushQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_COVERAGES_MONITOR);
 				continue;

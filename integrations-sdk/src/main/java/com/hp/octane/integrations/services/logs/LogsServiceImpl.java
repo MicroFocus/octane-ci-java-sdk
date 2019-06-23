@@ -54,6 +54,7 @@ final class LogsServiceImpl implements LogsService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
+	private int REGULAR_CYCLE_PAUSE = 250;
 
 	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -103,6 +104,8 @@ final class LogsServiceImpl implements LogsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!logsPushExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+
 			if (buildLogsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_LOGS_MONITOR);
 				continue;
