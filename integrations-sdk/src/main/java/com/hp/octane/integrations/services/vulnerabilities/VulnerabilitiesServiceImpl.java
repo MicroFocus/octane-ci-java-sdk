@@ -147,8 +147,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  infallible everlasting background worker
 	private void worker() {
-		CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 		while (!vulnerabilitiesProcessingExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 			if (vulnerabilitiesQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_VULNERABILITIES_RESULTS_MONITOR);
 				continue;
