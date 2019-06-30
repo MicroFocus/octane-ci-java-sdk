@@ -16,21 +16,15 @@
 
 package com.hp.octane.integrations.executor.converters;
 
-import com.hp.octane.integrations.executor.TestToRunData;
-import com.hp.octane.integrations.executor.TestsToRunConverter;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 /*
  * Converter to protractor format : protractor conf.js --grep="spec1 case1|spec2 case2"
  */
 public class ProtractorConverter extends CustomConverter {
 
-    public static final String PROTRACTOR_FORMAT = "$class $testName";
-    public static final String PROTRACTOR_DELIMITER = "|";
+    public static final String FORMAT = "$class $testName";
+    public static final String DELIMITER = "|";
 
     public ProtractorConverter() {
-        super(PROTRACTOR_FORMAT, PROTRACTOR_DELIMITER);
+        super(FORMAT, DELIMITER);
     }
 }

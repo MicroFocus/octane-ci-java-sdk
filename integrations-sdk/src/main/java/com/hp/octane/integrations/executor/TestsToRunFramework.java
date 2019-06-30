@@ -15,6 +15,7 @@
  */
 package com.hp.octane.integrations.executor;
 
+import com.hp.octane.integrations.executor.converters.GherkinConverter;
 import com.hp.octane.integrations.executor.converters.GradleConverter;
 import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
@@ -23,8 +24,9 @@ public enum TestsToRunFramework {
 
     JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe", "", ""),
     MF_UFT("uft", "Micro Focus UFT", "", ""),
-    Protractor("protractor", "Protractor", ProtractorConverter.PROTRACTOR_FORMAT, ProtractorConverter.PROTRACTOR_DELIMITER),
-    Gradle("gradle","Gradle", GradleConverter.GRADLE_FORMAT, GradleConverter.GRADLE_DELIMITER),
+    Protractor("protractor", "Protractor", ProtractorConverter.FORMAT, ProtractorConverter.DELIMITER),
+    Gradle("gradle","Gradle", GradleConverter.FORMAT, GradleConverter.DELIMITER),
+    Gherkin("gherkin","Gherkin", GherkinConverter.FORMAT, GherkinConverter.DELIMITER),
     Custom("custom","Custom", "", "");
 
     private final String value;
