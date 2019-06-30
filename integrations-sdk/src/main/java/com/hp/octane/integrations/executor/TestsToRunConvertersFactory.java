@@ -31,8 +31,8 @@ public class TestsToRunConvertersFactory {
                 return new ProtractorConverter();
             case Gradle:
                 return new GradleConverter();
-            case Gherkin:
-                return new GherkinConverter();
+            case Cucumber:
+                return new CucumberConverter();
             case Custom:
                 return new CustomConverter();
             default:

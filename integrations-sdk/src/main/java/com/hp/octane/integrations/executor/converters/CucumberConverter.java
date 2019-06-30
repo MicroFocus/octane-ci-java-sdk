@@ -21,22 +21,22 @@ import com.hp.octane.integrations.executor.TestToRunData;
 /*
  * Converter to format : mvn clean test -Dcucumber.options="--name (scenario1|scenario2)"
  */
-public class GherkinConverter extends CustomConverter {
+public class CucumberConverter extends CustomConverter {
 
     public static final String FORMAT = "$testName";
     public static final String DELIMITER = "|";
 
-    public GherkinConverter() {
+    public CucumberConverter() {
         super(FORMAT, DELIMITER);
     }
 
     @Override
     protected String convertToFormat(TestToRunData testToRunData) {
         String superResult = super.convertToFormat(testToRunData);
-        return replaceNonEnglishCharactersAndDigitsToOctalRepresentation(superResult);
+        return replaceNonLatinLettersToOctalRepresentation(superResult);
     }
 
-    public static String replaceNonEnglishCharactersAndDigitsToOctalRepresentation(String str) {
+    public static String replaceNonLatinLettersToOctalRepresentation(String str) {
 
         StringBuilder sb = new StringBuilder(str.length());
         for (char c : str.toCharArray()) {
