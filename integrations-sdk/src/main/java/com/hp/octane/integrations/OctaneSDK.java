@@ -66,7 +66,7 @@ public final class OctaneSDK {
 	 * @param octaneConfiguration valid Octane configuration object
 	 * @param pluginServicesClass Class that implements the CIPluginServices interface. This object is a composite
 	 *                            API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases
-	 * @return
+	 * @return OctaneClient
 	 */
 	synchronized public static OctaneClient addClient(OctaneConfiguration octaneConfiguration, Class<? extends CIPluginServices> pluginServicesClass) {
 		if (octaneConfiguration == null) {
@@ -122,7 +122,7 @@ public final class OctaneSDK {
 
 	/**
 	 * Returns true if sdk defined clients
-	 * @return
+	 * @return return true is hasClients
 	 */
 	public static boolean hasClients() {
 		return !clients.isEmpty();
@@ -195,7 +195,7 @@ public final class OctaneSDK {
 	 * @param sharedSpaceId   shared space ID
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
-	 * @return Octane server response; response MAY be inspected for the specific error in order to create meaningful message to the user
+	 * @param pluginServicesClass
 	 * @throws IOException in case of basic connectivity failure
 	 */
 	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
@@ -226,8 +226,9 @@ public final class OctaneSDK {
 	 * @param sharedSpaceId   shared space ID
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
-	 * @return error message according to response status code
+	 * @param pluginServicesClass  pluginServicesClass
 	 * @throws IOException in case of basic connectivity failure
+	 *
 	 */
 	public static void testAndValidateOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException{
 

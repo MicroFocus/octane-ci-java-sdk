@@ -37,7 +37,10 @@ public interface SonarService extends ClosableService {
 	 * Sonar integration Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer SDK services configurer object
+	 * @param queueingService queueingService
+	 * @param coverageService coverageService
 	 * @return initialized service
+
 	 */
 	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService ) {
 		return new SonarServiceImpl(configurer, queueingService, coverageService);

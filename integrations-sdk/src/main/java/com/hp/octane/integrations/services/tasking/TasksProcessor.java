@@ -38,8 +38,8 @@ public interface TasksProcessor {
 
 	/**
 	 * Initiates execution of Octane logic oriented task
-	 * @param task
-	 * @return
+	 * @param task task
+	 * @return OctaneResultAbridged
 	 */
 	OctaneResultAbridged execute(OctaneTaskAbridged task);
 }

@@ -26,10 +26,10 @@ public interface VulnerabilitiesService extends ClosableService {
 
 	/**
 	 * 	 Service instance producer - for internal usage only (protected by inaccessible configurer)
-	 * @param queueingService
-	 * @param vulnerabilitiesToolServices
-	 * @param configurer
-	 * @param restService
+	 * @param queueingService queueingService
+	 * @param vulnerabilitiesToolServices vulnerabilitiesToolServices
+	 * @param configurer configurer
+	 * @param restService restService
 	 * @return return initialized service
 	 */
 	static VulnerabilitiesService newInstance (QueueingService queueingService,VulnerabilitiesToolService[] vulnerabilitiesToolServices,
@@ -43,10 +43,10 @@ public interface VulnerabilitiesService extends ClosableService {
 	 *
 	 * @param jobId            any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId          any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
-	 * @param toolType
+	 * @param toolType         toolType
 	 * @param startRunTime     timestamp of build start
 	 * @param queueItemTimeout timeout defined for this queue item
-	 * @param additionalProperties
+	 * @param additionalProperties additionalProperties
 	 */
 	void enqueueRetrieveAndPushVulnerabilities(String jobId,
 											   String buildId,

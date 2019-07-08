@@ -45,7 +45,7 @@ public interface ConfigurationService {
 
 	/**
 	 * Check if current configuration is valid
-	 * @return
+	 * @return isCurrentConfigurationValid
 	 */
 	boolean isCurrentConfigurationValid();
 

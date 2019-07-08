@@ -41,9 +41,9 @@ public interface TestsService extends ClosableService {
 
 	/**
 	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
-	 * @param jobId
-	 * @return
-	 * @throws IOException
+	 * @param jobId jobId
+	 * @return true if isTestsResultRelevant
+	 * @throws IOException IOException
 	 */
 	boolean isTestsResultRelevant(String jobId) throws IOException;
 
@@ -53,8 +53,8 @@ public interface TestsService extends ClosableService {
 	 * @param testsResult ready-to-be-pushed TestsResult object, having a collection of tests results with the relevant build context
 	 * @param jobId       ID of the job that produced the results
 	 * @param buildId     ID of the build that produced the results
-	 * @return
-	 * @throws IOException
+	 * @return OctaneResponse
+	 * @throws IOException IOException
 	 */
 	OctaneResponse pushTestsResult(TestsResult testsResult, String jobId, String buildId) throws IOException;
 
@@ -65,8 +65,8 @@ public interface TestsService extends ClosableService {
 	 * @param testsResult ready-to-be-pushed TestsResult resource given as an InputStream
 	 * @param jobId       ID of the job that produced the results
 	 * @param buildId     ID of the build that produced the results
-	 * @return
-	 * @throws IOException
+	 * @return OctaneResponse
+	 * @throws IOException IOException
 	 */
 	OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException;
 

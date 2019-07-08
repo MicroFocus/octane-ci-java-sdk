@@ -23,8 +23,8 @@ public interface FODService extends VulnerabilitiesToolService {
     /**
      * Service instance producer - for internal usage only (protected by inaccessible configurer)
      *
-     * @param configurer
-     * @param restService
+     * @param configurer configurer
+     * @param restService restService
      * @return initialized service
      */
     static FODService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
