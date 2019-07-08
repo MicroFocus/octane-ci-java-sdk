@@ -24,6 +24,8 @@ public interface SSCService extends VulnerabilitiesToolService {
     /**
      * Service instance producer - for internal usage only (protected by inaccessible configurer)
      *
+     * @param configurer
+     * @param restService
      * @return initialized service
      */
     static SSCService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {

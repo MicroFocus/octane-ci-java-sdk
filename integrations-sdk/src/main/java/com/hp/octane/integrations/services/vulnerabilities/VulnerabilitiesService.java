@@ -19,17 +19,18 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
-import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 
 import java.util.Map;
 
 public interface VulnerabilitiesService extends ClosableService {
 
 	/**
-	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
-	 *
-	 * @return initialized service
+	 * 	 Service instance producer - for internal usage only (protected by inaccessible configurer)
+	 * @param queueingService
+	 * @param vulnerabilitiesToolServices
+	 * @param configurer
+	 * @param restService
+	 * @return return initialized service
 	 */
 	static VulnerabilitiesService newInstance (QueueingService queueingService,VulnerabilitiesToolService[] vulnerabilitiesToolServices,
 											   OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
@@ -42,8 +43,10 @@ public interface VulnerabilitiesService extends ClosableService {
 	 *
 	 * @param jobId            any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId          any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param toolType
 	 * @param startRunTime     timestamp of build start
 	 * @param queueItemTimeout timeout defined for this queue item
+	 * @param additionalProperties
 	 */
 	void enqueueRetrieveAndPushVulnerabilities(String jobId,
 											   String buildId,

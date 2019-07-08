@@ -66,6 +66,7 @@ public final class OctaneSDK {
 	 * @param octaneConfiguration valid Octane configuration object
 	 * @param pluginServicesClass Class that implements the CIPluginServices interface. This object is a composite
 	 *                            API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases
+	 * @return
 	 */
 	synchronized public static OctaneClient addClient(OctaneConfiguration octaneConfiguration, Class<? extends CIPluginServices> pluginServicesClass) {
 		if (octaneConfiguration == null) {

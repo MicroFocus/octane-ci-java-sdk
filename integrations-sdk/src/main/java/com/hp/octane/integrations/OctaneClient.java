@@ -37,8 +37,7 @@ public interface OctaneClient {
 
 	/**
 	 * provides OctaneClient instance ID
-	 * <p>
-	 * return instance ID
+	 * @return instance ID
 	 */
 	String getInstanceId();
 
