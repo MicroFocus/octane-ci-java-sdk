@@ -240,7 +240,9 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResultA);
 				testResultXML = testResultXML.replaceAll("<build.*?>",
-						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>");
+						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>")
+				.replace("</build>","");//remove closing build element if exist
+
 				testsResultB = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
 			} catch (Exception e) {
 				throw new PermanentException("failed to update ci server instance ID in the test results XML");
