@@ -15,9 +15,13 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -211,6 +215,51 @@ public final class OctaneSDK {
 		RestService restService = RestService.newInstance(configurer);
 		ConfigurationService configurationService = ConfigurationService.newInstance(configurer, restService);
 		return configurationService.validateConfiguration(configuration);
+	}
+
+
+	/**
+	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
+	 *
+	 * @param octaneServerUrl base Octane server URL
+	 * @param sharedSpaceId   shared space ID
+	 * @param client          client / api key
+	 * @param secret          secret / api secret
+	 * @return error message according to response status code
+	 * @throws IOException in case of basic connectivity failure
+	 */
+	public static void testAndValidateOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException{
+
+		OctaneResponse response = testOctaneConfiguration(octaneServerUrl, sharedSpaceId, client, secret, pluginServicesClass);
+
+		if (response.getStatus() == 401) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.AUTHENTICATION_FAILURE_KEY, OctaneConnectivityException.AUTHENTICATION_FAILURE_MESSAGE);
+		} else if (response.getStatus() == 403) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.AUTHORIZATION_FAILURE_KEY, OctaneConnectivityException.AUTHORIZATION_FAILURE_MESSAGE);
+		} else if (response.getStatus() == 404) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.CONN_SHARED_SPACE_INVALID_KEY, OctaneConnectivityException.CONN_SHARED_SPACE_INVALID_MESSAGE);
+		} else if (response.getStatus() != 200) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.UNEXPECTED_FAILURE_KEY, OctaneConnectivityException.UNEXPECTED_FAILURE_MESSAGE + ": "+ response.getStatus());
+		} else if (response.getStatus() == 200){
+			if(!isSdkSupported(response)){
+				throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_KEY, OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+			}
+		}
+	}
+
+	private static boolean isSdkSupported(OctaneResponse response) {
+
+		if (response.getBody() != null && !response.getBody().isEmpty()) {
+
+			OctaneConnectivityStatus octaneConnectivityStatus = DTOFactory.getInstance().dtoFromJson(response.getBody(), OctaneConnectivityStatus.class);
+
+			if(octaneConnectivityStatus.getSupportedSdkVersion()== null ||
+					CIPluginSDKUtils.compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion())>0){
+					return true;
+			}
+		}
+
+		return false;
 	}
 
 	static boolean isInstanceIdUnique(String instanceId) {
