@@ -103,6 +103,17 @@ public final class OctaneSDK {
 			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
 		}
 
+		OctaneResponse response = null;
+		try {
+			 response = testOctaneConfiguration(octaneConfiguration,pluginServices);
+		} catch (Exception e) {
+			logger.error("addClient-test connection failed : " + e.getMessage());
+		}
+		if (response != null && response.getStatus() == 200 && !isSdkSupported(response)) {
+			logger.error("addClient - and Octane client was not created: "+ OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+			throw new IllegalStateException(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+		}
+
 		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(octaneConfiguration, pluginServices));
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
@@ -212,13 +223,16 @@ public final class OctaneSDK {
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
 		}
-		SDKServicesConfigurer configurer = new SDKServicesConfigurer(configuration, pluginServices);
-		RestService restService = RestService.newInstance(configurer);
-		ConfigurationService configurationService = ConfigurationService.newInstance(configurer, restService);
-		return configurationService.validateConfiguration(configuration);
+
+		return testOctaneConfiguration(configuration, pluginServices) ;
 	}
 
-
+	private static OctaneResponse testOctaneConfiguration(OctaneConfiguration octaneConfiguration, CIPluginServices pluginServices) throws IOException{
+		SDKServicesConfigurer configurer = new SDKServicesConfigurer(octaneConfiguration, pluginServices);
+		RestService restService = RestService.newInstance(configurer);
+		ConfigurationService configurationService = ConfigurationService.newInstance(configurer, restService);
+		return configurationService.validateConfiguration(octaneConfiguration);
+	}
 	/**
 	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
 	 *
@@ -254,10 +268,14 @@ public final class OctaneSDK {
 		if (response.getBody() != null && !response.getBody().isEmpty()) {
 
 			OctaneConnectivityStatus octaneConnectivityStatus = DTOFactory.getInstance().dtoFromJson(response.getBody(), OctaneConnectivityStatus.class);
-
-			if(octaneConnectivityStatus.getSupportedSdkVersion()== null ||
-					CIPluginSDKUtils.compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion())>0){
+			try {
+				if (octaneConnectivityStatus.getSupportedSdkVersion() == null ||
+						CIPluginSDKUtils.compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion()) > 0) {
 					return true;
+				}
+			} catch (Exception e){
+				logger.error("unable to compare plugin SDK version: "+ OctaneSDK.SDK_VERSION + " with Supported SDK version: " + octaneConnectivityStatus.getSupportedSdkVersion() +". " + e.getMessage());
+				return true;
 			}
 		}
 
