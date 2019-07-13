@@ -96,7 +96,7 @@ public class CustomConverter extends TestsToRunConverter {
                                 getMapValue(m, "replacement", true, errorMessage));
                         break;
                     default:
-                        throw new IllegalArgumentException(String.format("Unknown replacement action '%s'", replacementType));
+                        throw new IllegalArgumentException(String.format("Unknown replacement type '%s'", replacementType));
                 }
 
                 for (String t : targets) {
@@ -110,7 +110,7 @@ public class CustomConverter extends TestsToRunConverter {
     }
 
     private String getMapValue(Map<String, Object> map, String fieldName, boolean throwIfNull) {
-        return getMapValue(map, fieldName, throwIfNull, "Missing field : %s");
+        return getMapValue(map, fieldName, throwIfNull, "Field '%s' is missing in format json");
     }
 
     private String getMapValue(Map<String, Object> map, String fieldName, boolean throwIfNull, String errorMessage) {
@@ -129,7 +129,7 @@ public class CustomConverter extends TestsToRunConverter {
     public String convert(List<TestToRunData> data, String executionDirectory) {
         String collect = data.stream()
                 .map(n -> convertToFormat(n))
-                //.distinct()
+                .distinct()
                 .collect(Collectors.joining(delimiter, prefix, suffix));
         return collect;
     }

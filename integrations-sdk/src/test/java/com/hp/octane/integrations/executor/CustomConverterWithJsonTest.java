@@ -103,7 +103,7 @@ public class CustomConverterWithJsonTest {
             CustomConverter converter = new CustomConverter(json, ",");
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("Missing field : testPattern", e.getMessage());
+            Assert.assertEquals("Field 'testPattern' is missing in format json", e.getMessage());
         }
     }
 
@@ -118,7 +118,7 @@ public class CustomConverterWithJsonTest {
             CustomConverter converter = new CustomConverter(json, ",");
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("Unknown replacement action 'notExist'", e.getMessage());
+            Assert.assertEquals("Unknown replacement type 'notExist'", e.getMessage());
         }
     }
 
