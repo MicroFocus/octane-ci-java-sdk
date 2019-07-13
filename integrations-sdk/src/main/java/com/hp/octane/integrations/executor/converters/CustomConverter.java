@@ -16,12 +16,14 @@
 
 package com.hp.octane.integrations.executor.converters;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /*
@@ -32,46 +34,126 @@ public class CustomConverter extends TestsToRunConverter {
     private static final String $_PACKAGE = "$package";
     private static final String $_CLASS = "$class";
     private static final String $_TEST_NAME = "$testName";
+    private static final Set<String> allowedTargets = new HashSet(Arrays.asList($_PACKAGE, $_CLASS, $_TEST_NAME));
 
-    protected String format = "";
     protected String delimiter = "";
+    protected String testPattern = "";
+    protected String prefix = "";
+    protected String suffix = "";
+    Map<String, List<ReplaceAction>> replacements = new HashMap<>();
+
 
     public CustomConverter() {
     }
 
     public CustomConverter(String format, String delimiter) {
-        this.format = format;
+        initialize(format, delimiter);
+    }
+
+    private void initialize(String format, String delimiter) {
+        this.testPattern = format;
         this.delimiter = delimiter;
+        if (format.trim().startsWith("{")) {
+            Map<String, Object> parsed = parseJson(testPattern, Map.class);
+            this.testPattern = getMapValue(parsed, "testPattern", true);
+            this.delimiter = getMapValue(parsed, "testDelimiter", false);
+            this.prefix = getMapValue(parsed, "prefix", false);
+            this.suffix = getMapValue(parsed, "suffix", false);
+            List<Map<String, Object>> rawReplacement = (List<Map<String, Object>>) parsed.get("replacements");
+            if (rawReplacement == null) {
+                rawReplacement = Collections.emptyList();
+            }
+            rawReplacement.forEach(m -> {
+                String replacementType = getMapValue(m, "type", true);
+                String targetsRaw = getMapValue(m, "target", true);
+                Set<String> targets = new HashSet<>(Arrays.asList(targetsRaw.split(Pattern.quote("|"))));
+                targets.forEach(t -> {
+                    if (!(allowedTargets.contains(t))) {
+                        throw new IllegalArgumentException(String.format("Illegal target '%s' in replacement '%s'. Allowed values : %s", t, replacementType, allowedTargets));
+                    }
+                });
+
+                ReplaceAction action = null;
+                String errorMessage = null;
+                switch (replacementType) {
+                    case "notLatinAndDigitToOctal":
+                        action = new NotLatinAndDigitToOctal();
+                        break;
+                    case "replaceRegex":
+                        errorMessage = "The replacement 'replaceRegex' is missing field '%s'";
+                        action = new ReplaceRegex()
+                                .initialize(getMapValue(m, "regex", true, errorMessage),
+                                        getMapValue(m, "replacement", true, errorMessage));
+                        break;
+                    case "replaceRegexFirst":
+                        errorMessage = "The replacement 'replaceRegexFirst' is missing field '%s'";
+                        action = new ReplaceRegexFirst().initialize(getMapValue(m, "regex", true, errorMessage),
+                                getMapValue(m, "replacement", true, errorMessage));
+                        break;
+                    case "replaceString":
+                        errorMessage = "The replacement 'replaceString' is missing field '%s'";
+                        action = new ReplaceString().initialize(getMapValue(m, "string", true, errorMessage),
+                                getMapValue(m, "replacement", true, errorMessage));
+                        break;
+                    default:
+                        throw new IllegalArgumentException(String.format("Unknown replacement action '%s'", replacementType));
+                }
+
+                for (String t : targets) {
+                    if (!replacements.containsKey(t)) {
+                        replacements.put(t, new ArrayList<>());
+                    }
+                    replacements.get(t).add(action);
+                }
+            });
+        }
+    }
+
+    private String getMapValue(Map<String, Object> map, String fieldName, boolean throwIfNull) {
+        return getMapValue(map, fieldName, throwIfNull, "Missing field : %s");
+    }
+
+    private String getMapValue(Map<String, Object> map, String fieldName, boolean throwIfNull, String errorMessage) {
+        if (map.containsKey(fieldName)) {
+            return (String) map.get(fieldName);
+        } else {
+            if (throwIfNull) {
+                throw new IllegalArgumentException(String.format(errorMessage, fieldName));
+            } else {
+                return "";
+            }
+        }
     }
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         String collect = data.stream()
-                .map(n -> convertToFormat(n) )
-                .collect(Collectors.joining(delimiter));
+                .map(n -> convertToFormat(n))
+                //.distinct()
+                .collect(Collectors.joining(delimiter, prefix, suffix));
         return collect;
     }
 
     @Override
     public TestsToRunConverter setProperties(Map<String, String> properties) {
-        properties.entrySet().forEach(property -> setProperty(property));
+        initialize(properties.get(CONVERTER_FORMAT), properties.get(CONVERTER_DELIMITER));
         return this;
     }
 
     protected String convertToFormat(TestToRunData testToRunData) {
-        boolean formatContainsPackage = format.contains($_PACKAGE);
-        boolean formatContainsClass = format.contains($_CLASS);
-        int packageIndex = format.indexOf($_PACKAGE);
+        boolean patternContainsPackage = testPattern.contains($_PACKAGE);
+        boolean patternContainsClass = testPattern.contains($_CLASS);
+        int packageIndex = testPattern.indexOf($_PACKAGE);
 
-        String res = format;
+        String res = testPattern;
 
-        if (formatContainsPackage){
+        if (patternContainsPackage) {
             String packageName = testToRunData.getPackageName();
             if (SdkStringUtils.isNotEmpty(packageName)) {
-                res = res.replace($_PACKAGE, packageName);
+                res = res.replace($_PACKAGE, handleReplacements($_PACKAGE, packageName));
             } else {
                 // remove $package part of format including its delimiter
-                if (formatContainsClass) {
+                if (patternContainsClass) {
                     // the $class expresion exists in given format - remove the part till $class
                     //      for example: the format is XXXX$package.||.$class.||.$testName
                     //      the result: XXXX$class.||.$testName
@@ -85,10 +167,10 @@ public class CustomConverter extends TestsToRunConverter {
             }
         }
 
-        if (formatContainsClass){
+        if (patternContainsClass) {
             String className = testToRunData.getClassName();
             if (SdkStringUtils.isNotEmpty(className)) {
-                res = res.replace($_CLASS, className);
+                res = res.replace($_CLASS, handleReplacements($_CLASS, className));
             } else {
                 // remove $class part of format including its delimiter (till $testName)
                 //      for example: the format is XXXX$class.||.$testName
@@ -97,34 +179,117 @@ public class CustomConverter extends TestsToRunConverter {
             }
         }
 
-        res = res.replace($_TEST_NAME, testToRunData.getTestName());
-
+        res = res.replace($_TEST_NAME, handleReplacements($_TEST_NAME, testToRunData.getTestName()));
         return res;
     }
 
-    private void setProperty(Map.Entry<String, String> property) {
-        switch(property.getKey()) {
-            case CONVERTER_FORMAT:
-                this.format = property.getValue();
-                break;
-            case CONVERTER_DELIMITER:
-                this.delimiter = property.getValue();
-                break;
-            default:
-                break;
+    private String handleReplacements(String target, String str) {
+        List<ReplaceAction> targetReplacements = replacements.get(target);
+        if (targetReplacements == null) {
+            return str;
+        } else {
+            String myStr = str;
+            for (ReplaceAction action : targetReplacements) {
+                myStr = action.replace(myStr);
+            }
+            return myStr;
         }
     }
+
     /**
      * method changes the contents of a string by removing existing elements form index to index
      *
-     * @param string the original string
+     * @param string     the original string
      * @param beginIndex the begin index to remove the characters
-     * @param endIndex the begin index to remove the characters
+     * @param endIndex   the begin index to remove the characters
      * @return a new string contains the a part of the given string without existing substring form begin to end
-     *
-      */
+     */
     private String splice(String string, int beginIndex, int endIndex) {
         return string.substring(0, beginIndex) + string.substring(endIndex);
+    }
+
+    private static <T> T parseJson(String content, Class<T> valueType) {
+        final ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            T value = mapper.readValue(content, valueType);
+            return value;
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to parse :" + e.getMessage(), e);
+        }
+    }
+
+    public interface ReplaceAction {
+        String replace(String string);
+
+    }
+
+    public static class ReplaceString implements ReplaceAction {
+        private String str;
+        private String replacement;
+
+        public ReplaceString initialize(String str, String replacement) {
+            this.str = str;
+            this.replacement = replacement;
+            return this;
+        }
+
+        @Override
+        public String replace(String string) {
+            return string.replace(str, replacement);
+        }
+    }
+
+    public static class ReplaceRegex implements ReplaceAction {
+        private String regex;
+        private String replacement;
+
+        public ReplaceRegex initialize(String regex, String replacement) {
+            this.regex = regex;
+            this.replacement = replacement;
+            return this;
+        }
+
+        @Override
+        public String replace(String string) {
+            return string.replaceAll(regex, replacement);
+        }
+    }
+
+    public static class ReplaceRegexFirst implements ReplaceAction {
+        private String regex;
+        private String replacement;
+
+        public ReplaceRegexFirst initialize(String regex, String replacement) {
+            this.regex = regex;
+            this.replacement = replacement;
+            return this;
+        }
+
+        @Override
+        public String replace(String string) {
+            return string.replaceFirst(regex, replacement);
+        }
+    }
+
+    public static class NotLatinAndDigitToOctal implements ReplaceAction {
+        @Override
+        public String replace(String str) {
+            StringBuilder sb = new StringBuilder(str.length());
+            for (char c : str.toCharArray()) {
+                if (isLatinLetterOrDigit(c)) {
+                    sb.append(c);
+                } else {
+                    String octalRepresentation = String.format("\\%03o", (int) c);
+                    sb.append(octalRepresentation);
+                }
+            }
+            return sb.toString();
+        }
+
+        private boolean isLatinLetterOrDigit(char c) {
+            return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+        }
     }
 
 }

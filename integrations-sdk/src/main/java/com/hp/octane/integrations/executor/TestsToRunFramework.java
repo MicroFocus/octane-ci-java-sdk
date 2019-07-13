@@ -15,19 +15,17 @@
  */
 package com.hp.octane.integrations.executor;
 
-import com.hp.octane.integrations.executor.converters.CucumberConverter;
 import com.hp.octane.integrations.executor.converters.GradleConverter;
 import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
 public enum TestsToRunFramework {
 
-    JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe", "", ""),
+    JUnit4("mvnSurefire", "JUnit/TestNG over Maven Surefire/Failsafe", "", ""),
     MF_UFT("uft", "Micro Focus UFT", "", ""),
     Protractor("protractor", "Protractor", ProtractorConverter.FORMAT, ProtractorConverter.DELIMITER),
-    Gradle("gradle","Gradle", GradleConverter.FORMAT, GradleConverter.DELIMITER),
-    Cucumber("cucumber","Cucumber", CucumberConverter.FORMAT, CucumberConverter.DELIMITER),
-    Custom("custom","Custom", "", "");
+    Gradle("gradle", "Gradle", GradleConverter.FORMAT, GradleConverter.DELIMITER),
+    Custom("custom", "Custom", "", "");
 
     private final String value;
     private final String desc;
