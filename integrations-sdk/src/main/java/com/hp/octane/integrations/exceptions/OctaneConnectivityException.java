@@ -20,7 +20,7 @@ public class OctaneConnectivityException extends ErrorCodeBasedException {
     public static final String AUTHORIZATION_FAILURE_MESSAGE = "Authorization failure";
     public static final String CONN_SHARED_SPACE_INVALID_MESSAGE = "Unable to connect the shared space";
     public static final String UNEXPECTED_FAILURE_MESSAGE = "Connectivity test failed with unexpected failure" ;
-    public static final String UNSUPPORTED_SDK_VERSION_MESSAGE = "The plugin version is outdated and not supported with ALM Octane server. Please upgrade to newer version" ;
+    public static final String UNSUPPORTED_SDK_VERSION_MESSAGE = "This plugin version is outdated and is not supported by ALM Octane. Please upgrade to a newer version" ;
 
     public static final String AUTHENTICATION_FAILURE_KEY = "AUTHENTICATION_FAILURE";
     public static final String AUTHORIZATION_FAILURE_KEY = "AUTHORIZATION_FAILURE";

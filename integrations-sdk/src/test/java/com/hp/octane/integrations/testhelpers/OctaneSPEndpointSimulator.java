@@ -186,6 +186,11 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	private void installDefaultConnectivityStatusApiHandler() {
 		installApiHandler(HttpMethod.GET, "^.*/analytics/ci/servers/connectivity/status$", request -> {
 			request.getResponse().setStatus(HttpStatus.SC_OK);
+			try {
+				request.getResponse().getWriter().write("{\"supportedSdkVersion\": \"1.0.0\"}");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			request.setHandled(true);
 		});
 	}
