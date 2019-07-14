@@ -59,8 +59,8 @@ public class CustomConverter extends TestsToRunConverter {
             this.delimiter = getMapValue(parsed, "testDelimiter", false, "");
             this.prefix = getMapValue(parsed, "prefix", false, "");
             this.suffix = getMapValue(parsed, "suffix", false, "");
-            String testsToRunConvertedParameter = (getMapValue(parsed, "testsToRunConvertedParameter", false, DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER));
-            setTestsToRunConvertedParameter(testsToRunConvertedParameter);
+            String testsToRunConvertedParameterName = (getMapValue(parsed, "testsToRunConvertedParameter", false, DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER));
+            setTestsToRunConvertedParameterName(testsToRunConvertedParameterName);
 
             List<Map<String, Object>> rawReplacement = (List<Map<String, Object>>) parsed.get("replacements");
             if (rawReplacement == null) {
