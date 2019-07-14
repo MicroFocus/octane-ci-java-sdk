@@ -81,6 +81,37 @@ public class CustomConverterWithJsonTest {
     }
 
     @Test
+    public void replaceToUpperCaseAndToLowerCaseTest() {
+        String json = "{" +
+                "\"testPattern\": \"$package=$class#$testName\"," +
+                "\"testDelimiter\": \"+\"," +
+                "\"replacements\": [" +
+                "{\"type\":\"toLowerCase\",\"target\":\"$class\"}," +
+                "{\"type\":\"toUpperCase\",\"target\":\"$testName\"}" +
+                "]}";
+
+        CustomConverter converter = new CustomConverter(json, ",");
+        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("MFA.simpleA.tests=apptesta#MYTESTA+MFA.simpleA.tests=apptestb#TEST SEND", actual);
+    }
+
+    @Test
+    public void joinStringTest() {
+        String json = "{" +
+                "\"testPattern\": \"$package\"," +
+                "\"replacements\": [" +
+                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix\"}" +
+                "]}";
+
+        CustomConverter converter = new CustomConverter(json, ",");
+        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("prefix|MFA.simpleA.tests|suffix", actual);
+    }
+
+
+    @Test
     public void replaceRegexIgnoreCaseInMultipleTypesTest() {
         String json = "{" +
                 "\"testPattern\": \"$package.$class#$testName\"," +
@@ -152,6 +183,7 @@ public class CustomConverterWithJsonTest {
         }
     }
 
+    @Test
     public void missingReplacementFieldInReplaceRegexTest() {
         String json = "{" +
                 "\"testPattern\": \"$package.$class#$testName\"," +

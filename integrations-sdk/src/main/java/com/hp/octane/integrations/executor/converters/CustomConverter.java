@@ -98,6 +98,16 @@ public class CustomConverter extends TestsToRunConverter {
                         action = new ReplaceString().initialize(getMapValue(m, "string", errorMessage),
                                 getMapValue(m, "replacement", errorMessage));
                         break;
+                    case "joinString":
+                        action = new JoinString().initialize(getMapValue(m, "prefix", errorMessage),
+                                getMapValue(m, "suffix", errorMessage));
+                        break;
+                    case "toUpperCase":
+                        action = new ToUpperCase();
+                        break;
+                    case "toLowerCase":
+                        action = new ToLowerCase();
+                        break;
                     default:
                         throw new IllegalArgumentException(String.format("Unknown replacement type '%s'", replacementType));
                 }
@@ -278,6 +288,37 @@ public class CustomConverter extends TestsToRunConverter {
             return string.replaceFirst(regex, replacement);
         }
     }
+
+    public static class ToUpperCase implements ReplaceAction {
+        @Override
+        public String replace(String string) {
+            return string.toUpperCase();
+        }
+    }
+
+    public static class ToLowerCase implements ReplaceAction {
+        @Override
+        public String replace(String string) {
+            return string.toLowerCase();
+        }
+    }
+
+    public static class JoinString implements ReplaceAction {
+        private String prefix;
+        private String suffix;
+
+        public JoinString initialize(String prefix, String suffix) {
+            this.prefix = prefix == null ? "" : prefix;
+            this.suffix = suffix == null ? "" : suffix;
+            return this;
+        }
+
+        @Override
+        public String replace(String string) {
+            return prefix + string + suffix;
+        }
+    }
+
 
     public static class NotLatinAndDigitToOctal implements ReplaceAction {
         @Override
