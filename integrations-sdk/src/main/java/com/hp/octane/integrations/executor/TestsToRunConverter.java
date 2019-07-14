@@ -26,6 +26,8 @@ public abstract class TestsToRunConverter {
 
     public static final String CONVERTER_FORMAT = "format";
     public static final String CONVERTER_DELIMITER = "delimiter";
+    public static final String DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
+    private String testsToRunConvertedParameter = DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER;
 
     public TestsToRunConverter setProperties(Map<String, String> properties) { return this; }
 
@@ -38,6 +40,17 @@ public abstract class TestsToRunConverter {
     }
 
     protected abstract String convert(List<TestToRunData> data, String executionDirectory);
+
+    public String getTestsToRunConvertedParameter() {
+        return testsToRunConvertedParameter;
+    }
+
+    protected void setTestsToRunConvertedParameter(String value) {
+        if(SdkStringUtils.isEmpty(value)){
+            throw new IllegalArgumentException("TestsToRunConvertedParameter cannot be empty");
+        }
+        testsToRunConvertedParameter = value;
+    }
 
     protected List<TestToRunData> parse(String rawTests) {
 

@@ -22,6 +22,7 @@ public class TestsToRunConverterResult {
     private List<TestToRunData> testsData;
     private String convertedTestsString;
     private String workingDirectory;
+    private String convertedTestsParameter = TestsToRunConverter.DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER;
 
     public TestsToRunConverterResult(String rawTestsString, List<TestToRunData> testsData, String convertedTestsString, String workingDirectory) {
         this.rawTestsString = rawTestsString;
@@ -60,5 +61,13 @@ public class TestsToRunConverterResult {
 
     public void setWorkingDirectory(String workingDirectory) {
         this.workingDirectory = workingDirectory;
+    }
+
+    public String getConvertedTestsParameter() {
+        return convertedTestsParameter;
+    }
+
+    public void setConvertedTestsParameter(String convertedTestsParameter) {
+        this.convertedTestsParameter = convertedTestsParameter;
     }
 }

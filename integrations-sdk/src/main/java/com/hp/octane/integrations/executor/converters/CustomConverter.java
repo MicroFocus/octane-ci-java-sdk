@@ -42,7 +42,6 @@ public class CustomConverter extends TestsToRunConverter {
     protected String suffix = "";
     Map<String, List<ReplaceAction>> replacements = new HashMap<>();
 
-
     public CustomConverter() {
     }
 
@@ -54,18 +53,22 @@ public class CustomConverter extends TestsToRunConverter {
         this.testPattern = format;
         this.delimiter = delimiter;
         if (format.trim().startsWith("{")) {
+            String defaultErrorTemplate = "Field '%s' is missing in format json";
             Map<String, Object> parsed = parseJson(testPattern, Map.class);
-            this.testPattern = getMapValue(parsed, "testPattern", true);
-            this.delimiter = getMapValue(parsed, "testDelimiter", false);
-            this.prefix = getMapValue(parsed, "prefix", false);
-            this.suffix = getMapValue(parsed, "suffix", false);
+            this.testPattern = getMapValue(parsed, "testPattern", defaultErrorTemplate);
+            this.delimiter = getMapValue(parsed, "testDelimiter", false, "");
+            this.prefix = getMapValue(parsed, "prefix", false, "");
+            this.suffix = getMapValue(parsed, "suffix", false, "");
+            String testsToRunConvertedParameter = (getMapValue(parsed, "testsToRunConvertedParameter", false, DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER));
+            setTestsToRunConvertedParameter(testsToRunConvertedParameter);
+
             List<Map<String, Object>> rawReplacement = (List<Map<String, Object>>) parsed.get("replacements");
             if (rawReplacement == null) {
                 rawReplacement = Collections.emptyList();
             }
             rawReplacement.forEach(m -> {
-                String replacementType = getMapValue(m, "type", true);
-                String targetsRaw = getMapValue(m, "target", true);
+                String replacementType = getMapValue(m, "type", true, null);
+                String targetsRaw = getMapValue(m, "target", true, null);
                 Set<String> targets = new HashSet<>(Arrays.asList(targetsRaw.split(Pattern.quote("|"))));
                 targets.forEach(t -> {
                     if (!(allowedTargets.contains(t))) {
@@ -82,18 +85,18 @@ public class CustomConverter extends TestsToRunConverter {
                     case "replaceRegex":
                         errorMessage = "The replacement 'replaceRegex' is missing field '%s'";
                         action = new ReplaceRegex()
-                                .initialize(getMapValue(m, "regex", true, errorMessage),
-                                        getMapValue(m, "replacement", true, errorMessage));
+                                .initialize(getMapValue(m, "regex", errorMessage),
+                                        getMapValue(m, "replacement", errorMessage));
                         break;
                     case "replaceRegexFirst":
                         errorMessage = "The replacement 'replaceRegexFirst' is missing field '%s'";
-                        action = new ReplaceRegexFirst().initialize(getMapValue(m, "regex", true, errorMessage),
-                                getMapValue(m, "replacement", true, errorMessage));
+                        action = new ReplaceRegexFirst().initialize(getMapValue(m, "regex", errorMessage),
+                                getMapValue(m, "replacement", errorMessage));
                         break;
                     case "replaceString":
                         errorMessage = "The replacement 'replaceString' is missing field '%s'";
-                        action = new ReplaceString().initialize(getMapValue(m, "string", true, errorMessage),
-                                getMapValue(m, "replacement", true, errorMessage));
+                        action = new ReplaceString().initialize(getMapValue(m, "string", errorMessage),
+                                getMapValue(m, "replacement", errorMessage));
                         break;
                     default:
                         throw new IllegalArgumentException(String.format("Unknown replacement type '%s'", replacementType));
@@ -109,18 +112,22 @@ public class CustomConverter extends TestsToRunConverter {
         }
     }
 
-    private String getMapValue(Map<String, Object> map, String fieldName, boolean throwIfNull) {
-        return getMapValue(map, fieldName, throwIfNull, "Field '%s' is missing in format json");
+    private String getMapValue(Map<String, Object> map, String fieldName, boolean required, String defaultValue) {
+        return getMapValue(map, fieldName, defaultValue, required, "Field '%s' is missing in format json");
     }
 
-    private String getMapValue(Map<String, Object> map, String fieldName, boolean throwIfNull, String errorMessage) {
+    private String getMapValue(Map<String, Object> map, String fieldName, String errorMessageTemplateIfNull) {
+        return getMapValue(map, fieldName, "", true, errorMessageTemplateIfNull);
+    }
+
+    private String getMapValue(Map<String, Object> map, String fieldName, String defaultValue, boolean required, String errorMessageTemplateIfNull) {
         if (map.containsKey(fieldName)) {
             return (String) map.get(fieldName);
         } else {
-            if (throwIfNull) {
-                throw new IllegalArgumentException(String.format(errorMessage, fieldName));
+            if (required) {
+                throw new IllegalArgumentException(String.format(errorMessageTemplateIfNull, fieldName));
             } else {
-                return "";
+                return defaultValue == null ? "" : defaultValue;
             }
         }
     }
