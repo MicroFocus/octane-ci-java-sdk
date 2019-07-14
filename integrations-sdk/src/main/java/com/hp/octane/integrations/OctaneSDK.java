@@ -270,8 +270,10 @@ public final class OctaneSDK {
 			OctaneConnectivityStatus octaneConnectivityStatus = DTOFactory.getInstance().dtoFromJson(response.getBody(), OctaneConnectivityStatus.class);
 			try {
 				if (octaneConnectivityStatus.getSupportedSdkVersion() == null ||
-						CIPluginSDKUtils.compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion()) > 0) {
+						CIPluginSDKUtils.compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion()) >= 0) {
 					return true;
+				} else {
+					return false;
 				}
 			} catch (Exception e){
 				logger.error("unable to compare plugin SDK version: "+ OctaneSDK.SDK_VERSION + " with Supported SDK version: " + octaneConnectivityStatus.getSupportedSdkVersion() +". " + e.getMessage());
@@ -279,7 +281,7 @@ public final class OctaneSDK {
 			}
 		}
 
-		return false;
+		return true;
 	}
 
 	static boolean isInstanceIdUnique(String instanceId) {
