@@ -35,91 +35,86 @@ public class CustomConverter extends TestsToRunConverter {
     private static final String $_CLASS = "$class";
     private static final String $_TEST_NAME = "$testName";
     private static final Set<String> allowedTargets = new HashSet(Arrays.asList($_PACKAGE, $_CLASS, $_TEST_NAME));
-
-    protected String delimiter = "";
-    protected String testPattern = "";
-    protected String prefix = "";
-    protected String suffix = "";
-    Map<String, List<ReplaceAction>> replacements = new HashMap<>();
+    private CustomFormat customFormat = new CustomFormat();
 
     public CustomConverter() {
     }
 
-    public CustomConverter(String format, String delimiter) {
-        initialize(format, delimiter);
+    public CustomConverter(String format) {
+        setFormat(format);
     }
 
-    private void initialize(String format, String delimiter) {
-        this.testPattern = format;
-        this.delimiter = delimiter;
-        if (format.trim().startsWith("{")) {
-            String defaultErrorTemplate = "Field '%s' is missing in format json";
-            Map<String, Object> parsed = parseJson(testPattern, Map.class);
-            this.testPattern = getMapValue(parsed, "testPattern", defaultErrorTemplate);
-            this.delimiter = getMapValue(parsed, "testDelimiter", false, "");
-            this.prefix = getMapValue(parsed, "prefix", false, "");
-            this.suffix = getMapValue(parsed, "suffix", false, "");
-            String testsToRunConvertedParameterName = (getMapValue(parsed, "testsToRunConvertedParameter", false, DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER));
-            setTestsToRunConvertedParameterName(testsToRunConvertedParameterName);
+    @Override
+    public TestsToRunConverter setFormat(String format) {
 
-            List<Map<String, Object>> rawReplacement = (List<Map<String, Object>>) parsed.get("replacements");
-            if (rawReplacement == null) {
-                rawReplacement = Collections.emptyList();
-            }
-            rawReplacement.forEach(m -> {
-                String replacementType = getMapValue(m, "type", true, null);
-                String targetsRaw = getMapValue(m, "target", true, null);
-                Set<String> targets = new HashSet<>(Arrays.asList(targetsRaw.split(Pattern.quote("|"))));
-                targets.forEach(t -> {
-                    if (!(allowedTargets.contains(t))) {
-                        throw new IllegalArgumentException(String.format("Illegal target '%s' in replacement '%s'. Allowed values : %s", t, replacementType, allowedTargets));
-                    }
-                });
+        String defaultErrorTemplate = "Field '%s' is missing in format json";
+        Map<String, Object> parsed = parseJson(format, Map.class);
+        customFormat.setTestPattern(getMapValue(parsed, "testPattern", defaultErrorTemplate));
+        customFormat.setTestDelimiter(getMapValue(parsed, "testDelimiter", false, ""));
+        customFormat.setPrefix(getMapValue(parsed, "prefix", false, ""));
+        customFormat.setSuffix(getMapValue(parsed, "suffix", false, ""));
 
-                ReplaceAction action = null;
-                String errorMessage = null;
-                switch (replacementType) {
-                    case "notLatinAndDigitToOctal":
-                        action = new NotLatinAndDigitToOctal();
-                        break;
-                    case "replaceRegex":
-                        errorMessage = "The replacement 'replaceRegex' is missing field '%s'";
-                        action = new ReplaceRegex()
-                                .initialize(getMapValue(m, "regex", errorMessage),
-                                        getMapValue(m, "replacement", errorMessage));
-                        break;
-                    case "replaceRegexFirst":
-                        errorMessage = "The replacement 'replaceRegexFirst' is missing field '%s'";
-                        action = new ReplaceRegexFirst().initialize(getMapValue(m, "regex", errorMessage),
-                                getMapValue(m, "replacement", errorMessage));
-                        break;
-                    case "replaceString":
-                        errorMessage = "The replacement 'replaceString' is missing field '%s'";
-                        action = new ReplaceString().initialize(getMapValue(m, "string", errorMessage),
-                                getMapValue(m, "replacement", errorMessage));
-                        break;
-                    case "joinString":
-                        action = new JoinString().initialize(getMapValue(m, "prefix", errorMessage),
-                                getMapValue(m, "suffix", errorMessage));
-                        break;
-                    case "toUpperCase":
-                        action = new ToUpperCase();
-                        break;
-                    case "toLowerCase":
-                        action = new ToLowerCase();
-                        break;
-                    default:
-                        throw new IllegalArgumentException(String.format("Unknown replacement type '%s'", replacementType));
-                }
+        String testsToRunConvertedParameterName = (getMapValue(parsed, "testsToRunConvertedParameter", false, DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER));
+        setTestsToRunConvertedParameterName(testsToRunConvertedParameterName);
 
-                for (String t : targets) {
-                    if (!replacements.containsKey(t)) {
-                        replacements.put(t, new ArrayList<>());
-                    }
-                    replacements.get(t).add(action);
+        List<Map<String, Object>> rawReplacement = (List<Map<String, Object>>) parsed.get("replacements");
+        if (rawReplacement == null) {
+            rawReplacement = Collections.emptyList();
+        }
+        rawReplacement.forEach(m -> {
+            String replacementType = getMapValue(m, "type", true, null);
+            String targetsRaw = getMapValue(m, "target", true, null);
+            Set<String> targets = new HashSet<>(Arrays.asList(targetsRaw.split(Pattern.quote("|"))));
+            targets.forEach(t -> {
+                if (!(allowedTargets.contains(t))) {
+                    throw new IllegalArgumentException(String.format("Illegal target '%s' in replacement '%s'. Allowed values : %s", t, replacementType, allowedTargets));
                 }
             });
-        }
+
+            ReplaceAction action = null;
+            String errorMessage = null;
+            switch (replacementType) {
+                case "notLatinAndDigitToOctal":
+                    action = new NotLatinAndDigitToOctal();
+                    break;
+                case "replaceRegex":
+                    errorMessage = "The replacement 'replaceRegex' is missing field '%s'";
+                    action = new ReplaceRegex()
+                            .initialize(getMapValue(m, "regex", errorMessage),
+                                    getMapValue(m, "replacement", errorMessage));
+                    break;
+                case "replaceRegexFirst":
+                    errorMessage = "The replacement 'replaceRegexFirst' is missing field '%s'";
+                    action = new ReplaceRegexFirst().initialize(getMapValue(m, "regex", errorMessage),
+                            getMapValue(m, "replacement", errorMessage));
+                    break;
+                case "replaceString":
+                    errorMessage = "The replacement 'replaceString' is missing field '%s'";
+                    action = new ReplaceString().initialize(getMapValue(m, "string", errorMessage),
+                            getMapValue(m, "replacement", errorMessage));
+                    break;
+                case "joinString":
+                    action = new JoinString().initialize(getMapValue(m, "prefix", errorMessage),
+                            getMapValue(m, "suffix", errorMessage));
+                    break;
+                case "toUpperCase":
+                    action = new ToUpperCase();
+                    break;
+                case "toLowerCase":
+                    action = new ToLowerCase();
+                    break;
+                default:
+                    throw new IllegalArgumentException(String.format("Unknown replacement type '%s'", replacementType));
+            }
+
+            for (String t : targets) {
+                if (!customFormat.getReplacements().containsKey(t)) {
+                    customFormat.getReplacements().put(t, new ArrayList<>());
+                }
+                customFormat.getReplacements().get(t).add(action);
+            }
+        });
+        return this;
     }
 
     private String getMapValue(Map<String, Object> map, String fieldName, boolean required, String defaultValue) {
@@ -147,22 +142,16 @@ public class CustomConverter extends TestsToRunConverter {
         String collect = data.stream()
                 .map(n -> convertToFormat(n))
                 .distinct()
-                .collect(Collectors.joining(delimiter, prefix, suffix));
+                .collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
         return collect;
     }
 
-    @Override
-    public TestsToRunConverter setProperties(Map<String, String> properties) {
-        initialize(properties.get(CONVERTER_FORMAT), properties.get(CONVERTER_DELIMITER));
-        return this;
-    }
-
     protected String convertToFormat(TestToRunData testToRunData) {
-        boolean patternContainsPackage = testPattern.contains($_PACKAGE);
-        boolean patternContainsClass = testPattern.contains($_CLASS);
-        int packageIndex = testPattern.indexOf($_PACKAGE);
+        boolean patternContainsPackage = customFormat.getTestPattern().contains($_PACKAGE);
+        boolean patternContainsClass = customFormat.getTestPattern().contains($_CLASS);
+        int packageIndex = customFormat.getTestPattern().indexOf($_PACKAGE);
 
-        String res = testPattern;
+        String res = customFormat.getTestPattern();
 
         if (patternContainsPackage) {
             String packageName = testToRunData.getPackageName();
@@ -201,7 +190,7 @@ public class CustomConverter extends TestsToRunConverter {
     }
 
     private String handleReplacements(String target, String str) {
-        List<ReplaceAction> targetReplacements = replacements.get(target);
+        List<ReplaceAction> targetReplacements = customFormat.getReplacements().get(target);
         if (targetReplacements == null) {
             return str;
         } else {
@@ -239,6 +228,54 @@ public class CustomConverter extends TestsToRunConverter {
     public interface ReplaceAction {
         String replace(String string);
 
+    }
+
+    public static class CustomFormat {
+        private String testDelimiter = "";
+        private String testPattern = "";
+        private String prefix = "";
+        private String suffix = "";
+        private Map<String, List<ReplaceAction>> replacements = new HashMap<>();
+
+
+        public String getTestDelimiter() {
+            return testDelimiter;
+        }
+
+        public CustomFormat setTestDelimiter(String testDelimiter) {
+            this.testDelimiter = testDelimiter;
+            return this;
+        }
+
+        public String getTestPattern() {
+            return testPattern;
+        }
+
+        public CustomFormat setTestPattern(String testPattern) {
+            this.testPattern = testPattern;
+            return this;
+        }
+
+        public String getSuffix() {
+            return suffix;
+        }
+
+        public CustomFormat setSuffix(String suffix) {
+            this.suffix = suffix;
+            return this;
+        }
+
+        public Map<String, List<ReplaceAction>> getReplacements() {
+            return replacements;
+        }
+
+        public String getPrefix() {
+            return prefix;
+        }
+
+        public void setPrefix(String prefix) {
+            this.prefix = prefix;
+        }
     }
 
     public static class ReplaceString implements ReplaceAction {

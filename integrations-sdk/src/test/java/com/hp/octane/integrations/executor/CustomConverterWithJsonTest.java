@@ -34,6 +34,7 @@ public class CustomConverterWithJsonTest {
                 "\"testDelimiter\": \"||\"," +
                 "\"prefix\":\"[\"," +
                 "\"suffix\":\"]\"," +
+                "\"testsToRunConvertedParameter\": \"converted\"," +
                 "\"replacements\": [" +
                 "{\"type\":\"notLatinAndDigitToOctal\",\"target\":\"$testName\"}," +
                 "{\"type\":\"replaceRegex\",\"target\":\"$package\",\"regex\":\"MF.\",\"replacement\":\"MF\"}," +
@@ -42,10 +43,11 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"replaceString\", \"target\":\"$testName\",\"string\":\"myTestA\",\"replacement\":\"myTest\"}" +
                 "]}";
 
-        CustomConverter converter = new CustomConverter(json, ",");
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        CustomConverter converter = new CustomConverter(json);
+        TestsToRunConverterResult result = converter.convert(fullFormatRawData, "");
 
-        Assert.assertEquals("[MF.simple.tests.AppTest#myTest||MF.simple.tests.AppTestB#test\\040Send]", actual);
+        Assert.assertEquals("converted", result.getTestsToRunConvertedParameterName());
+        Assert.assertEquals("[MF.simple.tests.AppTest#myTest||MF.simple.tests.AppTestB#test\\040Send]", result.getConvertedTestsString());
     }
 
     @Test
@@ -58,7 +60,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         try {
-            CustomConverter converter = new CustomConverter(json, ",");
+            CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("Illegal target 'class' in replacement 'replaceString'. Allowed values : [$class, $testName, $package]", e.getMessage());
@@ -74,7 +76,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"replaceString\",\"target\":\"$package|$class|$testName\",\"string\":\"test\",\"replacement\":\"bubu\"}" +
                 "]}";
 
-        CustomConverter converter = new CustomConverter(json, ",");
+        CustomConverter converter = new CustomConverter(json);
         String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.bubus.AppTestA#myTestA+MFA.simpleA.bubus.AppTestB#bubu Send", actual);
@@ -90,7 +92,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"toUpperCase\",\"target\":\"$testName\"}" +
                 "]}";
 
-        CustomConverter converter = new CustomConverter(json, ",");
+        CustomConverter converter = new CustomConverter(json);
         String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.tests=apptesta#MYTESTA+MFA.simpleA.tests=apptestb#TEST SEND", actual);
@@ -104,7 +106,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix\"}" +
                 "]}";
 
-        CustomConverter converter = new CustomConverter(json, ",");
+        CustomConverter converter = new CustomConverter(json);
         String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
         Assert.assertEquals("prefix|MFA.simpleA.tests|suffix", actual);
@@ -120,7 +122,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"replaceRegex\",\"target\":\"$package|$class|$testName\",\"regex\":\"(?i)test\",\"replacement\":\"bubu\"}" +
                 "]}";
 
-        CustomConverter converter = new CustomConverter(json, ",");
+        CustomConverter converter = new CustomConverter(json);
         String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.bubus.AppbubuA#mybubuA+MFA.simpleA.bubus.AppbubuB#bubu Send", actual);
@@ -131,7 +133,7 @@ public class CustomConverterWithJsonTest {
         String json = "{" +
                 "\"testDelimiter\": \"||\"}";
         try {
-            CustomConverter converter = new CustomConverter(json, ",");
+            CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("Field 'testPattern' is missing in format json", e.getMessage());
@@ -146,7 +148,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"notExist\",\"target\":\"$package\",\"regex\":\"MF.\",\"replacement\":\"MF\"}" +
                 "]}";
         try {
-            CustomConverter converter = new CustomConverter(json, ",");
+            CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("Unknown replacement type 'notExist'", e.getMessage());
@@ -161,7 +163,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"replaceRegex\",\"target\":\"package\",\"regex\":\"MF.\",\"replacement\":\"MF\"}" +
                 "]}";
         try {
-            CustomConverter converter = new CustomConverter(json, ",");
+            CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("Illegal target 'package' in replacement 'replaceRegex'. Allowed values : [$class, $testName, $package]", e.getMessage());
@@ -176,7 +178,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"replaceRegex\",\"target\":\"$package\",\"regex1\":\"MF.\",\"replacement\":\"MF\"}" +
                 "]}";
         try {
-            CustomConverter converter = new CustomConverter(json, ",");
+            CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("The replacement 'replaceRegex' is missing field 'regex'", e.getMessage());
@@ -191,7 +193,7 @@ public class CustomConverterWithJsonTest {
                 "{\"type\":\"replaceRegex\",\"target\":\"$package\",\"regex\":\"MF.\",\"replacement1\":\"MF\"}" +
                 "]}";
         try {
-            CustomConverter converter = new CustomConverter(json, ",");
+            CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("The replacement 'replaceRegex' is missing field 'replacement'", e.getMessage());

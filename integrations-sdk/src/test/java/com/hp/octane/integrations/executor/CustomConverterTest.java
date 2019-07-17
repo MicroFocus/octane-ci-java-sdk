@@ -27,53 +27,58 @@ import org.junit.Test;
 
 public class CustomConverterTest {
 
-	private final static String fullFormatRawData = "v1:MF.simple.tests|AppTest|testAlwaysFail;MF.simple.tests|App2Test|testSendGet";
-	private final static String noPackageRawData = "v1:|AppTest|testAlwaysFail;|App2Test|testSendGet";
-	private final static String noClassRawData = "v1:||testAlwaysFail;||testSendGet";
-	private final static String singleRawData = "v1:MF.simple.tests|AppTest|testAlwaysFail";
+    private final static String fullFormatRawData = "v1:MF.simple.tests|AppTest|testAlwaysFail;MF.simple.tests|App2Test|testSendGet";
+    private final static String noPackageRawData = "v1:|AppTest|testAlwaysFail;|App2Test|testSendGet";
+    private final static String noClassRawData = "v1:||testAlwaysFail;||testSendGet";
+    private final static String singleRawData = "v1:MF.simple.tests|AppTest|testAlwaysFail";
 
-	@Test
-	public void mavenConverterTest()  {
-		CustomConverter converter = new CustomConverter("$package.$class#$testName", ",");
-		String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
-
-		Assert.assertEquals("MF.simple.tests.AppTest#testAlwaysFail,MF.simple.tests.App2Test#testSendGet", actual);
-	}
-
-	@Test
-	public void protractorConverterMultipleCaseTest()  {
-		ProtractorConverter protractorConverter = new ProtractorConverter();
-		String actual = protractorConverter.convert(fullFormatRawData, "").getConvertedTestsString();
-
-		Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
-	}
-
-	@Test
-	public void protractorConverterMultipleCaseNoPackageTest()  {
-		ProtractorConverter protractorConverter = new ProtractorConverter();
-		String actual = protractorConverter.convert(noPackageRawData, "").getConvertedTestsString();
-
-		Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
-	}
-
-	@Test
-	public void protractorConverterSingleCaseTest()  {
-		ProtractorConverter protractorConverter = new ProtractorConverter();
-		String actual = protractorConverter.convert(singleRawData, "").getConvertedTestsString();
-
-		Assert.assertEquals("AppTest testAlwaysFail", actual);
-	}
-
-	@Test
-	public void gradleConverterMultipleCaseTest()  {
-		GradleConverter gradleConverter = new GradleConverter();
-		String actual = gradleConverter.convert(fullFormatRawData, "").getConvertedTestsString();
-
-		Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail --tests MF.simple.tests.App2Test.testSendGet", actual);
-	}
+    private String buildCustomFormat(String testPattern, String testDelimiter) {
+        String format = "{\"testPattern\":\"%s\",\"testDelimiter\":\"%s\"}";
+        return String.format(format, testPattern, testDelimiter);
+    }
 
     @Test
-    public void gradleConverterMultipleCaseNoPackageTest()  {
+    public void mavenConverterTest() {
+        CustomConverter converter = new CustomConverter(buildCustomFormat("$package.$class#$testName", ","));
+        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("MF.simple.tests.AppTest#testAlwaysFail,MF.simple.tests.App2Test#testSendGet", actual);
+    }
+
+    @Test
+    public void protractorConverterMultipleCaseTest() {
+        ProtractorConverter protractorConverter = new ProtractorConverter();
+        String actual = protractorConverter.convert(fullFormatRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+    }
+
+    @Test
+    public void protractorConverterMultipleCaseNoPackageTest() {
+        ProtractorConverter protractorConverter = new ProtractorConverter();
+        String actual = protractorConverter.convert(noPackageRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+    }
+
+    @Test
+    public void protractorConverterSingleCaseTest() {
+        ProtractorConverter protractorConverter = new ProtractorConverter();
+        String actual = protractorConverter.convert(singleRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("AppTest testAlwaysFail", actual);
+    }
+
+    @Test
+    public void gradleConverterMultipleCaseTest() {
+        GradleConverter gradleConverter = new GradleConverter();
+        String actual = gradleConverter.convert(fullFormatRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail --tests MF.simple.tests.App2Test.testSendGet", actual);
+    }
+
+    @Test
+    public void gradleConverterMultipleCaseNoPackageTest() {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noPackageRawData, "").getConvertedTestsString();
 
@@ -81,18 +86,18 @@ public class CustomConverterTest {
     }
 
     @Test
-    public void gradleConverteMultipleCaseNoClassTest()  {
+    public void gradleConverteMultipleCaseNoClassTest() {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noClassRawData, "").getConvertedTestsString();
 
         Assert.assertEquals(" --tests testAlwaysFail --tests testSendGet", actual);
     }
 
-	@Test
-	public void gradleConverteSingleCaseTest()  {
-		GradleConverter gradleConverter = new GradleConverter();
-		String actual = gradleConverter.convert(singleRawData, "").getConvertedTestsString();
+    @Test
+    public void gradleConverteSingleCaseTest() {
+        GradleConverter gradleConverter = new GradleConverter();
+        String actual = gradleConverter.convert(singleRawData, "").getConvertedTestsString();
 
-		Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail", actual);
-	}
+        Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail", actual);
+    }
 }

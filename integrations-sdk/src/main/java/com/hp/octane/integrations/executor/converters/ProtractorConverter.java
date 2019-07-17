@@ -21,10 +21,11 @@ package com.hp.octane.integrations.executor.converters;
  */
 public class ProtractorConverter extends CustomConverter {
 
-    public static final String FORMAT = "$class $testName";
-    public static final String DELIMITER = "|";
+    public static final String FORMAT = "{\"testPattern\":\"$class $testName\",\"testDelimiter\":\"|\"}";
 
     public ProtractorConverter() {
-        super(FORMAT, DELIMITER);
+        super(FORMAT);
     }
+
+
 }

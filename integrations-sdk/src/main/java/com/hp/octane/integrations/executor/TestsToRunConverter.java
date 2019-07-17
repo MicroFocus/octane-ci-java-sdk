@@ -24,13 +24,17 @@ import java.util.Map;
 
 public abstract class TestsToRunConverter {
 
-    public static final String CONVERTER_FORMAT = "format";
-    public static final String CONVERTER_DELIMITER = "delimiter";
     public static final String DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
     private String testsToRunConvertedParameterName = DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER;
+    private String format = "";
 
-    public TestsToRunConverter setProperties(Map<String, String> properties) {
+    public TestsToRunConverter setFormat(String format) {
+        this.format=format;
         return this;
+    }
+
+    protected String getFormat(){
+        return format;
     }
 
     public TestsToRunConverterResult convert(String rawTests, String executionDirectory) {

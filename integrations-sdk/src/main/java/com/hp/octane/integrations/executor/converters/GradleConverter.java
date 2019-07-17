@@ -21,11 +21,10 @@ package com.hp.octane.integrations.executor.converters;
  */
 public class GradleConverter extends CustomConverter {
 
-    public static final String FORMAT = " --tests $package.$class.$testName";
-    public static final String DELIMITER = "";
+    public static final String FORMAT = "{\"testPattern\":\" --tests $package.$class.$testName\",\"testDelimiter\":\"\"}";
 
     public GradleConverter() {
-        super(FORMAT, DELIMITER);
+        super(FORMAT);
     }
 
 }
