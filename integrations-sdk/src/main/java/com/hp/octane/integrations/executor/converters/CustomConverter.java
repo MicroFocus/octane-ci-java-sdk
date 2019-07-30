@@ -35,27 +35,42 @@ public class CustomConverter extends TestsToRunConverter {
     private static final String $_CLASS = "$class";
     private static final String $_TEST_NAME = "$testName";
     private static final Set<String> allowedTargets = new HashSet(Arrays.asList($_PACKAGE, $_CLASS, $_TEST_NAME));
-    private CustomFormat customFormat = new CustomFormat();
+    private CustomFormat customFormat;
 
     public CustomConverter() {
     }
 
     public CustomConverter(String format) {
-        setFormat(format);
+        setFormatInternal(format);
     }
 
     @Override
     public TestsToRunConverter setFormat(String format) {
+        //It is important to not override format for subclasses that assign format in constractor and later plugins can call to setFormat with empty/wrong string
+        if (customFormat == null) {
+            setFormatInternal(format);
+        }
 
+        return this;
+    }
+
+    protected TestsToRunConverter setFormatInternal(String format) {
+        customFormat = buildCustomFormat(format);
+        if (SdkStringUtils.isNotEmpty(customFormat.getTestsToRunConvertedParameterName())) {
+            setTestsToRunConvertedParameterName(customFormat.getTestsToRunConvertedParameterName());
+        }
+        return this;
+    }
+
+    protected static CustomFormat buildCustomFormat(String format) {
+        CustomFormat customFormat = new CustomFormat();
         String defaultErrorTemplate = "Field '%s' is missing in format json";
         Map<String, Object> parsed = parseJson(format, Map.class);
         customFormat.setTestPattern(getMapValue(parsed, "testPattern", defaultErrorTemplate));
         customFormat.setTestDelimiter(getMapValue(parsed, "testDelimiter", false, ""));
         customFormat.setPrefix(getMapValue(parsed, "prefix", false, ""));
         customFormat.setSuffix(getMapValue(parsed, "suffix", false, ""));
-
-        String testsToRunConvertedParameterName = (getMapValue(parsed, "testsToRunConvertedParameter", false, DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER));
-        setTestsToRunConvertedParameterName(testsToRunConvertedParameterName);
+        customFormat.setTestsToRunConvertedParameterName(getMapValue(parsed, "testsToRunConvertedParameter", false, DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER));
 
         List<Map<String, Object>> rawReplacement = (List<Map<String, Object>>) parsed.get("replacements");
         if (rawReplacement == null) {
@@ -114,18 +129,18 @@ public class CustomConverter extends TestsToRunConverter {
                 customFormat.getReplacements().get(t).add(action);
             }
         });
-        return this;
+        return customFormat;
     }
 
-    private String getMapValue(Map<String, Object> map, String fieldName, boolean required, String defaultValue) {
+    private static String getMapValue(Map<String, Object> map, String fieldName, boolean required, String defaultValue) {
         return getMapValue(map, fieldName, defaultValue, required, "Field '%s' is missing in format json");
     }
 
-    private String getMapValue(Map<String, Object> map, String fieldName, String errorMessageTemplateIfNull) {
+    private static String getMapValue(Map<String, Object> map, String fieldName, String errorMessageTemplateIfNull) {
         return getMapValue(map, fieldName, "", true, errorMessageTemplateIfNull);
     }
 
-    private String getMapValue(Map<String, Object> map, String fieldName, String defaultValue, boolean required, String errorMessageTemplateIfNull) {
+    private static String getMapValue(Map<String, Object> map, String fieldName, String defaultValue, boolean required, String errorMessageTemplateIfNull) {
         if (map.containsKey(fieldName)) {
             return (String) map.get(fieldName);
         } else {
@@ -235,6 +250,7 @@ public class CustomConverter extends TestsToRunConverter {
         private String testPattern = "";
         private String prefix = "";
         private String suffix = "";
+        private String testsToRunConvertedParameterName;
         private Map<String, List<ReplaceAction>> replacements = new HashMap<>();
 
 
@@ -275,6 +291,15 @@ public class CustomConverter extends TestsToRunConverter {
 
         public void setPrefix(String prefix) {
             this.prefix = prefix;
+        }
+
+        public String getTestsToRunConvertedParameterName() {
+            return testsToRunConvertedParameterName;
+        }
+
+        public CustomFormat setTestsToRunConvertedParameterName(String testsToRunConvertedParameterName) {
+            this.testsToRunConvertedParameterName = testsToRunConvertedParameterName;
+            return this;
         }
     }
 

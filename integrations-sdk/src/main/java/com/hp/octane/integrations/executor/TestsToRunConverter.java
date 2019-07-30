@@ -20,7 +20,6 @@ import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public abstract class TestsToRunConverter {
 
@@ -29,11 +28,11 @@ public abstract class TestsToRunConverter {
     private String format = "";
 
     public TestsToRunConverter setFormat(String format) {
-        this.format=format;
+        this.format = format;
         return this;
     }
 
-    protected String getFormat(){
+    protected String getFormat() {
         return format;
     }
 

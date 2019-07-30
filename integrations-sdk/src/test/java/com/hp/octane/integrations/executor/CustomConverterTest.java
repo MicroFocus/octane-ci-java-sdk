@@ -62,6 +62,14 @@ public class CustomConverterTest {
     }
 
     @Test
+    public void protractorSetFormatIsIgnored() {
+        ProtractorConverter protractorConverter = new ProtractorConverter();
+        String actual = protractorConverter.setFormat("{\"testPattern\":\"bubub\",\"testDelimiter\":\"---\"}").convert(fullFormatRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+    }
+
+    @Test
     public void protractorConverterSingleCaseTest() {
         ProtractorConverter protractorConverter = new ProtractorConverter();
         String actual = protractorConverter.convert(singleRawData, "").getConvertedTestsString();
