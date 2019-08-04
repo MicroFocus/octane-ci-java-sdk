@@ -31,4 +31,9 @@ public abstract class ErrorCodeBasedException extends RuntimeException {
 	public void setErrorCode(int errorCode) {
 		this.errorCode = errorCode;
 	}
+
+	public ErrorCodeBasedException (String message, int errorCode){
+		super(message);
+		this.errorCode = errorCode;
+	}
 }
