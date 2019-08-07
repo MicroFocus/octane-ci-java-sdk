@@ -11,20 +11,21 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
-package com.hp.octane.integrations.executor.converters;
+package com.hp.octane.integrations.dto.general;
 
-/*
- * Converter to gradle format : gradle test --tests integTest1 --tests integTest12
- */
-public class GradleConverter extends CustomConverter {
+import com.hp.octane.integrations.dto.DTOBase;
 
-    public static final String FORMAT = "{\"testPattern\":\" --tests $package.$class.$testName\",\"testDelimiter\":\"\"}";
+import java.io.Serializable;
 
-    public GradleConverter() {
-        super(FORMAT);
-    }
+public interface OctaneConnectivityStatus extends DTOBase , Serializable {
 
+    OctaneConnectivityStatus setSupportedSdkVersion(String supportedSdkVersion);
+
+    String getSupportedSdkVersion();
+
+    OctaneConnectivityStatus setOctaneVersion(String octaneVersion);
+
+    String getOctaneVersion();
 }

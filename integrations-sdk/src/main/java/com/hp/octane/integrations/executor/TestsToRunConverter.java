@@ -23,15 +23,35 @@ import java.util.List;
 
 public abstract class TestsToRunConverter {
 
+    public static final String DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER = "testsToRunConverted";
+    private String testsToRunConvertedParameterName = DEFAULT_TESTS_TO_RUN_CONVERTED_PARAMETER;
+    private String format = "";
+
+    public TestsToRunConverter setFormat(String format) {
+        this.format = format;
+        return this;
+    }
+
+    protected String getFormat() {
+        return format;
+    }
+
     public TestsToRunConverterResult convert(String rawTests, String executionDirectory) {
 
         List<TestToRunData> data = parse(rawTests);
         String converted = convert(data, executionDirectory);
-        TestsToRunConverterResult result = new TestsToRunConverterResult(rawTests, data, converted, executionDirectory);
+        TestsToRunConverterResult result = new TestsToRunConverterResult(rawTests, data, converted, executionDirectory, testsToRunConvertedParameterName);
         return result;
     }
 
     protected abstract String convert(List<TestToRunData> data, String executionDirectory);
+
+    protected void setTestsToRunConvertedParameterName(String value) {
+        if (SdkStringUtils.isEmpty(value)) {
+            throw new IllegalArgumentException("TestsToRunConvertedParameter cannot be empty");
+        }
+        testsToRunConvertedParameterName = value;
+    }
 
     protected List<TestToRunData> parse(String rawTests) {
 

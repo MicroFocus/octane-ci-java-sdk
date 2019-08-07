@@ -62,6 +62,7 @@ final class TestsServiceImpl implements TestsService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
+	private int REGULAR_CYCLE_PAUSE = 250;
 
 	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
@@ -193,6 +194,7 @@ final class TestsServiceImpl implements TestsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!testsPushExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 			if (testResultsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_TEST_RESULTS_MONITOR);
 				continue;
@@ -238,7 +240,9 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResultA);
 				testResultXML = testResultXML.replaceAll("<build.*?>",
-						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>");
+						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>")
+				.replace("</build>","");//remove closing build element if exist
+
 				testsResultB = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
 			} catch (Exception e) {
 				throw new PermanentException("failed to update ci server instance ID in the test results XML");

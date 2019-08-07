@@ -15,9 +15,13 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,6 +66,7 @@ public final class OctaneSDK {
 	 * @param octaneConfiguration valid Octane configuration object
 	 * @param pluginServicesClass Class that implements the CIPluginServices interface. This object is a composite
 	 *                            API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases
+	 * @return OctaneClient
 	 */
 	synchronized public static OctaneClient addClient(OctaneConfiguration octaneConfiguration, Class<? extends CIPluginServices> pluginServicesClass) {
 		if (octaneConfiguration == null) {
@@ -98,6 +103,17 @@ public final class OctaneSDK {
 			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
 		}
 
+		OctaneResponse response = null;
+		try {
+			 response = testOctaneConfiguration(octaneConfiguration,pluginServices);
+		} catch (Exception e) {
+			logger.error("addClient-test connection failed : " + e.getMessage());
+		}
+		if (response != null && response.getStatus() == 200 && !isSdkSupported(response)) {
+			logger.error("addClient - and Octane client was not created: "+ OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+			throw new IllegalStateException(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+		}
+
 		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(octaneConfiguration, pluginServices));
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
@@ -113,6 +129,14 @@ public final class OctaneSDK {
 	 */
 	public static List<OctaneClient> getClients() {
 		return new ArrayList<>(clients.values());
+	}
+
+	/**
+	 * Returns true if sdk defined clients
+	 * @return return true is hasClients
+	 */
+	public static boolean hasClients() {
+		return !clients.isEmpty();
 	}
 
 	/**
@@ -182,7 +206,7 @@ public final class OctaneSDK {
 	 * @param sharedSpaceId   shared space ID
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
-	 * @return Octane server response; response MAY be inspected for the specific error in order to create meaningful message to the user
+	 * @param pluginServicesClass
 	 * @throws IOException in case of basic connectivity failure
 	 */
 	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
@@ -199,10 +223,65 @@ public final class OctaneSDK {
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
 		}
-		SDKServicesConfigurer configurer = new SDKServicesConfigurer(configuration, pluginServices);
+
+		return testOctaneConfiguration(configuration, pluginServices) ;
+	}
+
+	private static OctaneResponse testOctaneConfiguration(OctaneConfiguration octaneConfiguration, CIPluginServices pluginServices) throws IOException{
+		SDKServicesConfigurer configurer = new SDKServicesConfigurer(octaneConfiguration, pluginServices);
 		RestService restService = RestService.newInstance(configurer);
 		ConfigurationService configurationService = ConfigurationService.newInstance(configurer, restService);
-		return configurationService.validateConfiguration(configuration);
+		return configurationService.validateConfiguration(octaneConfiguration);
+	}
+	/**
+	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
+	 *
+	 * @param octaneServerUrl base Octane server URL
+	 * @param sharedSpaceId   shared space ID
+	 * @param client          client / api key
+	 * @param secret          secret / api secret
+	 * @param pluginServicesClass  pluginServicesClass
+	 * @throws IOException in case of basic connectivity failure
+	 *
+	 */
+	public static void testAndValidateOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException{
+
+		OctaneResponse response = testOctaneConfiguration(octaneServerUrl, sharedSpaceId, client, secret, pluginServicesClass);
+
+		if (response.getStatus() == 401) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.AUTHENTICATION_FAILURE_KEY, OctaneConnectivityException.AUTHENTICATION_FAILURE_MESSAGE);
+		} else if (response.getStatus() == 403) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.AUTHORIZATION_FAILURE_KEY, OctaneConnectivityException.AUTHORIZATION_FAILURE_MESSAGE);
+		} else if (response.getStatus() == 404) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.CONN_SHARED_SPACE_INVALID_KEY, OctaneConnectivityException.CONN_SHARED_SPACE_INVALID_MESSAGE);
+		} else if (response.getStatus() != 200) {
+			throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.UNEXPECTED_FAILURE_KEY, OctaneConnectivityException.UNEXPECTED_FAILURE_MESSAGE + ": "+ response.getStatus());
+		} else if (response.getStatus() == 200){
+			if(!isSdkSupported(response)){
+				throw new OctaneConnectivityException(response.getStatus(),OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_KEY, OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+			}
+		}
+	}
+
+	private static boolean isSdkSupported(OctaneResponse response) {
+
+		if (response.getBody() != null && !response.getBody().isEmpty()) {
+
+			OctaneConnectivityStatus octaneConnectivityStatus = DTOFactory.getInstance().dtoFromJson(response.getBody(), OctaneConnectivityStatus.class);
+			try {
+				if (octaneConnectivityStatus.getSupportedSdkVersion() == null ||
+						CIPluginSDKUtils.compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion()) >= 0) {
+					return true;
+				} else {
+					return false;
+				}
+			} catch (Exception e){
+				logger.error("unable to compare plugin SDK version: "+ OctaneSDK.SDK_VERSION + " with Supported SDK version: " + octaneConnectivityStatus.getSupportedSdkVersion() +". " + e.getMessage());
+				return true;
+			}
+		}
+
+		return true;
 	}
 
 	static boolean isInstanceIdUnique(String instanceId) {

@@ -32,7 +32,7 @@ public class TestsToRunConvertersFactory {
             case Gradle:
                 return new GradleConverter();
             case Custom:
-                return new CustomConverter(framework.getFormat(), framework.getDelimiter());
+                return new CustomConverter();
             default:
                 throw new UnsupportedOperationException(framework.name() + " framework does not have supported converter");
         }
