@@ -41,7 +41,7 @@ public class MfUftConverter extends TestsToRunConverter {
             tei
                     .setPackageName(testData.getPackageName())
                     .setTestName(testData.getTestName())
-                    .setDataTable(testData.getParamater(DATA_TABLE_PARAMETER));
+                    .setDataTable(testData.getParameter(DATA_TABLE_PARAMETER));
             result.add(tei);
 
         }

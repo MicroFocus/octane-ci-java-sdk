@@ -20,6 +20,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TestToRunData {
+    public static final String TESTS_TO_RUN_STRING_VERSION = "v1";
+    public static final String TESTS_TO_RUN_JSON_VERSION = "v2";
+
     private String testName;
     private String className;
     private String packageName;
@@ -68,7 +71,7 @@ public class TestToRunData {
         return this;
     }
 
-    public String getParamater(String key){
+    public String getParameter(String key){
         if (parameters == null) {
             return null;
         }
