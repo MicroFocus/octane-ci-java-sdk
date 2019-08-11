@@ -16,18 +16,14 @@
 
 package com.hp.octane.integrations.executor;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.utils.SdkStringUtils;
-import com.hp.octane.integrations.utils.TestsToRunJsonImpl;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.hp.octane.integrations.executor.TestToRunData.TESTS_TO_RUN_JSON_VERSION;
 import static com.hp.octane.integrations.executor.TestToRunData.TESTS_TO_RUN_STRING_VERSION;
 
 public abstract class TestsToRunConverter {
@@ -68,36 +64,26 @@ public abstract class TestsToRunConverter {
         if (SdkStringUtils.isEmpty(rawTests)) {
             return null;
         }
-        int versionIndex = rawTests.indexOf(":");
-        if (versionIndex < 0) {
-            throw new IllegalArgumentException("Invalid format : missing version part.");
-        }
-        String version = rawTests.substring(0, versionIndex);
-
-        switch (version) {
-            case TESTS_TO_RUN_STRING_VERSION:
-                return parse(rawTests.substring(versionIndex + 1).split(";"));
-            default:
-                return parseJson(rawTests);
+        boolean bTestToRunStringVersion = rawTests.startsWith(TESTS_TO_RUN_STRING_VERSION);
+        if( bTestToRunStringVersion ) {
+            return parse(rawTests.substring(rawTests.indexOf(":") + 1).split(";"));
+        } else {
+            return parseJson(rawTests);
         }
     }
 
     protected List<TestToRunData> parseJson(String rawTestsJson) {
         try {
             final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            TestsToRunJsonImpl result = objectMapper.readValue(rawTestsJson, TestsToRunJsonImpl.class);
+            TestToRunDataCollection result = objectMapper.readValue(rawTestsJson, TestToRunDataCollection.class);
 
-            if (!result.getVersion().equalsIgnoreCase(TESTS_TO_RUN_JSON_VERSION)) {
-                throw new IllegalArgumentException("Invalid format. Not supported version " + result.getVersion() + ".");
-            }
+//            if (!result.getVersion().equalsIgnoreCase(TESTS_TO_RUN_JSON_VERSION)) {
+//                throw new IllegalArgumentException("Invalid format. Not supported version " + result.getVersion() + ".");
+//            }
 
             return result.getTestsToRun();
-        } catch (JsonParseException e) {
-            throw new IllegalArgumentException("Invalid tests format.", e);
-        } catch (JsonMappingException e) {
-            throw new IllegalArgumentException("Invalid tests format.", e);
         } catch (IOException e) {
-            throw new IllegalArgumentException("Invalid tests format.", e);
+            throw new IllegalArgumentException("Invalid tests format: " + e.getMessage(), e);
         }
     }
 
