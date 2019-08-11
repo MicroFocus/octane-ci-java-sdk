@@ -45,4 +45,6 @@ public interface CIEventCause extends DTOBase {
 	List<CIEventCause> getCauses();
 
 	CIEventCause setCauses(List<CIEventCause> causes);
+
+	String generateKey();
 }
