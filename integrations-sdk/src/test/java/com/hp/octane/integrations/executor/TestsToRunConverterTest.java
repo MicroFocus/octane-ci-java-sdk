@@ -1,11 +1,7 @@
 package com.hp.octane.integrations.executor;
 
-
-import com.hp.octane.integrations.executor.converters.CustomConverter;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.List;
 
 import static com.hp.octane.integrations.executor.TestsToRunFramework.JUnit4;
 import static com.hp.octane.integrations.executor.TestsToRunFramework.MF_UFT;
@@ -30,31 +26,39 @@ public class TestsToRunConverterTest {
             "\r\n  </Test>" +
             "\r\n</Mtbx>\r\n";
 
-    private void converterTest(TestsToRunFramework framework, String rawData, String expected) {
+    private String converterTest(TestsToRunFramework framework, String rawData) {
         TestsToRunConverter converter = TestsToRunConvertersFactory.createConverter(framework);
-        String actual = converter.convert(rawData, "").getConvertedTestsString();
+        String result = converter.convert(rawData, "").getConvertedTestsString();
 
-        Assert.assertEquals(expected, actual);
+        return result;
     }
 
     @Test
     public void customConverterJsonTest() {
-        converterTest(JUnit4, v2MavenFormatRawData, outputMavenResult);
+        String actual = converterTest(JUnit4, v2MavenFormatRawData);
+
+        Assert.assertEquals(outputMavenResult, actual);
     }
 
     @Test
     public void customConverterStringTest() {
-        converterTest(JUnit4, v1MavenFormatRawData, outputMavenResult);
+        String actual = converterTest(JUnit4, v1MavenFormatRawData);
+
+        Assert.assertEquals(outputMavenResult, actual);
     }
 
     @Test
     public void uftConverterJsonTest() {
-        converterTest(MF_UFT, v2UFTFormatRawData, outputUFTResult);
+        String actual = converterTest(MF_UFT, v2UFTFormatRawData);
+
+        Assert.assertEquals(outputUFTResult, actual);
     }
 
     @Test
     public void uftConverterStringTest() {
-        converterTest(MF_UFT, v1UFTFormatRawData, outputUFTResult);
+        String actual = converterTest(MF_UFT, v1UFTFormatRawData);
+
+        Assert.assertEquals(outputUFTResult, actual);
     }
 
 }
