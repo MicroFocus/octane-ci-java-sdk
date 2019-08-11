@@ -107,18 +107,18 @@ final class OctaneClientImpl implements OctaneClient {
 		//  register shutdown hook to allow graceful shutdown of services/resources
 		shutdownHook = new Thread(() -> {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
-			logger.info("closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
+			logger.info(configurer.getOctaneLocationForLog() + "closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
 			try {
 				this.close();
 			} catch (Throwable throwable) {
-				logger.error("failed during shutdown of OctaneClient " + instanceId, throwable);
+				logger.error(configurer.getOctaneLocationForLog() + "failed during shutdown of OctaneClient " + instanceId, throwable);
 			} finally {
-				logger.info("...OctaneClient " + instanceId + " CLOSED");
+				logger.info(configurer.getOctaneLocationForLog() + "...OctaneClient " + instanceId + " CLOSED");
 			}
 		});
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
+		logger.info(configurer.getOctaneLocationForLog() + "OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId());
 	}
 
 	@Override
@@ -217,9 +217,9 @@ final class OctaneClientImpl implements OctaneClient {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
 			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
 			if (deleteFolder(instanceOrientedStorage)) {
-				logger.info("cleaned dedicated storage for OctaneClient instance " + instanceId);
+				logger.info(configurer.getOctaneLocationForLog() + "cleaned dedicated storage");
 			} else {
-				logger.error("failed to clean dedicated storage for OctaneClient instance " + instanceId);
+				logger.error(configurer.getOctaneLocationForLog() + "failed to clean dedicated storage");
 			}
 		}
 	}
@@ -229,9 +229,9 @@ final class OctaneClientImpl implements OctaneClient {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
 			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
 			if (instanceOrientedStorage.mkdirs()) {
-				logger.info("verified dedicated storage for OctaneClient instance " + instanceId);
+				logger.info(configurer.getOctaneLocationForLog() + "verified dedicated storage");
 			} else {
-				logger.error("failed to create dedicated storage for OctaneClient instance " + instanceId);
+				logger.error(configurer.getOctaneLocationForLog() + "failed to create dedicated storage");
 			}
 		}
 	}

@@ -26,12 +26,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * OctaneSDK serves initialization phase when hosting plugin configures OctaneClient/s to work with
@@ -78,6 +73,8 @@ public final class OctaneSDK {
 
 		//  validate instance ID uniqueness
 		String instanceId = octaneConfiguration.getInstanceId();
+		logger.info("Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
+
 		if (!isInstanceIdUnique(instanceId)) {
 			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
 		}
@@ -117,7 +114,7 @@ public final class OctaneSDK {
 		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(octaneConfiguration, pluginServices));
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
-		logger.info("Octane Client instance initialized SUCCESSFULLY");
+		logger.info("Octane Client instance " + octaneConfiguration.getInstanceId() +" initialized SUCCESSFULLY");
 
 		return newInstance;
 	}
@@ -302,6 +299,10 @@ public final class OctaneSDK {
 		private SDKServicesConfigurer(OctaneConfiguration octaneConfiguration, CIPluginServices pluginServices) {
 			this.octaneConfiguration = octaneConfiguration;
 			this.pluginServices = pluginServices;
+		}
+
+		public String getOctaneLocationForLog() {
+			return "[" + octaneConfiguration.getUrl() + "?p=" + octaneConfiguration.getSharedSpace() + "] ";
 		}
 	}
 }

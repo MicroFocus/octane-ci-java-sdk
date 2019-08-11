@@ -96,9 +96,9 @@ public class SonarServiceImpl implements SonarService {
 			sonarIntegrationQueue = queueingService.initMemoQueue();
 		}
 
-		logger.info("starting background worker...");
+		logger.info(configurer.getOctaneLocationForLog() + "starting background worker...");
 		sonarIntegrationExecutor.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY (backed by " + sonarIntegrationQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.getOctaneLocationForLog() + "initialized SUCCESSFULLY (backed by " + sonarIntegrationQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
@@ -114,16 +114,16 @@ public class SonarServiceImpl implements SonarService {
 			try {
 				sonarBuildCoverageQueueItem = sonarIntegrationQueue.peek();
 				retrieveAndPushSonarDataToOctane(sonarBuildCoverageQueueItem);
-				logger.debug("successfully processed " + sonarBuildCoverageQueueItem);
+				logger.debug(configurer.getOctaneLocationForLog() + "successfully processed " + sonarBuildCoverageQueueItem);
 				sonarIntegrationQueue.remove();
 			} catch (TemporaryException te) {
-				logger.error("temporary error on " + sonarBuildCoverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
+				logger.error(configurer.getOctaneLocationForLog() + "temporary error on " + sonarBuildCoverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pe) {
-				logger.error("permanent error on " + sonarBuildCoverageQueueItem + ", passing over", pe);
+				logger.error(configurer.getOctaneLocationForLog() + "permanent error on " + sonarBuildCoverageQueueItem + ", passing over", pe);
 				sonarIntegrationQueue.remove();
 			} catch (Throwable t) {
-				logger.error("unexpected error on build coverage item '" + sonarBuildCoverageQueueItem + "', passing over", t);
+				logger.error(configurer.getOctaneLocationForLog() + "unexpected error on build coverage item '" + sonarBuildCoverageQueueItem + "', passing over", t);
 				sonarIntegrationQueue.remove();
 			}
 		}
@@ -156,11 +156,11 @@ public class SonarServiceImpl implements SonarService {
 			}
 
 		} catch (SonarIntegrationException e) {
-			logger.error(e.getMessage(), e);
+			logger.error(configurer.getOctaneLocationForLog() + e.getMessage(), e);
 			throw e;
 		} catch (Exception e) {
 			String errorMessage = "exception during webhook registration for ciNotificationUrl: " + ciCallbackUrl;
-			logger.error(errorMessage, e);
+			logger.error(configurer.getOctaneLocationForLog() + errorMessage, e);
 			throw new SonarIntegrationException(errorMessage, e);
 		}
 	}
@@ -244,7 +244,7 @@ public class SonarServiceImpl implements SonarService {
 				throw new PermanentException(errorMessage.toString());
 			}
 		} catch (Throwable throwable) {
-			logger.error(errorMessage.toString(), throwable);
+			logger.error(configurer.getOctaneLocationForLog() + errorMessage.toString(), throwable);
 			throw new PermanentException(throwable);
 		}
 	}
@@ -286,12 +286,12 @@ public class SonarServiceImpl implements SonarService {
 			}
 			return null;
 		} catch (SonarIntegrationException e) {
-			logger.error(e.getMessage(), e);
+			logger.error(configurer.getOctaneLocationForLog() + e.getMessage(), e);
 			throw e;
 		} catch (Exception e) {
 			String errorMessage = ""
 					.concat("failed to get webhook key from soanrqube with notification URL: ").concat(ciNotificationUrl);
-			logger.error(errorMessage, e);
+			logger.error(configurer.getOctaneLocationForLog() + errorMessage, e);
 			throw new SonarIntegrationException(errorMessage, e);
 		}
 	}
@@ -320,7 +320,7 @@ public class SonarServiceImpl implements SonarService {
 			String errorMessage = ""
 					.concat("failed to get coverage data from sonar for project: ")
 					.concat(projectKey);
-			logger.error(errorMessage, e);
+			logger.error(configurer.getOctaneLocationForLog() + errorMessage, e);
 			throw new PermanentException(errorMessage, e);
 		}
 	}

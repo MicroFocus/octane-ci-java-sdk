@@ -69,9 +69,9 @@ final class BridgeServiceImpl implements BridgeService {
 		this.restService = restService;
 		this.tasksProcessor = tasksProcessor;
 
-		logger.info("starting background worker...");
+		logger.info(configurer.getOctaneLocationForLog() + "starting background worker...");
 		connectivityExecutors.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY");
+		logger.info(configurer.getOctaneLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
 	@Override
@@ -107,7 +107,7 @@ final class BridgeServiceImpl implements BridgeService {
 				handleTasks(tasksJSON);
 			}
 		} catch (Throwable t) {
-			logger.error("getting tasks from Octane Server temporary failed", t);
+			logger.error(configurer.getOctaneLocationForLog() + "getting tasks from Octane Server temporary failed", t);
 			CIPluginSDKUtils.doWait(2000);
 			if (!connectivityExecutors.isShutdown()) {
 				connectivityExecutors.execute(this::worker);
@@ -138,31 +138,31 @@ final class BridgeServiceImpl implements BridgeService {
 				responseBody = octaneResponse.getBody();
 			} else {
 				if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
-					logger.debug("no tasks found on server");
+					logger.debug(configurer.getOctaneLocationForLog() + "no tasks found on server");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
-					logger.debug("expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
+					logger.debug(configurer.getOctaneLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
-					logger.error("Octane service unavailable, breathing and will retry");
+					logger.error(configurer.getOctaneLocationForLog() + "Octane service unavailable, breathing and will retry");
 					CIPluginSDKUtils.doWait(10000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-					logger.error("connection to Octane failed: authentication error");
+					logger.error(configurer.getOctaneLocationForLog() + "connection to Octane failed: authentication error");
 					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
-					logger.error("connection to Octane failed: authorization error");
+					logger.error(configurer.getOctaneLocationForLog() + "connection to Octane failed: authorization error");
 					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-					logger.error("connection to Octane failed: 404, API changes? version problem?");
+					logger.error(configurer.getOctaneLocationForLog() + "connection to Octane failed: 404, API changes? version problem?");
 					CIPluginSDKUtils.doWait(180000);
 				} else {
-					logger.error("unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
+					logger.error(configurer.getOctaneLocationForLog() + "unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
 					CIPluginSDKUtils.doWait(10000);
 				}
 			}
 		} catch (IOException ioe) {
-			logger.error("failed to retrieve abridged tasks", ioe);
+			logger.error(configurer.getOctaneLocationForLog() + "failed to retrieve abridged tasks", ioe);
 			CIPluginSDKUtils.doWait(10000);
 		} catch (Throwable t) {
-			logger.error("unexpected error during retrieval of abridged tasks", t);
+			logger.error(configurer.getOctaneLocationForLog() + "unexpected error during retrieval of abridged tasks", t);
 			CIPluginSDKUtils.doWait(10000);
 		}
 		return responseBody;
@@ -170,9 +170,9 @@ final class BridgeServiceImpl implements BridgeService {
 
 	private void handleTasks(String tasksJSON) {
 		try {
-			logger.info("parsing tasks...");
+			logger.info(configurer.getOctaneLocationForLog() + "parsing tasks...");
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
-			logger.info("parsed " + tasks.length + " tasks, processing...");
+			logger.info(configurer.getOctaneLocationForLog() + "parsed " + tasks.length + " tasks, processing...");
 			for (final OctaneTaskAbridged task : tasks) {
 				if (taskProcessingExecutors.isShutdown()) {
 					break;
@@ -183,11 +183,11 @@ final class BridgeServiceImpl implements BridgeService {
 							configurer.octaneConfiguration.getInstanceId(),
 							result.getId(),
 							dtoFactory.dtoToJsonStream(result));
-					logger.info("result for task '" + result.getId() + "' submitted with status " + submitStatus);
+					logger.info(configurer.getOctaneLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
 				});
 			}
 		} catch (Exception e) {
-			logger.error("failed to process tasks", e);
+			logger.error(configurer.getOctaneLocationForLog() + "failed to process tasks", e);
 		}
 	}
 
@@ -206,7 +206,7 @@ final class BridgeServiceImpl implements BridgeService {
 			OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
 			return octaneResponse.getStatus();
 		} catch (IOException ioe) {
-			logger.error("failed to submit abridged task's result", ioe);
+			logger.error(configurer.getOctaneLocationForLog() + "failed to submit abridged task's result", ioe);
 			return 0;
 		}
 	}

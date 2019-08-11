@@ -63,7 +63,7 @@ final class PipelineContextServiceImpl implements PipelineContextService {
 		}
 		this.configurer = configurer;
 		this.restService = restService;
-		logger.info("initialized SUCCESSFULLY");
+		logger.info(configurer.getOctaneLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
 	private String getSharedspaceAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {

@@ -139,11 +139,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 	@Override
 	public void shutdown() {
-		logger.info("starting REST client shutdown sequence...");
+		logger.info(configurer.getOctaneLocationForLog() + "starting REST client shutdown sequence...");
 		abortAllRequests();
-		logger.info("closing the client...");
+		logger.info(configurer.getOctaneLocationForLog() + "closing the client...");
 		HttpClientUtils.closeQuietly(httpClient);
-		logger.info("REST client shutdown done");
+		logger.info(configurer.getOctaneLocationForLog() + "REST client shutdown done");
 	}
 
 	void notifyConfigurationChange() {
@@ -151,7 +151,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	}
 
 	private void abortAllRequests() {
-		logger.info("aborting " + ongoingRequests.size() + " request/s...");
+		logger.info(configurer.getOctaneLocationForLog() + "aborting " + ongoingRequests.size() + " request/s...");
 		synchronized (REQUESTS_LIST_LOCK) {
 			LWSSO_TOKEN = null;
 			for (HttpUriRequest request : ongoingRequests) {
@@ -168,10 +168,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
-			logger.info("initial login");
+			logger.info(configurer.getOctaneLocationForLog() + "initial login");
 			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
-				logger.error("failed on initial login, status " + loginResponse.getStatus());
+				logger.error(configurer.getOctaneLocationForLog() + "failed on initial login, status " + loginResponse.getStatus());
 				return loginResponse;
 			}
 		}
@@ -190,15 +190,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-					logger.info("doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
+					logger.info(configurer.getOctaneLocationForLog() + "doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
 					EntityUtils.consumeQuietly(httpResponse.getEntity());
 					HttpClientUtils.closeQuietly(httpResponse);
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
-						logger.error("failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						logger.error(configurer.getOctaneLocationForLog() + "failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
 						return loginResponse;
 					} else {
-						logger.info("re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
+						logger.info(configurer.getOctaneLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
 					refreshSecurityToken(context, false);
@@ -208,7 +208,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 			result = createNGAResponse(httpResponse);
 		} catch (IOException ioe) {
-			logger.debug("failed executing " + request, ioe);
+			logger.debug(configurer.getOctaneLocationForLog() + "failed executing " + request, ioe);
 			throw ioe;
 		} finally {
 			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
@@ -283,7 +283,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
 		CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(parsedUrl);
 		if (proxyConfiguration != null) {
-			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
+			logger.debug(configurer.getOctaneLocationForLog() + "proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
 
 			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
@@ -312,9 +312,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		}
 
 		if (securityTokenRefreshed) {
-			logger.info("successfully refreshed security token");
+			logger.debug(configurer.getOctaneLocationForLog() + "successfully refreshed security token");
 		} else if (mustPresent) {
-			logger.error("security token expected but NOT found (domain attribute configured wrongly?)");
+			logger.error(configurer.getOctaneLocationForLog() + "security token expected but NOT found (domain attribute configured wrongly?)");
 		}
 	}
 
@@ -346,11 +346,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				refreshSecurityToken(context, true);
 			} else {
-				logger.warn("failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
+				logger.warn(configurer.getOctaneLocationForLog() + "failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(response);
 		} catch (IOException ioe) {
-			logger.debug("failed to login to " + config, ioe);
+			logger.debug(configurer.getOctaneLocationForLog() + "failed to login to " + config, ioe);
 			throw ioe;
 		} finally {
 			if (response != null) {

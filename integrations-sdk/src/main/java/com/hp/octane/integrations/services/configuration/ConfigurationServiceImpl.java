@@ -55,7 +55,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 
 		this.configurer = configurer;
 		this.restService = restService;
-		logger.info("initialized SUCCESSFULLY");
+		logger.info(configurer.getOctaneLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
 	@Override
@@ -69,7 +69,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 			OctaneResponse response = validateConfiguration(configurer.octaneConfiguration);
 			return response.getStatus() == HttpStatus.SC_OK;
 		} catch (Exception e) {
-			logger.error("failed to validate Octane server configuration, resolving isCurrentConfigurationValid to FALSE", e);
+			logger.error(configurer.getOctaneLocationForLog() + "failed to validate Octane server configuration, resolving isCurrentConfigurationValid to FALSE", e);
 			return false;
 		}
 	}

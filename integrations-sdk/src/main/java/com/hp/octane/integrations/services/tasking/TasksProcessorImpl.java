@@ -84,7 +84,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		if (!task.getUrl().contains(NGA_API)) {
 			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA_API + "'; wrong handler call?");
 		}
-		logger.info("processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
+		logger.info(configurer.getOctaneLocationForLog() + "processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		OctaneResultAbridged result = DTOFactory.getInstance().newDTO(OctaneResultAbridged.class);
 		result.setId(task.getId());
@@ -151,23 +151,23 @@ final class TasksProcessorImpl implements TasksProcessor {
 				result.setStatus(HttpStatus.SC_NOT_FOUND);
 			}
 		} catch (ErrorCodeBasedException pe) {
-			logger.warn("task execution failed; error: " + pe.getErrorCode());
+			logger.warn(configurer.getOctaneLocationForLog() + "task execution failed; error: " + pe.getErrorCode());
 			result.setStatus(pe.getErrorCode());
 			result.setBody(String.valueOf(pe.getErrorCode()));
 		} catch (SPIMethodNotImplementedException spimnie) {
 			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
 		} catch (Throwable e) {
-			logger.error("task execution failed", e);
+			logger.error(configurer.getOctaneLocationForLog() + "task execution failed", e);
 			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
 			TaskProcessingErrorBody errorBody = dtoFactory.newDTO(TaskProcessingErrorBody.class)
 					.setErrorMessage("Task " + task.getUrl() + " is failed. Server error message: " + e.getMessage());
 			result.setBody(dtoFactory.dtoToJson(errorBody));
 			result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
-			logger.warn("OctaneResultAbridged.execute failed : " + e.getMessage());
+			logger.warn(configurer.getOctaneLocationForLog() + "OctaneResultAbridged.execute failed : " + e.getMessage());
 		}
 
-		logger.info("result for task '" + task.getId() + "' available with status " + result.getStatus());
+		logger.info(configurer.getOctaneLocationForLog() + "result for task '" + task.getId() + "' available with status " + result.getStatus());
 		return result;
 	}
 
@@ -236,13 +236,13 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executePipelineRunExecuteRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		logger.info("RunExecute job " + jobId);
+		logger.info(configurer.getOctaneLocationForLog() + "RunExecute job " + jobId);
 		configurer.pluginServices.runPipeline(jobId, originalBody);
 		result.setStatus(HttpStatus.SC_CREATED);
 	}
 
 	private void executePipelineRunStopRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		logger.info("RunStop job " + jobId);
+		logger.info(configurer.getOctaneLocationForLog() + "RunStop job " + jobId);
 		configurer.pluginServices.stopPipelineRun(jobId, originalBody);
 		result.setStatus(HttpStatus.SC_OK);
 	}

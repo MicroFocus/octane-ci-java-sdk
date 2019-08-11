@@ -78,9 +78,9 @@ class CoverageServiceImpl implements CoverageService {
 			coveragePushQueue = queueingService.initMemoQueue();
 		}
 
-		logger.info("starting background worker...");
+		logger.info(configurer.getOctaneLocationForLog() + "starting background worker...");
 		coveragePushExecutor.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY (backed by " + coveragePushQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.getOctaneLocationForLog() + "initialized SUCCESSFULLY (backed by " + coveragePushQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
@@ -96,16 +96,16 @@ class CoverageServiceImpl implements CoverageService {
 			try {
 				coverageQueueItem = coveragePushQueue.peek();
 				pushCoverageWithPreflight(coverageQueueItem);
-				logger.debug("successfully processed " + coverageQueueItem);
+				logger.debug(configurer.getOctaneLocationForLog() + "successfully processed " + coverageQueueItem);
 				coveragePushQueue.remove();
 			} catch (TemporaryException te) {
-				logger.error("temporary error on " + coverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
+				logger.error(configurer.getOctaneLocationForLog() + "temporary error on " + coverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pe) {
-				logger.error("permanent error on " + coverageQueueItem + ", passing over", pe);
+				logger.error(configurer.getOctaneLocationForLog() + "permanent error on " + coverageQueueItem + ", passing over", pe);
 				coveragePushQueue.remove();
 			} catch (Throwable t) {
-				logger.error("unexpected error on build coverage item '" + coverageQueueItem + "', passing over", t);
+				logger.error(configurer.getOctaneLocationForLog() + "unexpected error on build coverage item '" + coverageQueueItem + "', passing over", t);
 				coveragePushQueue.remove();
 			}
 		}
@@ -142,10 +142,10 @@ class CoverageServiceImpl implements CoverageService {
 			try {
 				String[] wss = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
 				if (wss.length > 0) {
-					logger.info("coverage of " + jobId + " found " + wss.length + " interested workspace/s in Octane, dispatching the coverage");
+					logger.info(configurer.getOctaneLocationForLog() + "coverage of " + jobId + " found " + wss.length + " interested workspace/s in Octane, dispatching the coverage");
 					result = true;
 				} else {
-					logger.info("coverage of " + jobId + " found no interested workspace in Octane, passing over");
+					logger.info(configurer.getOctaneLocationForLog() + "coverage of " + jobId + " found no interested workspace in Octane, passing over");
 				}
 			} catch (IOException ioe) {
 				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
@@ -224,14 +224,14 @@ class CoverageServiceImpl implements CoverageService {
 		//  get coverage report content
 		InputStream coverageReport = configurer.pluginServices.getCoverageReport(queueItem.jobId, queueItem.buildId, queueItem.reportFileName);
 		if (coverageReport == null) {
-			logger.info("no log for " + queueItem + " found, abandoning");
+			logger.info(configurer.getOctaneLocationForLog() + "no log for " + queueItem + " found, abandoning");
 			return;
 		}
 
 		//  push coverage
 		OctaneResponse response = pushCoverage(queueItem.jobId, queueItem.buildId, queueItem.reportType, coverageReport);
 		if (response.getStatus() == HttpStatus.SC_OK) {
-			logger.info("successfully pushed coverage of " + queueItem);
+			logger.info(configurer.getOctaneLocationForLog() + "successfully pushed coverage of " + queueItem);
 		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("temporary failed to push coverage of " + queueItem + ", status: " + HttpStatus.SC_SERVICE_UNAVAILABLE);
 		} else {
