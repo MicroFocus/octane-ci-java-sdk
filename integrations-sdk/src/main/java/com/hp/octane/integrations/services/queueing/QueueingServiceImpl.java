@@ -47,12 +47,12 @@ final class QueueingServiceImpl implements QueueingService {
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
 			storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + configurer.octaneConfiguration.getInstanceId());
 			if (!storageDirectory.mkdirs()) {
-				logger.info(configurer.getOctaneLocationForLog() + "storage directories structure assumed to be present");
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "storage directories structure assumed to be present");
 			}
-			logger.info(configurer.getOctaneLocationForLog() + "hosting plugin PROVIDE available storage, queues persistence enabled");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "hosting plugin PROVIDE available storage, queues persistence enabled");
 		} else {
 			storageDirectory = null;
-			logger.info(configurer.getOctaneLocationForLog() + "hosting plugin DO NOT PROVIDE available storage, queues persistence disabled");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "hosting plugin DO NOT PROVIDE available storage, queues persistence disabled");
 		}
 	}
 

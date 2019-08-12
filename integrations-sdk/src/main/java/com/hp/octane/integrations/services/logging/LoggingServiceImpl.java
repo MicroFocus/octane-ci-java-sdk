@@ -40,13 +40,13 @@ final class LoggingServiceImpl implements LoggingService {
 		}
 		this.configurer = configurer;
 		configureLogger();
-		logger.info(configurer.getOctaneLocationForLog() + "logger is configured");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "logger is configured");
 	}
 
 	@Override
 	public void shutdown() {
 		if (OctaneSDK.getClients().isEmpty() && commonLoggerContext != null) {
-			logger.info(configurer.getOctaneLocationForLog() + "last client is closing; general logger context is STOPPING");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "last client is closing; general logger context is STOPPING");
 			commonLoggerContext.stop();
 		}
 	}

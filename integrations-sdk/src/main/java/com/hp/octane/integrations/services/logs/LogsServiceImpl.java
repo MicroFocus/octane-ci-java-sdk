@@ -76,9 +76,9 @@ final class LogsServiceImpl implements LogsService {
 		this.configurer = configurer;
 		this.restService = restService;
 
-		logger.info(configurer.getOctaneLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		logsPushExecutor.execute(this::worker);
-		logger.info(configurer.getOctaneLocationForLog() + "initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
@@ -115,16 +115,16 @@ final class LogsServiceImpl implements LogsService {
 			try {
 				buildLogQueueItem = buildLogsQueue.peek();
 				pushBuildLog(configurer.octaneConfiguration.getInstanceId(), buildLogQueueItem);
-				logger.debug(configurer.getOctaneLocationForLog() + "successfully processed " + buildLogQueueItem);
+				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully processed " + buildLogQueueItem);
 				buildLogsQueue.remove();
 			} catch (TemporaryException tque) {
-				logger.error(configurer.getOctaneLocationForLog() + "temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error(configurer.getOctaneLocationForLog() + "permanent error on " + buildLogQueueItem + ", passing over", pqie);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + buildLogQueueItem + ", passing over", pqie);
 				buildLogsQueue.remove();
 			} catch (Throwable t) {
-				logger.error(configurer.getOctaneLocationForLog() + "unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
 				buildLogsQueue.remove();
 			}
 		}
@@ -139,10 +139,10 @@ final class LogsServiceImpl implements LogsService {
 		//  preflight
 		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId);
 		if (workspaceIDs.length == 0) {
-			logger.info(configurer.getOctaneLocationForLog() + "log of " + queueItem + " found no interested workspace in Octane, passing over");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + " found no interested workspace in Octane, passing over");
 			return;
 		} else {
-			logger.info(configurer.getOctaneLocationForLog() + "log of " + queueItem + " found " + workspaceIDs.length + " interested workspace/s in Octane, dispatching the log");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + " found " + workspaceIDs.length + " interested workspace/s in Octane, dispatching the log");
 		}
 
 		//  submit log for each workspace returned by the 'preflight' API
@@ -159,34 +159,34 @@ final class LogsServiceImpl implements LogsService {
 			try {
 				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
-					logger.info(configurer.getOctaneLocationForLog() + "no log for " + queueItem + " found, abandoning");
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "no log for " + queueItem + " found, abandoning");
 					break;
 				}
 				request.setBody(log);
 				response = restService.obtainOctaneRestClient().execute(request);
 				if (response.getStatus() == HttpStatus.SC_OK) {
-					logger.info(configurer.getOctaneLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId);
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId);
 				} else {
-					logger.error(configurer.getOctaneLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
 				}
 			} catch (IOException ioe) {
-				logger.error(configurer.getOctaneLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
-					logger.info(configurer.getOctaneLocationForLog() + "no log for " + queueItem + " found, abandoning");
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "no log for " + queueItem + " found, abandoning");
 					break;
 				}
 				request.setBody(log);
 				try {
 					response = restService.obtainOctaneRestClient().execute(request);
 					if (response.getStatus() == HttpStatus.SC_OK) {
-						logger.info(configurer.getOctaneLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId);
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId);
 					} else {
-						logger.error(configurer.getOctaneLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
+						logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
 					}
 				} catch (IOException ioem) {
-					logger.error(configurer.getOctaneLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + " for the second time, abandoning", ioem);
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + " for the second time, abandoning", ioem);
 				}
 			}
 		}

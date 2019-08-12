@@ -73,7 +73,7 @@ public final class OctaneSDK {
 
 		//  validate instance ID uniqueness
 		String instanceId = octaneConfiguration.getInstanceId();
-		logger.info("Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
+		logger.info(octaneConfiguration.geLocationForLog() + "Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
 
 		if (!isInstanceIdUnique(instanceId)) {
 			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
@@ -114,7 +114,7 @@ public final class OctaneSDK {
 		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(octaneConfiguration, pluginServices));
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
-		logger.info("Octane Client instance " + octaneConfiguration.getInstanceId() +" initialized SUCCESSFULLY");
+		logger.info(octaneConfiguration.geLocationForLog() + "Octane Client instance " + octaneConfiguration.getInstanceId() +" is initialized SUCCESSFULLY");
 
 		return newInstance;
 	}
@@ -299,10 +299,6 @@ public final class OctaneSDK {
 		private SDKServicesConfigurer(OctaneConfiguration octaneConfiguration, CIPluginServices pluginServices) {
 			this.octaneConfiguration = octaneConfiguration;
 			this.pluginServices = pluginServices;
-		}
-
-		public String getOctaneLocationForLog() {
-			return "[" + octaneConfiguration.getUrl() + "?p=" + octaneConfiguration.getSharedSpace() + "] ";
 		}
 	}
 }
