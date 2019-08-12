@@ -16,14 +16,14 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.general.CIServerTypes;
-import com.hp.octane.integrations.services.rest.OctaneRestClient;
-import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
+import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -154,7 +154,8 @@ final class BridgeServiceImpl implements BridgeService {
 					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: 404, API changes? version problem?");
 					CIPluginSDKUtils.doWait(180000);
 				} else {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + octaneResponse.getBody());
+					String output = octaneResponse.getBody() == null ? "" : octaneResponse.getBody().substring(0, Math.max(octaneResponse.getBody().length(), 2000));//don't print more that 2000 characters
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output);
 					CIPluginSDKUtils.doWait(10000);
 				}
 			}
