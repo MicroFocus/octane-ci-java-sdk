@@ -16,10 +16,15 @@
 
 package com.hp.octane.integrations.executor;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.hp.octane.integrations.executor.TestToRunData.TESTS_TO_RUN_STRING_VERSION;
 
 public abstract class TestsToRunConverter {
 
@@ -59,16 +64,30 @@ public abstract class TestsToRunConverter {
         if (SdkStringUtils.isEmpty(rawTests)) {
             return null;
         }
-        int versionIndex = rawTests.indexOf(":");
-        if (versionIndex < 0) {
-            throw new IllegalArgumentException("Invalid format : missing version part.");
+        boolean bTestToRunStringVersion = rawTests.startsWith(TESTS_TO_RUN_STRING_VERSION);
+        if( bTestToRunStringVersion ) {
+            return parse(rawTests.substring(rawTests.indexOf(":") + 1).split(";"));
+        } else {
+            return parseJson(rawTests);
         }
-        String version = rawTests.substring(0, versionIndex);
-        if (!version.equalsIgnoreCase("v1")) {
-            throw new IllegalArgumentException("Invalid format. Not supported version " + version + ".");
-        }
+    }
 
-        String[] rawTestsArr = rawTests.substring(versionIndex + 1).split(";");
+    protected List<TestToRunData> parseJson(String rawTestsJson) {
+        try {
+            final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            TestToRunDataCollection result = objectMapper.readValue(rawTestsJson, TestToRunDataCollection.class);
+
+//            if (!result.getVersion().equalsIgnoreCase(TESTS_TO_RUN_JSON_VERSION)) {
+//                throw new IllegalArgumentException("Invalid format. Not supported version " + result.getVersion() + ".");
+//            }
+
+            return result.getTestsToRun();
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid tests format: " + e.getMessage(), e);
+        }
+    }
+
+    protected List<TestToRunData> parse(String[] rawTestsArr) {
         List<TestToRunData> result = new ArrayList<>(rawTestsArr.length);
         int TEST_PARTS_MINIMAL_SIZE = 3;//package1|class1|test1
         int PARAMETER_SIZE = 2;//key=value
@@ -91,5 +110,4 @@ public abstract class TestsToRunConverter {
 
         return result;
     }
-
 }
