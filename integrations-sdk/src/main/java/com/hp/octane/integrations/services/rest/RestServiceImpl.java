@@ -40,9 +40,9 @@ final class RestServiceImpl implements RestService {
 
 		this.configurer = configurer;
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initializing a default Octane REST client...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initializing a default Octane REST client");
 		obtainOctaneRestClient();
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "...default Octane REST client initialized");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "default Octane REST client is initialized");
 	}
 
 	@Override

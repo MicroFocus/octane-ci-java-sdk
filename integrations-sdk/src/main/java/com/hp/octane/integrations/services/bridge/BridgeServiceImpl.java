@@ -26,6 +26,7 @@ import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -159,6 +160,8 @@ final class BridgeServiceImpl implements BridgeService {
 					CIPluginSDKUtils.doWait(10000);
 				}
 			}
+		} catch (HttpHostConnectException e){
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks. Server might not be accessible : " + e.getMessage());
 		} catch (IOException ioe) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks", ioe);
 			CIPluginSDKUtils.doWait(10000);

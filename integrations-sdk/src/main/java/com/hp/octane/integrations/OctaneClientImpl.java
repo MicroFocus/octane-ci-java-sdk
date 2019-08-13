@@ -228,10 +228,12 @@ final class OctaneClientImpl implements OctaneClient {
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
 			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
-			if (instanceOrientedStorage.mkdirs()) {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "verified dedicated storage");
+			if (instanceOrientedStorage.exists()) {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "dedicated storage is exist for instance " + configurer.octaneConfiguration.getInstanceId());
+			} else if (instanceOrientedStorage.mkdirs()) {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "dedicated storage is created for instance " + configurer.octaneConfiguration.getInstanceId());
 			} else {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to create dedicated storage");
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to create dedicated storage : " + instanceOrientedStorage.getAbsolutePath());
 			}
 		}
 	}

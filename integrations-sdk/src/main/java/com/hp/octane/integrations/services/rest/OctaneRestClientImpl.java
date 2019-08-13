@@ -346,11 +346,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				refreshSecurityToken(context, true);
 			} else {
-				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
+				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(response);
 		} catch (IOException ioe) {
-			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed to login to " + config, ioe);
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed to login", ioe);
 			throw ioe;
 		} finally {
 			if (response != null) {
