@@ -17,16 +17,16 @@ package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -34,19 +34,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import static com.hp.octane.integrations.services.rest.RestService.ANALYTICS_CI_PATH_PART;
-import static com.hp.octane.integrations.services.rest.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
+import static com.hp.octane.integrations.services.rest.RestService.*;
 
 /**
  * EventsService implementation
@@ -146,7 +139,9 @@ final class EventsServiceImpl implements EventsService {
 				logEventsToBeSent(configurer.octaneConfiguration, eventsSnapshot);
 				sendEventsData(configurer.octaneConfiguration, eventsSnapshot);
 				removeEvents(eventsChunk);
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "... done; as of now, left to send " + events.size() + " events");
+				if (events.size() > 0) {
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "left to send " + events.size() + " events");
+				}
 			} catch (TemporaryException tqie) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
