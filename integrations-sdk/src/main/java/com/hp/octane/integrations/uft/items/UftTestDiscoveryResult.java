@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * This file represents result of UFT discovery (tests and data tables)
  */
-public class UftTestDiscoveryResult {
+public class UftTestDiscoveryResult implements Serializable {
 
     private List<AutomatedTest> tests = new ArrayList<>();
 

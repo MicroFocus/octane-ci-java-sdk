@@ -17,108 +17,108 @@ package com.hp.octane.integrations.uft.items;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 
 /**
  * This file represents scm resource for sending to Octane
  */
 @XmlRootElement(name = "dataTable")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class ScmResourceFile implements SupportsMoveDetection, SupportsOctaneStatus {
+public class ScmResourceFile implements SupportsMoveDetection, SupportsOctaneStatus, Serializable {
 
-	private String id;
+    private String id;
 
-	private String changeSetSrc;
+    private String changeSetSrc;
 
-	private String changeSetDst;
+    private String changeSetDst;
 
-	private String oldRelativePath;
+    private String oldRelativePath;
 
-	private String oldName;
+    private String oldName;
 
-	private Boolean isMoved;
+    private Boolean isMoved;
 
-	private OctaneStatus octaneStatus;
+    private OctaneStatus octaneStatus;
 
-	private String name;
+    private String name;
 
-	private String relativePath;
+    private String relativePath;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getRelativePath() {
-		return relativePath;
-	}
+    public String getRelativePath() {
+        return relativePath;
+    }
 
-	public void setRelativePath(String relativePath) {
-		this.relativePath = relativePath;
-	}
+    public void setRelativePath(String relativePath) {
+        this.relativePath = relativePath;
+    }
 
-	@Override
-	public String getChangeSetSrc() {
-		return changeSetSrc;
-	}
+    @Override
+    public String getChangeSetSrc() {
+        return changeSetSrc;
+    }
 
-	@Override
-	public void setChangeSetSrc(String changeSetSrc) {
-		this.changeSetSrc = changeSetSrc;
-	}
+    @Override
+    public void setChangeSetSrc(String changeSetSrc) {
+        this.changeSetSrc = changeSetSrc;
+    }
 
-	@Override
-	public String getChangeSetDst() {
-		return changeSetDst;
-	}
+    @Override
+    public String getChangeSetDst() {
+        return changeSetDst;
+    }
 
-	@Override
-	public void setChangeSetDst(String changeSetDst) {
-		this.changeSetDst = changeSetDst;
-	}
+    @Override
+    public void setChangeSetDst(String changeSetDst) {
+        this.changeSetDst = changeSetDst;
+    }
 
-	public String getOldRelativePath() {
-		return oldRelativePath;
-	}
+    public String getOldRelativePath() {
+        return oldRelativePath;
+    }
 
-	public void setOldRelativePath(String oldRelativePath) {
-		this.oldRelativePath = oldRelativePath;
-	}
+    public void setOldRelativePath(String oldRelativePath) {
+        this.oldRelativePath = oldRelativePath;
+    }
 
-	public String getOldName() {
-		return oldName;
-	}
+    public String getOldName() {
+        return oldName;
+    }
 
-	public void setOldName(String oldName) {
-		this.oldName = oldName;
-	}
+    public void setOldName(String oldName) {
+        this.oldName = oldName;
+    }
 
-	public Boolean getIsMoved() {
-		return isMoved != null ? isMoved : false;
-	}
+    public Boolean getIsMoved() {
+        return isMoved != null ? isMoved : false;
+    }
 
-	public void setIsMoved(Boolean moved) {
-		isMoved = moved;
-	}
+    public void setIsMoved(Boolean moved) {
+        isMoved = moved;
+    }
 
-	@Override
-	public OctaneStatus getOctaneStatus() {
-		return octaneStatus;
-	}
+    @Override
+    public OctaneStatus getOctaneStatus() {
+        return octaneStatus;
+    }
 
-	public void setOctaneStatus(OctaneStatus octaneStatus) {
-		this.octaneStatus = octaneStatus;
-	}
+    public void setOctaneStatus(OctaneStatus octaneStatus) {
+        this.octaneStatus = octaneStatus;
+    }
 }
