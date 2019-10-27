@@ -24,15 +24,17 @@ import com.fasterxml.jackson.annotation.JsonValue;
  */
 
 public enum SCMType {
-	UNKNOWN("unknown"),
-	GIT("git"),
-	SVN("svn"),
-	STARTEAM("starteam");
+	UNKNOWN("unknown", 0),
+	GIT("git", 2),
+	SVN("svn", 1),
+	STARTEAM("starteam", 3);
 
 	private String value;
+	private int octaneId;
 
-	SCMType(String status) {
-		this.value = status;
+	SCMType(String typeName, int octaneId) {
+		this.value = typeName;
+		this.octaneId = octaneId;
 	}
 
 	@JsonValue
@@ -54,5 +56,9 @@ public enum SCMType {
 			}
 		}
 		return result;
+	}
+
+	public int getOctaneId() {
+		return octaneId;
 	}
 }
