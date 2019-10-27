@@ -96,6 +96,7 @@ final class BridgeServiceImpl implements BridgeService {
 			// add log about activity once a hour
 			if (hoursDifference(System.currentTimeMillis(), lastLogTime) >= 1) {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "task polling is active");
+				lastLogTime = System.currentTimeMillis();
 			}
 
 			//  get tasks, wait if needed and return with task or timeout or error
@@ -243,6 +244,6 @@ final class BridgeServiceImpl implements BridgeService {
 	}
 
 	private static long hoursDifference(long date1, long date2) {
-		return date1 - date2 / MILLI_TO_HOUR;
+		return (date1 - date2) / MILLI_TO_HOUR;
 	}
 }
