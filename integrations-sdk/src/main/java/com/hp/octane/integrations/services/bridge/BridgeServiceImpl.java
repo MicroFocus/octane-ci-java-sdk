@@ -55,6 +55,8 @@ final class BridgeServiceImpl implements BridgeService {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private final TasksProcessor tasksProcessor;
+	private long lastLogTime = 0;
+	private final static long MILLI_TO_HOUR = 1000 * 60 * 60;
 
 	BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
 		if (configurer == null) {
@@ -78,6 +80,7 @@ final class BridgeServiceImpl implements BridgeService {
 
 	@Override
 	public void shutdown() {
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "shutdown");
 		connectivityExecutors.shutdown();
 		taskProcessingExecutors.shutdown();
 	}
@@ -89,6 +92,11 @@ final class BridgeServiceImpl implements BridgeService {
 			CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
 			CIPluginInfo pluginInfo = configurer.pluginServices.getPluginInfo();
 			String client = configurer.octaneConfiguration.getClient();
+
+			// add log about activity once a hour
+			if (hoursDifference(System.currentTimeMillis(), lastLogTime) >= 1) {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "task polling is active");
+			}
 
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
@@ -232,5 +240,9 @@ final class BridgeServiceImpl implements BridgeService {
 			result.setDaemon(true);
 			return result;
 		}
+	}
+
+	private static long hoursDifference(long date1, long date2) {
+		return date1 - date2 / MILLI_TO_HOUR;
 	}
 }
