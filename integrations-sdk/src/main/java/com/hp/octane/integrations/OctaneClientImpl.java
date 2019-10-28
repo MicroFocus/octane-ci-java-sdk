@@ -147,6 +147,11 @@ final class OctaneClientImpl implements OctaneClient {
 	}
 
 	@Override
+	public BridgeService getBridgeService() {
+		return bridgeService;
+	}
+
+	@Override
 	public PipelineContextService getPipelineContextService() {
 		return pipelineContextService;
 	}
