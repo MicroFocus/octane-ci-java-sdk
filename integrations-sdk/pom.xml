@@ -12,7 +12,7 @@
 	<artifactId>integrations-sdk</artifactId>
 
 	<properties>
-		<log4j.version>2.12.1</log4j.version>
+		<log4j.version>2.10.0</log4j.version>
 		<httpclient.version>4.5.2</httpclient.version>
 		<squareup-tape.version>1.2.3</squareup-tape.version>
 

@@ -12,40 +12,15 @@
 	<artifactId>integrations-dto</artifactId>
 
 	<properties>
-		<jackson.version>2.10.0</jackson.version>
+		<jackson.version>2.9.10.1</jackson.version>
 	</properties>
-
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<artifactId>jackson-databind</artifactId>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<version>${jackson.version}</version>
-				<exclusions>
-					<exclusion>
-						<artifactId>jackson-annotations</artifactId>
-						<groupId>com.fasterxml.jackson.core</groupId>
-					</exclusion>
-				</exclusions>
-			</dependency>
-			<dependency>
-				<artifactId>jackson-annotations</artifactId>
-				<groupId>com.fasterxml.jackson.core</groupId>
-				<version>${jackson.version}</version>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 
 	<dependencies>
 
-		<!-- EXTERNAL -->
 		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<groupId>com.fasterxml.jackson.core</groupId>
-		</dependency>
-		<dependency>
-			<artifactId>jackson-annotations</artifactId>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<!-- TESTING -->
