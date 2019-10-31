@@ -240,8 +240,17 @@ final class BridgeServiceImpl implements BridgeService {
 				});
 			}
 		} catch (Exception e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to process tasks", e);
+			if (isServiceTemporaryUnavailable(tasksJSON)) {
+				logger.error("Saas service is temporary unavailable. Breathing before calling next task.");
+				CIPluginSDKUtils.doWait(180000);
+			} else {
+				logger.error("failed to process tasks", e);
+			}
 		}
+	}
+
+	private boolean isServiceTemporaryUnavailable(String tasksJSON) {
+		return tasksJSON.contains("Service Temporary Unavailable");
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
