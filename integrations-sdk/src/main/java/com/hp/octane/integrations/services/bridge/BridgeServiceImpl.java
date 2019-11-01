@@ -187,7 +187,7 @@ final class BridgeServiceImpl implements BridgeService {
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Octane service unavailable, breathing and will retry");
 					changeServiceState(ServiceState.PostponingOnException);
-					CIPluginSDKUtils.doWait(10000);
+					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
 					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: authentication error");
 					changeServiceState(ServiceState.PostponingOnException);
