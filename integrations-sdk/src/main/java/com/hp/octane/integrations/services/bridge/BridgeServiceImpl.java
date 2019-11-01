@@ -138,7 +138,7 @@ final class BridgeServiceImpl implements BridgeService {
 				handleTasks(tasksJSON);
 			}
 		} catch (Throwable t) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "getting tasks from Octane Server temporary failed", t);
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "getting tasks from Octane Server temporary failed. Breathing 2 secs.", t);
 			CIPluginSDKUtils.doWait(2000);
 			if (!connectivityExecutors.isShutdown()) {
 				connectivityExecutors.execute(this::worker);
@@ -185,24 +185,24 @@ final class BridgeServiceImpl implements BridgeService {
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.debug(configurer.octaneConfiguration.geLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Octane service unavailable, breathing and will retry");
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Octane service unavailable, breathing 30 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: authentication error");
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: authentication error. Breathing 30 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: authorization error");
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: authorization error. Breathing 30 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: 404, API changes? version problem?");
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: 404, API changes? version problem?. Breathing 180 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(180000);
 				} else {
 					String output = octaneResponse.getBody() == null ? "" : octaneResponse.getBody().substring(0, Math.max(octaneResponse.getBody().length(), 2000));//don't print more that 2000 characters
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output);
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output +". Breathing 10 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(10000);
 				}
@@ -213,7 +213,7 @@ final class BridgeServiceImpl implements BridgeService {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks", ioe);
 			CIPluginSDKUtils.doWait(10000);
 		} catch (Throwable t) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error during retrieval of abridged tasks", t);
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error during retrieval of abridged tasks. Breathing 10 secs.", t);
 			changeServiceState(ServiceState.PostponingOnException);
 			CIPluginSDKUtils.doWait(10000);
 		}
@@ -241,7 +241,7 @@ final class BridgeServiceImpl implements BridgeService {
 			}
 		} catch (Exception e) {
 			if (isServiceTemporaryUnavailable(tasksJSON)) {
-				logger.error("Saas service is temporary unavailable. Breathing before calling next task.");
+				logger.error("Saas service is temporary unavailable. Breathing 180 secs.");
 				CIPluginSDKUtils.doWait(180000);
 			} else {
 				logger.error("failed to process tasks", e);
