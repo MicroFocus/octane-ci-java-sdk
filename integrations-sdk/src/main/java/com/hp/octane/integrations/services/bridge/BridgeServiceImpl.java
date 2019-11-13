@@ -179,13 +179,21 @@ final class BridgeServiceImpl implements BridgeService {
 			OctaneResponse octaneResponse = octaneRestClient.execute(octaneRequest);
 			if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
 				responseBody = octaneResponse.getBody();
+
+				if (isServiceTemporaryUnavailable(responseBody)) {
+					logger.error("Saas service is temporary unavailable. Breathing 180 secs.");
+					changeServiceState(ServiceState.PostponingOnException);
+					CIPluginSDKUtils.doWait(180000);
+					responseBody = null;
+				}
+
 			} else {
 				if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
 					logger.debug(configurer.octaneConfiguration.geLocationForLog() + "no tasks found on server");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.debug(configurer.octaneConfiguration.geLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Octane service unavailable, breathing 30 secs.");
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Octane service is unavailable, breathing 30 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(30000);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
@@ -200,8 +208,12 @@ final class BridgeServiceImpl implements BridgeService {
 					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: 404, API changes? version problem?. Breathing 180 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(180000);
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "task polling request is redirected. Possibly Octane service is unavailable now. Breathing 30 secs.");
+					changeServiceState(ServiceState.PostponingOnException);
+					CIPluginSDKUtils.doWait(30000);
 				} else {
-					String output = octaneResponse.getBody() == null ? "" : octaneResponse.getBody().substring(0, Math.max(octaneResponse.getBody().length(), 2000));//don't print more that 2000 characters
+					String output = octaneResponse.getBody() == null ? "" : octaneResponse.getBody().substring(0, Math.min(octaneResponse.getBody().length(), 2000));//don't print more that 2000 characters
 					logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output +". Breathing 10 secs.");
 					changeServiceState(ServiceState.PostponingOnException);
 					CIPluginSDKUtils.doWait(10000);
@@ -243,17 +255,12 @@ final class BridgeServiceImpl implements BridgeService {
 				});
 			}
 		} catch (Exception e) {
-			if (isServiceTemporaryUnavailable(tasksJSON)) {
-				logger.error("Saas service is temporary unavailable. Breathing 180 secs.");
-				CIPluginSDKUtils.doWait(180000);
-			} else {
-				logger.error("failed to process tasks", e);
-			}
+			logger.error("failed to process tasks", e);
 		}
 	}
 
 	private boolean isServiceTemporaryUnavailable(String tasksJSON) {
-		return tasksJSON.contains("Service Temporary Unavailable");
+		return tasksJSON != null && tasksJSON.contains("Service Temporary Unavailable");
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
