@@ -208,14 +208,17 @@ final class BridgeServiceImpl implements BridgeService {
 				}
 			}
 		} catch (SocketException | UnknownHostException e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks. ALM Octane Server is not accessible : " + e.getClass().getCanonicalName() + " - " + e.getMessage());
-		} catch (IOException ioe) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks", ioe);
-			CIPluginSDKUtils.doWait(10000);
-		} catch (Throwable t) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error during retrieval of abridged tasks. Breathing 10 secs.", t);
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks. ALM Octane Server is not accessible : " + e.getClass().getCanonicalName() + " - " + e.getMessage() + ". Breathing 30 secs.");
 			changeServiceState(ServiceState.PostponingOnException);
-			CIPluginSDKUtils.doWait(10000);
+			CIPluginSDKUtils.doWait(30000);
+		} catch (IOException ioe) {
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks. Breathing 30 secs.", ioe);
+			changeServiceState(ServiceState.PostponingOnException);
+			CIPluginSDKUtils.doWait(30000);
+		} catch (Throwable t) {
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error during retrieval of abridged tasks. Breathing 30 secs.", t);
+			changeServiceState(ServiceState.PostponingOnException);
+			CIPluginSDKUtils.doWait(30000);
 		}
 		return responseBody;
 	}
