@@ -53,6 +53,7 @@ public class EntityConstants {
 
     public static class Milestone extends Base {
         public static final String COLLECTION_NAME = "milestones";
+        public static final String RELEASE_FIELD = "release";
     }
 
     public static class Lists extends Base {
