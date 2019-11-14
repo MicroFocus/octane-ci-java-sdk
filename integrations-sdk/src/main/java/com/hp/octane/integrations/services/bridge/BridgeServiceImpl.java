@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -62,6 +63,7 @@ final class BridgeServiceImpl implements BridgeService {
 	private long  lastRequestToOctaneTime = 0;
 	private ServiceState serviceState = ServiceState.Initial;
 	private long stateStartTime = 0;
+	private long maxOctaneWaitingSec = 0;
 
 	BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
 		if (configurer == null) {
@@ -88,6 +90,7 @@ final class BridgeServiceImpl implements BridgeService {
 		map.put("state", serviceState.name());
 		map.put("stateStartTime", new Date(stateStartTime));
 		map.put("lastRequestToOctaneTime", new Date(lastRequestToOctaneTime));
+		map.put("maxOctaneWaitingSec", maxOctaneWaitingSec);
 		return map;
 	}
 
@@ -114,6 +117,7 @@ final class BridgeServiceImpl implements BridgeService {
 			}
 
 			changeServiceState(ServiceState.WaitingToOctane);
+			long startWaiting = System.currentTimeMillis();
 
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
@@ -124,6 +128,10 @@ final class BridgeServiceImpl implements BridgeService {
 					client == null ? "" : client,
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
 
+			long waitingDurationSec = (System.currentTimeMillis() - startWaiting) / 1000;
+			maxOctaneWaitingSec = Math.max(maxOctaneWaitingSec, waitingDurationSec);
+
+			changeServiceState(ServiceState.AfterWaitingToOctane);
 			//  regardless of response - reconnect again to keep the light on
 			if (!connectivityExecutors.isShutdown()) {
 				connectivityExecutors.execute(this::worker);
@@ -136,6 +144,7 @@ final class BridgeServiceImpl implements BridgeService {
 			if (tasksJSON != null && !tasksJSON.isEmpty()) {
 				changeServiceState(ServiceState.HandleTask);
 				handleTasks(tasksJSON);
+				changeServiceState(ServiceState.AfterHandleTask);
 			}
 		} catch (Throwable t) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "getting tasks from Octane Server temporary failed. Breathing 2 secs.", t);
@@ -165,6 +174,7 @@ final class BridgeServiceImpl implements BridgeService {
 		headers.put(RestService.ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
+				.setTimeoutSec(80)
 				.setUrl(configurer.octaneConfiguration.getUrl() +
 						RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
 						RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + CIPluginSDKUtils.urlEncodeQueryParam(selfType) +
@@ -205,12 +215,14 @@ final class BridgeServiceImpl implements BridgeService {
 					breathingOnException("Unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output + ".", 20);
 				}
 			}
+		} catch (InterruptedIOException ste) {
+			breathingOnException("Failed to retrieve abridged tasks because of timeout,  " + ste.getClass().getCanonicalName() + " - " + ste.getMessage() + ".", 5);
 		} catch (SocketException | UnknownHostException e) {
-			breathingOnException("Failed to retrieve abridged tasks. ALM Octane Server is not accessible : " + e.getClass().getCanonicalName() + " - " + e.getMessage() + ".", 60);
+			breathingOnException("Failed to retrieve abridged tasks. ALM Octane Server is not accessible, " + e.getClass().getCanonicalName() + " - " + e.getMessage() + ".", 60);
 		} catch (IOException ioe) {
-			breathingOnException("Failed to retrieve abridged tasks : " + ioe.getMessage() + ".", 30);
+			breathingOnException("Failed to retrieve abridged tasks, " + ioe.getClass().getCanonicalName() + " - " + ioe.getMessage() + ".", 30);
 		} catch (Throwable t) {
-			breathingOnException("Unexpected error during retrieval of abridged tasks." + t.getClass().getCanonicalName() + " - " + t.getMessage() + ".", 30);
+			breathingOnException("Unexpected error during retrieval of abridged tasks, " + t.getClass().getCanonicalName() + " - " + t.getMessage() + ".", 30);
 		}
 		return responseBody;
 	}
@@ -222,7 +234,6 @@ final class BridgeServiceImpl implements BridgeService {
 	}
 
 	private void handleTasks(String tasksJSON) {
-		changeServiceState(ServiceState.HandleTask);
 		try {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "parsing tasks...");
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
@@ -267,18 +278,6 @@ final class BridgeServiceImpl implements BridgeService {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to submit abridged task's result", ioe);
 			return 0;
 		}
-	}
-
-	public long getLastRequestToOctaneTime() {
-		return lastRequestToOctaneTime;
-	}
-
-	public ServiceState getServiceState() {
-		return serviceState;
-	}
-
-	public long getStateStartTime() {
-		return stateStartTime;
 	}
 
 	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {

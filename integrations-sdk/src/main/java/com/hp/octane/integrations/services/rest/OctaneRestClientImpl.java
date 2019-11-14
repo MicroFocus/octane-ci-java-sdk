@@ -262,6 +262,17 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		//  set system headers
 		requestBuilder.setHeader(CLIENT_TYPE_HEADER, CLIENT_TYPE_VALUE);
 
+		if (octaneRequest.getTimeoutSec() > 0) {
+			int timeoutMs = octaneRequest.getTimeoutSec() * 1000;
+			RequestConfig config = RequestConfig.custom()
+
+					.setConnectTimeout(timeoutMs)
+					.setConnectionRequestTimeout(timeoutMs)
+					.setSocketTimeout(timeoutMs)
+					.build();
+			requestBuilder.setConfig(config);
+		}
+
 		request = requestBuilder.build();
 		return request;
 	}
