@@ -63,7 +63,6 @@ final class BridgeServiceImpl implements BridgeService {
 	private long  lastRequestToOctaneTime = 0;
 	private ServiceState serviceState = ServiceState.Initial;
 	private long stateStartTime = 0;
-	private long maxOctaneWaitingSec = 0;
 
 	BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
 		if (configurer == null) {
@@ -90,7 +89,6 @@ final class BridgeServiceImpl implements BridgeService {
 		map.put("state", serviceState.name());
 		map.put("stateStartTime", new Date(stateStartTime));
 		map.put("lastRequestToOctaneTime", new Date(lastRequestToOctaneTime));
-		map.put("maxOctaneWaitingSec", maxOctaneWaitingSec);
 		return map;
 	}
 
@@ -117,7 +115,6 @@ final class BridgeServiceImpl implements BridgeService {
 			}
 
 			changeServiceState(ServiceState.WaitingToOctane);
-			long startWaiting = System.currentTimeMillis();
 
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
@@ -127,9 +124,6 @@ final class BridgeServiceImpl implements BridgeService {
 					pluginInfo == null || pluginInfo.getVersion() == null ? "" : pluginInfo.getVersion(),
 					client == null ? "" : client,
 					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
-
-			long waitingDurationSec = (System.currentTimeMillis() - startWaiting) / 1000;
-			maxOctaneWaitingSec = Math.max(maxOctaneWaitingSec, waitingDurationSec);
 
 			changeServiceState(ServiceState.AfterWaitingToOctane);
 			//  regardless of response - reconnect again to keep the light on
