@@ -39,6 +39,7 @@ class OctaneRequestImpl implements OctaneRequest {
 	private HttpMethod method;
 	private Map<String, String> headers;
 	private InputStream body;
+	private int timeoutSec;
 
 	@Override
 	public String getUrl() {
@@ -100,6 +101,17 @@ class OctaneRequestImpl implements OctaneRequest {
 	@Override
 	public OctaneRequest setBody(String body) {
 		this.body = new ByteArrayInputStream(body.getBytes(StandardCharsets.UTF_8));
+		return this;
+	}
+
+	@Override
+	public int getTimeoutSec() {
+		return timeoutSec;
+	}
+
+	@Override
+	public OctaneRequest setTimeoutSec(int timeoutSec) {
+		this.timeoutSec = timeoutSec;
 		return this;
 	}
 }

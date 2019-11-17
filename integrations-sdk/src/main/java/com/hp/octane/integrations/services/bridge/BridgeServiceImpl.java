@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Date;
@@ -113,8 +114,6 @@ final class BridgeServiceImpl implements BridgeService {
 				lastLogTime = System.currentTimeMillis();
 			}
 
-			changeServiceState(ServiceState.WaitingToOctane);
-
 			//  get tasks, wait if needed and return with task or timeout or error
 			tasksJSON = getAbridgedTasks(
 					configurer.octaneConfiguration.getInstanceId(),
@@ -128,7 +127,7 @@ final class BridgeServiceImpl implements BridgeService {
 			if (!connectivityExecutors.isShutdown()) {
 				connectivityExecutors.execute(this::worker);
 			} else {
-				changeServiceState(ServiceState.StopProcessing);
+				changeServiceState(ServiceState.StopTaskPolling);
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "Shutdown flag is up - stop task processing");
 			}
 
@@ -136,14 +135,14 @@ final class BridgeServiceImpl implements BridgeService {
 			if (tasksJSON != null && !tasksJSON.isEmpty()) {
 				changeServiceState(ServiceState.HandleTask);
 				handleTasks(tasksJSON);
+				changeServiceState(ServiceState.AfterHandleTask);
 			}
 		} catch (Throwable t) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "getting tasks from Octane Server temporary failed", t);
-			CIPluginSDKUtils.doWait(2000);
+			breathingOnException("getting tasks from Octane Server temporary failed", 2, t);
 			if (!connectivityExecutors.isShutdown()) {
 				connectivityExecutors.execute(this::worker);
 			} else {
-				changeServiceState(ServiceState.StopProcessing);
+				changeServiceState(ServiceState.StopTaskPolling);
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "Shutdown flag is up - stop task processing");
 			}
 		}
@@ -165,6 +164,7 @@ final class BridgeServiceImpl implements BridgeService {
 		headers.put(RestService.ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
+				.setTimeoutSec(60)
 				.setUrl(configurer.octaneConfiguration.getUrl() +
 						RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
 						RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks?self-type=" + CIPluginSDKUtils.urlEncodeQueryParam(selfType) +
@@ -176,52 +176,58 @@ final class BridgeServiceImpl implements BridgeService {
 						"&ci-server-user=" + CIPluginSDKUtils.urlEncodeQueryParam(ciServerUser))
 				.setHeaders(headers);
 		try {
+			changeServiceState(ServiceState.WaitingToOctane);
 			OctaneResponse octaneResponse = octaneRestClient.execute(octaneRequest);
+			changeServiceState(ServiceState.AfterWaitingToOctane);
 			if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
 				responseBody = octaneResponse.getBody();
+
+				if (isServiceTemporaryUnavailable(responseBody)) {
+					breathingOnException("Saas service is temporary unavailable.", 180, null);
+					responseBody = null;
+				}
+
 			} else {
 				if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
 					logger.debug(configurer.octaneConfiguration.geLocationForLog() + "no tasks found on server");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.debug(configurer.octaneConfiguration.geLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Octane service unavailable, breathing and will retry");
-					changeServiceState(ServiceState.PostponingOnException);
-					CIPluginSDKUtils.doWait(10000);
+					breathingOnException("Octane service is unavailable.", 60, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: authentication error");
-					changeServiceState(ServiceState.PostponingOnException);
-					CIPluginSDKUtils.doWait(30000);
+					breathingOnException("Connection to Octane failed: authentication error.", 60, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: authorization error");
-					changeServiceState(ServiceState.PostponingOnException);
-					CIPluginSDKUtils.doWait(30000);
+					breathingOnException("Connection to Octane failed: authorization error.", 60, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "connection to Octane failed: 404, API changes? version problem?");
-					changeServiceState(ServiceState.PostponingOnException);
-					CIPluginSDKUtils.doWait(180000);
+					breathingOnException("Connection to Octane failed: 404, API changes? proxy settings?", 180, null);
+				} else if (octaneResponse.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
+					breathingOnException("Task polling request is redirected. Possibly Octane service is unavailable now.", 60, null);
 				} else {
-					String output = octaneResponse.getBody() == null ? "" : octaneResponse.getBody().substring(0, Math.max(octaneResponse.getBody().length(), 2000));//don't print more that 2000 characters
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output);
-					changeServiceState(ServiceState.PostponingOnException);
-					CIPluginSDKUtils.doWait(10000);
+					String output = octaneResponse.getBody() == null ? "" : octaneResponse.getBody().substring(0, Math.min(octaneResponse.getBody().length(), 2000));//don't print more that 2000 characters
+					breathingOnException("Unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output + ".", 20, null);
 				}
 			}
+		} catch (InterruptedIOException ie) {
+			long timeout = (System.currentTimeMillis() - stateStartTime) / 1000;
+			breathingOnException("Timeout occurred after " + timeout + " sec", 5, ie);
 		} catch (SocketException | UnknownHostException e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks. ALM Octane Server is not accessible : " + e.getClass().getCanonicalName() + " - " + e.getMessage());
+			breathingOnException("Failed to retrieve abridged tasks. ALM Octane Server is not accessible", 60, e);
 		} catch (IOException ioe) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to retrieve abridged tasks", ioe);
-			CIPluginSDKUtils.doWait(10000);
+			breathingOnException("Failed to retrieve abridged tasks", 30, ioe);
 		} catch (Throwable t) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error during retrieval of abridged tasks", t);
-			changeServiceState(ServiceState.PostponingOnException);
-			CIPluginSDKUtils.doWait(10000);
+			breathingOnException("Unexpected error during retrieval of abridged tasks", 30, t);
 		}
 		return responseBody;
 	}
 
+	private void breathingOnException(String msg, int secs, Throwable t) {
+		String error = (t == null) ? "" : " : " + t.getClass().getCanonicalName() + " - " + t.getMessage();
+		logger.error(configurer.octaneConfiguration.geLocationForLog() + msg + error + ". Breathing " + secs + " secs.");
+		changeServiceState(ServiceState.PostponingOnException);
+		CIPluginSDKUtils.doWait(secs * 1000);
+	}
+
 	private void handleTasks(String tasksJSON) {
-		changeServiceState(ServiceState.HandleTask);
 		try {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "parsing tasks...");
 			OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
@@ -240,17 +246,12 @@ final class BridgeServiceImpl implements BridgeService {
 				});
 			}
 		} catch (Exception e) {
-			if (isServiceTemporaryUnavailable(tasksJSON)) {
-				logger.error("Saas service is temporary unavailable. Breathing before calling next task.");
-				CIPluginSDKUtils.doWait(180000);
-			} else {
-				logger.error("failed to process tasks", e);
-			}
+			logger.error("failed to process tasks", e);
 		}
 	}
 
 	private boolean isServiceTemporaryUnavailable(String tasksJSON) {
-		return tasksJSON.contains("Service Temporary Unavailable");
+		return tasksJSON != null && tasksJSON.contains("Service Temporary Unavailable");
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
@@ -271,18 +272,6 @@ final class BridgeServiceImpl implements BridgeService {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to submit abridged task's result", ioe);
 			return 0;
 		}
-	}
-
-	public long getLastRequestToOctaneTime() {
-		return lastRequestToOctaneTime;
-	}
-
-	public ServiceState getServiceState() {
-		return serviceState;
-	}
-
-	public long getStateStartTime() {
-		return stateStartTime;
 	}
 
 	private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {
