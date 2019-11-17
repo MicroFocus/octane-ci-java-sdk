@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
@@ -84,11 +85,15 @@ final class BridgeServiceImpl implements BridgeService {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
-	public Map<String,Object>getMetrics(){
-		Map<String,Object> map = new HashMap<>();
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("state", serviceState.name());
 		map.put("stateStartTime", new Date(stateStartTime));
 		map.put("lastRequestToOctaneTime", new Date(lastRequestToOctaneTime));
+		map.put("connectivityExecutors.isShutdown", connectivityExecutors.isShutdown());
+		map.put("connectivityExecutors.isTerminated", connectivityExecutors.isTerminated());
+		map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
+		map.put("connectivityExecutors.getCompletedTaskCount", ((ThreadPoolExecutor) connectivityExecutors).getCompletedTaskCount());
 		return map;
 	}
 
@@ -133,17 +138,19 @@ final class BridgeServiceImpl implements BridgeService {
 
 			//  now can process the received tasks - if any
 			if (tasksJSON != null && !tasksJSON.isEmpty()) {
-				changeServiceState(ServiceState.HandleTask);
 				handleTasks(tasksJSON);
-				changeServiceState(ServiceState.AfterHandleTask);
 			}
 		} catch (Throwable t) {
-			breathingOnException("getting tasks from Octane Server temporary failed", 2, t);
-			if (!connectivityExecutors.isShutdown()) {
-				connectivityExecutors.execute(this::worker);
-			} else {
-				changeServiceState(ServiceState.StopTaskPolling);
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "Shutdown flag is up - stop task processing");
+			try {
+				breathingOnException("getting tasks from Octane Server temporary failed", 2, t);
+				if (!connectivityExecutors.isShutdown()) {
+					connectivityExecutors.execute(this::worker);
+				} else {
+					changeServiceState(ServiceState.StopTaskPolling);
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "Shutdown flag is up - stop task processing");
+				}
+			} catch (Throwable t2) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected exception in BridgeServiceImpl.worker", t2);
 			}
 		}
 	}
