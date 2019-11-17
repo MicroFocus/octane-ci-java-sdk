@@ -164,7 +164,7 @@ final class PipelineContextServiceImpl implements PipelineContextService {
 			pipelineContext.setReleaseId(null);
 		}
 
-		if(pipelineContext.getMilestoneId() != null & pipelineContext.getMilestoneId() == -1L){
+		if(pipelineContext.getMilestoneId() != null && pipelineContext.getMilestoneId() == -1L){
 			pipelineContext.setMilestoneId(null);
 		}
 	}
