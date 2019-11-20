@@ -27,6 +27,8 @@ public class TestsToRunConvertersFactory {
                 return new MavenSurefireAndFailsafeConverter();
             case MF_UFT:
                 return new MfUftConverter();
+            case CUCUMBER_JVM:
+                return new CucumberJVMConverter();
             case Protractor:
                 return new ProtractorConverter();
             case Gradle:
