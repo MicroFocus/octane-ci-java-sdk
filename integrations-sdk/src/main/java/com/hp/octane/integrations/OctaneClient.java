@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.sonar.SonarService;
@@ -68,6 +69,13 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	EntitiesService getEntitiesService();
+
+	/**
+	 * provides Bridge service (task polling)
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	BridgeService getBridgeService();
 
 	/**
 	 * provides PipelineContextImpl service

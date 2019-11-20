@@ -180,7 +180,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
 			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext(request.getUrl(), false);
+				context = createHttpContext(request.getUrl(), request.getTimeoutSec(), false);
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests.add(uriRequest);
 				}
@@ -266,7 +266,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		return request;
 	}
 
-	private HttpClientContext createHttpContext(String requestUrl, boolean isLoginRequest) {
+	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest) {
 		HttpClientContext context = HttpClientContext.create();
 		context.setCookieStore(new BasicCookieStore());
 
@@ -294,6 +294,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				context.setCredentialsProvider(credentialsProvider);
 			}
 			requestConfigBuilder.setProxy(proxyHost);
+		}
+
+		// set timeout if needed
+		if (requestTimeoutSec > 0) {
+			int timeoutMs = requestTimeoutSec * 1000;
+			requestConfigBuilder
+					.setConnectTimeout(timeoutMs)
+					.setConnectionRequestTimeout(timeoutMs)
+					.setSocketTimeout(timeoutMs);
 		}
 
 		context.setRequestConfig(requestConfigBuilder.build());
@@ -340,7 +349,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), true);
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), 0, true);
 			response = httpClient.execute(loginRequest, context);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
