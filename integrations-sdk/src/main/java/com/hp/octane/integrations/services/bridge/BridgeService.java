@@ -20,6 +20,8 @@ import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 
+import java.util.Map;
+
 public interface BridgeService extends ClosableService {
 
 	/**
@@ -33,4 +35,6 @@ public interface BridgeService extends ClosableService {
 	static BridgeService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
 		return new BridgeServiceImpl(configurer, restService, tasksProcessor);
 	}
+
+	Map<String,Object> getMetrics();
 }

@@ -11,40 +11,10 @@
  *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  *     See the License for the specific language governing permissions and
  *     limitations under the License.
- *
  */
 
-package com.hp.octane.integrations.dto.causes;
+package com.hp.octane.integrations.services.bridge;
 
-import com.hp.octane.integrations.dto.DTOBase;
-
-import java.util.List;
-
-/**
- * CIEventCause DTO
- */
-
-public interface CIEventCause extends DTOBase {
-
-	CIEventCauseType getType();
-
-	CIEventCause setType(CIEventCauseType type);
-
-	String getUser();
-
-	CIEventCause setUser(String user);
-
-	String getProject();
-
-	CIEventCause setProject(String ciJobRefId);
-
-	String getBuildCiId();
-
-	CIEventCause setBuildCiId(String buildCiId);
-
-	List<CIEventCause> getCauses();
-
-	CIEventCause setCauses(List<CIEventCause> causes);
-
-	String generateKey();
+public enum ServiceState {
+    Initial, WaitingToOctane, AfterWaitingToOctane, Closed, PostponingOnException, StopTaskPolling;
 }

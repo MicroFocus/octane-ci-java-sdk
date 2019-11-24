@@ -32,6 +32,7 @@ final public class PipelineContextImpl implements PipelineContext {
 	private String contextEntityName;
 	private long workspaceId;
 	private Long releaseId;
+	private Long milestoneId;
 	private Boolean ignoreTests;
 	private List<Taxonomy> taxonomies;
 	private Map<String, List<ListItem>> listFields;
@@ -81,6 +82,17 @@ final public class PipelineContextImpl implements PipelineContext {
 	@Override
 	public PipelineContext setReleaseId(Long releaseId) {
 		this.releaseId = releaseId;
+		return this;
+	}
+
+	@Override
+	public Long getMilestoneId() {
+		return milestoneId;
+	}
+
+	@Override
+	public PipelineContext setMilestoneId(Long milestoneId) {
+		this.milestoneId = milestoneId;
 		return this;
 	}
 

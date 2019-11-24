@@ -17,16 +17,16 @@ package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -34,19 +34,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import static com.hp.octane.integrations.services.rest.RestService.ANALYTICS_CI_PATH_PART;
-import static com.hp.octane.integrations.services.rest.RestService.CONTENT_TYPE_HEADER;
-import static com.hp.octane.integrations.services.rest.RestService.SHARED_SPACE_INTERNAL_API_PATH_PART;
+import static com.hp.octane.integrations.services.rest.RestService.*;
 
 /**
  * EventsService implementation
@@ -79,9 +72,9 @@ final class EventsServiceImpl implements EventsService {
 		this.configurer = configurer;
 		this.restService = restService;
 
-		logger.info("starting background worker...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		eventsPushExecutor.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
 	@Override
@@ -93,7 +86,7 @@ final class EventsServiceImpl implements EventsService {
 		events.add(event);
 		int eventsSize = events.size();
 		if (eventsSize > MAX_EVENTS_TO_KEEP) {
-			logger.warn("reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
+			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
 			while (events.size() > MAX_EVENTS_TO_KEEP) {        //  in this case we need to read the real-time size of the list
 				events.remove(0);
 			}
@@ -136,7 +129,7 @@ final class EventsServiceImpl implements EventsService {
 						.setServer(serverInfo)
 						.setEvents(eventsChunk);
 			} catch (Throwable t) {
-				logger.error("failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
+				logger.error(configurer.octaneConfiguration.geLocationForLog() +"failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
 				removeEvents(eventsChunk);
 				continue;
 			}
@@ -146,15 +139,17 @@ final class EventsServiceImpl implements EventsService {
 				logEventsToBeSent(configurer.octaneConfiguration, eventsSnapshot);
 				sendEventsData(configurer.octaneConfiguration, eventsSnapshot);
 				removeEvents(eventsChunk);
-				logger.info("... done; as of now, left to send " + events.size() + " events");
+				if (events.size() > 0) {
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "left to send " + events.size() + " events");
+				}
 			} catch (TemporaryException tqie) {
-				logger.error("failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
 			} catch (PermanentException pqie) {
-				logger.error("failed to send events with permanent error, dropping this chunk and continue", pqie);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with permanent error, dropping this chunk and continue", pqie);
 				removeEvents(eventsChunk);
 			} catch (Throwable t) {
-				logger.error("failed to send events with unexpected error, dropping this chunk and continue", t);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with unexpected error, dropping this chunk and continue", t);
 				removeEvents(eventsChunk);
 			}
 		}
@@ -162,14 +157,13 @@ final class EventsServiceImpl implements EventsService {
 
 	private void logEventsToBeSent(OctaneConfiguration configuration, CIEventsList eventsList) {
 		try {
-			String targetOctane = configuration.getUrl() + ", SP: " + configuration.getSharedSpace();
 			List<String> eventsStringified = new LinkedList<>();
 			for (CIEvent event : eventsList.getEvents()) {
 				eventsStringified.add(event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType());
 			}
-			logger.info("sending [" + String.join(", ", eventsStringified) + "] event/s to [" + targetOctane + "]...");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s ...");
 		} catch (Exception e) {
-			logger.error("failed to log events to be sent", e);
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to log events to be sent", e);
 		}
 	}
 

@@ -40,9 +40,9 @@ final class RestServiceImpl implements RestService {
 
 		this.configurer = configurer;
 
-		logger.info("initializing a default Octane REST client...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initializing a default Octane REST client");
 		obtainOctaneRestClient();
-		logger.info("...default Octane REST client initialized");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "default Octane REST client is initialized");
 	}
 
 	@Override
@@ -53,7 +53,7 @@ final class RestServiceImpl implements RestService {
 					try {
 						defaultClient = new OctaneRestClientImpl(configurer);
 					} catch (Exception e) {
-						logger.error("failed to initialize Octane's REST client");
+						logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to initialize Octane's REST client");
 					}
 				}
 			}
@@ -69,7 +69,7 @@ final class RestServiceImpl implements RestService {
 					try {
 						sscRestClient = new SSCRestClientImpl(configurer);
 					} catch (Exception e) {
-						logger.error("failed to initialize Octane's REST client");
+						logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to initialize Octane's REST client");
 					}
 				}
 			}
@@ -84,11 +84,11 @@ final class RestServiceImpl implements RestService {
 
 	@Override
 	public void notifyConfigurationChange() {
-		logger.info("connectivity configuration change has been notified; publishing to the RestClients");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "connectivity configuration change has been notified; publishing to the RestClients");
 		if (defaultClient != null) {
 			defaultClient.notifyConfigurationChange();
 		} else {
-			logger.error("default client was not yet initialized");
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "default client was not yet initialized");
 		}
 	}
 }

@@ -84,9 +84,7 @@ public class OctaneUrlParser {
                 }
             }
             throw new OctaneSDKGeneralException(MISSING_SHARED_SPACE_EXCEPTION);
-        } catch (MalformedURLException e) {
-            throw new OctaneSDKGeneralException(URL_INVALID_EXCEPTION);
-        } catch (URISyntaxException e) {
+        } catch (MalformedURLException | URISyntaxException e) {
             throw new OctaneSDKGeneralException(URL_INVALID_EXCEPTION);
         }
     }

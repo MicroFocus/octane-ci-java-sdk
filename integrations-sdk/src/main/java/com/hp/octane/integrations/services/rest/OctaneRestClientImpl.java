@@ -139,11 +139,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 	@Override
 	public void shutdown() {
-		logger.info("starting REST client shutdown sequence...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting REST client shutdown sequence...");
 		abortAllRequests();
-		logger.info("closing the client...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "closing the client...");
 		HttpClientUtils.closeQuietly(httpClient);
-		logger.info("REST client shutdown done");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "REST client shutdown done");
 	}
 
 	void notifyConfigurationChange() {
@@ -151,7 +151,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	}
 
 	private void abortAllRequests() {
-		logger.info("aborting " + ongoingRequests.size() + " request/s...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "aborting " + ongoingRequests.size() + " request/s...");
 		synchronized (REQUESTS_LIST_LOCK) {
 			LWSSO_TOKEN = null;
 			for (HttpUriRequest request : ongoingRequests) {
@@ -168,10 +168,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
-			logger.info("initial login");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "initial login");
 			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
-				logger.error("failed on initial login, status " + loginResponse.getStatus());
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed on initial login, status " + loginResponse.getStatus());
 				return loginResponse;
 			}
 		}
@@ -180,7 +180,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
 			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext(request.getUrl(), false);
+				context = createHttpContext(request.getUrl(), request.getTimeoutSec(), false);
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests.add(uriRequest);
 				}
@@ -190,15 +190,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-					logger.info("doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
 					EntityUtils.consumeQuietly(httpResponse.getEntity());
 					HttpClientUtils.closeQuietly(httpResponse);
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
-						logger.error("failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
 						return loginResponse;
 					} else {
-						logger.info("re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
 					refreshSecurityToken(context, false);
@@ -208,7 +208,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 			result = createNGAResponse(httpResponse);
 		} catch (IOException ioe) {
-			logger.debug("failed executing " + request, ioe);
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed executing " + request, ioe);
 			throw ioe;
 		} finally {
 			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
@@ -266,7 +266,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		return request;
 	}
 
-	private HttpClientContext createHttpContext(String requestUrl, boolean isLoginRequest) {
+	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest) {
 		HttpClientContext context = HttpClientContext.create();
 		context.setCookieStore(new BasicCookieStore());
 
@@ -283,7 +283,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
 		CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(parsedUrl);
 		if (proxyConfiguration != null) {
-			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
 
 			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
@@ -294,6 +294,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				context.setCredentialsProvider(credentialsProvider);
 			}
 			requestConfigBuilder.setProxy(proxyHost);
+		}
+
+		// set timeout if needed
+		if (requestTimeoutSec > 0) {
+			int timeoutMs = requestTimeoutSec * 1000;
+			requestConfigBuilder
+					.setConnectTimeout(timeoutMs)
+					.setConnectionRequestTimeout(timeoutMs)
+					.setSocketTimeout(timeoutMs);
 		}
 
 		context.setRequestConfig(requestConfigBuilder.build());
@@ -312,9 +321,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		}
 
 		if (securityTokenRefreshed) {
-			logger.info("successfully refreshed security token");
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully refreshed security token");
 		} else if (mustPresent) {
-			logger.error("security token expected but NOT found (domain attribute configured wrongly?)");
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "security token expected but NOT found (domain attribute configured wrongly?)");
 		}
 	}
 
@@ -340,17 +349,17 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), true);
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), 0, true);
 			response = httpClient.execute(loginRequest, context);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				refreshSecurityToken(context, true);
 			} else {
-				logger.warn("failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
+				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(response);
 		} catch (IOException ioe) {
-			logger.debug("failed to login to " + config, ioe);
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed to login", ioe);
 			throw ioe;
 		} finally {
 			if (response != null) {

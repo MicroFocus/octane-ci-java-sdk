@@ -18,7 +18,7 @@
 <Configuration status="INFO">
 
 	<Properties>
-		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%t] - %c{1}: %m%n</Property>
+		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%-50t] %-32c{1}: %m%n</Property>
 	</Properties>
 
 	<Appenders>
@@ -29,7 +29,7 @@
 			<Policies>
 				<SizeBasedTriggeringPolicy size="2MB"/>
 			</Policies>
-			<DefaultRolloverStrategy max="10"/>
+			<DefaultRolloverStrategy max="10" fileIndex="min"/>
 		</RollingFile>
 		<Async name="asyncOctaneFileAppender">
 			<AppenderRef ref="octaneFileAppender"/>

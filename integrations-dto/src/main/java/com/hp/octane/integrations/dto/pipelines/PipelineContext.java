@@ -24,47 +24,51 @@ import java.util.Map;
 
 public interface PipelineContext extends DTOBase {
 
-	long getContextEntityId();
+    long getContextEntityId();
 
-	PipelineContext setContextEntityId(long id);
+    PipelineContext setContextEntityId(long id);
 
-	String getContextEntityName();
+    String getContextEntityName();
 
-	PipelineContext setContextName(String name);
+    PipelineContext setContextName(String name);
 
-	long getWorkspaceId();
+    long getWorkspaceId();
 
-	PipelineContext setWorkspace(long workspaceId);
+    PipelineContext setWorkspace(long workspaceId);
 
-	Long getReleaseId();
+    Long getReleaseId();
 
-	PipelineContext setReleaseId(Long releaseId);
+    PipelineContext setReleaseId(Long releaseId);
 
-	List<Taxonomy> getTaxonomies();
+    Long getMilestoneId();
 
-	PipelineContext setTaxonomies(List<Taxonomy> taxonomies);
+    PipelineContext setMilestoneId(Long milestoneId);
 
-	Map<String, List<ListItem>> getListFields();
+    List<Taxonomy> getTaxonomies();
 
-	PipelineContext setListFields(Map<String, List<ListItem>> listFields);
+    PipelineContext setTaxonomies(List<Taxonomy> taxonomies);
 
-	Boolean isPipelineRoot();
+    Map<String, List<ListItem>> getListFields();
 
-	PipelineContext setPipelineRoot(Boolean isRoot);
+    PipelineContext setListFields(Map<String, List<ListItem>> listFields);
 
-	Boolean getIgnoreTests();
+    Boolean isPipelineRoot();
 
-	PipelineContext setIgnoreTests(Boolean ignoreTests);
+    PipelineContext setPipelineRoot(Boolean isRoot);
 
-	String getContextEntityType();
+    Boolean getIgnoreTests();
 
-	PipelineContext setContextEntityType(String contextEntityType);
+    PipelineContext setIgnoreTests(Boolean ignoreTests);
 
-	Object getServer();
+    String getContextEntityType();
 
-	PipelineContext setServer(Object server);
+    PipelineContext setContextEntityType(String contextEntityType);
 
-	Object getStructure();
+    Object getServer();
 
-	PipelineContext setStructure(Object structure);
+    PipelineContext setServer(Object server);
+
+    Object getStructure();
+
+    PipelineContext setStructure(Object structure);
 }

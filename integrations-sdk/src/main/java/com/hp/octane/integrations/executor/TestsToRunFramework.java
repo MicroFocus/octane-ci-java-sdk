@@ -23,6 +23,7 @@ public enum TestsToRunFramework {
 
     JUnit4("mvnSurefire", "JUnit/TestNG over Maven Surefire/Failsafe", ""),
     MF_UFT("uft", "Micro Focus UFT", ""),
+    CUCUMBER_JVM("cucumber_jvm", "Cucumber-JVM over Maven", ""),
     Protractor("protractor", "Protractor", ProtractorConverter.FORMAT),
     Gradle("gradle", "Gradle", GradleConverter.FORMAT),
     Custom("custom", "Custom", "");
