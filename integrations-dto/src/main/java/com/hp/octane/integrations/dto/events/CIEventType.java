@@ -29,7 +29,8 @@ public enum CIEventType {
 	STARTED("started"),
 	FINISHED("finished"),
 	SCM("scm"),
-	DELETED("deleted");
+	DELETED("deleted"),
+	RENAMED("renamed");
 
 	private String value;
 

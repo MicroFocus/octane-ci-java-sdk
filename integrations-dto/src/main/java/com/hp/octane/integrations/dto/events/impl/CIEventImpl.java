@@ -52,7 +52,8 @@ class CIEventImpl implements CIEvent {
 	private PhaseType phaseType;
 	private String commonHashId;
 	private String branchName;
-
+	private String previousProject;
+	private String previousProjectDisplayName;
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -120,6 +121,28 @@ class CIEventImpl implements CIEvent {
 	public CIEvent setMultiBranchType(MultiBranchType multiBranchType) {
 		this.multiBranchType = multiBranchType;
 		return this;
+	}
+
+	@Override
+	public CIEvent setPreviousProject(String previousProject) {
+		this.previousProject = previousProject;
+		return this;
+	}
+
+	@Override
+	public CIEvent setPreviousProjectDisplayName(String previousProjectDisplayName) {
+		this.previousProjectDisplayName = previousProjectDisplayName;
+		return this;
+	}
+
+	@Override
+	public String getPreviousProject() {
+		return previousProject;
+	}
+
+	@Override
+	public String getPreviousProjectDisplayName() {
+		return previousProjectDisplayName;
 	}
 
 	public String getNumber() {
