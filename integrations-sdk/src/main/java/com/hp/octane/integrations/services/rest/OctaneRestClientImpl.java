@@ -147,7 +147,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	}
 
 	void notifyConfigurationChange() {
-		abortAllRequests();
+		LWSSO_TOKEN = null;
 	}
 
 	private void abortAllRequests() {
