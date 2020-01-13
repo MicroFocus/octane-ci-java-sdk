@@ -483,7 +483,7 @@ public class OctaneSDKBasicFunctionalityTest {
 	}
 
 	private void simulatePushLogsCycleAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1"));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1", null));
 	}
 
 	private void simulatePushCoverageAllClients() {

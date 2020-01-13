@@ -42,5 +42,5 @@ public interface LogsService extends ClosableService {
 	 * @param jobId   any identification of Job, that the build log is related to and that SPI's `getBuildLog` method will know to work with
 	 * @param buildId any identification of Build of the specified above Job, that the build log is related to and that SPI's `getBuildLog` method will know to work with
 	 */
-	void enqueuePushBuildLog(String jobId, String buildId);
+	void enqueuePushBuildLog(String jobId, String buildId, String rootJobId);
 }

@@ -17,14 +17,14 @@ package com.hp.octane.integrations.services.logs;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.queueing.QueueingService;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -82,7 +82,7 @@ final class LogsServiceImpl implements LogsService {
 	}
 
 	@Override
-	public void enqueuePushBuildLog(String jobId, String buildId) {
+	public void enqueuePushBuildLog(String jobId, String buildId, String rootJobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
@@ -90,7 +90,7 @@ final class LogsServiceImpl implements LogsService {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
 
-		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId));
+		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId, rootJobId));
 		synchronized (NO_LOGS_MONITOR) {
 			NO_LOGS_MONITOR.notify();
 		}
@@ -134,10 +134,11 @@ final class LogsServiceImpl implements LogsService {
 		OctaneConfiguration octaneConfiguration = configurer.octaneConfiguration;
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
+		String encodedRootJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.rootJobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(queueItem.buildId);
 
 		//  preflight
-		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId);
+		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId, encodedRootJobId);
 		if (workspaceIDs.length == 0) {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + " found no interested workspace in Octane, passing over");
 			return;
@@ -192,16 +193,21 @@ final class LogsServiceImpl implements LogsService {
 		}
 	}
 
-	private String[] preflightRequest(OctaneConfiguration octaneConfiguration, String serverId, String jobId) {
+	private String[] preflightRequest(OctaneConfiguration octaneConfiguration, String serverId, String jobId, String rootJobId) {
 		String[] result = new String[0];
 		OctaneResponse response;
 
 		//  get result
+		String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
+				"servers/" + serverId + "/jobs/" + jobId + "/workspaceId";
+		if (rootJobId != null && !rootJobId.isEmpty()) {
+			url += "?rootJobId=" + rootJobId;
+		}
 		try {
 			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
-					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
-							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
+					.setUrl(url);
+
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
@@ -233,19 +239,21 @@ final class LogsServiceImpl implements LogsService {
 	private static final class BuildLogQueueItem implements QueueingService.QueueItem {
 		private String jobId;
 		private String buildId;
+		private String rootJobId;
 
 		//  [YG] this constructor MUST be present, don't remove
 		private BuildLogQueueItem() {
 		}
 
-		private BuildLogQueueItem(String jobId, String buildId) {
+		private BuildLogQueueItem(String jobId, String buildId, String rootJobId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+			this.rootJobId = rootJobId;
 		}
 
 		@Override
 		public String toString() {
-			return "'" + jobId + " #" + buildId + "'";
+			return "'" + jobId + " #" + buildId + "', root job : " + rootJobId;
 		}
 	}
 
