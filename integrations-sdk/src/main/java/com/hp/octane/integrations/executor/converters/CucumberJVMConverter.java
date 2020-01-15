@@ -21,7 +21,9 @@ public class CucumberJVMConverter extends TestsToRunConverter {
             String featureFilePath = getFeatureFilePath(testData);
             if (featureFilePath != null && !featureFilePath.isEmpty()) {
                 sb.append(classJoiner);
+                sb.append("'");
                 sb.append(featureFilePath);
+                sb.append("'");
                 classJoiner = " ";
             }
 
