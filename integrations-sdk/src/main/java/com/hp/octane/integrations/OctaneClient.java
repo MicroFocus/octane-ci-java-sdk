@@ -18,6 +18,7 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
+import com.hp.octane.integrations.services.pullrequests.PullRequestService;
 import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
@@ -118,6 +119,14 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	TestsService getTestsService();
+
+
+	/**
+	 * provides PullRequest service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	PullRequestService getPullRequestService();
 
 	/**
 	 * provides Vulnerabilities service

@@ -30,7 +30,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.net.URL;
 
 /**
  * Base implementation of Configuration Service API
@@ -80,8 +79,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 			throw new IllegalArgumentException("configuration MUST not be null");
 		}
 
-		URL octaneUrl = CIPluginSDKUtils.parseURL(configuration.getUrl());
-		CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(octaneUrl);
+		CIProxyConfiguration proxyConfiguration = CIPluginSDKUtils.getProxyConfiguration(configuration.getUrl(), configurer);
 		OctaneRestClient octaneRestClientImpl = restService.createOctaneRestClient(proxyConfiguration);
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
