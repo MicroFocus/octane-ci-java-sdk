@@ -16,6 +16,8 @@
 package com.hp.octane.integrations.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +33,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -134,6 +137,19 @@ public class CIPluginSDKUtils {
 		} catch (MalformedURLException murle) {
 			throw new OctaneSDKGeneralException("failed to parse '" + input + "' as URL", murle);
 		}
+	}
+
+	public static CIProxyConfiguration getProxyConfiguration(String url, OctaneSDK.SDKServicesConfigurer configurer) {
+		Function<URL, CIProxyConfiguration> proxySupplier;
+		if (configurer != null) {
+			proxySupplier = configurer.pluginServices::getProxyConfiguration;
+		} else if (OctaneSDK.hasClients()) {
+			proxySupplier = OctaneSDK.getClients().get(0).getRestService().getProxySupplier();
+		} else {
+			return null;
+		}
+		URL octaneUrl = CIPluginSDKUtils.parseURL(url);
+		return proxySupplier.apply(octaneUrl);
 	}
 
 	/**

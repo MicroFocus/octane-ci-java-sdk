@@ -68,7 +68,6 @@ import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import java.io.IOException;
 
-import java.net.URL;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
@@ -280,8 +279,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				.setCookieSpec(CookieSpecs.STANDARD);
 
 		//  configure proxy if needed
-		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
-		CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(parsedUrl);
+		CIProxyConfiguration proxyConfiguration = CIPluginSDKUtils.getProxyConfiguration(requestUrl, configurer);
 		if (proxyConfiguration != null) {
 			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());

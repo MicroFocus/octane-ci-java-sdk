@@ -20,6 +20,9 @@ import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.net.URL;
+import java.util.function.Function;
+
 /**
  * REST Service - default implementation
  */
@@ -43,6 +46,11 @@ final class RestServiceImpl implements RestService {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initializing a default Octane REST client");
 		obtainOctaneRestClient();
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "default Octane REST client is initialized");
+	}
+
+	@Override
+	public Function<URL, CIProxyConfiguration> getProxySupplier() {
+		return configurer.pluginServices::getProxyConfiguration;
 	}
 
 	@Override

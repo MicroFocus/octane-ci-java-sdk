@@ -23,6 +23,7 @@ import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logging.LoggingService;
 import com.hp.octane.integrations.services.logs.LogsService;
 import com.hp.octane.integrations.services.pipelines.PipelineContextService;
+import com.hp.octane.integrations.services.pullrequests.PullRequestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.sonar.SonarService;
@@ -65,6 +66,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final TasksProcessor tasksProcessor;
 	private final TestsService testsService;
 	private final VulnerabilitiesService vulnerabilitiesService;
+	private final PullRequestService pullRequestService;
 	private final Thread shutdownHook;
 
 
@@ -100,6 +102,7 @@ final class OctaneClientImpl implements OctaneClient {
 		VulnerabilitiesToolService[] vulnerabilitiesToolServices = {sscService, sonarVulnerabilitiesService, fodService};
 		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer,restService);
 
+		pullRequestService = PullRequestService.newInstance(configurer, restService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);
@@ -180,6 +183,12 @@ final class OctaneClientImpl implements OctaneClient {
 	public TestsService getTestsService() {
 		return testsService;
 	}
+
+	@Override
+	public PullRequestService getPullRequestService() {
+		return pullRequestService;
+	}
+
 
 	@Override
 	public VulnerabilitiesService getVulnerabilitiesService() {
