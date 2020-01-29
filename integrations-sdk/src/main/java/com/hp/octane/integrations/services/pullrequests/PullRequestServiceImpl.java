@@ -22,6 +22,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.services.rest.RestService;
+import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -70,8 +71,12 @@ final class PullRequestServiceImpl implements PullRequestService {
                 .setBody(json);
 
         OctaneResponse octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
-        if (octaneResponse.getStatus() != 200) {
-            throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
+        if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
+            if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
+                throw new RuntimeException("Failed to sendPullRequests : received 404 status. Validate that you have ALM Octane version that is greater than 15.0.48");
+            } else {
+                throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
+            }
         }
     }
 }
