@@ -16,20 +16,22 @@
 package com.hp.octane.integrations.services.pullrequests.github.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.hp.octane.integrations.services.pullrequests.github.GithubV3PullRequestFetchHandler;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PullRequest extends Entity {
+public class PullRequest extends Entity implements SupportUpdatedTime {
     private int number;
-    private String html_url;
-    private String commits_url;
+    private String htmlUrl;
+    private String commitsUrl;
     private String state;
     private String title;
     private String body;
 
-    private String created_at;
-    private String updated_at;
-    private String closed_at;
-    private String merged_at;
+    private String createdAt;
+    private String updatedAt;
+    private String closedAt;
+    private String mergedAt;
 
     private PullRequestUser user;
 
@@ -68,36 +70,45 @@ public class PullRequest extends Entity {
         this.body = body;
     }
 
-    public String getCreated_at() {
-        return created_at;
+    public String getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCreated_at(String created_at) {
-        this.created_at = created_at;
+    @JsonSetter("created_at")
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt;
     }
 
-    public String getUpdated_at() {
-        return updated_at;
+    public String getUpdatedAt() {
+        return updatedAt;
     }
 
-    public void setUpdated_at(String updated_at) {
-        this.updated_at = updated_at;
+    public long getUpdatedTime() {
+        Long l = GithubV3PullRequestFetchHandler.convertDateToLong(updatedAt);
+        return l == null ? 0 : l;
     }
 
-    public String getClosed_at() {
-        return closed_at;
+    @JsonSetter("updated_at")
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
-    public void setClosed_at(String closed_at) {
-        this.closed_at = closed_at;
+    public String getClosedAt() {
+        return closedAt;
     }
 
-    public String getMerged_at() {
-        return merged_at;
+    @JsonSetter("closed_at")
+    public void setClosedAt(String closedAt) {
+        this.closedAt = closedAt;
     }
 
-    public void setMerged_at(String merged_at) {
-        this.merged_at = merged_at;
+    public String getMergedAt() {
+        return mergedAt;
+    }
+
+    @JsonSetter("merged_at")
+    public void setMergedAt(String mergedAt) {
+        this.mergedAt = mergedAt;
     }
 
     public PullRequestUser getUser() {
@@ -124,19 +135,21 @@ public class PullRequest extends Entity {
         this.head = head;
     }
 
-    public String getCommits_url() {
-        return commits_url;
+    public String getCommitsUrl() {
+        return commitsUrl;
     }
 
-    public void setCommits_url(String commits_url) {
-        this.commits_url = commits_url;
+    @JsonSetter("commits_url")
+    public void setCommitsUrl(String commitsUrl) {
+        this.commitsUrl = commitsUrl;
     }
 
-    public String getHtml_url() {
-        return html_url;
+    public String getHtmlUrl() {
+        return htmlUrl;
     }
 
-    public void setHtml_url(String html_url) {
-        this.html_url = html_url;
+    @JsonSetter("html_url")
+    public void setHtmlUrl(String htmlUrl) {
+        this.htmlUrl = htmlUrl;
     }
 }

@@ -52,21 +52,18 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
         parameters.getLogConsumer().accept("Pull requests url : " + pullRequestsUrl);
         parameters.printToLogConsumer();
 
-        List<PullRequest> pullRequests = getPagedEntities(pullRequestsUrl, PullRequest.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch());
+        List<PullRequest> pullRequests = getPagedEntities(pullRequestsUrl, PullRequest.class, parameters.getPageSize(), parameters.getMaxPRsToFetch(), parameters.getMinUpdateTime());
         List<Pattern> sourcePatterns = FetchUtils.buildPatterns(parameters.getSourceBranchFilter());
         List<Pattern> targetPatterns = FetchUtils.buildPatterns(parameters.getTargetBranchFilter());
 
-        List<PullRequest> filteredByUpdateDatePullRequests = pullRequests.stream()
-                .filter(pr -> pr.getUpdatedDate() > parameters.getPrStartUpdateDate())
-                .collect(Collectors.toList());
-        List<PullRequest> filteredPullRequests = filteredByUpdateDatePullRequests.stream()
+        List<PullRequest> filteredPullRequests = pullRequests.stream()
                 .filter(pr -> FetchUtils.isBranchMatch(sourcePatterns, pr.getFromRef().getDisplayId()) && FetchUtils.isBranchMatch(targetPatterns, pr.getToRef().getDisplayId()))
                 .collect(Collectors.toList());
-        parameters.getLogConsumer().accept(String.format("Received %d pull-requests, while %d are matching source/target filters", filteredByUpdateDatePullRequests.size(), filteredPullRequests.size()));
+        parameters.getLogConsumer().accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
 
         for (PullRequest pr : filteredPullRequests) {
             String url = baseUrl + "/pull-requests/" + pr.getId() + "/commits";
-            List<Commit> commits = getPagedEntities(url, Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch());
+            List<Commit> commits = getPagedEntities(url, Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
 
             List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
             for (Commit commit : commits) {
@@ -90,7 +87,7 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                     .setDescription(pr.getDescription())
                     .setState(pr.getState())
                     .setCreatedTime(pr.getCreatedDate())
-                    .setUpdatedTime(pr.getUpdatedDate())
+                    .setUpdatedTime(pr.getUpdatedTime())
                     .setAuthorName(pr.getAuthor().getUser().getName())
                     .setAuthorEmail(pr.getAuthor().getUser().getEmailAddress())
                     .setClosedTime(pr.getClosedDate())
@@ -115,7 +112,7 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                 .setType(SCMType.GIT);
     }
 
-    private <T extends Entity> List<T> getPagedEntities(String url, Class<T> entityType, int pageSize, int maxTotal) {
+    private <T extends Entity & SupportUpdatedTime> List<T> getPagedEntities(String url, Class<T> entityType, int pageSize, int maxTotal, Long minUpdateTime) {
         try {
             //https://developer.atlassian.com/server/confluence/pagination-in-the-rest-api/
             List<T> result = new ArrayList<>();
@@ -127,15 +124,23 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                 OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setUrl(myUrl).setMethod(HttpMethod.GET);
                 OctaneResponse response = restClient.executeRequest(request);
                 if (response.getStatus() != HttpStatus.SC_OK) {
-                    throw new RuntimeException(String.format("Request '%s' is ended with result %d : %s", myUrl, response.getStatus(), JsonConverter.getErrorMessage(response.getBody())));
+                    throw new RuntimeException(String.format("Request to '%s' is ended with result %d : %s", myUrl, response.getStatus(), JsonConverter.getErrorMessage(response.getBody())));
                 }
                 EntityCollection<T> collection = JsonConverter.convertCollection(response.getBody(), entityType);
                 result.addAll(collection.getValues());
                 finished = collection.isLastPage() || result.size() > maxTotal;
-
-
                 limit = collection.getLimit();
                 start = collection.getStart() + collection.getLimit();
+
+                //remove outdated items
+                for (int i = result.size() - 1; i >= 0; i--) {
+                    if (result.get(i).getUpdatedTime() <= minUpdateTime) {
+                        result.remove(i);
+                        finished = true;
+                    } else {
+                        break;
+                    }
+                }
             } while (!finished);
 
             //remove exceeded items
@@ -143,6 +148,8 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                 result.remove(result.size() - 1);
             }
             return result;
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             throw new RuntimeException("Failed to getPagedEntities : " + e.getMessage(), e);
         }

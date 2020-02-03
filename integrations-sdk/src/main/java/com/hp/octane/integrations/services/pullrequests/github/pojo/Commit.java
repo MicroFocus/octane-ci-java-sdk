@@ -16,15 +16,19 @@
 package com.hp.octane.integrations.services.pullrequests.github.pojo;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.octane.integrations.services.pullrequests.github.GithubV3PullRequestFetchHandler;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Commit extends Entity {
+public class Commit extends Entity implements SupportUpdatedTime {
 
     private String sha;
     private CommitDetails commit;
     private List<CommitParent> parents;
+
+    private long UPDATE_TIME_DEFAULT = -1;
+    private long updatedTime = UPDATE_TIME_DEFAULT;
 
     public String getSha() {
         return sha;
@@ -48,5 +52,14 @@ public class Commit extends Entity {
 
     public void setParents(List<CommitParent> parents) {
         this.parents = parents;
+    }
+
+    @Override
+    public long getUpdatedTime() {
+        if (updatedTime == UPDATE_TIME_DEFAULT) {
+            Long l = GithubV3PullRequestFetchHandler.convertDateToLong(getCommit().getCommitter().getDate());
+            updatedTime = l == null ? 0 : l;
+        }
+        return updatedTime;
     }
 }

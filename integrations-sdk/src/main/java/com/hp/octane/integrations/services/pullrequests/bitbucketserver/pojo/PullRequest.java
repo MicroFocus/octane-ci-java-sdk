@@ -18,7 +18,7 @@ package com.hp.octane.integrations.services.pullrequests.bitbucketserver.pojo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PullRequest extends Entity {
+public class PullRequest extends Entity implements SupportUpdatedTime {
 
     public final  static String MERGED_STATE = "MERGED";
     private int version;
@@ -92,7 +92,7 @@ public class PullRequest extends Entity {
         this.createdDate = createdDate;
     }
 
-    public long getUpdatedDate() {
+    public long getUpdatedTime() {
         return updatedDate;
     }
 

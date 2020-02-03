@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.pullrequests;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.scm.PullRequest;
+import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
@@ -36,5 +37,7 @@ public interface PullRequestService {
         return new PullRequestServiceImpl(configurer, restService);
     }
 
-    void sendPullRequests(List<PullRequest> pullRequests, String workspaceId) throws IOException;
+    void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters) throws IOException;
+
+    long getLastUpdateTime(String workspaceId, String repoUrl);
 }

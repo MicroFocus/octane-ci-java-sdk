@@ -15,22 +15,27 @@
 
 package com.hp.octane.integrations.services.pullrequests;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.connectivity.HttpMethod;
-import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.PullRequest;
+import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.rest.RestService;
-import org.apache.http.HttpStatus;
-import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
-import java.util.LinkedHashMap;
+import java.io.Serializable;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of tests service
@@ -42,6 +47,9 @@ final class PullRequestServiceImpl implements PullRequestService {
 
     private final OctaneSDK.SDKServicesConfigurer configurer;
     private final RestService restService;
+    private final File persistenceFile;
+    private Map<String, PRItem> prItems;
+    private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
 
     PullRequestServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
@@ -54,12 +62,36 @@ final class PullRequestServiceImpl implements PullRequestService {
         this.configurer = configurer;
         this.restService = restService;
         logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
+
+        if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
+            File storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + configurer.octaneConfiguration.getInstanceId());
+            if (!storageDirectory.mkdirs()) {
+                logger.debug(configurer.octaneConfiguration.geLocationForLog() + "instance folder considered as exist");
+            }
+            persistenceFile = new File(storageDirectory, "pr-fetchers.json");
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + "hosting plugin PROVIDE available storage, PR persistence enabled");
+
+            if (persistenceFile.exists()) {
+                try {
+                    JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, PRItem.class);
+                    List<PRItem> list = objectMapper.readValue(persistenceFile, type);
+                    prItems = list.stream().collect(Collectors.toMap(PRItem::getKey, Function.identity()));
+                } catch (IOException e) {
+                    logger.info(configurer.octaneConfiguration.geLocationForLog() + "failed to read PR persisted file");
+                }
+            } else {
+                prItems = new HashMap<>();
+            }
+        } else {
+            persistenceFile = null;
+            prItems = new HashMap<>();
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + "hosting plugin DO NOT PROVIDE available storage, PR persistence disabled");
+        }
     }
 
-
     @Override
-    public void sendPullRequests(List<PullRequest> pullRequests, String workspaceId) throws IOException {
-        Map<String, String> headers = new LinkedHashMap<>();
+    public void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters) throws IOException {
+        /*Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
         String json = dtoFactory.dtoCollectionToJson(pullRequests);
         OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
@@ -77,6 +109,67 @@ final class PullRequestServiceImpl implements PullRequestService {
             } else {
                 throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
             }
+        } else {
+            long lastUpdateTime = pullRequests.stream().map(p -> p.getUpdatedTime()).max(Comparator.naturalOrder()).orElse(0l);
+            saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
+        }*/
+
+        long lastUpdateTime = pullRequests.stream().map(PullRequest::getUpdatedTime).max(Comparator.naturalOrder()).orElse(0L);
+        saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
+        fetchParameters.getLogConsumer().accept("Last update time set to " + lastUpdateTime);
+    }
+
+    @Override
+    public long getLastUpdateTime(String workspaceId, String repoUrl) {
+        String key = PRItem.buildKey(workspaceId, repoUrl);
+        PRItem item = prItems.get(key);
+        return item == null ? 0 : item.getLastUpdated();
+    }
+
+    public synchronized void saveLastUpdateTime(String workspaceId, String repoUrl, long lastUpdateTime) {
+        PRItem item = PRItem.create(workspaceId, repoUrl, lastUpdateTime);
+        prItems.put(item.getKey(), item);
+        if (persistenceFile != null) {
+            try {
+                objectMapper.writeValue(persistenceFile, prItems.values());
+            } catch (IOException e) {
+                logger.info(configurer.octaneConfiguration.geLocationForLog() + "failed to save PR persisted file");
+            }
+        }
+    }
+
+    public static class PRItem implements Serializable {
+        private String workspace;
+        private String repositoryUrl;
+        private long lastUpdated;
+
+        public static PRItem create(String workspace, String repositoryUrl, long lastUpdated) {
+            PRItem item = new PRItem();
+            item.workspace = workspace;
+            item.repositoryUrl = repositoryUrl;
+            item.lastUpdated = lastUpdated;
+            return item;
+        }
+
+        @JsonIgnore
+        public String getKey() {
+            return buildKey(getWorkspace(), getRepositoryUrl());
+        }
+
+        public static String buildKey(String workspace, String repositoryUrl) {
+            return workspace + "_" + repositoryUrl;
+        }
+
+        public String getWorkspace() {
+            return workspace;
+        }
+
+        public String getRepositoryUrl() {
+            return repositoryUrl;
+        }
+
+        public long getLastUpdated() {
+            return lastUpdated;
         }
     }
 }
