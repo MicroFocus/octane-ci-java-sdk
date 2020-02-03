@@ -21,19 +21,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.rest.RestService;
+import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -91,7 +93,7 @@ final class PullRequestServiceImpl implements PullRequestService {
 
     @Override
     public void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters) throws IOException {
-        /*Map<String, String> headers = new LinkedHashMap<>();
+        Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
         String json = dtoFactory.dtoCollectionToJson(pullRequests);
         OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
@@ -112,7 +114,7 @@ final class PullRequestServiceImpl implements PullRequestService {
         } else {
             long lastUpdateTime = pullRequests.stream().map(p -> p.getUpdatedTime()).max(Comparator.naturalOrder()).orElse(0l);
             saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
-        }*/
+        }
 
         long lastUpdateTime = pullRequests.stream().map(PullRequest::getUpdatedTime).max(Comparator.naturalOrder()).orElse(0L);
         saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
