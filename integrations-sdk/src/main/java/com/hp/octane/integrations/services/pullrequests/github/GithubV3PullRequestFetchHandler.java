@@ -41,17 +41,14 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
         parameters.getLogConsumer().accept("Pull requests url : " + pullRequestsUrl);
         parameters.printToLogConsumer();
 
-        List<PullRequest> pullRequests = getPagedEntities(pullRequestsUrl, PullRequest.class, parameters.getPageSize(), parameters.getMaxPRsToFetch());
+        List<PullRequest> pullRequests = getPagedEntities(pullRequestsUrl, PullRequest.class, parameters.getPageSize(), parameters.getMaxPRsToFetch(), parameters.getMinUpdateTime(), false);
         List<Pattern> sourcePatterns = FetchUtils.buildPatterns(parameters.getSourceBranchFilter());
         List<Pattern> targetPatterns = FetchUtils.buildPatterns(parameters.getTargetBranchFilter());
 
-        List<PullRequest> filteredByUpdateDatePullRequests = pullRequests.stream()
-                .filter(pr -> convertDateToLong(pr.getUpdated_at()) > parameters.getPrStartUpdateDate())
-                .collect(Collectors.toList());
-        List<PullRequest> filteredPullRequests = filteredByUpdateDatePullRequests.stream()
+        List<PullRequest> filteredPullRequests = pullRequests.stream()
                 .filter(pr -> FetchUtils.isBranchMatch(sourcePatterns, pr.getHead().getRef()) && FetchUtils.isBranchMatch(targetPatterns, pr.getBase().getRef()))
                 .collect(Collectors.toList());
-        parameters.getLogConsumer().accept(String.format("Received %d pull-requests, while %d are matching source/target filters", filteredByUpdateDatePullRequests.size(), filteredPullRequests.size()));
+        parameters.getLogConsumer().accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
 
         //users
         Set<String> userUrls = pullRequests.stream().map(PullRequest::getUser).map(PullRequestUser::getUrl).collect(Collectors.toSet());
@@ -62,7 +59,8 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
         }
 
         for (PullRequest pr : filteredPullRequests) {
-            List<Commit> commits = getPagedEntities(pr.getCommits_url(), Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch());
+            //commits are returned in asc order by update time , therefore we need to get all before filtering , therefore page size equals to max total
+            List<Commit> commits = getPagedEntities(pr.getCommitsUrl(), Commit.class, parameters.getMaxPRsToFetch(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime(), true);
 
             //commits
             List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
@@ -86,14 +84,14 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                     .setTitle(pr.getTitle())
                     .setDescription(pr.getBody())
                     .setState(pr.getState())
-                    .setCreatedTime(convertDateToLong(pr.getCreated_at()))
-                    .setUpdatedTime(convertDateToLong(pr.getUpdated_at()))
-                    .setUpdatedTime(convertDateToLong(pr.getMerged_at()))
-                    .setIsMerged(pr.getMerged_at() != null)
+                    .setCreatedTime(convertDateToLong(pr.getCreatedAt()))
+                    .setUpdatedTime(convertDateToLong(pr.getUpdatedAt()))
+                    .setMergedTime(convertDateToLong(pr.getMergedAt()))
+                    .setIsMerged(pr.getMergedAt() != null)
                     .setAuthorName(prAuthor.getName() == null ? prAuthor.getLogin() : prAuthor.getName())
                     .setAuthorEmail(prAuthor.getEmail())
-                    .setClosedTime(convertDateToLong(pr.getClosed_at()))
-                    .setSelfUrl(pr.getHtml_url())
+                    .setClosedTime(convertDateToLong(pr.getClosedAt()))
+                    .setSelfUrl(pr.getHtmlUrl())
                     .setSourceRepository(sourceRepository)
                     .setTargetRepository(targetRepository)
                     .setCommits(dtoCommits);
@@ -102,12 +100,17 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
         return result;
     }
 
-    private Long convertDateToLong(String dateStr) {
+    public static Long convertDateToLong(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) {
             return null;
         }
         //All timestamps return in ISO 8601 format:YYYY-MM-DDTHH:MM:SSZ
         return Instant.parse(dateStr).getEpochSecond() * 1000;
+    }
+
+    public static String convertLongDateToISO8601(long date) {
+        //All timestamps return in ISO 8601 format:YYYY-MM-DDTHH:MM:SSZ
+        return Instant.ofEpochMilli(date).toString();
     }
 
     private SCMRepository buildScmRepository(PullRequestRepo ref) {
@@ -117,7 +120,18 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                 .setType(SCMType.GIT);
     }
 
-    private <T extends Entity> List<T> getPagedEntities(String url, Class<T> entityType, int pageSize, int maxTotal) {
+    /***
+     *
+     * @param url
+     * @param entityType
+     * @param pageSize
+     * @param maxTotal
+     * @param minUpdateTime
+     * @param sortRequired - whether need to sort entities by UpdateDate, relevant for entities (like Commits) that are received from server in ascending way,
+     * @param <T>
+     * @return
+     */
+    private <T extends Entity & SupportUpdatedTime> List<T> getPagedEntities(String url, Class<T> entityType, int pageSize, int maxTotal, long minUpdateTime, boolean sortRequired) {
         try {
             List<T> result = new ArrayList<>();
             boolean finished;
@@ -134,10 +148,28 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                 if (myUrl != null) {
                     finished = false;
                 }
+
+                if (sortRequired) {
+                    //result.forEach(p -> p.getUpdatedTime());//only populate update time
+                    result.sort((Comparator<SupportUpdatedTime>) (o1, o2) -> Long.compare(o2.getUpdatedTime(), o1.getUpdatedTime()));
+                }
+
+                //remove exceeding items
                 while (result.size() > maxTotal) {
                     result.remove(result.size() - 1);
                     finished = true;
                 }
+
+                //remove outdated items
+                for (int i = result.size() - 1; i >= 0 && minUpdateTime > 0; i--) {
+                    if (result.get(i).getUpdatedTime() <= minUpdateTime) {
+                        result.remove(i);
+                        finished = true;
+                    } else {
+                        break;
+                    }
+                }
+
             } while (!finished);
             return result;
         } catch (Exception e) {

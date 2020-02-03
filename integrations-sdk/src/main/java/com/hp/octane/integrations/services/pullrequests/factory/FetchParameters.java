@@ -25,11 +25,12 @@ public class FetchParameters {
     private Integer pageSize;
     private Integer maxPRsToFetch;
     private Integer maxCommitsToFetch;
-    private long prStartUpdateDate;
+    private Long minUpdateTime;
 
-    public static final int DEFAULT_PAGE_SIZE = 50;
+    public static final int DEFAULT_PAGE_SIZE = 30;
     public static final int DEFAULT_MAX_PRS = 100;
     public static final int DEFAULT_MAX_COMMITS = 100;
+    public static final long DEFAULT_MIN_UPDATE_DATE = 999;
 
 
     public String getRepoUrl() {
@@ -95,17 +96,16 @@ public class FetchParameters {
         return this;
     }
 
-    public long getPrStartUpdateDate() {
-        return prStartUpdateDate;
+    public long getMinUpdateTime() {return minUpdateTime == null ? DEFAULT_MIN_UPDATE_DATE : minUpdateTime;
     }
 
-    public FetchParameters setPrStartUpdateDate(long prStartUpdateDate) {
-        this.prStartUpdateDate = prStartUpdateDate;
+    public FetchParameters setMinUpdateTime(Long minUpdateTime) {
+        this.minUpdateTime = minUpdateTime;
         return this;
     }
 
     public void printToLogConsumer(){
-        logConsumer.accept("Min PR update date   : " + getPrStartUpdateDate());
+        logConsumer.accept("Min update date   : " + getMinUpdateTime());
         logConsumer.accept("Source branch filter : " + getSourceBranchFilter());
         logConsumer.accept("Target branch filter : " + getTargetBranchFilter());
         logConsumer.accept("Max PRs to fetch     : " + getMaxPRsToFetch());

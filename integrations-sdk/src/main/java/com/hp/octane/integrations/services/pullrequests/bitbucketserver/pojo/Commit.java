@@ -21,7 +21,7 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Commit extends Entity {
+public class Commit extends Entity implements SupportUpdatedTime {
     private String displayId;
     private String message;
     private long committerTimestamp;
@@ -47,6 +47,11 @@ public class Commit extends Entity {
     }
 
     public long getCommitterTimestamp() {
+        return committerTimestamp;
+    }
+
+    @Override
+    public long getUpdatedTime() {
         return committerTimestamp;
     }
 
