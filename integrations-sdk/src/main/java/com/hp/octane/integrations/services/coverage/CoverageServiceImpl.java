@@ -145,7 +145,7 @@ class CoverageServiceImpl implements CoverageService {
 					logger.info(configurer.octaneConfiguration.geLocationForLog() + "coverage of " + jobId + " found " + wss.length + " interested workspace/s in Octane, dispatching the coverage");
 					result = true;
 				} else {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "coverage of " + jobId + " found no interested workspace in Octane, passing over");
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "coverage of " + jobId + ", found no interested workspace in Octane");
 				}
 			} catch (IOException ioe) {
 				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
