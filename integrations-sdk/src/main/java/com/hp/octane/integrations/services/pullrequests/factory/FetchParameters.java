@@ -15,13 +15,12 @@
 
 package com.hp.octane.integrations.services.pullrequests.factory;
 
-import java.util.function.Consumer;
+import java.io.Serializable;
 
-public class FetchParameters {
+public class FetchParameters implements Serializable {
     private String repoUrl;
     private String sourceBranchFilter;
     private String targetBranchFilter;
-    private Consumer<String> logConsumer;
     private Integer pageSize;
     private Integer maxPRsToFetch;
     private Integer maxCommitsToFetch;
@@ -60,15 +59,6 @@ public class FetchParameters {
         return this;
     }
 
-    public Consumer<String> getLogConsumer() {
-        return logConsumer;
-    }
-
-    public FetchParameters setLogConsumer(Consumer<String> logConsumer) {
-        this.logConsumer = logConsumer;
-        return this;
-    }
-
     public int getPageSize() {
         return pageSize == null ? DEFAULT_PAGE_SIZE : pageSize;
     }
@@ -104,12 +94,17 @@ public class FetchParameters {
         return this;
     }
 
-    public void printToLogConsumer(){
-        logConsumer.accept("Min update date   : " + getMinUpdateTime());
-        logConsumer.accept("Source branch filter : " + getSourceBranchFilter());
-        logConsumer.accept("Target branch filter : " + getTargetBranchFilter());
-        logConsumer.accept("Max PRs to fetch     : " + getMaxPRsToFetch());
-        logConsumer.accept("Max commits to fetch : " + getMaxCommitsToFetch());
-        logConsumer.accept("Page size            : " + getPageSize());
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n");
+        sb.append("\n");
+        sb.append("Min update date   : ").append(getMinUpdateTime()).append("\n");
+        sb.append("Source branch filter : ").append(getSourceBranchFilter()).append("\n");
+        sb.append("Target branch filter : ").append(getTargetBranchFilter()).append("\n");
+        sb.append("Max PRs to fetch     : ").append(getMaxPRsToFetch()).append("\n");
+        sb.append("Max commits to fetch : ").append(getMaxCommitsToFetch()).append("\n");
+        sb.append("Page size            : ").append(getPageSize()).append("\n");
+        return sb.toString();
     }
 }

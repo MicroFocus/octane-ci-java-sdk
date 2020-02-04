@@ -22,6 +22,7 @@ import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Consumer;
 
 
 public interface PullRequestService {
@@ -37,7 +38,7 @@ public interface PullRequestService {
         return new PullRequestServiceImpl(configurer, restService);
     }
 
-    void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters) throws IOException;
+    void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters, Consumer<String> logConsumer) throws IOException;
 
     long getLastUpdateTime(String workspaceId, String repoUrl);
 }

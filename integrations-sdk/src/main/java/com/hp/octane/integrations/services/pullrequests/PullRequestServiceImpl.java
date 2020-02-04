@@ -36,6 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -92,7 +93,7 @@ final class PullRequestServiceImpl implements PullRequestService {
     }
 
     @Override
-    public void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters) throws IOException {
+    public void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters, Consumer<String> logConsumer) throws IOException {
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
         String json = dtoFactory.dtoCollectionToJson(pullRequests);
@@ -104,6 +105,7 @@ final class PullRequestServiceImpl implements PullRequestService {
                 .setHeaders(headers)
                 .setBody(json);
 
+        logConsumer.accept("Sending to ALM Octane : " + configurer.octaneConfiguration.geLocationForLog() +", workspace " + workspaceId);
         OctaneResponse octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
         if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
             if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
@@ -111,14 +113,12 @@ final class PullRequestServiceImpl implements PullRequestService {
             } else {
                 throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
             }
-        } else {
-            long lastUpdateTime = pullRequests.stream().map(p -> p.getUpdatedTime()).max(Comparator.naturalOrder()).orElse(0l);
-            saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
         }
+        logConsumer.accept("Sending to ALM Octane successfully");
 
         long lastUpdateTime = pullRequests.stream().map(PullRequest::getUpdatedTime).max(Comparator.naturalOrder()).orElse(0L);
         saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
-        fetchParameters.getLogConsumer().accept("Last update time set to " + lastUpdateTime);
+        logConsumer.accept("Last update time set to " + lastUpdateTime);
     }
 
     @Override

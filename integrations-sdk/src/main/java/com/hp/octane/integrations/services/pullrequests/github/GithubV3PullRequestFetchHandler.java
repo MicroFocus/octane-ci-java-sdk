@@ -15,6 +15,7 @@ import com.hp.octane.integrations.services.pullrequests.rest.authentication.Auth
 import java.io.IOException;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -30,16 +31,15 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
     }
 
     @Override
-    public List<com.hp.octane.integrations.dto.scm.PullRequest> fetchPullRequests(FetchParameters parameters) throws IOException {
+    public List<com.hp.octane.integrations.dto.scm.PullRequest> fetchPullRequests(FetchParameters parameters, Consumer<String> logConsumer) throws IOException {
 
         List<com.hp.octane.integrations.dto.scm.PullRequest> result = new ArrayList<>();
         String baseUrl = getRepoApiPath(parameters.getRepoUrl());
-        parameters.getLogConsumer().accept(this.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
-        pingRepository(baseUrl, parameters.getLogConsumer());
+        logConsumer.accept(this.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
+        pingRepository(baseUrl, logConsumer);
 
         String pullRequestsUrl = baseUrl + "/pulls?state=all";
-        parameters.getLogConsumer().accept("Pull requests url : " + pullRequestsUrl);
-        parameters.printToLogConsumer();
+        logConsumer.accept("Pull requests url : " + pullRequestsUrl);
 
         List<PullRequest> pullRequests = getPagedEntities(pullRequestsUrl, PullRequest.class, parameters.getPageSize(), parameters.getMaxPRsToFetch(), parameters.getMinUpdateTime(), false);
         List<Pattern> sourcePatterns = FetchUtils.buildPatterns(parameters.getSourceBranchFilter());
@@ -48,7 +48,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
         List<PullRequest> filteredPullRequests = pullRequests.stream()
                 .filter(pr -> FetchUtils.isBranchMatch(sourcePatterns, pr.getHead().getRef()) && FetchUtils.isBranchMatch(targetPatterns, pr.getBase().getRef()))
                 .collect(Collectors.toList());
-        parameters.getLogConsumer().accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
+        logConsumer.accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
 
         //users
         Set<String> userUrls = pullRequests.stream().map(PullRequest::getUser).map(PullRequestUser::getUrl).collect(Collectors.toSet());

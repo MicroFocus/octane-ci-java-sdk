@@ -38,7 +38,7 @@ public abstract class PullRequestFetchHandler {
         restClient = new GeneralRestClient(authenticationStrategy);
     }
 
-    public abstract List<PullRequest> fetchPullRequests(FetchParameters parameters) throws IOException;
+    public abstract List<PullRequest> fetchPullRequests(FetchParameters parameters, Consumer<String> logger) throws IOException;
 
     protected abstract String getRepoApiPath(String clonePath);
 
