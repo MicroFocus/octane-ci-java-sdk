@@ -114,7 +114,7 @@ final class PullRequestServiceImpl implements PullRequestService {
                 throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
             }
         }
-        logConsumer.accept("Sending to ALM Octane successfully");
+        logConsumer.accept("Sent to ALM Octane successfully");
 
         long lastUpdateTime = pullRequests.stream().map(PullRequest::getUpdatedTime).max(Comparator.naturalOrder()).orElse(0L);
         saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
