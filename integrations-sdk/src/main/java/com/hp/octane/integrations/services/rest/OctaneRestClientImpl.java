@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -35,6 +36,10 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.GzipCompressingEntity;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -45,14 +50,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.client.methods.*;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeader;
@@ -60,23 +58,17 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.http.Header;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
+import javax.net.ssl.*;
 import java.io.IOException;
-
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -109,7 +101,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		this.configurer = configurer;
 
-		SSLContext sslContext = SSLContexts.createSystemDefault();
+		SSLContext sslContext;
+		try {
+			sslContext = SSLContext.getInstance("SSL");
+			sslContext.init(null, getTrustManagers(), new java.security.SecureRandom());
+		} catch (Exception e) {
+			logger.warn("Failed to create sslContext with customTrustManagers. Using systemDefault sslContext. Error : " + e.getMessage());
+			sslContext = SSLContexts.createSystemDefault();
+		}
+
 		HostnameVerifier hostnameVerifier = new CustomHostnameVerifier();
 		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
@@ -384,6 +384,43 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		}
 	}
 
+	private TrustManager[] getTrustManagers() throws NoSuchAlgorithmException, KeyStoreException {
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmf.init((KeyStore) null);
+		TrustManager[] tmArr = tmf.getTrustManagers();
+		if (tmArr.length == 1 && tmArr[0] instanceof X509TrustManager) {
+			X509TrustManager defaultTm = (X509TrustManager) tmArr[0];
+			TrustManager myTM = new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return defaultTm.getAcceptedIssuers();
+				}
+
+				public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+					defaultTm.checkClientTrusted(certs, authType);
+				}
+
+				public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+					try {
+						defaultTm.checkServerTrusted(certs, authType);
+					} catch (CertificateException e) {
+						for (X509Certificate cer : certs) {
+							if (cer.getIssuerDN().getName() != null && cer.getIssuerDN().getName().toLowerCase().contains("microfocus")) {
+								return;
+							}
+						}
+						throw e;
+					}
+				}
+			};
+
+			return new TrustManager[]{myTM};
+		} else {
+			logger.info("Using only default trust managers. Received " + tmArr.length + " trust managers."
+					+ ((tmArr.length > 0) ? "First one is :" + tmArr[0].getClass().getCanonicalName() : ""));
+			return tmArr;
+		}
+	}
+
 	public static final class CustomHostnameVerifier implements HostnameVerifier {
 		private final HostnameVerifier defaultVerifier = new DefaultHostnameVerifier();
 
@@ -398,7 +435,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 						if (namePair != null &&
 								namePair.size() > 1 &&
 								namePair.get(1) instanceof String &&
-								"*.saas.hp.com".equals(namePair.get(1))) {
+								"*.saas.microfocus.com".equals(namePair.get(1))) {
 							result = true;
 							break;
 						}
