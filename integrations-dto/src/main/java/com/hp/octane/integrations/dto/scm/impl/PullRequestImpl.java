@@ -201,7 +201,7 @@ public class PullRequestImpl implements PullRequest {
 
     @Override
     public boolean isMerged() {
-        return false;
+        return this.isMerged;
     }
 
     @Override
