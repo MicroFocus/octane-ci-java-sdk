@@ -140,10 +140,10 @@ final class LogsServiceImpl implements LogsService {
 		//  preflight
 		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId, encodedRootJobId);
 		if (workspaceIDs.length == 0) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + ", found no interested workspace in Octane");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + ", no interested workspace is found");
 			return;
 		} else {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + " found " + workspaceIDs.length + " interested workspace/s in Octane, dispatching the log");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + ", found " + workspaceIDs.length + " interested workspace/s");
 		}
 
 		//  submit log for each workspace returned by the 'preflight' API
