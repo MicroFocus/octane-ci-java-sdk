@@ -57,7 +57,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
             User user = getEntity(url, User.class);
             login2User.put(user.getLogin(), user);
             if (user.getEmail() == null) {
-                logConsumer.accept(String.format("WARNING : User '%s' has no  defined PUBLIC email in Github. User should set up a public email in his profile, otherwise - the user won't be recognized in ALM Octane.", user.getLogin()));
+                logConsumer.accept(String.format("WARNING : The User '%s' has no defined PUBLIC email in Github. User should set up a public email in their profile, otherwise - the user won't be recognized in ALM Octane.", user.getLogin()));
             }
         }
 
