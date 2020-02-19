@@ -64,6 +64,7 @@ public final class OctaneSDK {
 	 * @return OctaneClient
 	 */
 	synchronized public static OctaneClient addClient(OctaneConfiguration octaneConfiguration, Class<? extends CIPluginServices> pluginServicesClass) {
+		long startTime = System.currentTimeMillis();
 		if (octaneConfiguration == null) {
 			throw new IllegalArgumentException("octane configuration MUST NOT be null");
 		}
@@ -114,8 +115,8 @@ public final class OctaneSDK {
 		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(octaneConfiguration, pluginServices));
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
-		logger.info(octaneConfiguration.geLocationForLog() + "Octane Client instance " + octaneConfiguration.getInstanceId() +" is initialized SUCCESSFULLY");
-
+		long initTime = ((System.currentTimeMillis() - startTime) / 1000);
+		logger.info(octaneConfiguration.geLocationForLog() + "OctaneClient is initialized SUCCESSFULLY in " + initTime + " sec.");
 		return newInstance;
 	}
 
