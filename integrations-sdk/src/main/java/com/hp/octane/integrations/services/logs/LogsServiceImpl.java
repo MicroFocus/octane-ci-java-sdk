@@ -215,7 +215,7 @@ final class LogsServiceImpl implements LogsService {
 				CIPluginSDKUtils.doWait(30000);
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
-				throw new PermanentException("preflight request failed with status " + response.getStatus());
+				throw new PermanentException("preflight request failed with status " + response.getStatus() +". Request URL : " + url);
 			}
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
