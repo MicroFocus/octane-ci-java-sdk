@@ -206,7 +206,7 @@ final class BridgeServiceImpl implements BridgeService {
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
 					breathingOnException("Connection to Octane failed: authorization error.", 60, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-					breathingOnException("Connection to Octane failed: 404, API changes? proxy settings?", 180, null);
+					breathingOnException("Connection to Octane failed: 404, validate proxy settings, maybe missing 'No Proxy Host' setting?", 60, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
 					breathingOnException("Task polling request is redirected. Possibly Octane service is unavailable now.", 60, null);
 				} else {
