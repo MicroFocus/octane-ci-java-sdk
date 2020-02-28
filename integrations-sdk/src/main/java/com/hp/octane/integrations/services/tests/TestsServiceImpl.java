@@ -97,11 +97,10 @@ final class TestsServiceImpl implements TestsService {
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
 		}
 
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
-						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight");
+		String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+				"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
+				"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight";
+		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
 
 		try {
 			OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
@@ -113,7 +112,7 @@ final class TestsServiceImpl implements TestsService {
 				CIPluginSDKUtils.doWait(30000);
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			} else {
-				throw new PermanentException("preflight request failed with status " + response.getStatus());
+				throw new PermanentException("preflight request failed with status " + response.getStatus() + ". JobId: '" + jobId + "'. Request URL : " + url);
 			}
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
