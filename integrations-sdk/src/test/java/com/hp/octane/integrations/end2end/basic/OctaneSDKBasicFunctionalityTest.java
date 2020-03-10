@@ -479,7 +479,7 @@ public class OctaneSDKBasicFunctionalityTest {
 	}
 
 	private void simulatePushTestResultsCycleAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1"));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1", null));
 	}
 
 	private void simulatePushLogsCycleAllClients() {

@@ -91,7 +91,7 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	@Override
-	public boolean isTestsResultRelevant(String jobId) {
+	public boolean isTestsResultRelevant(String jobId, String rootJobId) {
 		String serverCiId = configurer.octaneConfiguration.getInstanceId();
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
@@ -100,6 +100,9 @@ final class TestsServiceImpl implements TestsService {
 		String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 				"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
 				"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight";
+		if (rootJobId != null && !rootJobId.isEmpty()) {
+			url += "?rootJobId=" + CIPluginSDKUtils.urlEncodePathParam(rootJobId);
+		}
 		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
 
 		try {
@@ -172,7 +175,7 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	@Override
-	public void enqueuePushTestsResult(String jobId, String buildId) {
+	public void enqueuePushTestsResult(String jobId, String buildId, String rootJobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
@@ -180,7 +183,7 @@ final class TestsServiceImpl implements TestsService {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
 
-		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId));
+		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId, rootJobId));
 		synchronized (NO_TEST_RESULTS_MONITOR) {
 			NO_TEST_RESULTS_MONITOR.notify();
 		}
@@ -230,7 +233,7 @@ final class TestsServiceImpl implements TestsService {
 			//  preflight
 			InputStream testsResultB;
 			boolean isRelevant;
-			isRelevant = isTestsResultRelevant(queueItem.jobId);
+			isRelevant = isTestsResultRelevant(queueItem.jobId, queueItem.rootJobId);
 			if (!isRelevant) {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "no interest found in Octane for test results of " + queueItem + ", skipping");
 				return;
@@ -283,19 +286,21 @@ final class TestsServiceImpl implements TestsService {
 	private static final class TestsResultQueueItem implements QueueingService.QueueItem {
 		private String jobId;
 		private String buildId;
+		private String rootJobId;
 
 		//  [YG] this constructor MUST be present
 		private TestsResultQueueItem() {
 		}
 
-		private TestsResultQueueItem(String jobId, String buildId) {
+		private TestsResultQueueItem(String jobId, String buildId, String rootJobId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+			this.rootJobId = rootJobId;
 		}
 
 		@Override
 		public String toString() {
-			return "'" + jobId + " #" + buildId + "'";
+			return "'" + jobId + " #" + buildId + "', root job : " + rootJobId;
 		}
 	}
 

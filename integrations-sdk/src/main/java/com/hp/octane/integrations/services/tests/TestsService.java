@@ -45,7 +45,7 @@ public interface TestsService extends ClosableService {
 	 * @return true if isTestsResultRelevant
 	 * @throws IOException IOException
 	 */
-	boolean isTestsResultRelevant(String jobId) throws IOException;
+	boolean isTestsResultRelevant(String jobId, String rootJobId) throws IOException;
 
 	/**
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
@@ -78,5 +78,5 @@ public interface TestsService extends ClosableService {
 	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 */
-	void enqueuePushTestsResult(String jobId, String buildId);
+	void enqueuePushTestsResult(String jobId, String buildId, String rootJobId);
 }
