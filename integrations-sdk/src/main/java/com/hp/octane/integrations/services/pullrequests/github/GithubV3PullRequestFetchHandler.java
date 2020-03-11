@@ -41,7 +41,8 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
         String pullRequestsUrl = baseUrl + "/pulls?state=all";
         logConsumer.accept("Pull requests url : " + pullRequestsUrl);
 
-        List<PullRequest> pullRequests = getPagedEntities(pullRequestsUrl, PullRequest.class, parameters.getPageSize(), parameters.getMaxPRsToFetch(), parameters.getMinUpdateTime(), false);
+        //prs are returned in asc order by id , therefore we need to get all before filtering , therefore page size equals to max total
+        List<PullRequest> pullRequests = getPagedEntities(pullRequestsUrl, PullRequest.class, parameters.getMaxPRsToFetch(), parameters.getMaxPRsToFetch(), parameters.getMinUpdateTime());
         List<Pattern> sourcePatterns = FetchUtils.buildPatterns(parameters.getSourceBranchFilter());
         List<Pattern> targetPatterns = FetchUtils.buildPatterns(parameters.getTargetBranchFilter());
 
@@ -63,7 +64,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
 
         for (PullRequest pr : filteredPullRequests) {
             //commits are returned in asc order by update time , therefore we need to get all before filtering , therefore page size equals to max total
-            List<Commit> commits = getPagedEntities(pr.getCommitsUrl(), Commit.class, parameters.getMaxPRsToFetch(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime(), true);
+            List<Commit> commits = getPagedEntities(pr.getCommitsUrl(), Commit.class, parameters.getMaxCommitsToFetch(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
 
             //commits
             List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
@@ -130,11 +131,10 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
      * @param pageSize
      * @param maxTotal
      * @param minUpdateTime
-     * @param sortRequired - whether need to sort entities by UpdateDate, relevant for entities (like Commits) that are received from server in ascending way,
      * @param <T>
      * @return
      */
-    private <T extends Entity & SupportUpdatedTime> List<T> getPagedEntities(String url, Class<T> entityType, int pageSize, int maxTotal, long minUpdateTime, boolean sortRequired) {
+    private <T extends Entity & SupportUpdatedTime> List<T> getPagedEntities(String url, Class<T> entityType, int pageSize, int maxTotal, long minUpdateTime) {
         try {
             List<T> result = new ArrayList<>();
             boolean finished;
@@ -152,9 +152,11 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                     finished = false;
                 }
 
-                if (sortRequired) {
-                    //result.forEach(p -> p.getUpdatedTime());//only populate update time
-                    result.sort((Comparator<SupportUpdatedTime>) (o1, o2) -> Long.compare(o2.getUpdatedTime(), o1.getUpdatedTime()));
+                //remove outdated items
+                for (int i = result.size() - 1; i >= 0 && minUpdateTime > 0; i--) {
+                    if (result.get(i).getUpdatedTime() <= minUpdateTime) {
+                        result.remove(i);
+                    }
                 }
 
                 //remove exceeding items
@@ -162,17 +164,6 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                     result.remove(result.size() - 1);
                     finished = true;
                 }
-
-                //remove outdated items
-                for (int i = result.size() - 1; i >= 0 && minUpdateTime > 0; i--) {
-                    if (result.get(i).getUpdatedTime() <= minUpdateTime) {
-                        result.remove(i);
-                        finished = true;
-                    } else {
-                        break;
-                    }
-                }
-
             } while (!finished);
             return result;
         } catch (Exception e) {
