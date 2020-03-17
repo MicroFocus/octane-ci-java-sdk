@@ -24,30 +24,81 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface CIParameter extends DTOBase {
 
+	/***
+	 * Get parameter type
+	 * @return parameter type
+	 */
 	CIParameterType getType();
 
+	/***
+	 * Set parameter type
+	 * @param type parameter type
+	 * @return this instance of CIParameter
+	 */
 	CIParameter setType(CIParameterType type);
 
+	/***
+	 * Get name of parameter
+	 * @return name of parameter
+	 */
 	String getName();
 
+	/***
+	 * Set name of parameter
+	 * @param name name of parameter
+	 * @return this instance of CIParameter
+	 */
 	CIParameter setName(String name);
 
+	/***
+	 * Get parameter description
+	 * @return parameter description
+	 */
 	String getDescription();
 
+	/***
+	 * Set parameter description
+	 * @param description parameter description
+	 * @return this instance of CIParameter
+	 */
 	CIParameter setDescription(String description);
 
+	/***
+	 * Get value choices for parameter
+	 * @return value choices for parameter
+	 */
 	Object[] getChoices();
 
-    /**
-     * Set a list of values that this parameter can receive.
-     */
+	/***
+	 * Set a list of values that this parameter can receive.
+	 * @param choices   value choices for parameter
+	 * @return this instance of CIParameter
+	 */
 	CIParameter setChoices(Object[] choices);
 
+	/***
+	 * Get default value
+	 * @return default value
+	 */
 	Object getDefaultValue();
 
+	/***
+	 * Set default value
+	 * @param defaultValue default value
+	 * @return this instance of CIParameter
+	 */
 	CIParameter setDefaultValue(Object defaultValue);
 
+	/***
+	 * Get actual value
+	 * @return actual value
+	 */
 	Object getValue();
 
+	/***
+	 * Set actual value
+	 * @param value actual value
+	 * @return this instance of CIParameter
+	 */
 	CIParameter setValue(Object value);
 }

@@ -42,6 +42,7 @@ public interface TestsService extends ClosableService {
 	/**
 	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
 	 * @param jobId jobId
+	 * @param rootJobId any identification of Root Job that triggered this job. Null - if there is no such job.
 	 * @return true if isTestsResultRelevant
 	 * @throws IOException IOException
 	 */
@@ -77,6 +78,7 @@ public interface TestsService extends ClosableService {
 	 *
 	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param rootJobId any identification of Root Job that triggered this job. Null - if there is no such job.
 	 */
 	void enqueuePushTestsResult(String jobId, String buildId, String rootJobId);
 }

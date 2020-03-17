@@ -52,7 +52,7 @@ public interface SCMChange extends DTOBase, Serializable {
 	 * in case it's delete type (that came from renaming),
 	 * we want to enrich the new renamed file as part of the SCMChange.
 	 * this field will be filled as part of the lines enrichment process
-	 * @param file
+	 * @param file file path
 	 */
 	void setRenamedToFile(String file);
 

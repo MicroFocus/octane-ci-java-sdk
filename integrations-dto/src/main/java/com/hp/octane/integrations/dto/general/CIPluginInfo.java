@@ -21,10 +21,18 @@ import com.hp.octane.integrations.dto.DTOBase;
 /**
  * Plugin info DTO
  */
-
 public interface CIPluginInfo extends DTOBase {
 
+	/***
+	 * Get plugin version
+	 * @return plugin version
+	 */
 	String getVersion();
 
+	/***
+	 * Set plugin version
+	 * @param version plugin version
+	 * @return instance of current CIPluginInfo
+	 */
 	CIPluginInfo setVersion(String version);
 }

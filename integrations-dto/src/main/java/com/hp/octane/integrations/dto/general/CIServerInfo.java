@@ -23,58 +23,104 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface CIServerInfo extends DTOBase {
 
+	/***
+	 * Get type of CI server (jenkins,bamboo,goCd...)
+	 * @return type of CI server
+	 */
 	String getType();
 
-	/**
-	 * Set CI server's type
-	 * The type is an unbound string, but please refer to an existing types in CIServerTypes enumeration for a matching existing one, if possible
+	/***
+	 * 	 Set CI server's type
+	 * 	 The type is an unbound string
+	 * @param type CI server's type
+	 * @return instance of current CIServerInfo
 	 */
 	CIServerInfo setType(String type);
 
+	/***
+	 * Get version of the CI server
+	 * @return version of the CI server
+	 */
 	String getVersion();
 
-	/**
+	/***
 	 * Set CI server's version
+	 * @param version CI server's version
+	 * @return instance of current CIServerInfo
 	 */
 	CIServerInfo setVersion(String version);
 
+	/***
+	 * Get self location URL to CI server
+	 * @return self location URL to CI server
+	 */
 	String getUrl();
 
-	/**
+	/***
 	 * Set CI server's self location URL
+	 * @param url CI server's self location URL
+	 * @return instance of current CIServerInfo
 	 */
 	CIServerInfo setUrl(String url);
 
+	/***
+	 * Get unique id of the CI server instance UUID
+	 * @return unique id of the CI server
+	 */
 	String getInstanceId();
 
-	/**
+	/***
 	 * Set unique id of the CI server instance UUID
+	 * @param instanceId  unique id
+	 * @return instance of current CIServerInfo
 	 */
 	CIServerInfo setInstanceId(String instanceId);
 
+	/***
+	 * Set CI server's instance creation time
+	 * @return instance creation time
+	 */
 	Long getInstanceIdFrom();
 
-	/**
-	 * Set CI server's instance UUID creation time
+	/***
+	 * Set CI server's instance creation time
+	 * @param instanceIdFrom CI server's instance creation time
+	 * @return instance of current CIServerInfo
 	 */
 	CIServerInfo setInstanceIdFrom(Long instanceIdFrom);
 
+	/***
+	 * Get CI server's current time
+	 * @return current time
+	 */
 	Long getSendingTime();
 
-	/**
+	/***
 	 * Set CI server's current time
+	 * @param sendingTime sendingTime
+	 * @return instance of current CIServerInfo
 	 */
 	CIServerInfo setSendingTime(Long sendingTime);
 
+	@Deprecated
 	String getImpersonatedUser();
 
-	/**
+
+	@Deprecated
+	/***
 	 * Set CI server's user, that has been given to Octane's CI Plugin to run on behalf of
+	 * @param impersonatedUser
+	 * @return
 	 */
 	CIServerInfo setImpersonatedUser(String impersonatedUser);
 
+	@Deprecated
+	/***
+	 * Get CI server's suspension status
+	 */
 	boolean isSuspended();
 
+	@Deprecated
 	/**
 	 * Set CI server's suspension status
 	 */
