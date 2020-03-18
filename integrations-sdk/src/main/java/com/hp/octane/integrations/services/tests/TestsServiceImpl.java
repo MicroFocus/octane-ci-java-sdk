@@ -232,10 +232,9 @@ final class TestsServiceImpl implements TestsService {
 		try {
 			//  preflight
 			InputStream testsResultB;
-			boolean isRelevant;
-			isRelevant = isTestsResultRelevant(queueItem.jobId, queueItem.rootJobId);
+			boolean isRelevant = isTestsResultRelevant(queueItem.jobId, queueItem.rootJobId);
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "test results preflight " + queueItem + " = " + isRelevant);
 			if (!isRelevant) {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "no interest found in Octane for test results of " + queueItem + ", skipping");
 				return;
 			}
 
@@ -300,7 +299,7 @@ final class TestsServiceImpl implements TestsService {
 
 		@Override
 		public String toString() {
-			return "'" + jobId + " #" + buildId + "', root job : " + rootJobId;
+			return "'" + jobId + " #" + buildId + (rootJobId != null ? "', root job : " + rootJobId : "");
 		}
 	}
 
