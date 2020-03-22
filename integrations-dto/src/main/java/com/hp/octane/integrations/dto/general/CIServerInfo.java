@@ -101,29 +101,5 @@ public interface CIServerInfo extends DTOBase {
 	 * @return instance of current CIServerInfo
 	 */
 	CIServerInfo setSendingTime(Long sendingTime);
-
-	@Deprecated
-	String getImpersonatedUser();
-
-
-	@Deprecated
-	/***
-	 * Set CI server's user, that has been given to Octane's CI Plugin to run on behalf of
-	 * @param impersonatedUser
-	 * @return
-	 */
-	CIServerInfo setImpersonatedUser(String impersonatedUser);
-
-	@Deprecated
-	/***
-	 * Get CI server's suspension status
-	 */
-	boolean isSuspended();
-
-	@Deprecated
-	/**
-	 * Set CI server's suspension status
-	 */
-	CIServerInfo setSuspended(boolean suspended);
 }
 

@@ -98,6 +98,10 @@ final class OctaneClientImpl implements OctaneClient {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : isCurrentConfigurationValid=false");
 		}
 
+		if(configurer.octaneConfiguration.isSuspended()) {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		}
+
 		//  independent services init
 		tasksProcessor = TasksProcessor.newInstance(configurer);
 

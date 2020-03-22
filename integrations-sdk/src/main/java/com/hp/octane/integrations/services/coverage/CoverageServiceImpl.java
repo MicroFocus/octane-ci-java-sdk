@@ -202,6 +202,9 @@ class CoverageServiceImpl implements CoverageService {
 		if (reportType == null) {
 			throw new IllegalArgumentException("report type MUST NOT be null");
 		}
+		if(this.configurer.octaneConfiguration.isSuspended()){
+			return;
+		}
 
 		coveragePushQueue.add(new CoverageQueueItem(jobId, buildId, reportType, reportFileName));
 
