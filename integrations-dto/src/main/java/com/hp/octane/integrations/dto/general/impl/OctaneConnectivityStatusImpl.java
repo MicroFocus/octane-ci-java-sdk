@@ -45,4 +45,9 @@ public class OctaneConnectivityStatusImpl implements OctaneConnectivityStatus {
     public String getOctaneVersion() {
         return octaneVersion;
     }
+
+    @Override
+    public String toString() {
+        return String.format("octaneVersion=%s; supportedSdkVersion=%s;", octaneVersion, supportedSdkVersion);
+    }
 }

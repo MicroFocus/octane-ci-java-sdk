@@ -15,6 +15,8 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
@@ -34,6 +36,7 @@ import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolSe
 import com.hp.octane.integrations.services.vulnerabilities.fod.FODService;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -69,7 +72,6 @@ final class OctaneClientImpl implements OctaneClient {
 	private final PullRequestService pullRequestService;
 	private final Thread shutdownHook;
 
-
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
 			throw new IllegalArgumentException("services configurer MUST NOT be null nor empty");
@@ -81,12 +83,26 @@ final class OctaneClientImpl implements OctaneClient {
 		loggingService = LoggingService.newInstance(configurer);
 		queueingService = QueueingService.newInstance(configurer);
 
-		//  independent services init
+		//sdk validation services
 		restService = RestService.newInstance(configurer);
+		configurationService = ConfigurationService.newInstance(configurer, restService);
+
+		if (configurationService.isCurrentConfigurationValid()) {
+			OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus();
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
+			if (!CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus)) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client creation failed: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+				throw new IllegalStateException(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+			}
+		} else {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : isCurrentConfigurationValid=false");
+		}
+
+		//  independent services init
 		tasksProcessor = TasksProcessor.newInstance(configurer);
 
 		//  dependent services init
-		configurationService = ConfigurationService.newInstance(configurer, restService);
+
 		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		pipelineContextService = PipelineContextService.newInstance(configurer, restService);
