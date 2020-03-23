@@ -15,8 +15,6 @@
 
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
@@ -198,7 +196,7 @@ public final class OctaneSDK {
 	 * @return OctaneResponse
 	 * @throws IOException in case of basic connectivity failure
 	 */
-	public static OctaneConnectivityStatus testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
+	public static void testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
 		//  instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
 		configuration.setSecret(secret);
@@ -216,7 +214,10 @@ public final class OctaneSDK {
 		SDKServicesConfigurer configurer = new SDKServicesConfigurer(configuration, pluginServices);
 		RestService restService = RestService.newInstance(configurer);
 		ConfigurationService configurationService = ConfigurationService.newInstance(configurer, restService);
-		return configurationService.validateConfiguration(configuration);
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.validateConfigurationAndGetConnectivityStatus(configuration, false);
+		if (!CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus)) {
+			throw new OctaneConnectivityException(0, OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_KEY, OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+		}
 	}
 
 	static boolean isInstanceIdUnique(String instanceId) {

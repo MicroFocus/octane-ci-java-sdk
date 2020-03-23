@@ -44,12 +44,6 @@ public interface ConfigurationService {
 	OctaneConfiguration getCurrentConfiguration();
 
 	/**
-	 * Check if current configuration is valid
-	 * @return isCurrentConfigurationValid
-	 */
-	boolean isCurrentConfigurationValid();
-
-	/**
 	 * Get connectivity status : octane version, supported SDK version
 	 * @return
 	 */
@@ -61,5 +55,5 @@ public interface ConfigurationService {
 	 * @param configuration Octane configuration
 	 * @return OctaneResponse
 	 */
-	OctaneConnectivityStatus validateConfiguration(OctaneConfiguration configuration) throws IOException;
+	OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus(OctaneConfiguration configuration, boolean useNewRestClient) throws IOException;
 }

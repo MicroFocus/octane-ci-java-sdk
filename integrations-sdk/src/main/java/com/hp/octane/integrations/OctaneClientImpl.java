@@ -87,19 +87,19 @@ final class OctaneClientImpl implements OctaneClient {
 		restService = RestService.newInstance(configurer);
 		configurationService = ConfigurationService.newInstance(configurer, restService);
 
-		if (configurationService.isCurrentConfigurationValid()) {
-			OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus();
+		if (configurer.octaneConfiguration.isSuspended()) {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		}
+
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus();
+		if (octaneConnectivityStatus != null) {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
 			if (!CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus)) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client creation failed: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
-				throw new IllegalStateException(OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+				configurer.octaneConfiguration.setSuspended(true);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
 			}
 		} else {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : isCurrentConfigurationValid=false");
-		}
-
-		if(configurer.octaneConfiguration.isSuspended()) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 		}
 
 		//  independent services init
