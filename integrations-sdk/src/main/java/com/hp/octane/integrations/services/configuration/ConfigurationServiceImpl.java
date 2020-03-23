@@ -65,10 +65,10 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
-	public OctaneConnectivityStatus getOctaneConnectivityStatus() {
+	public OctaneConnectivityStatus getOctaneConnectivityStatus(boolean forceFetch) {
 
 		try {
-			if (octaneConnectivityStatus == null || isLastUpdateDone24HBefore()) {
+			if (forceFetch || octaneConnectivityStatus == null || isLastUpdateDone24HBefore()) {
 				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatusInternal(configurer.octaneConfiguration, restService.obtainOctaneRestClient());
 			}
 		} catch (Exception e) {
@@ -78,7 +78,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		return octaneConnectivityStatus;
 	}
 
-	private boolean isLastUpdateDone24HBefore() {//TODO refactor it
+	private boolean isLastUpdateDone24HBefore() {
 		long diffInMillies = System.currentTimeMillis() - octaneConnectivityStatusDate;
 		long diffInHours = TimeUnit.HOURS.convert(diffInMillies, TimeUnit.MILLISECONDS);
 		return diffInHours > 24;

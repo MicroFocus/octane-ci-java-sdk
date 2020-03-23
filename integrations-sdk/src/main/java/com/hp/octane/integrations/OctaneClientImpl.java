@@ -91,7 +91,7 @@ final class OctaneClientImpl implements OctaneClient {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 		}
 
-		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus();
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(true);
 		if (octaneConnectivityStatus != null) {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
 			if (!CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus)) {

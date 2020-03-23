@@ -45,9 +45,10 @@ public interface ConfigurationService {
 
 	/**
 	 * Get connectivity status : octane version, supported SDK version
-	 * @return
+	 * @param forceFetch fetch from octane and not use cache value
+	 * @return octane connectivity status
 	 */
-	OctaneConnectivityStatus getOctaneConnectivityStatus();
+	OctaneConnectivityStatus getOctaneConnectivityStatus(boolean forceFetch);
 
 	/**
 	 * Tests connectivity to the Octane server with the supplied configuration
