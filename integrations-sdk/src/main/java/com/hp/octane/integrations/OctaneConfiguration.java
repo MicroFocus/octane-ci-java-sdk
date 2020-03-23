@@ -16,6 +16,7 @@ public class OctaneConfiguration {
     volatile boolean attached;
     private String farm;
     private boolean suspended;
+    private boolean sdkSupported = true;
     private String impersonatedUser;
 
     public OctaneConfiguration(String instanceId, String url, String sharedSpace) {
@@ -131,6 +132,10 @@ public class OctaneConfiguration {
         return suspended;
     }
 
+    public boolean isDisabled() {
+        return suspended || !sdkSupported;
+    }
+
     public void setSuspended(boolean suspended) {
         this.suspended = suspended;
     }
@@ -141,5 +146,13 @@ public class OctaneConfiguration {
 
     public void setImpersonatedUser(String impersonatedUser) {
         this.impersonatedUser = impersonatedUser;
+    }
+
+    public boolean isSdkSupported() {
+        return sdkSupported;
+    }
+
+    protected void setSdkSupported(boolean sdkSupported) {
+        this.sdkSupported = sdkSupported;
     }
 }

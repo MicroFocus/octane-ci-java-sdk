@@ -89,7 +89,7 @@ final class LogsServiceImpl implements LogsService {
 		if (buildId == null || buildId.isEmpty()) {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
-		if(this.configurer.octaneConfiguration.isSuspended()){
+		if (this.configurer.octaneConfiguration.isDisabled()) {
 			return;
 		}
 

@@ -118,7 +118,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	                                                  long startRunTime,
 	                                                  long queueItemTimeout,
 													  Map<String,String> additionalProperties) {
-		if(this.configurer.octaneConfiguration.isSuspended()){
+		if (this.configurer.octaneConfiguration.isDisabled()) {
 			return;
 		}
 

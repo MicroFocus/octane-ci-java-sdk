@@ -70,6 +70,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		try {
 			if (forceFetch || octaneConnectivityStatus == null || isLastUpdateDone24HBefore()) {
 				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatusInternal(configurer.octaneConfiguration, restService.obtainOctaneRestClient());
+				octaneConnectivityStatusDate = System.currentTimeMillis();
 			}
 		} catch (Exception e) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to getOctaneConnectivityStatus : " + e.getMessage());

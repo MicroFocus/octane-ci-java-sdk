@@ -202,7 +202,7 @@ class CoverageServiceImpl implements CoverageService {
 		if (reportType == null) {
 			throw new IllegalArgumentException("report type MUST NOT be null");
 		}
-		if(this.configurer.octaneConfiguration.isSuspended()){
+		if (!this.configurer.octaneConfiguration.isDisabled()) {
 			return;
 		}
 

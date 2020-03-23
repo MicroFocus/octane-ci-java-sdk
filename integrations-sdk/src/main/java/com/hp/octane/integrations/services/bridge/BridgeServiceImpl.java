@@ -115,12 +115,18 @@ final class BridgeServiceImpl implements BridgeService {
 
 			// add log about activity once a hour
 			if (hoursDifference(System.currentTimeMillis(), lastLogTime) >= 1) {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "task polling is " + (configurer.octaneConfiguration.isSuspended() ? "suspended" : "active"));
+				String status = "active";
+				if (configurer.octaneConfiguration.isSuspended()) {
+					status = "suspended";
+				} else if (!configurer.octaneConfiguration.isSdkSupported()) {
+					status = "deactivated (sdk is not supported)";
+				}
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "task polling is " + status);
 				lastLogTime = System.currentTimeMillis();
 			}
 
-			if (configurer.octaneConfiguration.isSuspended()) {
-				CIPluginSDKUtils.doWait(10 * 1000);//wait 10 sec
+			if (configurer.octaneConfiguration.isDisabled()) {
+				CIPluginSDKUtils.doWait(20 * 1000);//wait 20 sec
 			} else {
 				//  get tasks, wait if needed and return with task or timeout or error
 				tasksJSON = getAbridgedTasks(

@@ -44,6 +44,11 @@ public interface OctaneClient {
 	String getInstanceId();
 
 	/**
+	 * check whether SDK version is supported by Octane
+	 */
+	void refreshSdkSupported();
+
+	/**
 	 * provides Configuration service
 	 *
 	 * @return service, MUST NOT be null

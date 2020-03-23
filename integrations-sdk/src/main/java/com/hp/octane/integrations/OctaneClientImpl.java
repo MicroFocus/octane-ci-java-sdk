@@ -91,15 +91,9 @@ final class OctaneClientImpl implements OctaneClient {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 		}
 
-		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(true);
-		if (octaneConnectivityStatus != null) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
-			if (!CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus)) {
-				configurer.octaneConfiguration.setSuspended(true);
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
-			}
-		} else {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : isCurrentConfigurationValid=false");
+		refreshSdkSupported();
+		if (configurer.octaneConfiguration.isDisabled()) {
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "Client is DISABLED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
 		}
 
 		//  independent services init
@@ -142,6 +136,18 @@ final class OctaneClientImpl implements OctaneClient {
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId());
+	}
+
+	@Override
+	public void refreshSdkSupported() {
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(true);
+		if (octaneConnectivityStatus != null) {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
+			configurer.octaneConfiguration.setSdkSupported(CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus));
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sdkSupported = " + configurer.octaneConfiguration.isSdkSupported());
+		} else {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "refreshSdkSupported : octaneConnectivityStatus==null");
+		}
 	}
 
 	@Override
