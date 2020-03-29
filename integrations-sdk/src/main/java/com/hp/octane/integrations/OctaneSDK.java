@@ -187,13 +187,13 @@ public final class OctaneSDK {
 	/***
 	 *
 	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
+	 * In case of failed configuration , IllegalArgumentException is thrown
 	 *
 	 * @param octaneServerUrl base Octane server URL
 	 * @param sharedSpaceId   shared space ID
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
 	 * @param pluginServicesClass class that extends CIPluginServices
-	 * @return OctaneResponse
 	 * @throws IOException in case of basic connectivity failure
 	 */
 	public static void testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
