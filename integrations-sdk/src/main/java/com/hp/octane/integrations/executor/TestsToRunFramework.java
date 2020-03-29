@@ -15,21 +15,27 @@
  */
 package com.hp.octane.integrations.executor;
 
+import com.hp.octane.integrations.executor.converters.GradleConverter;
+import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
 public enum TestsToRunFramework {
 
-    JUnit4("mvnSurefire","JUnit/TestNG over Maven Surefire/Failsafe"),
-    MF_UFT("uft", "Micro Focus UFT"),
-    Protractor("protractor", "Protractor"),
-    Gradle("gradle","Gradle");
+    JUnit4("mvnSurefire", "JUnit/TestNG over Maven Surefire/Failsafe", ""),
+    MF_UFT("uft", "Micro Focus UFT", ""),
+    CUCUMBER_JVM("cucumber_jvm", "Cucumber-JVM over Maven", ""),
+    Protractor("protractor", "Protractor", ProtractorConverter.FORMAT),
+    Gradle("gradle", "Gradle", GradleConverter.FORMAT),
+    Custom("custom", "Custom", "");
 
     private final String value;
     private final String desc;
+    protected final String format;
 
-    TestsToRunFramework(String value, String desc) {
+    TestsToRunFramework(String value, String desc, String format) {
         this.value = value;
         this.desc = desc;
+        this.format = format;
     }
 
     public String value() {
@@ -53,4 +59,9 @@ public enum TestsToRunFramework {
     public String getDesc() {
         return desc;
     }
+
+    public String getFormat() {
+        return format;
+    }
+
 }

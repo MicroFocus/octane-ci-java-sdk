@@ -70,13 +70,13 @@ public class TestsServiceNegativeTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void testE1() throws IOException {
 		TestsService testsService = client.getTestsService();
-		testsService.isTestsResultRelevant(null);
+		testsService.isTestsResultRelevant(null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testE2() throws IOException {
 		TestsService testsService = client.getTestsService();
-		testsService.isTestsResultRelevant("");
+		testsService.isTestsResultRelevant("", null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -145,24 +145,24 @@ public class TestsServiceNegativeTests {
 	@Test(expected = IllegalArgumentException.class)
 	public void testH1() {
 		TestsService testsService = client.getTestsService();
-		testsService.enqueuePushTestsResult(null, null);
+		testsService.enqueuePushTestsResult(null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testH2() {
 		TestsService testsService = client.getTestsService();
-		testsService.enqueuePushTestsResult("", null);
+		testsService.enqueuePushTestsResult("", null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testH3() {
 		TestsService testsService = client.getTestsService();
-		testsService.enqueuePushTestsResult("some", null);
+		testsService.enqueuePushTestsResult("some", null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testH4() {
 		TestsService testsService = client.getTestsService();
-		testsService.enqueuePushTestsResult("some", "");
+		testsService.enqueuePushTestsResult("some", "", null);
 	}
 }

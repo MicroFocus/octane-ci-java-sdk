@@ -16,6 +16,9 @@
 package com.hp.octane.integrations.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,6 +34,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -137,6 +141,19 @@ public class CIPluginSDKUtils {
 		}
 	}
 
+	public static CIProxyConfiguration getProxyConfiguration(String url, OctaneSDK.SDKServicesConfigurer configurer) {
+		Function<URL, CIProxyConfiguration> proxySupplier;
+		if (configurer != null) {
+			proxySupplier = configurer.pluginServices::getProxyConfiguration;
+		} else if (OctaneSDK.hasClients()) {
+			proxySupplier = OctaneSDK.getClients().get(0).getRestService().getProxySupplier();
+		} else {
+			return null;
+		}
+		URL octaneUrl = CIPluginSDKUtils.parseURL(url);
+		return proxySupplier.apply(octaneUrl);
+	}
+
 	/**
 	 * encodes string as path param
 	 * - this method WILL NOT fail on wrong input, but just return it as is, writing the error to the log
@@ -196,5 +213,45 @@ public class CIPluginSDKUtils {
 		result.flush();
 		return result.toString(charset.name());
 	}
+
+
+	public static int compareStringVersion(String version1, String version2) {
+		String[] arr1 = version1.split("\\.");
+		String[] arr2 = version2.split("\\.");
+
+		int i = 0;
+		while (i < arr1.length || i < arr2.length) {
+			if (i < arr1.length && i < arr2.length) {
+				if (Integer.parseInt(arr1[i]) < Integer.parseInt(arr2[i])) {
+					return -1;
+				} else if (Integer.parseInt(arr1[i]) > Integer.parseInt(arr2[i])) {
+					return 1;
+				}
+			} else if (i < arr1.length) {
+				if (Integer.parseInt(arr1[i]) != 0) {
+					return 1;
+				}
+			} else if (i < arr2.length) {
+				if (Integer.parseInt(arr2[i]) != 0) {
+					return -1;
+				}
+			}
+
+			i++;
+		}
+
+		return 0;
+	}
+
+	public static boolean isSdkSupported(OctaneConnectivityStatus octaneConnectivityStatus) {
+		try {
+			return (octaneConnectivityStatus.getSupportedSdkVersion() == null ||
+					compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion()) >= 0);
+		} catch (Exception e) {
+			logger.error("unable to compare plugin SDK version: " + OctaneSDK.SDK_VERSION + " with Supported SDK version: " + octaneConnectivityStatus.getSupportedSdkVersion() + ". " + e.getMessage());
+			return true;
+		}
+	}
+
 }
 

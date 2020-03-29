@@ -34,6 +34,8 @@ public interface CoverageService extends ClosableService {
 	 * Coverage Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer SDK services configurer object
+	 * @param queueingService queueingService
+	 * @param restService restService
 	 * @return initialized service
 	 */
 	static CoverageService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
@@ -55,6 +57,7 @@ public interface CoverageService extends ClosableService {
 	 * @param buildId        CI Build ID
 	 * @param reportType     report type of the pushed content
 	 * @param coverageReport coverage report content
+	 * @return response
 	 */
 	OctaneResponse pushCoverage(String jobId, String buildId, CoverageReportType reportType, InputStream coverageReport);
 

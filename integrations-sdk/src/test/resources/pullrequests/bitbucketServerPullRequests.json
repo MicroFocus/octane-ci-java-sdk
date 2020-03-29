@@ -1,0 +1,1590 @@
+{
+  "size": 11,
+  "limit": 25,
+  "isLastPage": true,
+  "values": [
+    {
+      "id": 7,
+      "version": 34,
+      "title": "br1 pr",
+      "description": "bububu description",
+      "state": "DECLINED",
+      "open": false,
+      "closed": true,
+      "createdDate": 1575278861233,
+      "updatedDate": 1578294952383,
+      "closedDate": 1578294952383,
+      "fromRef": {
+        "id": "refs/heads/br01",
+        "displayId": "br01",
+        "latestCommit": "5fe9bee670e415725b992f7af2f76989e313f206",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "9f7659963c576bc71f5b226c1c0e64b342eb516e",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "mergeResult": {
+          "outcome": "CONFLICTED",
+          "current": true
+        },
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/7"
+          }
+        ]
+      }
+    },
+    {
+      "id": 16,
+      "version": 1,
+      "title": "user Br04 pr",
+      "description": "* text3.txt edited online with Bitbucket\r\n* text4.txt edited online with Bitbucket",
+      "state": "OPEN",
+      "open": true,
+      "closed": false,
+      "createdDate": 1577366921874,
+      "updatedDate": 1577618420306,
+      "fromRef": {
+        "id": "refs/heads/br04",
+        "displayId": "br04",
+        "latestCommit": "78ed758ec12512cd3692bfe5fd387581ee455ce8",
+        "repository": {
+          "slug": "rep1",
+          "id": 12,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "origin": {
+            "slug": "rep1",
+            "id": 1,
+            "name": "rep1",
+            "scmId": "git",
+            "state": "AVAILABLE",
+            "statusMessage": "Available",
+            "forkable": true,
+            "project": {
+              "key": "PROJ",
+              "id": 1,
+              "name": "proj1",
+              "public": false,
+              "type": "NORMAL",
+              "links": {
+                "self": [
+                  {
+                    "href": "http://localhost:8990/projects/PROJ"
+                  }
+                ]
+              }
+            },
+            "public": false,
+            "links": {
+              "clone": [
+                {
+                  "href": "http://localhost:8990/scm/proj/rep1.git",
+                  "name": "http"
+                }
+              ],
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+                }
+              ]
+            }
+          },
+          "project": {
+            "key": "~ADMIN",
+            "id": 22,
+            "name": "admin",
+            "type": "PERSONAL",
+            "owner": {
+              "name": "admin",
+              "emailAddress": "admin@mf.com",
+              "id": 1,
+              "displayName": "admin",
+              "active": true,
+              "slug": "admin",
+              "type": "NORMAL",
+              "links": {
+                "self": [
+                  {
+                    "href": "http://localhost:8990/users/admin"
+                  }
+                ]
+              }
+            },
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/users/admin"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/~admin/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "9f7659963c576bc71f5b226c1c0e64b342eb516e",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "mergeResult": {
+          "outcome": "CLEAN",
+          "current": true
+        },
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/16"
+          }
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "version": 1,
+      "title": "br03 pr1",
+      "state": "OPEN",
+      "open": true,
+      "closed": false,
+      "createdDate": 1577366794704,
+      "updatedDate": 1577618344086,
+      "fromRef": {
+        "id": "refs/heads/br03",
+        "displayId": "br03",
+        "latestCommit": "973581ec55da2e9eb6fadc0f921a902340e22eaa",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "9f7659963c576bc71f5b226c1c0e64b342eb516e",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "mergeResult": {
+          "outcome": "CLEAN",
+          "current": true
+        },
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/14"
+          }
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "version": 0,
+      "title": "Br04 pr",
+      "description": "* text3.txt edited online with Bitbucket\r\n* text4.txt edited online with Bitbucket",
+      "state": "OPEN",
+      "open": true,
+      "closed": false,
+      "createdDate": 1577366808415,
+      "updatedDate": 1577366808415,
+      "fromRef": {
+        "id": "refs/heads/br04",
+        "displayId": "br04",
+        "latestCommit": "b53722d90335db1f36d34b28de54c2d6560171ae",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "9f7659963c576bc71f5b226c1c0e64b342eb516e",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "mergeResult": {
+          "outcome": "CLEAN",
+          "current": true
+        },
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/15"
+          }
+        ]
+      }
+    },
+    {
+      "id": 13,
+      "version": 0,
+      "title": "Br01",
+      "description": "br1 pr",
+      "state": "OPEN",
+      "open": true,
+      "closed": false,
+      "createdDate": 1577366761671,
+      "updatedDate": 1577366761671,
+      "fromRef": {
+        "id": "refs/heads/br01",
+        "displayId": "br01",
+        "latestCommit": "5fe9bee670e415725b992f7af2f76989e313f206",
+        "repository": {
+          "slug": "rep1",
+          "id": 12,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "origin": {
+            "slug": "rep1",
+            "id": 1,
+            "name": "rep1",
+            "scmId": "git",
+            "state": "AVAILABLE",
+            "statusMessage": "Available",
+            "forkable": true,
+            "project": {
+              "key": "PROJ",
+              "id": 1,
+              "name": "proj1",
+              "public": false,
+              "type": "NORMAL",
+              "links": {
+                "self": [
+                  {
+                    "href": "http://localhost:8990/projects/PROJ"
+                  }
+                ]
+              }
+            },
+            "public": false,
+            "links": {
+              "clone": [
+                {
+                  "href": "http://localhost:8990/scm/proj/rep1.git",
+                  "name": "http"
+                }
+              ],
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+                }
+              ]
+            }
+          },
+          "project": {
+            "key": "~ADMIN",
+            "id": 22,
+            "name": "admin",
+            "type": "PERSONAL",
+            "owner": {
+              "name": "admin",
+              "emailAddress": "admin@mf.com",
+              "id": 1,
+              "displayName": "admin",
+              "active": true,
+              "slug": "admin",
+              "type": "NORMAL",
+              "links": {
+                "self": [
+                  {
+                    "href": "http://localhost:8990/users/admin"
+                  }
+                ]
+              }
+            },
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/users/admin"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/~admin/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "9f7659963c576bc71f5b226c1c0e64b342eb516e",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "mergeResult": {
+          "outcome": "CONFLICTED",
+          "current": true
+        },
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/13"
+          }
+        ]
+      }
+    },
+    {
+      "id": 9,
+      "version": 2,
+      "title": "br3 pr",
+      "state": "MERGED",
+      "open": false,
+      "closed": true,
+      "createdDate": 1575279231204,
+      "updatedDate": 1575279402251,
+      "closedDate": 1575279402251,
+      "fromRef": {
+        "id": "refs/heads/br03",
+        "displayId": "br03",
+        "latestCommit": "973581ec55da2e9eb6fadc0f921a902340e22eaa",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/br04",
+        "displayId": "br04",
+        "latestCommit": "8a5c4b3cd1053786fb0bd79d47021d2d8eb6ff61",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/9"
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "version": 0,
+      "title": "br02 pr",
+      "state": "OPEN",
+      "open": true,
+      "closed": false,
+      "createdDate": 1575279265849,
+      "updatedDate": 1575279265849,
+      "fromRef": {
+        "id": "refs/heads/br2",
+        "displayId": "br2",
+        "latestCommit": "2e6d05acc50508b77444d794e278bfde0b7f7aa2",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "9f7659963c576bc71f5b226c1c0e64b342eb516e",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "mergeResult": {
+          "outcome": "CLEAN",
+          "current": true
+        },
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/10"
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "version": 3,
+      "title": "br04 pr",
+      "description": "desc1",
+      "state": "MERGED",
+      "open": false,
+      "closed": true,
+      "createdDate": 1575278172932,
+      "updatedDate": 1575278588030,
+      "closedDate": 1575278588030,
+      "fromRef": {
+        "id": "refs/heads/br04",
+        "displayId": "br04",
+        "latestCommit": "93f3584e8430d8a2cf1c2e1b6ad513fc28d2b28d",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "3bc8db6ca357b181dd21f44d19c1aef5d365f740",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "resolvedTaskCount": 0,
+        "commentCount": 1,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/5"
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "version": 2,
+      "title": "br1 pr",
+      "description": "desc1",
+      "state": "MERGED",
+      "open": false,
+      "closed": true,
+      "createdDate": 1575278088199,
+      "updatedDate": 1575278384481,
+      "closedDate": 1575278588712,
+      "fromRef": {
+        "id": "refs/heads/br1",
+        "displayId": "br1",
+        "latestCommit": "93f3584e8430d8a2cf1c2e1b6ad513fc28d2b28d",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "3bc8db6ca357b181dd21f44d19c1aef5d365f740",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/2"
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "version": 1,
+      "title": "br03 pr",
+      "state": "MERGED",
+      "open": false,
+      "closed": true,
+      "createdDate": 1575278145961,
+      "updatedDate": 1575278145961,
+      "closedDate": 1575278588712,
+      "fromRef": {
+        "id": "refs/heads/br03",
+        "displayId": "br03",
+        "latestCommit": "93f3584e8430d8a2cf1c2e1b6ad513fc28d2b28d",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "3bc8db6ca357b181dd21f44d19c1aef5d365f740",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/4"
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "version": 1,
+      "title": "br02 pr",
+      "state": "MERGED",
+      "open": false,
+      "closed": true,
+      "createdDate": 1575278119442,
+      "updatedDate": 1575278119442,
+      "closedDate": 1575278588712,
+      "fromRef": {
+        "id": "refs/heads/br02",
+        "displayId": "br02",
+        "latestCommit": "93f3584e8430d8a2cf1c2e1b6ad513fc28d2b28d",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "toRef": {
+        "id": "refs/heads/master",
+        "displayId": "master",
+        "latestCommit": "3bc8db6ca357b181dd21f44d19c1aef5d365f740",
+        "repository": {
+          "slug": "rep1",
+          "id": 1,
+          "name": "rep1",
+          "scmId": "git",
+          "state": "AVAILABLE",
+          "statusMessage": "Available",
+          "forkable": true,
+          "project": {
+            "key": "PROJ",
+            "id": 1,
+            "name": "proj1",
+            "public": false,
+            "type": "NORMAL",
+            "links": {
+              "self": [
+                {
+                  "href": "http://localhost:8990/projects/PROJ"
+                }
+              ]
+            }
+          },
+          "public": false,
+          "links": {
+            "clone": [
+              {
+                "href": "http://localhost:8990/scm/proj/rep1.git",
+                "name": "http"
+              }
+            ],
+            "self": [
+              {
+                "href": "http://localhost:8990/projects/PROJ/repos/rep1/browse"
+              }
+            ]
+          }
+        }
+      },
+      "locked": false,
+      "author": {
+        "user": {
+          "name": "admin",
+          "emailAddress": "admin@mf.com",
+          "id": 1,
+          "displayName": "admin",
+          "active": true,
+          "slug": "admin",
+          "type": "NORMAL",
+          "links": {
+            "self": [
+              {
+                "href": "http://localhost:8990/users/admin"
+              }
+            ]
+          }
+        },
+        "role": "AUTHOR",
+        "approved": false,
+        "status": "UNAPPROVED"
+      },
+      "reviewers": [
+      ],
+      "participants": [
+      ],
+      "properties": {
+        "resolvedTaskCount": 0,
+        "openTaskCount": 0
+      },
+      "links": {
+        "self": [
+          {
+            "href": "http://localhost:8990/projects/PROJ/repos/rep1/pull-requests/3"
+          }
+        ]
+      }
+    }
+  ],
+  "start": 0
+}

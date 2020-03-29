@@ -18,6 +18,9 @@ package com.hp.octane.integrations.services.rest;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 
+import java.net.URL;
+import java.util.function.Function;
+
 public interface RestService {
 	String SHARED_SPACE_INTERNAL_API_PATH_PART = "/internal-api/shared_spaces/";
 	String SHARED_SPACE_API_PATH_PART = "/api/shared_spaces/";
@@ -41,6 +44,12 @@ public interface RestService {
 	}
 
 	/**
+	 * Get proxy supplier
+	 * @return proxy supplier
+	 */
+	Function<URL, CIProxyConfiguration> getProxySupplier();
+
+	/**
 	 * Retrieves default REST client: the one initialized with plugin's provided configuration and listening on it changes
 	 *
 	 * @return pre-configured RestClient
@@ -52,10 +61,9 @@ public interface RestService {
 	/**
 	 * Creates new REST client pre-configured with the specified configuration
 	 *
-	 * @param proxyConfiguration optional proxy configuration, if relevant
 	 * @return pre-configured RestClient
 	 */
-	OctaneRestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration);
+	OctaneRestClient createOctaneRestClient();
 
 	/**
 	 * Notifies the service that configuration has been changed

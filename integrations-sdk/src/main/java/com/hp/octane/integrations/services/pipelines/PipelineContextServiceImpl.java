@@ -63,7 +63,7 @@ final class PipelineContextServiceImpl implements PipelineContextService {
 		}
 		this.configurer = configurer;
 		this.restService = restService;
-		logger.info("initialized SUCCESSFULLY");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
 	private String getSharedspaceAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
@@ -104,7 +104,7 @@ final class PipelineContextServiceImpl implements PipelineContextService {
 	@Override
 	public PipelineContext updatePipeline(String serverIdentity, String jobName, PipelineContext pipelineContext) throws IOException {
 		String url = getConfigurationUrl(serverIdentity, jobName);
-		validateRelease(pipelineContext);
+		validateReleaseAndMilestone(pipelineContext);
 
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
@@ -135,7 +135,7 @@ final class PipelineContextServiceImpl implements PipelineContextService {
 
 		String url = getConfigurationUrl(serverIdentity, jobName);
 
-		validateRelease(pipelineContext);
+		validateReleaseAndMilestone(pipelineContext);
 
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
@@ -159,9 +159,13 @@ final class PipelineContextServiceImpl implements PipelineContextService {
 		return result;
 	}
 
-	private void validateRelease(PipelineContext pipelineContext) {
+	private void validateReleaseAndMilestone(PipelineContext pipelineContext) {
 		if (pipelineContext.getReleaseId() != null && pipelineContext.getReleaseId() == -1L) {
 			pipelineContext.setReleaseId(null);
+		}
+
+		if(pipelineContext.getMilestoneId() != null && pipelineContext.getMilestoneId() == -1L){
+			pipelineContext.setMilestoneId(null);
 		}
 	}
 

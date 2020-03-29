@@ -44,4 +44,8 @@ public interface OctaneRequest extends DTOBase {
 	OctaneRequest setBody(InputStream bodyAsStream);
 
 	OctaneRequest setBody(String body);
+
+	int getTimeoutSec();
+
+	OctaneRequest setTimeoutSec(int timeoutSec);
 }

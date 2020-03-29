@@ -65,6 +65,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 10000;
+	private int REGULAR_CYCLE_PAUSE = 250;
+
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
@@ -104,9 +106,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			vulnerabilitiesQueue = queueingService.initMemoQueue();
 		}
 
-		logger.info("starting background worker...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		vulnerabilitiesProcessingExecutor.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
@@ -116,13 +118,17 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	                                                  long startRunTime,
 	                                                  long queueItemTimeout,
 													  Map<String,String> additionalProperties) {
+		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
 		vulnerabilitiesQueueItem.setStartTime(startRunTime);
 		vulnerabilitiesQueueItem.setTimeout(queueItemTimeout <= 0 ? DEFAULT_TIME_OUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000);
 		vulnerabilitiesQueueItem.setToolType(toolType);
 		vulnerabilitiesQueueItem.setAdditionalProperties(additionalProperties);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
-		logger.info(vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was added to vulnerabilities queue");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was added to vulnerabilities queue");
 
 		synchronized (NO_VULNERABILITIES_RESULTS_MONITOR) {
 			NO_VULNERABILITIES_RESULTS_MONITOR.notify();
@@ -137,7 +143,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			NO_VULNERABILITIES_RESULTS_MONITOR.notify();
 			workerExited.get(3000, TimeUnit.SECONDS);
 		} catch (Exception e) {
-			logger.warn("interrupted while waiting for the worker SHUT DOWN");
+			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "interrupted while waiting for the worker SHUT DOWN");
 		}
 	}
 
@@ -146,6 +152,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!vulnerabilitiesProcessingExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 			if (vulnerabilitiesQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_VULNERABILITIES_RESULTS_MONITOR);
 				continue;
@@ -161,17 +168,17 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 					reEnqueueItem(queueItem);
 				}
 			} catch (TemporaryException tque) {
-				logger.error("temporary error on " + queueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + queueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				if (queueItem != null) {
 					reEnqueueItem(queueItem);
 				}
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error("permanent error on " + queueItem + ", passing over", pqie);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + queueItem + ", passing over", pqie);
 				vulnerabilitiesQueueItemCleanUp(queueItem);
 				vulnerabilitiesQueue.remove();
 			} catch (Throwable t) {
-				logger.error("unexpected error on build log item '" + queueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + queueItem + "', passing over", t);
 				vulnerabilitiesQueueItemCleanUp(queueItem);
 				vulnerabilitiesQueue.remove();
 			}
@@ -188,7 +195,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 				Date relevant =  vulnerabilitiesPreflightRequest(queueItem.getJobId(), queueItem.getBuildId());
 				if (relevant != null) {
-					logger.debug(queueItem.toString() + " , Relevant:" + relevant);
+					logger.debug(configurer.octaneConfiguration.geLocationForLog() + queueItem.toString() + " , Relevant:" + relevant);
 					//  set queue item value relevancy to true and continue
 					queueItem.setRelevant(true);
 					//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
@@ -208,11 +215,11 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 			}
 			else if (queueItem.getToolType().equals(ToolType.SSC)){
-				logger.debug("SSC flow as expected");
+				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "SSC flow as expected");
 				vulnerabilitiesStream = sscService.getVulnerabilitiesScanResultStream(queueItem);
 			}
 			else if (queueItem.getToolType().equals(ToolType.FOD)){
-				logger.debug("Handling FOD queueItem");
+				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "Handling FOD queueItem");
 				vulnerabilitiesStream = fodService.getVulnerabilitiesScanResultStream(queueItem);
 			}
 
@@ -241,9 +248,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				.setBody(vulnerabilities);
 
 		OctaneResponse response = octaneRestClient.execute(request);
-		logger.info("vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-			logger.info("vulnerabilities push SUCCEED for " + jobId + " #" + buildId);
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities push SUCCEED for " + jobId + " #" + buildId);
 		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("vulnerabilities push FAILED, service unavailable");
 		} else {
@@ -257,10 +264,10 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 		if (response.getStatus() == HttpStatus.SC_OK) {
 			if (response.getBody()==null || "".equals(response.getBody())) {
-				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
 				return null;
 			}else{
-				logger.info("vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
 				boolean forTest = false;
 				//backward compatibility with Octane
 				if("true".equals(response.getBody()) || forTest){
@@ -283,7 +290,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (timePass < vulnerabilitiesQueueItem.getTimeout()) {
 			vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 		} else {
-			logger.info(vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was removed from queue after timeout in queue is over");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was removed from queue after timeout in queue is over");
 		}
 		CIPluginSDKUtils.doWait(SKIP_QUEUE_ITEM_INTERVAL);
 	}

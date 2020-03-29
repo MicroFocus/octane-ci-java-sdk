@@ -16,16 +16,16 @@
 package com.hp.octane.integrations.services.tests;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.exceptions.TemporaryException;
-import com.hp.octane.integrations.services.rest.OctaneRestClient;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.commons.codec.Charsets;
@@ -40,7 +40,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -62,6 +63,7 @@ final class TestsServiceImpl implements TestsService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
+	private int REGULAR_CYCLE_PAUSE = 250;
 
 	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
@@ -83,23 +85,25 @@ final class TestsServiceImpl implements TestsService {
 		this.configurer = configurer;
 		this.restService = restService;
 
-		logger.info("starting background worker...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		testsPushExecutor.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
-	public boolean isTestsResultRelevant(String jobId) {
+	public boolean isTestsResultRelevant(String jobId, String rootJobId) {
 		String serverCiId = configurer.octaneConfiguration.getInstanceId();
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
 		}
 
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-						"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
-						"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight");
+		String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+				"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
+				"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight";
+		if (rootJobId != null && !rootJobId.isEmpty()) {
+			url += "?rootJobId=" + CIPluginSDKUtils.urlEncodePathParam(rootJobId);
+		}
+		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
 
 		try {
 			OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
@@ -111,7 +115,7 @@ final class TestsServiceImpl implements TestsService {
 				CIPluginSDKUtils.doWait(30000);
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			} else {
-				throw new PermanentException("preflight request failed with status " + response.getStatus());
+				throw new PermanentException("preflight request failed with status " + response.getStatus() + ". JobId: '" + jobId + "'. Request URL : " + url);
 			}
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
@@ -171,15 +175,18 @@ final class TestsServiceImpl implements TestsService {
 	}
 
 	@Override
-	public void enqueuePushTestsResult(String jobId, String buildId) {
+	public void enqueuePushTestsResult(String jobId, String buildId, String rootJobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
 		if (buildId == null || buildId.isEmpty()) {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
+		if (this.configurer.octaneConfiguration.isSuspended()) {
+			return;
+		}
 
-		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId));
+		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId, rootJobId));
 		synchronized (NO_TEST_RESULTS_MONITOR) {
 			NO_TEST_RESULTS_MONITOR.notify();
 		}
@@ -193,6 +200,7 @@ final class TestsServiceImpl implements TestsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!testsPushExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
 			if (testResultsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_TEST_RESULTS_MONITOR);
 				continue;
@@ -204,13 +212,13 @@ final class TestsServiceImpl implements TestsService {
 				doPreflightAndPushTestResult(testsResultQueueItem);
 				testResultsQueue.remove();
 			} catch (TemporaryException tque) {
-				logger.error("temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error("permanent error on " + testsResultQueueItem + ", passing over", pqie);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + testsResultQueueItem + ", passing over", pqie);
 				testResultsQueue.remove();
 			} catch (Throwable t) {
-				logger.error("unexpected error on build log item '" + testsResultQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + testsResultQueueItem + "', passing over", t);
 				testResultsQueue.remove();
 			}
 		}
@@ -221,16 +229,15 @@ final class TestsServiceImpl implements TestsService {
 		//  validate test result - first to be done as it is the cheapest to 'fail fast'
 		InputStream testsResultA = configurer.pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
 		if (testsResultA == null) {
-			logger.warn("test result of " + queueItem + " resolved to be NULL, skipping");
+			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "test result of " + queueItem + " resolved to be NULL, skipping");
 			return;
 		}
 		try {
 			//  preflight
 			InputStream testsResultB;
-			boolean isRelevant;
-			isRelevant = isTestsResultRelevant(queueItem.jobId);
+			boolean isRelevant = isTestsResultRelevant(queueItem.jobId, queueItem.rootJobId);
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "test results preflight " + queueItem + " = " + isRelevant);
 			if (!isRelevant) {
-				logger.debug("no interest found in Octane for test results of " + queueItem + ", skipping");
 				return;
 			}
 
@@ -238,7 +245,9 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResultA);
 				testResultXML = testResultXML.replaceAll("<build.*?>",
-						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>");
+						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>")
+				.replace("</build>","");//remove closing build element if exist
+
 				testsResultB = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
 			} catch (Exception e) {
 				throw new PermanentException("failed to update ci server instance ID in the test results XML");
@@ -248,7 +257,7 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				OctaneResponse response = pushTestsResult(testsResultB, queueItem.jobId, queueItem.buildId);
 				if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-					logger.info("successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());//addconfiguration
 				} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 					throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
 				} else {
@@ -260,14 +269,14 @@ final class TestsServiceImpl implements TestsService {
 				try {
 					testsResultB.close();
 				} catch (IOException e) {
-					logger.warn("failed to close test result file after push test for " + queueItem);
+					logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to close test result file after push test for " + queueItem);
 				}
 			}
 		} finally {
 			try {
 				testsResultA.close();
 			} catch (IOException e) {
-				logger.warn("failed to close test result file after push test for " + queueItem);
+				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to close test result file after push test for " + queueItem);
 			}
 		}
 	}
@@ -279,19 +288,21 @@ final class TestsServiceImpl implements TestsService {
 	private static final class TestsResultQueueItem implements QueueingService.QueueItem {
 		private String jobId;
 		private String buildId;
+		private String rootJobId;
 
 		//  [YG] this constructor MUST be present
 		private TestsResultQueueItem() {
 		}
 
-		private TestsResultQueueItem(String jobId, String buildId) {
+		private TestsResultQueueItem(String jobId, String buildId, String rootJobId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+			this.rootJobId = rootJobId;
 		}
 
 		@Override
 		public String toString() {
-			return "'" + jobId + " #" + buildId + "'";
+			return "'" + jobId + " #" + buildId + (rootJobId != null ? "', root job : " + rootJobId : "");
 		}
 	}
 

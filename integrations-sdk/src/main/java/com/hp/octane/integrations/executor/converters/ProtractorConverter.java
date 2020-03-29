@@ -16,21 +16,16 @@
 
 package com.hp.octane.integrations.executor.converters;
 
-import com.hp.octane.integrations.executor.TestToRunData;
-import com.hp.octane.integrations.executor.TestsToRunConverter;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
 /*
  * Converter to protractor format : protractor conf.js --grep="spec1 case1|spec2 case2"
  */
-public class ProtractorConverter extends TestsToRunConverter {
+public class ProtractorConverter extends CustomConverter {
 
-    @Override
-    public String convert(List<TestToRunData> data, String executionDirectory) {
-        return data.stream()
-                .map( n -> n.getClassName() +" " + n.getTestName())
-                .collect( Collectors.joining( "|" ) );
+    public static final String FORMAT = "{\"testPattern\":\"$class $testName\",\"testDelimiter\":\"|\"}";
+
+    public ProtractorConverter() {
+        super(FORMAT);
     }
+
+
 }

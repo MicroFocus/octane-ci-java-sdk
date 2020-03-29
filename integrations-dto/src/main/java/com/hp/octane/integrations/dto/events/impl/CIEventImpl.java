@@ -18,10 +18,7 @@ package com.hp.octane.integrations.dto.events.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
-import com.hp.octane.integrations.dto.events.CIEvent;
-import com.hp.octane.integrations.dto.events.CIEventType;
-import com.hp.octane.integrations.dto.events.MultiBranchType;
-import com.hp.octane.integrations.dto.events.PhaseType;
+import com.hp.octane.integrations.dto.events.*;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
@@ -52,7 +49,9 @@ class CIEventImpl implements CIEvent {
 	private PhaseType phaseType;
 	private String commonHashId;
 	private String branchName;
-
+	private String previousProject;
+	private String previousProjectDisplayName;
+	private ItemType itemType;
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -120,6 +119,39 @@ class CIEventImpl implements CIEvent {
 	public CIEvent setMultiBranchType(MultiBranchType multiBranchType) {
 		this.multiBranchType = multiBranchType;
 		return this;
+	}
+
+	@Override
+	public ItemType getItemType() {
+		return itemType;
+	}
+
+	@Override
+	public CIEvent setItemType(ItemType itemType) {
+		this.itemType = itemType;
+		return this;
+	}
+
+	@Override
+	public CIEvent setPreviousProject(String previousProject) {
+		this.previousProject = previousProject;
+		return this;
+	}
+
+	@Override
+	public CIEvent setPreviousProjectDisplayName(String previousProjectDisplayName) {
+		this.previousProjectDisplayName = previousProjectDisplayName;
+		return this;
+	}
+
+	@Override
+	public String getPreviousProject() {
+		return previousProject;
+	}
+
+	@Override
+	public String getPreviousProjectDisplayName() {
+		return previousProjectDisplayName;
 	}
 
 	public String getNumber() {

@@ -99,4 +99,16 @@ public interface CIEvent extends DTOBase {
 	String getBranchName();
 
 	CIEvent setBranchName(String commonHashId);
+
+	CIEvent setItemType(ItemType itemType);
+
+	ItemType getItemType();
+
+	CIEvent setPreviousProject(String previousProject);
+
+	CIEvent setPreviousProjectDisplayName(String previousProjectDisplayName);
+
+	String getPreviousProject();
+
+	String getPreviousProjectDisplayName();
 }

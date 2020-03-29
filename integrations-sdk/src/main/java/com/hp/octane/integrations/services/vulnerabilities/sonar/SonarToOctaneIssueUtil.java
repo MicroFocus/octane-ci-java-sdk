@@ -127,14 +127,14 @@ public class SonarToOctaneIssueUtil {
 
     private static void setPrimaryLocationFull(SonarIssue issue, OctaneIssue octaneIssue) {
         Integer offset = issue.getProject().length();
-        String path = issue.getComponent().substring(offset);
+        String path = issue.getComponent().substring(offset + 1);
         octaneIssue.setPrimaryLocationFull(path);
     }
 
     private static void setExternalLink(SonarIssue issue, OctaneIssue octaneIssue, String sonarUrl) {
         String encodedProject = CIPluginSDKUtils.urlEncodeQueryParam(issue.getProject());
         String encodedKey = CIPluginSDKUtils.urlEncodeQueryParam(issue.getKey());
-        if (!sonarUrl.substring(sonarUrl.length() -1).equals("/")){
+        if (!sonarUrl.substring(sonarUrl.length() - 1).equals("/")){
             sonarUrl += "/";
         }
         octaneIssue.setExternalLink(String.format("%sproject/issues?issues=%s&id=%s&open=%s", sonarUrl, encodedKey, encodedProject, encodedKey));

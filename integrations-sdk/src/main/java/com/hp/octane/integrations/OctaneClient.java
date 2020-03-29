@@ -15,8 +15,10 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
+import com.hp.octane.integrations.services.pullrequests.PullRequestService;
 import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
@@ -37,10 +39,14 @@ public interface OctaneClient {
 
 	/**
 	 * provides OctaneClient instance ID
-	 * <p>
-	 * return instance ID
+	 * @return instance ID
 	 */
 	String getInstanceId();
+
+	/**
+	 * check whether SDK version is supported by Octane
+	 */
+	void refreshSdkSupported();
 
 	/**
 	 * provides Configuration service
@@ -69,6 +75,13 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	EntitiesService getEntitiesService();
+
+	/**
+	 * provides Bridge service (task polling)
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	BridgeService getBridgeService();
 
 	/**
 	 * provides PipelineContextImpl service
@@ -111,6 +124,14 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	TestsService getTestsService();
+
+
+	/**
+	 * provides PullRequest service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	PullRequestService getPullRequestService();
 
 	/**
 	 * provides Vulnerabilities service

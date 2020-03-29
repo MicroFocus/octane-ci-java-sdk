@@ -41,8 +41,12 @@ public interface TestsService extends ClosableService {
 
 	/**
 	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
+	 * @param jobId jobId
+	 * @param rootJobId any identification of Root Job that triggered this job. Null - if there is no such job.
+	 * @return true if isTestsResultRelevant
+	 * @throws IOException IOException
 	 */
-	boolean isTestsResultRelevant(String jobId) throws IOException;
+	boolean isTestsResultRelevant(String jobId, String rootJobId) throws IOException;
 
 	/**
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
@@ -50,15 +54,20 @@ public interface TestsService extends ClosableService {
 	 * @param testsResult ready-to-be-pushed TestsResult object, having a collection of tests results with the relevant build context
 	 * @param jobId       ID of the job that produced the results
 	 * @param buildId     ID of the build that produced the results
+	 * @return OctaneResponse
+	 * @throws IOException IOException
 	 */
 	OctaneResponse pushTestsResult(TestsResult testsResult, String jobId, String buildId) throws IOException;
 
 	/**
+	 *
 	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
 	 *
 	 * @param testsResult ready-to-be-pushed TestsResult resource given as an InputStream
 	 * @param jobId       ID of the job that produced the results
 	 * @param buildId     ID of the build that produced the results
+	 * @return OctaneResponse
+	 * @throws IOException IOException
 	 */
 	OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException;
 
@@ -69,6 +78,7 @@ public interface TestsService extends ClosableService {
 	 *
 	 * @param jobId   any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+	 * @param rootJobId any identification of Root Job that triggered this job. Null - if there is no such job.
 	 */
-	void enqueuePushTestsResult(String jobId, String buildId);
+	void enqueuePushTestsResult(String jobId, String buildId, String rootJobId);
 }

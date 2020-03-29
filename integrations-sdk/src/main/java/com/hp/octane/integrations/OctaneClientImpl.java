@@ -15,6 +15,8 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
@@ -23,6 +25,7 @@ import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logging.LoggingService;
 import com.hp.octane.integrations.services.logs.LogsService;
 import com.hp.octane.integrations.services.pipelines.PipelineContextService;
+import com.hp.octane.integrations.services.pullrequests.PullRequestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.sonar.SonarService;
@@ -33,6 +36,7 @@ import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolSe
 import com.hp.octane.integrations.services.vulnerabilities.fod.FODService;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -65,8 +69,8 @@ final class OctaneClientImpl implements OctaneClient {
 	private final TasksProcessor tasksProcessor;
 	private final TestsService testsService;
 	private final VulnerabilitiesService vulnerabilitiesService;
+	private final PullRequestService pullRequestService;
 	private final Thread shutdownHook;
-
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -79,12 +83,24 @@ final class OctaneClientImpl implements OctaneClient {
 		loggingService = LoggingService.newInstance(configurer);
 		queueingService = QueueingService.newInstance(configurer);
 
-		//  independent services init
+		//sdk validation services
 		restService = RestService.newInstance(configurer);
+		configurationService = ConfigurationService.newInstance(configurer, restService);
+
+		if (configurer.octaneConfiguration.isSuspended()) {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		}
+
+		refreshSdkSupported();
+		if (configurer.octaneConfiguration.isDisabled()) {
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "Client is DISABLED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+		}
+
+		//  independent services init
 		tasksProcessor = TasksProcessor.newInstance(configurer);
 
 		//  dependent services init
-		configurationService = ConfigurationService.newInstance(configurer, restService);
+
 		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		pipelineContextService = PipelineContextService.newInstance(configurer, restService);
@@ -100,6 +116,7 @@ final class OctaneClientImpl implements OctaneClient {
 		VulnerabilitiesToolService[] vulnerabilitiesToolServices = {sscService, sonarVulnerabilitiesService, fodService};
 		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer,restService);
 
+		pullRequestService = PullRequestService.newInstance(configurer, restService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);
@@ -107,18 +124,30 @@ final class OctaneClientImpl implements OctaneClient {
 		//  register shutdown hook to allow graceful shutdown of services/resources
 		shutdownHook = new Thread(() -> {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
-			logger.info("closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
 			try {
 				this.close();
 			} catch (Throwable throwable) {
-				logger.error("failed during shutdown of OctaneClient " + instanceId, throwable);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed during shutdown of OctaneClient " + instanceId, throwable);
 			} finally {
-				logger.info("...OctaneClient " + instanceId + " CLOSED");
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "...OctaneClient " + instanceId + " CLOSED");
 			}
 		});
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
-		logger.info("OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId() + ", shared space ID: " + configurer.octaneConfiguration.getSharedSpace());
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId());
+	}
+
+	@Override
+	public void refreshSdkSupported() {
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(true);
+		if (octaneConnectivityStatus != null) {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
+			configurer.octaneConfiguration.setSdkSupported(CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus));
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sdkSupported = " + configurer.octaneConfiguration.isSdkSupported());
+		} else {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "refreshSdkSupported : octaneConnectivityStatus==null");
+		}
 	}
 
 	@Override
@@ -144,6 +173,11 @@ final class OctaneClientImpl implements OctaneClient {
 	@Override
 	public EntitiesService getEntitiesService() {
 		return entitiesService;
+	}
+
+	@Override
+	public BridgeService getBridgeService() {
+		return bridgeService;
 	}
 
 	@Override
@@ -175,6 +209,12 @@ final class OctaneClientImpl implements OctaneClient {
 	public TestsService getTestsService() {
 		return testsService;
 	}
+
+	@Override
+	public PullRequestService getPullRequestService() {
+		return pullRequestService;
+	}
+
 
 	@Override
 	public VulnerabilitiesService getVulnerabilitiesService() {
@@ -217,9 +257,9 @@ final class OctaneClientImpl implements OctaneClient {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
 			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
 			if (deleteFolder(instanceOrientedStorage)) {
-				logger.info("cleaned dedicated storage for OctaneClient instance " + instanceId);
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "cleaned dedicated storage");
 			} else {
-				logger.error("failed to clean dedicated storage for OctaneClient instance " + instanceId);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to clean dedicated storage");
 			}
 		}
 	}
@@ -228,10 +268,12 @@ final class OctaneClientImpl implements OctaneClient {
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
 			File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
-			if (instanceOrientedStorage.mkdirs()) {
-				logger.info("verified dedicated storage for OctaneClient instance " + instanceId);
+			if (instanceOrientedStorage.exists()) {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "dedicated storage is exist for instance " + configurer.octaneConfiguration.getInstanceId());
+			} else if (instanceOrientedStorage.mkdirs()) {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "dedicated storage is created for instance " + configurer.octaneConfiguration.getInstanceId());
 			} else {
-				logger.error("failed to create dedicated storage for OctaneClient instance " + instanceId);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to create dedicated storage : " + instanceOrientedStorage.getAbsolutePath());
 			}
 		}
 	}

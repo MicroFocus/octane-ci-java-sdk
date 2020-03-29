@@ -65,7 +65,7 @@ public class IssuesFileSerializer {
             return null;
         }
         InputStream result = null;
-        String vulnerabilitiesScanFilePath = runRootDir + File.separator + "securityScan.json";
+        String vulnerabilitiesScanFilePath = runRootDir + File.separator + SSCHandler.SCAN_RESULT_FILE;
         File vulnerabilitiesScanFile = new File(vulnerabilitiesScanFilePath);
         if (!vulnerabilitiesScanFile.exists()) {
             return null;

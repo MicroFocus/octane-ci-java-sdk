@@ -15,19 +15,16 @@
 
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * OctaneSDK serves initialization phase when hosting plugin configures OctaneClient/s to work with
@@ -62,8 +59,10 @@ public final class OctaneSDK {
 	 * @param octaneConfiguration valid Octane configuration object
 	 * @param pluginServicesClass Class that implements the CIPluginServices interface. This object is a composite
 	 *                            API of all the endpoints to be implemented by a hosting CI Plugin for ALM Octane use cases
+	 * @return OctaneClient
 	 */
 	synchronized public static OctaneClient addClient(OctaneConfiguration octaneConfiguration, Class<? extends CIPluginServices> pluginServicesClass) {
+		long startTime = System.currentTimeMillis();
 		if (octaneConfiguration == null) {
 			throw new IllegalArgumentException("octane configuration MUST NOT be null");
 		}
@@ -73,6 +72,8 @@ public final class OctaneSDK {
 
 		//  validate instance ID uniqueness
 		String instanceId = octaneConfiguration.getInstanceId();
+		logger.info(octaneConfiguration.geLocationForLog() + "Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
+
 		if (!isInstanceIdUnique(instanceId)) {
 			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
 		}
@@ -101,8 +102,8 @@ public final class OctaneSDK {
 		OctaneClient newInstance = new OctaneClientImpl(new SDKServicesConfigurer(octaneConfiguration, pluginServices));
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
-		logger.info("Octane Client instance initialized SUCCESSFULLY");
-
+		long initTime = ((System.currentTimeMillis() - startTime) / 1000);
+		logger.info(octaneConfiguration.geLocationForLog() + "OctaneClient is initialized SUCCESSFULLY in " + initTime + " sec.");
 		return newInstance;
 	}
 
@@ -113,6 +114,14 @@ public final class OctaneSDK {
 	 */
 	public static List<OctaneClient> getClients() {
 		return new ArrayList<>(clients.values());
+	}
+
+	/**
+	 * Returns true if sdk defined clients
+	 * @return return true is hasClients
+	 */
+	public static boolean hasClients() {
+		return !clients.isEmpty();
 	}
 
 	/**
@@ -175,17 +184,19 @@ public final class OctaneSDK {
 		return removedClient;
 	}
 
-	/**
+	/***
+	 *
 	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
+	 * In case of failed configuration , IllegalArgumentException is thrown
 	 *
 	 * @param octaneServerUrl base Octane server URL
 	 * @param sharedSpaceId   shared space ID
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
-	 * @return Octane server response; response MAY be inspected for the specific error in order to create meaningful message to the user
+	 * @param pluginServicesClass class that extends CIPluginServices
 	 * @throws IOException in case of basic connectivity failure
 	 */
-	public static OctaneResponse testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
+	public static void testOctaneConfiguration(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
 		//  instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
 		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
 		configuration.setSecret(secret);
@@ -199,10 +210,14 @@ public final class OctaneSDK {
 		} catch (InstantiationException | IllegalAccessException e) {
 			throw new IllegalArgumentException("failed to instantiate plugin services '" + pluginServicesClass.getSimpleName() + "'", e);
 		}
+
 		SDKServicesConfigurer configurer = new SDKServicesConfigurer(configuration, pluginServices);
 		RestService restService = RestService.newInstance(configurer);
 		ConfigurationService configurationService = ConfigurationService.newInstance(configurer, restService);
-		return configurationService.validateConfiguration(configuration);
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.validateConfigurationAndGetConnectivityStatus(configuration, false);
+		if (!CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus)) {
+			throw new OctaneConnectivityException(0, OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_KEY, OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+		}
 	}
 
 	static boolean isInstanceIdUnique(String instanceId) {

@@ -17,14 +17,14 @@ package com.hp.octane.integrations.services.logs;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.queueing.QueueingService;
+import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -54,6 +54,7 @@ final class LogsServiceImpl implements LogsService {
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
+	private int REGULAR_CYCLE_PAUSE = 250;
 
 	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -75,21 +76,24 @@ final class LogsServiceImpl implements LogsService {
 		this.configurer = configurer;
 		this.restService = restService;
 
-		logger.info("starting background worker...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		logsPushExecutor.execute(this::worker);
-		logger.info("initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + buildLogsQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
-	public void enqueuePushBuildLog(String jobId, String buildId) {
+	public void enqueuePushBuildLog(String jobId, String buildId, String rootJobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
 		if (buildId == null || buildId.isEmpty()) {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
+		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
 
-		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId));
+		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId, rootJobId));
 		synchronized (NO_LOGS_MONITOR) {
 			NO_LOGS_MONITOR.notify();
 		}
@@ -103,6 +107,8 @@ final class LogsServiceImpl implements LogsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!logsPushExecutor.isShutdown()) {
+			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+
 			if (buildLogsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_LOGS_MONITOR);
 				continue;
@@ -112,16 +118,16 @@ final class LogsServiceImpl implements LogsService {
 			try {
 				buildLogQueueItem = buildLogsQueue.peek();
 				pushBuildLog(configurer.octaneConfiguration.getInstanceId(), buildLogQueueItem);
-				logger.debug("successfully processed " + buildLogQueueItem);
+				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully processed " + buildLogQueueItem);
 				buildLogsQueue.remove();
 			} catch (TemporaryException tque) {
-				logger.error("temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error("permanent error on " + buildLogQueueItem + ", passing over", pqie);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + buildLogQueueItem + ", passing over", pqie);
 				buildLogsQueue.remove();
 			} catch (Throwable t) {
-				logger.error("unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + buildLogQueueItem + "', passing over", t);
 				buildLogsQueue.remove();
 			}
 		}
@@ -131,15 +137,16 @@ final class LogsServiceImpl implements LogsService {
 		OctaneConfiguration octaneConfiguration = configurer.octaneConfiguration;
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
+		String encodedRootJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.rootJobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(queueItem.buildId);
 
 		//  preflight
-		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId);
+		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId, encodedRootJobId);
 		if (workspaceIDs.length == 0) {
-			logger.info("log of " + queueItem + " found no interested workspace in Octane, passing over");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + ", no interested workspace is found");
 			return;
 		} else {
-			logger.info("log of " + queueItem + " found " + workspaceIDs.length + " interested workspace/s in Octane, dispatching the log");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + ", found " + workspaceIDs.length + " interested workspace/s");
 		}
 
 		//  submit log for each workspace returned by the 'preflight' API
@@ -156,49 +163,54 @@ final class LogsServiceImpl implements LogsService {
 			try {
 				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
-					logger.info("no log for " + queueItem + " found, abandoning");
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "no log for " + queueItem + " found, abandoning");
 					break;
 				}
 				request.setBody(log);
 				response = restService.obtainOctaneRestClient().execute(request);
 				if (response.getStatus() == HttpStatus.SC_OK) {
-					logger.info("successfully pushed log of " + queueItem + " to WS " + workspaceId);
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId);
 				} else {
-					logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
 				}
 			} catch (IOException ioe) {
-				logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
-					logger.info("no log for " + queueItem + " found, abandoning");
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "no log for " + queueItem + " found, abandoning");
 					break;
 				}
 				request.setBody(log);
 				try {
 					response = restService.obtainOctaneRestClient().execute(request);
 					if (response.getStatus() == HttpStatus.SC_OK) {
-						logger.info("successfully pushed log of " + queueItem + " to WS " + workspaceId);
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId);
 					} else {
-						logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
+						logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
 					}
 				} catch (IOException ioem) {
-					logger.error("failed to push log of " + queueItem + " to WS " + workspaceId + " for the second time, abandoning", ioem);
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + " for the second time, abandoning", ioem);
 				}
 			}
 		}
 	}
 
-	private String[] preflightRequest(OctaneConfiguration octaneConfiguration, String serverId, String jobId) {
+	private String[] preflightRequest(OctaneConfiguration octaneConfiguration, String serverId, String jobId, String rootJobId) {
 		String[] result = new String[0];
 		OctaneResponse response;
 
 		//  get result
+		String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
+				"servers/" + serverId + "/jobs/" + jobId + "/workspaceId";
+		if (rootJobId != null && !rootJobId.isEmpty()) {
+			url += "?rootJobId=" + rootJobId;
+		}
 		try {
 			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.GET)
-					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
-							"servers/" + serverId + "/jobs/" + jobId + "/workspaceId");
+					.setUrl(url);
+
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
@@ -206,7 +218,7 @@ final class LogsServiceImpl implements LogsService {
 				CIPluginSDKUtils.doWait(30000);
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
-				throw new PermanentException("preflight request failed with status " + response.getStatus());
+				throw new PermanentException("preflight request failed with status " + response.getStatus()  + ". JobId: '" + jobId + "'. Request URL : " + url);
 			}
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
@@ -230,19 +242,21 @@ final class LogsServiceImpl implements LogsService {
 	private static final class BuildLogQueueItem implements QueueingService.QueueItem {
 		private String jobId;
 		private String buildId;
+		private String rootJobId;
 
 		//  [YG] this constructor MUST be present, don't remove
 		private BuildLogQueueItem() {
 		}
 
-		private BuildLogQueueItem(String jobId, String buildId) {
+		private BuildLogQueueItem(String jobId, String buildId, String rootJobId) {
 			this.jobId = jobId;
 			this.buildId = buildId;
+			this.rootJobId = rootJobId;
 		}
 
 		@Override
 		public String toString() {
-			return "'" + jobId + " #" + buildId + "'";
+			return "'" + jobId + " #" + buildId + "', root job : " + rootJobId;
 		}
 	}
 

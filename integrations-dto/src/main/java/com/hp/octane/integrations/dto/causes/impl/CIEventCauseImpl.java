@@ -77,4 +77,14 @@ class CIEventCauseImpl implements CIEventCause {
 		this.causes = causes;
 		return this;
 	}
+
+	@Override
+	public String generateKey() {
+		return String.format("type=%s;user=%s;project=%s;buildCiId=%s;causesNumber=%s",
+				type,
+				user,
+				project,
+				buildCiId,
+				causes == null ? 0 : causes.size());
+	}
 }

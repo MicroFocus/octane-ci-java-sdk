@@ -93,7 +93,7 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_A"
 					),
 					PluginServicesBasicFunctionalityTest.class);
-			Assert.assertTrue(clientA.getConfigurationService().isCurrentConfigurationValid());
+			clientA.getConfigurationService().getOctaneConnectivityStatus(false);
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
 			simulatePushLogsCycleAllClients();
@@ -160,7 +160,7 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_B"
 					),
 					PluginServicesBasicFunctionalityTest.class);
-			Assert.assertTrue(clientA.getConfigurationService().isCurrentConfigurationValid());
+			clientA.getConfigurationService().getOctaneConnectivityStatus(false);
 			eventsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdA).clear();
 			logsCollectors.get(spIdA).clear();
@@ -479,11 +479,11 @@ public class OctaneSDKBasicFunctionalityTest {
 	}
 
 	private void simulatePushTestResultsCycleAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1"));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1", null));
 	}
 
 	private void simulatePushLogsCycleAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1"));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1", null));
 	}
 
 	private void simulatePushCoverageAllClients() {

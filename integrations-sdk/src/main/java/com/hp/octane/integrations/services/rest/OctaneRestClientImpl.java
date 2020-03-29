@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -35,6 +36,10 @@ import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.GzipCompressingEntity;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -45,14 +50,7 @@ import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCookieStore;
-import org.apache.http.client.methods.*;
-import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.client.utils.HttpClientUtils;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.client.SystemDefaultCredentialsProvider;
+import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.message.BasicHeader;
@@ -60,24 +58,17 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.http.Header;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
+import javax.net.ssl.*;
 import java.io.IOException;
-
-import java.net.URL;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -110,7 +101,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		this.configurer = configurer;
 
-		SSLContext sslContext = SSLContexts.createSystemDefault();
+		SSLContext sslContext;
+		try {
+			sslContext = SSLContext.getInstance("SSL");
+			sslContext.init(null, getTrustManagers(), new java.security.SecureRandom());
+		} catch (Exception e) {
+			logger.warn("Failed to create sslContext with customTrustManagers. Using systemDefault sslContext. Error : " + e.getMessage());
+			sslContext = SSLContexts.createSystemDefault();
+		}
+
 		HostnameVerifier hostnameVerifier = new CustomHostnameVerifier();
 		SSLConnectionSocketFactory sslSocketFactory = new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
 		Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
@@ -139,19 +138,19 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 	@Override
 	public void shutdown() {
-		logger.info("starting REST client shutdown sequence...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting REST client shutdown sequence...");
 		abortAllRequests();
-		logger.info("closing the client...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "closing the client...");
 		HttpClientUtils.closeQuietly(httpClient);
-		logger.info("REST client shutdown done");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "REST client shutdown done");
 	}
 
 	void notifyConfigurationChange() {
-		abortAllRequests();
+		LWSSO_TOKEN = null;
 	}
 
 	private void abortAllRequests() {
-		logger.info("aborting " + ongoingRequests.size() + " request/s...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "aborting " + ongoingRequests.size() + " request/s...");
 		synchronized (REQUESTS_LIST_LOCK) {
 			LWSSO_TOKEN = null;
 			for (HttpUriRequest request : ongoingRequests) {
@@ -168,10 +167,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
-			logger.info("initial login");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "initial login");
 			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
-				logger.error("failed on initial login, status " + loginResponse.getStatus());
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed on initial login, status " + loginResponse.getStatus());
 				return loginResponse;
 			}
 		}
@@ -180,7 +179,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
 			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext(request.getUrl(), false);
+				context = createHttpContext(request.getUrl(), request.getTimeoutSec(), false);
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests.add(uriRequest);
 				}
@@ -190,15 +189,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-					logger.info("doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
 					EntityUtils.consumeQuietly(httpResponse.getEntity());
 					HttpClientUtils.closeQuietly(httpResponse);
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
-						logger.error("failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
 						return loginResponse;
 					} else {
-						logger.info("re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
 					refreshSecurityToken(context, false);
@@ -208,7 +207,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 			result = createNGAResponse(httpResponse);
 		} catch (IOException ioe) {
-			logger.debug("failed executing " + request, ioe);
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed executing " + request, ioe);
 			throw ioe;
 		} finally {
 			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
@@ -266,7 +265,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		return request;
 	}
 
-	private HttpClientContext createHttpContext(String requestUrl, boolean isLoginRequest) {
+	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest) {
 		HttpClientContext context = HttpClientContext.create();
 		context.setCookieStore(new BasicCookieStore());
 
@@ -280,10 +279,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				.setCookieSpec(CookieSpecs.STANDARD);
 
 		//  configure proxy if needed
-		URL parsedUrl = CIPluginSDKUtils.parseURL(requestUrl);
-		CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(parsedUrl);
+		CIProxyConfiguration proxyConfiguration = CIPluginSDKUtils.getProxyConfiguration(requestUrl, configurer);
 		if (proxyConfiguration != null) {
-			logger.debug("proxy will be used with the following setup: " + proxyConfiguration);
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
 
 			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
@@ -294,6 +292,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				context.setCredentialsProvider(credentialsProvider);
 			}
 			requestConfigBuilder.setProxy(proxyHost);
+		}
+
+		// set timeout if needed
+		if (requestTimeoutSec > 0) {
+			int timeoutMs = requestTimeoutSec * 1000;
+			requestConfigBuilder
+					.setConnectTimeout(timeoutMs)
+					.setConnectionRequestTimeout(timeoutMs)
+					.setSocketTimeout(timeoutMs);
 		}
 
 		context.setRequestConfig(requestConfigBuilder.build());
@@ -312,9 +319,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		}
 
 		if (securityTokenRefreshed) {
-			logger.info("successfully refreshed security token");
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully refreshed security token");
 		} else if (mustPresent) {
-			logger.error("security token expected but NOT found (domain attribute configured wrongly?)");
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "security token expected but NOT found (domain attribute configured wrongly?)");
 		}
 	}
 
@@ -340,17 +347,17 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), true);
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), 0, true);
 			response = httpClient.execute(loginRequest, context);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				refreshSecurityToken(context, true);
 			} else {
-				logger.warn("failed to login to " + config + "; response status: " + response.getStatusLine().getStatusCode());
+				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(response);
 		} catch (IOException ioe) {
-			logger.debug("failed to login to " + config, ioe);
+			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed to login", ioe);
 			throw ioe;
 		} finally {
 			if (response != null) {
@@ -377,6 +384,43 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		}
 	}
 
+	private TrustManager[] getTrustManagers() throws NoSuchAlgorithmException, KeyStoreException {
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+		tmf.init((KeyStore) null);
+		TrustManager[] tmArr = tmf.getTrustManagers();
+		if (tmArr.length == 1 && tmArr[0] instanceof X509TrustManager) {
+			X509TrustManager defaultTm = (X509TrustManager) tmArr[0];
+			TrustManager myTM = new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return defaultTm.getAcceptedIssuers();
+				}
+
+				public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+					defaultTm.checkClientTrusted(certs, authType);
+				}
+
+				public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+					try {
+						defaultTm.checkServerTrusted(certs, authType);
+					} catch (CertificateException e) {
+						for (X509Certificate cer : certs) {
+							if (cer.getIssuerDN().getName() != null && cer.getIssuerDN().getName().toLowerCase().contains("microfocus")) {
+								return;
+							}
+						}
+						throw e;
+					}
+				}
+			};
+
+			return new TrustManager[]{myTM};
+		} else {
+			logger.info("Using only default trust managers. Received " + tmArr.length + " trust managers."
+					+ ((tmArr.length > 0) ? "First one is :" + tmArr[0].getClass().getCanonicalName() : ""));
+			return tmArr;
+		}
+	}
+
 	public static final class CustomHostnameVerifier implements HostnameVerifier {
 		private final HostnameVerifier defaultVerifier = new DefaultHostnameVerifier();
 
@@ -391,7 +435,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 						if (namePair != null &&
 								namePair.size() > 1 &&
 								namePair.get(1) instanceof String &&
-								"*.saas.hp.com".equals(namePair.get(1))) {
+								"*.saas.microfocus.com".equals(namePair.get(1))) {
 							result = true;
 							break;
 						}
