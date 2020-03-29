@@ -18,6 +18,7 @@ package com.hp.octane.integrations.utils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -240,5 +241,16 @@ public class CIPluginSDKUtils {
 
 		return 0;
 	}
+
+	public static boolean isSdkSupported(OctaneConnectivityStatus octaneConnectivityStatus) {
+		try {
+			return (octaneConnectivityStatus.getSupportedSdkVersion() == null ||
+					compareStringVersion(OctaneSDK.SDK_VERSION, octaneConnectivityStatus.getSupportedSdkVersion()) >= 0);
+		} catch (Exception e) {
+			logger.error("unable to compare plugin SDK version: " + OctaneSDK.SDK_VERSION + " with Supported SDK version: " + octaneConnectivityStatus.getSupportedSdkVersion() + ". " + e.getMessage());
+			return true;
+		}
+	}
+
 }
 

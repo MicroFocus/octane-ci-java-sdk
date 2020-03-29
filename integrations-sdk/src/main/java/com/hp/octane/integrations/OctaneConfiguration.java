@@ -3,13 +3,9 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.hp.octane.integrations.utils.SdkStringUtils;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.List;
 
 public class OctaneConfiguration {
     private final String instanceId;
@@ -19,6 +15,9 @@ public class OctaneConfiguration {
     private String secret;
     volatile boolean attached;
     private String farm;
+    private boolean suspended;
+    private boolean sdkSupported = true;
+    private String impersonatedUser;
 
     public OctaneConfiguration(String instanceId, String url, String sharedSpace) {
         if (instanceId == null || instanceId.isEmpty()) {
@@ -121,10 +120,39 @@ public class OctaneConfiguration {
                 "instanceId: " + instanceId +
                 ", url: " + url +
                 ", sharedSpace: " + sharedSpace +
+                ", suspended: " + suspended +
                 ", client: " + client + " }";
     }
 
     public String geLocationForLog() {
         return "[" + getUrl() + "?p=" + getSharedSpace() + "] ";
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public boolean isDisabled() {
+        return suspended || !sdkSupported;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
+    }
+
+    public String getImpersonatedUser() {
+        return impersonatedUser;
+    }
+
+    public void setImpersonatedUser(String impersonatedUser) {
+        this.impersonatedUser = impersonatedUser;
+    }
+
+    public boolean isSdkSupported() {
+        return sdkSupported;
+    }
+
+    protected void setSdkSupported(boolean sdkSupported) {
+        this.sdkSupported = sdkSupported;
     }
 }

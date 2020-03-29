@@ -17,8 +17,8 @@ package com.hp.octane.integrations.services.configuration;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 
 import java.io.IOException;
 
@@ -44,17 +44,17 @@ public interface ConfigurationService {
 	OctaneConfiguration getCurrentConfiguration();
 
 	/**
-	 * Check if current configuration is valid
-	 * @return isCurrentConfigurationValid
+	 * Get connectivity status : octane version, supported SDK version
+	 * @param forceFetch fetch from octane and not use cache value
+	 * @return octane connectivity status
 	 */
-	boolean isCurrentConfigurationValid();
+	OctaneConnectivityStatus getOctaneConnectivityStatus(boolean forceFetch);
 
 	/**
 	 * Tests connectivity to the Octane server with the supplied configuration
 	 *
 	 * @param configuration Octane configuration
 	 * @return OctaneResponse
-	 * @throws IOException in case of connection failure
 	 */
-	OctaneResponse validateConfiguration(OctaneConfiguration configuration) throws IOException;
+	OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus(OctaneConfiguration configuration, boolean useNewRestClient) throws IOException;
 }

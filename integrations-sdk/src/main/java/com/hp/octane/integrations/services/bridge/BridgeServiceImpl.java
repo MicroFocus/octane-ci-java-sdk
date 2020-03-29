@@ -108,26 +108,35 @@ final class BridgeServiceImpl implements BridgeService {
 	//  infallible everlasting background worker
 	private void worker() {
 		try {
-			String tasksJSON;
+			String tasksJSON = null;
 			CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
 			CIPluginInfo pluginInfo = configurer.pluginServices.getPluginInfo();
 			String client = configurer.octaneConfiguration.getClient();
 
 			// add log about activity once a hour
 			if (hoursDifference(System.currentTimeMillis(), lastLogTime) >= 1) {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "task polling is active");
+				String status = "active";
+				if (configurer.octaneConfiguration.isSuspended()) {
+					status = "suspended";
+				} else if (!configurer.octaneConfiguration.isSdkSupported()) {
+					status = "deactivated (sdk is not supported)";
+				}
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "task polling is " + status);
 				lastLogTime = System.currentTimeMillis();
 			}
 
-			//  get tasks, wait if needed and return with task or timeout or error
-			tasksJSON = getAbridgedTasks(
-					configurer.octaneConfiguration.getInstanceId(),
-					serverInfo.getType() == null ? CIServerTypes.UNKNOWN.value() : serverInfo.getType(),
-					serverInfo.getUrl() == null ? "" : serverInfo.getUrl(),
-					pluginInfo == null || pluginInfo.getVersion() == null ? "" : pluginInfo.getVersion(),
-					client == null ? "" : client,
-					serverInfo.getImpersonatedUser() == null ? "" : serverInfo.getImpersonatedUser());
-
+			if (configurer.octaneConfiguration.isDisabled()) {
+				CIPluginSDKUtils.doWait(20 * 1000);//wait 20 sec
+			} else {
+				//  get tasks, wait if needed and return with task or timeout or error
+				tasksJSON = getAbridgedTasks(
+						configurer.octaneConfiguration.getInstanceId(),
+						serverInfo.getType() == null ? CIServerTypes.UNKNOWN.value() : serverInfo.getType(),
+						serverInfo.getUrl() == null ? "" : serverInfo.getUrl(),
+						pluginInfo == null || pluginInfo.getVersion() == null ? "" : pluginInfo.getVersion(),
+						client == null ? "" : client,
+						configurer.octaneConfiguration.getImpersonatedUser() == null ? "" : configurer.octaneConfiguration.getImpersonatedUser());
+			}
 			//  regardless of response - reconnect again to keep the light on
 			if (!connectivityExecutors.isShutdown()) {
 				connectivityExecutors.execute(this::worker);
@@ -190,7 +199,7 @@ final class BridgeServiceImpl implements BridgeService {
 				responseBody = octaneResponse.getBody();
 
 				if (isServiceTemporaryUnavailable(responseBody)) {
-					breathingOnException("Saas service is temporary unavailable.", 180, null);
+					breathingOnException("Saas service is temporary unavailable.", 60, null);
 					responseBody = null;
 				}
 
@@ -200,15 +209,15 @@ final class BridgeServiceImpl implements BridgeService {
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
 					logger.debug(configurer.octaneConfiguration.geLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
-					breathingOnException("Octane service is unavailable.", 60, null);
+					breathingOnException("Octane service is unavailable.", 30, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
-					breathingOnException("Connection to Octane failed: authentication error.", 60, null);
+					breathingOnException("Connection to Octane failed: authentication error.", 30, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
-					breathingOnException("Connection to Octane failed: authorization error.", 60, null);
+					breathingOnException("Connection to Octane failed: authorization error.", 30, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-					breathingOnException("Connection to Octane failed: 404, validate proxy settings, maybe missing 'No Proxy Host' setting?", 60, null);
+					breathingOnException("Connection to Octane failed: 404, validate proxy settings, maybe missing 'No Proxy Host' setting?", 30, null);
 				} else if (octaneResponse.getStatus() == HttpStatus.SC_TEMPORARY_REDIRECT) {
-					breathingOnException("Task polling request is redirected. Possibly Octane service is unavailable now.", 60, null);
+					breathingOnException("Task polling request is redirected. Possibly Octane service is unavailable now.", 30, null);
 				} else {
 					String output = octaneResponse.getBody() == null ? "" : octaneResponse.getBody().substring(0, Math.min(octaneResponse.getBody().length(), 2000));//don't print more that 2000 characters
 					breathingOnException("Unexpected response from Octane; status: " + octaneResponse.getStatus() + ", content: " + output + ".", 20, null);
@@ -218,7 +227,7 @@ final class BridgeServiceImpl implements BridgeService {
 			long timeout = (System.currentTimeMillis() - stateStartTime) / 1000;
 			breathingOnException("Timeout occurred after " + timeout + " sec", 5, ie);
 		} catch (SocketException | UnknownHostException e) {
-			breathingOnException("Failed to retrieve abridged tasks. ALM Octane Server is not accessible", 60, e);
+			breathingOnException("Failed to retrieve abridged tasks. ALM Octane Server is not accessible", 30, e);
 		} catch (IOException ioe) {
 			breathingOnException("Failed to retrieve abridged tasks", 30, ioe);
 		} catch (Throwable t) {
@@ -258,7 +267,9 @@ final class BridgeServiceImpl implements BridgeService {
 	}
 
 	private boolean isServiceTemporaryUnavailable(String tasksJSON) {
-		return tasksJSON != null && tasksJSON.contains("Service Temporary Unavailable");
+		return tasksJSON != null && tasksJSON.contains("Service Temporar");
+		//Service Temporary Unavailable
+		//Service Temporarily Unavailable"
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {

@@ -61,10 +61,9 @@ public interface RestService {
 	/**
 	 * Creates new REST client pre-configured with the specified configuration
 	 *
-	 * @param proxyConfiguration optional proxy configuration, if relevant
 	 * @return pre-configured RestClient
 	 */
-	OctaneRestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration);
+	OctaneRestClient createOctaneRestClient();
 
 	/**
 	 * Notifies the service that configuration has been changed

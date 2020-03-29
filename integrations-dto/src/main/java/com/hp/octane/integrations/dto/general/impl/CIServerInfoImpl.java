@@ -26,12 +26,10 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIServerInfoImpl implements CIServerInfo {
 	private String type;
-	private boolean suspended;
 	private String version;
 	private String url;
 	private String instanceId;
 	private Long instanceIdFrom;
-	private String impersonatedUser;
 	private Long sendingTime = System.currentTimeMillis();
 
 	public CIServerInfoImpl() {
@@ -108,28 +106,6 @@ class CIServerInfoImpl implements CIServerInfo {
 	@Override
 	public CIServerInfo setSendingTime(Long sendingTime) {
 		this.sendingTime = sendingTime;
-		return this;
-	}
-
-	@Override
-	public String getImpersonatedUser() {
-		return impersonatedUser;
-	}
-
-	@Override
-	public CIServerInfo setImpersonatedUser(String impersonatedUser) {
-		this.impersonatedUser = impersonatedUser;
-		return this;
-	}
-
-	@Override
-	public boolean isSuspended() {
-		return this.suspended;
-	}
-
-	@Override
-	public CIServerInfo setSuspended(boolean suspended) {
-		this.suspended = suspended;
 		return this;
 	}
 

@@ -182,6 +182,9 @@ final class TestsServiceImpl implements TestsService {
 		if (buildId == null || buildId.isEmpty()) {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
+		if (this.configurer.octaneConfiguration.isSuspended()) {
+			return;
+		}
 
 		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId, rootJobId));
 		synchronized (NO_TEST_RESULTS_MONITOR) {

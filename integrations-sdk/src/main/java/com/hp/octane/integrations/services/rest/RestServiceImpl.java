@@ -86,7 +86,7 @@ final class RestServiceImpl implements RestService {
 	}
 
 	@Override
-	public OctaneRestClient createOctaneRestClient(CIProxyConfiguration proxyConfiguration) {
+	public OctaneRestClient createOctaneRestClient() {
 		return new OctaneRestClientImpl(configurer);
 	}
 

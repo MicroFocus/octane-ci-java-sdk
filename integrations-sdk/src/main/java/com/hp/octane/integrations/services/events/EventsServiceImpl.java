@@ -83,6 +83,9 @@ final class EventsServiceImpl implements EventsService {
 			throw new IllegalArgumentException("event MUST NOT be null");
 		}
 
+		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
 		events.add(event);
 		int eventsSize = events.size();
 		if (eventsSize > MAX_EVENTS_TO_KEEP) {

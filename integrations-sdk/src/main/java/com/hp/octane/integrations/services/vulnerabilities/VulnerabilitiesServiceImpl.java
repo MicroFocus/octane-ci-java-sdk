@@ -118,6 +118,10 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	                                                  long startRunTime,
 	                                                  long queueItemTimeout,
 													  Map<String,String> additionalProperties) {
+		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
 		vulnerabilitiesQueueItem.setStartTime(startRunTime);
 		vulnerabilitiesQueueItem.setTimeout(queueItemTimeout <= 0 ? DEFAULT_TIME_OUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000);

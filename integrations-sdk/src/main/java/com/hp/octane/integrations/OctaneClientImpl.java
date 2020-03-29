@@ -15,6 +15,8 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
+import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
@@ -34,6 +36,7 @@ import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolSe
 import com.hp.octane.integrations.services.vulnerabilities.fod.FODService;
 import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -69,7 +72,6 @@ final class OctaneClientImpl implements OctaneClient {
 	private final PullRequestService pullRequestService;
 	private final Thread shutdownHook;
 
-
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
 			throw new IllegalArgumentException("services configurer MUST NOT be null nor empty");
@@ -81,12 +83,24 @@ final class OctaneClientImpl implements OctaneClient {
 		loggingService = LoggingService.newInstance(configurer);
 		queueingService = QueueingService.newInstance(configurer);
 
-		//  independent services init
+		//sdk validation services
 		restService = RestService.newInstance(configurer);
+		configurationService = ConfigurationService.newInstance(configurer, restService);
+
+		if (configurer.octaneConfiguration.isSuspended()) {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+		}
+
+		refreshSdkSupported();
+		if (configurer.octaneConfiguration.isDisabled()) {
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "Client is DISABLED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+		}
+
+		//  independent services init
 		tasksProcessor = TasksProcessor.newInstance(configurer);
 
 		//  dependent services init
-		configurationService = ConfigurationService.newInstance(configurer, restService);
+
 		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		pipelineContextService = PipelineContextService.newInstance(configurer, restService);
@@ -122,6 +136,18 @@ final class OctaneClientImpl implements OctaneClient {
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId());
+	}
+
+	@Override
+	public void refreshSdkSupported() {
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(true);
+		if (octaneConnectivityStatus != null) {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
+			configurer.octaneConfiguration.setSdkSupported(CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus));
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sdkSupported = " + configurer.octaneConfiguration.isSdkSupported());
+		} else {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "refreshSdkSupported : octaneConnectivityStatus==null");
+		}
 	}
 
 	@Override

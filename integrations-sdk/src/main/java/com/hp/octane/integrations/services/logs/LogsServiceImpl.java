@@ -89,6 +89,9 @@ final class LogsServiceImpl implements LogsService {
 		if (buildId == null || buildId.isEmpty()) {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
+		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
 
 		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId, rootJobId));
 		synchronized (NO_LOGS_MONITOR) {
