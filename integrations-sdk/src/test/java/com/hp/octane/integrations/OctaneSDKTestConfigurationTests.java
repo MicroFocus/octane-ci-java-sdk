@@ -33,10 +33,7 @@ public class OctaneSDKTestConfigurationTests {
 			}
 		});
 
-		OctaneResponse response = OctaneSDK.testOctaneConfiguration(OctaneSPEndpointSimulator.getSimulatorUrl(), spId, "client", "secret", PluginServices.class);
-		Assert.assertNotNull(response);
-		Assert.assertEquals(HttpStatus.SC_OK, response.getStatus());
-
+		OctaneSDK.testOctaneConfiguration(OctaneSPEndpointSimulator.getSimulatorUrl(), spId, "client", "secret", PluginServices.class);
 		OctaneSPEndpointSimulator.removeInstance(spId);
 	}
 

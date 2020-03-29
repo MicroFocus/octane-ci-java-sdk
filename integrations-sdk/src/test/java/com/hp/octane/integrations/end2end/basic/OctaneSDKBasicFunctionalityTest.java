@@ -93,7 +93,7 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_A"
 					),
 					PluginServicesBasicFunctionalityTest.class);
-			Assert.assertTrue(clientA.getConfigurationService().isCurrentConfigurationValid());
+			clientA.getConfigurationService().getOctaneConnectivityStatus(false);
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
 			simulatePushLogsCycleAllClients();
@@ -160,7 +160,7 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_B"
 					),
 					PluginServicesBasicFunctionalityTest.class);
-			Assert.assertTrue(clientA.getConfigurationService().isCurrentConfigurationValid());
+			clientA.getConfigurationService().getOctaneConnectivityStatus(false);
 			eventsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdA).clear();
 			logsCollectors.get(spIdA).clear();
