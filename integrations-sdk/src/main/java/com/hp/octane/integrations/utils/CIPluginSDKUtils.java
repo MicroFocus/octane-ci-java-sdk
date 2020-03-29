@@ -105,6 +105,7 @@ public class CIPluginSDKUtils {
 		boolean nonProxyHost = false;
 		List<Pattern> nonProxyHostPatterns = new LinkedList<>();
 		if (nonProxyHostsStr != null && !nonProxyHostsStr.isEmpty()) {
+			nonProxyHostsStr = nonProxyHostsStr.replaceAll("^(\'|\")|(\'|\")$", "");
 			String[] nonProxyHosts = nonProxyHostsStr.split("[ \t\n,|]+");
 			for (String nph : nonProxyHosts) {
 				if (!nph.isEmpty()) {

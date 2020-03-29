@@ -273,6 +273,24 @@ public class CIPluginSDKUtilsTest {
 		Assert.assertTrue(result);
 	}
 
+	@Test
+	public void testIsNotProxyHostWildcardMultiWithQuotations() {
+		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "'localhost|some*'");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some.host", "\"*me.ho*|localhost\"");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "\"first|s*e|last\"");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "\"first|s*e||||last\"");
+		Assert.assertTrue(result);
+
+		result = CIPluginSDKUtils.isNonProxyHost("some", "'first  |s*e|||    |la,st'");
+		Assert.assertTrue(result);
+	}
+
 	private Object objectFromForeignThread() {
 		Object[] resultHolder = new Object[1];
 		new Thread(() -> resultHolder[0] = new Object()).start();
