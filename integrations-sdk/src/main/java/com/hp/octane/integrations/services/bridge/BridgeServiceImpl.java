@@ -267,7 +267,9 @@ final class BridgeServiceImpl implements BridgeService {
 	}
 
 	private boolean isServiceTemporaryUnavailable(String tasksJSON) {
-		return tasksJSON != null && tasksJSON.contains("Service Temporary Unavailable");
+		return tasksJSON != null && tasksJSON.contains("Service Temporar");
+		//Service Temporary Unavailable
+		//Service Temporarily Unavailable"
 	}
 
 	private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
