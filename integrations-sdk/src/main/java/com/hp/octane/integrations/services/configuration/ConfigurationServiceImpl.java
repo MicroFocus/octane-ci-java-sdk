@@ -69,7 +69,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 
 		try {
 			if (forceFetch || octaneConnectivityStatus == null || isLastUpdateDone24HBefore()) {
-				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatusInternal(configurer.octaneConfiguration, restService.obtainOctaneRestClient());
+				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatusInternal(configurer.octaneConfiguration);
 				octaneConnectivityStatusDate = System.currentTimeMillis();
 			}
 		} catch (Exception e) {
@@ -86,11 +86,11 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
-	public OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus(OctaneConfiguration configuration, boolean useNewRestClient) throws IOException {
-		return validateConfigurationAndGetConnectivityStatusInternal(configuration, restService.createOctaneRestClient());
+	public OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus() throws IOException {
+		return validateConfigurationAndGetConnectivityStatusInternal(configurer.octaneConfiguration);
 	}
 
-	private OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatusInternal(OctaneConfiguration configuration, OctaneRestClient octaneRestClient) throws IOException {
+	private OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatusInternal(OctaneConfiguration configuration) throws IOException {
 		if (configuration == null) {
 			throw new IllegalArgumentException("configuration MUST not be null");
 		}
@@ -99,7 +99,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 				.setMethod(HttpMethod.GET)
 				.setUrl(configuration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + CONNECTIVITY_STATUS_URL);
 
-		OctaneResponse response = octaneRestClient.execute(request, configuration);
+		OctaneResponse response = restService.obtainOctaneRestClient().execute(request, configuration);
 		if (response.getStatus() == 401) {
 			throw new OctaneConnectivityException(response.getStatus(), OctaneConnectivityException.AUTHENTICATION_FAILURE_KEY, OctaneConnectivityException.AUTHENTICATION_FAILURE_MESSAGE);
 		} else if (response.getStatus() == 403) {

@@ -86,11 +86,6 @@ final class RestServiceImpl implements RestService {
 	}
 
 	@Override
-	public OctaneRestClient createOctaneRestClient() {
-		return new OctaneRestClientImpl(configurer);
-	}
-
-	@Override
 	public void notifyConfigurationChange() {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "connectivity configuration change has been notified; publishing to the RestClients");
 		if (defaultClient != null) {

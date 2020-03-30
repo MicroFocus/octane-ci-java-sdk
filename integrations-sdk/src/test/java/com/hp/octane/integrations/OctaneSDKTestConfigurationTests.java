@@ -1,15 +1,12 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
-import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
-import org.junit.Assert;
 import org.junit.Test;
 
 import javax.servlet.http.HttpServletResponse;
@@ -32,8 +29,17 @@ public class OctaneSDKTestConfigurationTests {
 				logger.error("failed to process status request in MOCK server", ioe);
 			}
 		});
+		simulator.installApiHandler(HttpMethod.GET, "^.*/workspaces?.*$", request -> {
+			request.getResponse().setStatus(HttpServletResponse.SC_OK);
+			try {
+				request.getResponse().getWriter().write("{\"total_count\":1,\"data\":[{\"type\":\"workspace\",\"id\":\"1002\"}],\"exceeds_total_count\":false}");
+				request.getResponse().flushBuffer();
+			} catch (IOException ioe) {
+				logger.error("failed to process status request in MOCK server", ioe);
+			}
+		});
 
-		OctaneSDK.testOctaneConfiguration(OctaneSPEndpointSimulator.getSimulatorUrl(), spId, "client", "secret", PluginServices.class);
+		OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(OctaneSPEndpointSimulator.getSimulatorUrl(), spId, "client", "secret", PluginServices.class);
 		OctaneSPEndpointSimulator.removeInstance(spId);
 	}
 

@@ -52,10 +52,8 @@ public interface ConfigurationService {
 
 	/**
 	 * Tests connectivity to the Octane server with the supplied configuration
-	 * @param configuration Octane configuration
-	 * @param useNewRestClient whether to use new rest client,
 	 * @return OctaneConnectivityStatus
 	 * @throws IOException throw if configuration is not valid
 	 */
-	OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus(OctaneConfiguration configuration, boolean useNewRestClient) throws IOException;
+	OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus() throws IOException;
 }

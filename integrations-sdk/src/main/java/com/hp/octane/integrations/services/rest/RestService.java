@@ -59,13 +59,6 @@ public interface RestService {
 	SSCRestClient obtainSSCRestClient();
 
 	/**
-	 * Creates new REST client pre-configured with the specified configuration
-	 *
-	 * @return pre-configured RestClient
-	 */
-	OctaneRestClient createOctaneRestClient();
-
-	/**
 	 * Notifies the service that configuration has been changed
 	 */
 	void notifyConfigurationChange();
