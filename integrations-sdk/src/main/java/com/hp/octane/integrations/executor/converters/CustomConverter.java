@@ -34,7 +34,9 @@ public class CustomConverter extends TestsToRunConverter {
     private static final String $_PACKAGE = "$package";
     private static final String $_CLASS = "$class";
     private static final String $_TEST_NAME = "$testName";
-    private static final Set<String> allowedTargets = new HashSet(Arrays.asList($_PACKAGE, $_CLASS, $_TEST_NAME));
+    private static final String $_EXTERNAL_TEST_ID = "$externalTestId";
+    private static final String $_EXTERNAL_TEST_ID_PARAM_KEY = "externalTestId";
+    private static final Set<String> allowedTargets = new HashSet(Arrays.asList($_PACKAGE, $_CLASS, $_TEST_NAME, $_EXTERNAL_TEST_ID));
     private CustomFormat customFormat;
 
     public CustomConverter() {
@@ -86,7 +88,7 @@ public class CustomConverter extends TestsToRunConverter {
                 }
             });
 
-            ReplaceAction action = null;
+            ReplaceAction action;
             String errorMessage = null;
             switch (replacementType) {
                 case "notLatinAndDigitToOctal":
@@ -156,12 +158,14 @@ public class CustomConverter extends TestsToRunConverter {
     public String convert(List<TestToRunData> data, String executionDirectory) {
         String collect = data.stream()
                 .map(n -> convertToFormat(n))
+                .filter(str -> str != null && !str.isEmpty())
                 .distinct()
                 .collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
         return collect;
     }
 
     protected String convertToFormat(TestToRunData testToRunData) {
+        boolean patternContainsExternalTestId = customFormat.getTestPattern().contains($_EXTERNAL_TEST_ID);
         boolean patternContainsPackage = customFormat.getTestPattern().contains($_PACKAGE);
         boolean patternContainsClass = customFormat.getTestPattern().contains($_CLASS);
         int packageIndex = customFormat.getTestPattern().indexOf($_PACKAGE);
@@ -197,6 +201,15 @@ public class CustomConverter extends TestsToRunConverter {
                 //      for example: the format is XXXX$class.||.$testName
                 //      the result: XXXX$testName
                 res = splice(res, res.indexOf($_CLASS), res.indexOf($_TEST_NAME));
+            }
+        }
+
+        if (patternContainsExternalTestId) {
+            String externalTestId = testToRunData.getParameter($_EXTERNAL_TEST_ID_PARAM_KEY);
+            if (SdkStringUtils.isNotEmpty(externalTestId)) {
+                res = res.replace($_EXTERNAL_TEST_ID, handleReplacements($_EXTERNAL_TEST_ID, externalTestId));
+            } else {
+                res = res.replace($_EXTERNAL_TEST_ID, "");
             }
         }
 
