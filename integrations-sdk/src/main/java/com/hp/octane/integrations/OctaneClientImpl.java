@@ -92,7 +92,7 @@ final class OctaneClientImpl implements OctaneClient {
 		}
 
 		refreshSdkSupported();
-		if (configurer.octaneConfiguration.isDisabled()) {
+		if (!configurer.octaneConfiguration.isSdkSupported()) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "Client is DISABLED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
 		}
 
