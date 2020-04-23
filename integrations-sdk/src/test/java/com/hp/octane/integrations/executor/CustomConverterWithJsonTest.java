@@ -63,7 +63,7 @@ public class CustomConverterWithJsonTest {
             CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("Illegal target 'class' in replacement 'replaceString'. Allowed values : [$class, $testName, $externalTestId, $package]", e.getMessage());
+            Assert.assertEquals("Illegal target 'class' in replacement 'replaceString'. Target values must start with '$', for example $class.", e.getMessage());
         }
     }
 
@@ -134,13 +134,30 @@ public class CustomConverterWithJsonTest {
                 "\"testPattern\": \"$package.$class#$testName-$externalTestId\"," +
                 "\"testDelimiter\": \"+\"," +
                 "\"replacements\": [" +
-                //"{\"type\":\"replaceRegex\",\"target\":\"$package|$class|$testName\",\"regex\":\"(?i)test\",\"replacement\":\"bubu\"}" +
+                "{\"type\":\"toUpperCase\",\"target\":\"$externalTestId\"}" +
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
         String actual = converter.convert(singleRawDataWithExternalTest, "").getConvertedTestsString();
 
-        Assert.assertEquals("MF.simple.tests.AppTest#testAlways-bubu", actual);
+        Assert.assertEquals("MF.simple.tests.AppTest#testAlways-BUBU", actual);
+    }
+
+    @Test
+    public void convertExternalTestIdAndClearMissingValue() {
+        String singleRawDataWithExternalTest = "v1:MF.simple.tests|AppTest|testAlways|externalTestId=bubu;MF.simple.tests|AppTest|testNotAlways";
+        String json = "{" +
+                "\"testPattern\": \"$package.$class#$testName$externalTestId\"," +
+                "\"testDelimiter\": \"+\"," +
+                "\"replacements\": [" +
+                "{\"type\":\"joinString\",\"target\":\"$externalTestId\",\"prefix\":\"-\"}," +
+                "{\"type\":\"toUpperCase\",\"target\":\"$externalTestId\"}" +
+                "]}";
+
+        CustomConverter converter = new CustomConverter(json);
+        String actual = converter.convert(singleRawDataWithExternalTest, "").getConvertedTestsString();
+
+        Assert.assertEquals("MF.simple.tests.AppTest#testAlways-BUBU+MF.simple.tests.AppTest#testNotAlways", actual);
     }
 
     @Test
@@ -181,7 +198,7 @@ public class CustomConverterWithJsonTest {
             CustomConverter converter = new CustomConverter(json);
             Assert.fail("Exception must have been thrown, but it not.");
         } catch (IllegalArgumentException e) {
-            Assert.assertEquals("Illegal target 'package' in replacement 'replaceRegex'. Allowed values : [$class, $testName, $externalTestId, $package]", e.getMessage());
+            Assert.assertEquals("Illegal target 'package' in replacement 'replaceRegex'. Target values must start with '$', for example $package.", e.getMessage());
         }
     }
 

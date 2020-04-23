@@ -34,9 +34,6 @@ public class CustomConverter extends TestsToRunConverter {
     private static final String $_PACKAGE = "$package";
     private static final String $_CLASS = "$class";
     private static final String $_TEST_NAME = "$testName";
-    private static final String $_EXTERNAL_TEST_ID = "$externalTestId";
-    private static final String $_EXTERNAL_TEST_ID_PARAM_KEY = "externalTestId";
-    private static final Set<String> allowedTargets = new HashSet(Arrays.asList($_PACKAGE, $_CLASS, $_TEST_NAME, $_EXTERNAL_TEST_ID));
     private CustomFormat customFormat;
 
     public CustomConverter() {
@@ -83,8 +80,8 @@ public class CustomConverter extends TestsToRunConverter {
             String targetsRaw = getMapValue(m, "target", true, null);
             Set<String> targets = new HashSet<>(Arrays.asList(targetsRaw.split(Pattern.quote("|"))));
             targets.forEach(t -> {
-                if (!(allowedTargets.contains(t))) {
-                    throw new IllegalArgumentException(String.format("Illegal target '%s' in replacement '%s'. Allowed values : %s", t, replacementType, allowedTargets));
+                if (!t.startsWith("$")) {
+                    throw new IllegalArgumentException(String.format("Illegal target '%s' in replacement '%s'. Target values must start with '$', for example $%s.", t, replacementType, t));
                 }
             });
 
@@ -111,8 +108,8 @@ public class CustomConverter extends TestsToRunConverter {
                             getMapValue(m, "replacement", errorMessage));
                     break;
                 case "joinString":
-                    action = new JoinString().initialize(getMapValue(m, "prefix", errorMessage),
-                            getMapValue(m, "suffix", errorMessage));
+                    action = new JoinString().initialize(getMapValue(m, "prefix", "", false, null),
+                            getMapValue(m, "suffix", "", false, null));
                     break;
                 case "toUpperCase":
                     action = new ToUpperCase();
@@ -156,29 +153,39 @@ public class CustomConverter extends TestsToRunConverter {
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
+        Set<String> existingKeys = new HashSet<>();
+        addToSetIfPatterContains(existingKeys, $_PACKAGE);
+        addToSetIfPatterContains(existingKeys, $_CLASS);
+        addToSetIfPatterContains(existingKeys, $_TEST_NAME);
+        data.stream().flatMap(t -> t.getParameters().keySet().stream()).map(param -> "$" + param).forEach(key -> addToSetIfPatterContains(existingKeys, key));
+
         String collect = data.stream()
-                .map(n -> convertToFormat(n))
+                .map(n -> convertToFormat(n, existingKeys))
                 .filter(str -> str != null && !str.isEmpty())
                 .distinct()
                 .collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
         return collect;
     }
 
-    protected String convertToFormat(TestToRunData testToRunData) {
-        boolean patternContainsExternalTestId = customFormat.getTestPattern().contains($_EXTERNAL_TEST_ID);
-        boolean patternContainsPackage = customFormat.getTestPattern().contains($_PACKAGE);
-        boolean patternContainsClass = customFormat.getTestPattern().contains($_CLASS);
+    private void addToSetIfPatterContains(Set<String> set, String key) {
+        if (customFormat.getTestPattern().contains(key)) {
+            set.add(key);
+        }
+    }
+
+    protected String convertToFormat(TestToRunData testToRunData, Set<String> keysInTemplate) {
+
         int packageIndex = customFormat.getTestPattern().indexOf($_PACKAGE);
 
         String res = customFormat.getTestPattern();
 
-        if (patternContainsPackage) {
+        if (keysInTemplate.contains($_PACKAGE)) {
             String packageName = testToRunData.getPackageName();
             if (SdkStringUtils.isNotEmpty(packageName)) {
                 res = res.replace($_PACKAGE, handleReplacements($_PACKAGE, packageName));
             } else {
                 // remove $package part of format including its delimiter
-                if (patternContainsClass) {
+                if (keysInTemplate.contains($_CLASS)) {
                     // the $class expresion exists in given format - remove the part till $class
                     //      for example: the format is XXXX$package.||.$class.||.$testName
                     //      the result: XXXX$class.||.$testName
@@ -192,7 +199,7 @@ public class CustomConverter extends TestsToRunConverter {
             }
         }
 
-        if (patternContainsClass) {
+        if (keysInTemplate.contains($_CLASS)) {
             String className = testToRunData.getClassName();
             if (SdkStringUtils.isNotEmpty(className)) {
                 res = res.replace($_CLASS, handleReplacements($_CLASS, className));
@@ -204,16 +211,23 @@ public class CustomConverter extends TestsToRunConverter {
             }
         }
 
-        if (patternContainsExternalTestId) {
-            String externalTestId = testToRunData.getParameter($_EXTERNAL_TEST_ID_PARAM_KEY);
-            if (SdkStringUtils.isNotEmpty(externalTestId)) {
-                res = res.replace($_EXTERNAL_TEST_ID, handleReplacements($_EXTERNAL_TEST_ID, externalTestId));
-            } else {
-                res = res.replace($_EXTERNAL_TEST_ID, "");
+        res = res.replace($_TEST_NAME, handleReplacements($_TEST_NAME, testToRunData.getTestName()));
+
+        //replace parameters
+        for (Map.Entry<String, String> entry : testToRunData.getParameters().entrySet()) {
+            String replacementKey = "$" + entry.getKey();
+            if (keysInTemplate.contains(replacementKey)) {
+                res = res.replace(replacementKey, handleReplacements(replacementKey, entry.getValue()));
             }
         }
 
-        res = res.replace($_TEST_NAME, handleReplacements($_TEST_NAME, testToRunData.getTestName()));
+        //might be that the some parameter will be missing for some tests, but still exist in template, in such case it might remain after conversion as is.
+        //this section set such values to be empty
+        Set<String> existingParameters = testToRunData.getParameters().keySet();
+        Set<String> missingParameters = keysInTemplate.stream().filter(key -> !existingParameters.contains(key)).filter(key -> !$_CLASS.equals(key) || !$_PACKAGE.equals(key) || !$_TEST_NAME.equals(key)).collect(Collectors.toSet());
+        for (String missingParam : missingParameters) {
+            res = res.replace(missingParam, "");
+        }
         return res;
     }
 
@@ -393,7 +407,6 @@ public class CustomConverter extends TestsToRunConverter {
             return prefix + string + suffix;
         }
     }
-
 
     public static class NotLatinAndDigitToOctal implements ReplaceAction {
         @Override
