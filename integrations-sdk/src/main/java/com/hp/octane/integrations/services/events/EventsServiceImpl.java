@@ -121,6 +121,12 @@ final class EventsServiceImpl implements EventsService {
 				continue;
 			}
 
+			if (this.configurer.octaneConfiguration.isDisabled()) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + events.size() + " items from queue");
+				events.clear();
+				continue;
+			}
+
 			//  build events list to be sent
 			List<CIEvent> eventsChunk = null;
 			CIEventsList eventsSnapshot;

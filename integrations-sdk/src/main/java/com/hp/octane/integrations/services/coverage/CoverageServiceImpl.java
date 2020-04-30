@@ -92,6 +92,14 @@ class CoverageServiceImpl implements CoverageService {
 				continue;
 			}
 
+			if (this.configurer.octaneConfiguration.isDisabled()) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + coveragePushQueue.size() + " items from queue");
+				while (coveragePushQueue.size() > 0) {
+					coveragePushQueue.remove();
+				}
+				continue;
+			}
+
 			CoverageQueueItem coverageQueueItem = null;
 			try {
 				coverageQueueItem = coveragePushQueue.peek();

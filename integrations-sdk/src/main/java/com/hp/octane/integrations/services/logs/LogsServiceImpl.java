@@ -114,6 +114,14 @@ final class LogsServiceImpl implements LogsService {
 				continue;
 			}
 
+			if (this.configurer.octaneConfiguration.isDisabled()) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + buildLogsQueue.size() + " items from queue");
+				while (buildLogsQueue.size() > 0) {
+					buildLogsQueue.remove();
+				}
+				continue;
+			}
+
 			BuildLogQueueItem buildLogQueueItem = null;
 			try {
 				buildLogQueueItem = buildLogsQueue.peek();

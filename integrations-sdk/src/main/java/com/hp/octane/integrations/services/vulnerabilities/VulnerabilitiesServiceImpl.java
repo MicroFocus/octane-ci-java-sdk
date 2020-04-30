@@ -158,6 +158,14 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				continue;
 			}
 
+			if (this.configurer.octaneConfiguration.isDisabled()) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + vulnerabilitiesQueue.size() + " items from queue");
+				while (vulnerabilitiesQueue.size() > 0) {
+					vulnerabilitiesQueue.remove();
+				}
+				continue;
+			}
+
 			VulnerabilitiesQueueItem queueItem = null;
 			try {
 				queueItem = vulnerabilitiesQueue.peek();

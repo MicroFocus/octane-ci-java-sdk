@@ -206,6 +206,14 @@ final class TestsServiceImpl implements TestsService {
 				continue;
 			}
 
+			if (this.configurer.octaneConfiguration.isDisabled()) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + testResultsQueue.size() + " items from queue");
+				while (testResultsQueue.size() > 0) {
+					testResultsQueue.remove();
+				}
+				continue;
+			}
+
 			TestsResultQueueItem testsResultQueueItem = null;
 			try {
 				testsResultQueueItem = testResultsQueue.peek();
