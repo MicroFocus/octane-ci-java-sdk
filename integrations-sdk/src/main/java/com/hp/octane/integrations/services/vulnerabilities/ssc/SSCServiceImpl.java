@@ -74,14 +74,14 @@ public class SSCServiceImpl implements SSCService{
             String targetDir = getTargetDir(getConfigurer().pluginServices.getAllowedOctaneStorage(),
                     queueItem.getJobId(),
                     queueItem.getBuildId());
-            logger.debug("targetDir:" + targetDir);
+            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "targetDir:" + targetDir);
             InputStream cachedScanResult = getCachedScanResult(targetDir);
             if (cachedScanResult != null) {
-                logger.warn("Results are cached.");
+                logger.warn(configurer.octaneConfiguration.geLocationForLog() + "Results are cached.");
                 return cachedScanResult;
             }
             List<OctaneIssue> octaneIssues = getNonCacheVulnerabilitiesScanResultStream(queueItem);
-            logger.debug("Done retrieving non-cached.");
+            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "Done retrieving non-cached.");
             if(octaneIssues==null){
                 return null;
             }
@@ -111,8 +111,8 @@ public class SSCServiceImpl implements SSCService{
 
         SSCProjectConfiguration sscProjectConfiguration = configurer.pluginServices.getSSCProjectConfiguration(queueItem.getJobId(), queueItem.getBuildId());
         if (sscProjectConfiguration == null || !sscProjectConfiguration.isValid()) {
-            logger.error("cannot retrieve SSC Project CFG.");
-            logger.debug("SSC project configurations is missing or not valid, skipping processing for " + queueItem.getJobId() + " #" + queueItem.getBuildId());
+            logger.error(configurer.octaneConfiguration.geLocationForLog() + "cannot retrieve SSC Project CFG.");
+            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "SSC project configurations is missing or not valid, skipping processing for " + queueItem.getJobId() + " #" + queueItem.getBuildId());
             return null;
         }
 
@@ -121,15 +121,15 @@ public class SSCServiceImpl implements SSCService{
                 sscProjectConfiguration,
                 this.restService.obtainSSCRestClient());
 
-        logger.debug("retrieve issues from SSC");
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "retrieve issues from SSC");
         List<Issues.Issue> issuesFromSecurityTool = getIssuesFromSSC(sscHandler,queueItem);
         if(issuesFromSecurityTool==null){
             return null;
         }
-        logger.debug("retrieve octane remote ids");
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "retrieve octane remote ids");
 
         List<String> octaneExistsIssuesIdsList = getRemoteIdsOfExistIssuesFromOctane(queueItem, sscProjectConfiguration.getRemoteTag());
-        logger.debug("done retrieveing octane remote ids");
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "done retrieveing octane remote ids");
 
         PackSSCIssuesToSendToOctane packSSCIssuesToSendToOctane = new PackSSCIssuesToSendToOctane();
         packSSCIssuesToSendToOctane.setConsiderMissing(queueItem.getBaselineDate() != null);
@@ -158,7 +158,7 @@ public class SSCServiceImpl implements SSCService{
                 return foundDate.compareTo(vulnerabilitiesQueueItem.getBaselineDate()) >= 0;
             }).collect(Collectors.toList());
         }
-        logger.debug("filterIssuesByBaseLine.size():" + filterIssuesByBaseLine.size());
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "filterIssuesByBaseLine.size():" + filterIssuesByBaseLine.size());
         return filterIssuesByBaseLine;
     }
 

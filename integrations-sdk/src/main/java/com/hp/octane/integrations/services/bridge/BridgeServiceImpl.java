@@ -262,7 +262,7 @@ final class BridgeServiceImpl implements BridgeService {
 				});
 			}
 		} catch (Exception e) {
-			logger.error("failed to process tasks", e);
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to process tasks", e);
 		}
 	}
 

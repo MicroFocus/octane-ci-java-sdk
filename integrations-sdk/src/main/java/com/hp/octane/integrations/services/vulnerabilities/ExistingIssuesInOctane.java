@@ -61,11 +61,11 @@ public class ExistingIssuesInOctane {
 
 
         OctaneResponse response = octaneRestClient.execute(request);
-        logger.info("vulnerabilities retrieve was completed; status: " + response.getStatus() + ", response: " + response.getBody());
+        logger.info(octaneConfiguration.geLocationForLog() + "vulnerabilities retrieve was completed; status: " + response.getStatus() + ", response: " + response.getBody());
         if (response.getStatus() == HttpStatus.SC_OK) {
-            logger.info("retrieved existing vulnerabilities from Octane.");
+            logger.info(octaneConfiguration.geLocationForLog() + "retrieved existing vulnerabilities from Octane.");
         } else {
-            logger.error("Error retrieving existing vulnerabilities from Octane.");
+            logger.error(octaneConfiguration.geLocationForLog() + "Error retrieving existing vulnerabilities from Octane.");
             throw new IOException();
         }
         return CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), List.class);

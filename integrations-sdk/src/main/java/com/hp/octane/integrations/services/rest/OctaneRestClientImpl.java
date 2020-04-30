@@ -107,7 +107,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			sslContext = SSLContext.getInstance("SSL");
 			sslContext.init(null, getTrustManagers(), new java.security.SecureRandom());
 		} catch (Exception e) {
-			logger.warn("Failed to create sslContext with customTrustManagers. Using systemDefault sslContext. Error : " + e.getMessage());
+			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "Failed to create sslContext with customTrustManagers. Using systemDefault sslContext. Error : " + e.getMessage());
 			sslContext = SSLContexts.createSystemDefault();
 		}
 
@@ -157,7 +157,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			LWSSO_TOKEN = null;
 			loginRequiredForRefreshLwssoToken = true;
 			for (HttpUriRequest request : ongoingRequests) {
-				logger.info("\taborting " + request);
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "\taborting " + request);
 				request.abort();
 			}
 		}
@@ -421,7 +421,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 			return new TrustManager[]{myTM};
 		} else {
-			logger.info("Using only default trust managers. Received " + tmArr.length + " trust managers."
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Using only default trust managers. Received " + tmArr.length + " trust managers."
 					+ ((tmArr.length > 0) ? "First one is :" + tmArr[0].getClass().getCanonicalName() : ""));
 			return tmArr;
 		}
