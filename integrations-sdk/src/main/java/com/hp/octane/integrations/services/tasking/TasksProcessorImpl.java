@@ -99,7 +99,18 @@ final class TasksProcessorImpl implements TasksProcessor {
 				suspendCiEvents(result, task.getBody());
 			} else if (path[0].startsWith(JOBS)) {
 				if (path.length == 1) {
-					executeJobsListRequest(result, !path[0].contains("parameters=false"));
+					Map<String, String> queryParams = new HashMap<>();
+					String queryParamsStr = path[0].contains("?") ? path[0].substring(path[0].indexOf("?") + 1) : path[0];
+					String[] queryParamsParts = queryParamsStr.split("&");
+					for (String p : queryParamsParts) {
+						String[] parts = p.split("=");
+						if (parts.length == 2) {
+							queryParams.put(parts[0], parts[1]);
+						}
+					}
+					boolean includingParameters = !"false".equals(queryParams.get("parameters"));
+					Long workspaceId = queryParams.containsKey("workspaceId") ? Long.parseLong(queryParams.get("workspaceId")) : null;
+					executeJobsListRequest(result, includingParameters, workspaceId);
 				} else if (path.length == 2) {
 					executePipelineRequest(result, path[1]);
 				} else if (path.length == 3 && RUN.equals(path[2])) {
@@ -212,8 +223,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
-	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters) {
-		CIJobsList content = configurer.pluginServices.getJobsList(includingParameters);
+	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters, Long workspaceId) {
+		CIJobsList content = configurer.pluginServices.getJobsList(includingParameters, workspaceId);
 		if (content != null) {
 			result.setBody(dtoFactory.dtoToJson(content));
 		} else {

@@ -41,7 +41,7 @@ public class TaskingTestPluginServicesTest extends CIPluginServices {
 	}
 
 	@Override
-	public CIJobsList getJobsList(boolean includeParameters) {
+	public CIJobsList getJobsList(boolean includeParameters, Long workspaceId) {
 		return getJobsAPIReturnNull ? null :
 				dtoFactory.newDTO(CIJobsList.class)
 						.setJobs(getJobsListInternal(includeParameters));

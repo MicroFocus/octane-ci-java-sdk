@@ -123,9 +123,10 @@ public abstract class CIPluginServices {
 	 * Provides a list of Projects existing on this CI Server
 	 *
 	 * @param includeParameters should the jobs data include parameters or not
+	 * @param workspaceId workspace id the request comes from, This allow to show different jobs for different workspaces
 	 * @return ProjectList object holding the list of the projects; MUST NOT be NULL; MAY contain an empty list
 	 */
-	public CIJobsList getJobsList(boolean includeParameters) {
+	public CIJobsList getJobsList(boolean includeParameters, Long workspaceId) {
 		return null;
 	}
 
