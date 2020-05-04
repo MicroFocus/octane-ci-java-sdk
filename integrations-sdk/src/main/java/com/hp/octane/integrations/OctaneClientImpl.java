@@ -71,6 +71,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final VulnerabilitiesService vulnerabilitiesService;
 	private final PullRequestService pullRequestService;
 	private final Thread shutdownHook;
+	private boolean isShutdownHookActivated;
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -124,8 +125,12 @@ final class OctaneClientImpl implements OctaneClient {
 		//  register shutdown hook to allow graceful shutdown of services/resources
 		shutdownHook = new Thread(() -> {
 			String instanceId = configurer.octaneConfiguration.getInstanceId();
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
 			try {
+				this.isShutdownHookActivated = true;
 				this.close();
 			} catch (Throwable throwable) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed during shutdown of OctaneClient " + instanceId, throwable);
@@ -290,5 +295,9 @@ final class OctaneClientImpl implements OctaneClient {
 
 	void notifyCredentialsChanged(){
 		restService.notifyConfigurationChange();
+	}
+
+	public boolean isShutdownHookActivated() {
+		return isShutdownHookActivated;
 	}
 }
