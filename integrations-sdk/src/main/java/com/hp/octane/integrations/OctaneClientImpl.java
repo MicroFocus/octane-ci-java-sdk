@@ -297,6 +297,7 @@ final class OctaneClientImpl implements OctaneClient {
 		restService.notifyConfigurationChange();
 	}
 
+	@Override
 	public boolean isShutdownHookActivated() {
 		return isShutdownHookActivated;
 	}

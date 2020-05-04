@@ -139,4 +139,6 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	VulnerabilitiesService getVulnerabilitiesService();
+
+	boolean isShutdownHookActivated();
 }
