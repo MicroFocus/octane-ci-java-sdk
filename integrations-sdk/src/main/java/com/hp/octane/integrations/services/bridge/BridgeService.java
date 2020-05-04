@@ -17,13 +17,11 @@ package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
-import com.hp.octane.integrations.services.HasMetricsService;
+import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 
-import java.util.Map;
-
-public interface BridgeService extends ClosableService, HasMetricsService {
+public interface BridgeService extends ClosableService, HasMetrics {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)

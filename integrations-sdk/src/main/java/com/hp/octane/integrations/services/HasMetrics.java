@@ -20,7 +20,7 @@ import java.util.Map;
 /**
  * Interface indicating service with metric
  */
-public interface HasMetricsService {
+public interface HasMetrics {
 
 	/**
 	 * Get metrics

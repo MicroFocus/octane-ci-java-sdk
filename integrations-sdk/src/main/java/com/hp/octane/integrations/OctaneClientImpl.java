@@ -41,6 +41,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * protected implementation of the OctaneClient
@@ -72,6 +75,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final PullRequestService pullRequestService;
 	private final Thread shutdownHook;
 	private boolean isShutdownHookActivated;
+	private long shutdownHookActivatedTime;
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -131,6 +135,7 @@ final class OctaneClientImpl implements OctaneClient {
 
 			try {
 				this.isShutdownHookActivated = true;
+				this.shutdownHookActivatedTime = System.currentTimeMillis();
 				this.close();
 			} catch (Throwable throwable) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed during shutdown of OctaneClient " + instanceId, throwable);
@@ -298,7 +303,13 @@ final class OctaneClientImpl implements OctaneClient {
 	}
 
 	@Override
-	public boolean isShutdownHookActivated() {
-		return isShutdownHookActivated;
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("location", configurer.octaneConfiguration.geLocationForLog());
+		map.put("shutdownHookActivated", this.isShutdownHookActivated);
+		if (isShutdownHookActivated) {
+			map.put("shutdownHookActivatedTime", new Date(shutdownHookActivatedTime));
+		}
+		return map;
 	}
 }

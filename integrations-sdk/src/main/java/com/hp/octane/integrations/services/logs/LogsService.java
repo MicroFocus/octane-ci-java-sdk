@@ -17,12 +17,12 @@ package com.hp.octane.integrations.services.logs;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
-import com.hp.octane.integrations.services.HasMetricsService;
+import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.HasQueueService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 
-public interface LogsService extends ClosableService, HasQueueService, HasMetricsService {
+public interface LogsService extends ClosableService, HasQueueService, HasMetrics {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)

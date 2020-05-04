@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations;
 
+import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
@@ -35,7 +36,7 @@ import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesServic
  * OctaneClient instance's context is defined by a specific instance of CIPluginServices
  */
 
-public interface OctaneClient {
+public interface OctaneClient extends HasMetrics {
 
 	/**
 	 * provides OctaneClient instance ID
@@ -139,6 +140,4 @@ public interface OctaneClient {
 	 * @return service, MUST NOT be null
 	 */
 	VulnerabilitiesService getVulnerabilitiesService();
-
-	boolean isShutdownHookActivated();
 }
