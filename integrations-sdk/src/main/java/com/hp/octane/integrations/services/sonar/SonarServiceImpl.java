@@ -110,6 +110,12 @@ public class SonarServiceImpl implements SonarService {
 				continue;
 			}
 
+			if (this.configurer.octaneConfiguration.isDisabled()) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + sonarIntegrationQueue.size() + " items from queue");
+				clearQueue();
+				continue;
+			}
+
 			SonarBuildCoverageQueueItem sonarBuildCoverageQueueItem = null;
 			try {
 				sonarBuildCoverageQueueItem = sonarIntegrationQueue.peek();
@@ -171,6 +177,11 @@ public class SonarServiceImpl implements SonarService {
 	}
 
 	@Override
+	public boolean isShutdown() {
+		return sonarIntegrationExecutor.isShutdown();
+	}
+
+	@Override
 	public void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
@@ -182,6 +193,10 @@ public class SonarServiceImpl implements SonarService {
 			throw new IllegalArgumentException("sonar URL MUST NOT be null nor empty");
 		}
 		//  [YG] TODO: check if the rest of the parameters are also non-optional and add validations
+
+		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
 
 		sonarIntegrationQueue.add(new SonarBuildCoverageQueueItem(jobId, buildId, projectKey, sonarURL, sonarToken));
 		synchronized (NO_SONAR_COVERAGE_ITEMS_MONITOR) {
@@ -328,6 +343,18 @@ public class SonarServiceImpl implements SonarService {
 	private void setTokenInHttpRequest(HttpRequest request, String token) throws AuthenticationException {
 		UsernamePasswordCredentials creds = new UsernamePasswordCredentials(token, "");
 		request.addHeader(new BasicScheme().authenticate(creds, request, null));
+	}
+
+	@Override
+	public long getQueueSize() {
+		return sonarIntegrationQueue.size();
+	}
+
+	@Override
+	public void clearQueue() {
+		while (sonarIntegrationQueue.size() > 0) {
+			sonarIntegrationQueue.remove();
+		}
 	}
 
 	private static final class SonarBuildCoverageQueueItem implements QueueingService.QueueItem {
