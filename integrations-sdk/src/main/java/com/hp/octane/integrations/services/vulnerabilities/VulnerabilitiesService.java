@@ -17,12 +17,13 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
+import com.hp.octane.integrations.services.HasQueueService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 
 import java.util.Map;
 
-public interface VulnerabilitiesService extends ClosableService {
+public interface VulnerabilitiesService extends ClosableService, HasQueueService {
 
 	/**
 	 * 	 Service instance producer - for internal usage only (protected by inaccessible configurer)

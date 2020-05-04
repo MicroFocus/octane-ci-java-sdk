@@ -100,6 +100,16 @@ final class EventsServiceImpl implements EventsService {
 	}
 
 	@Override
+	public long getQueueSize() {
+		return events.size();
+	}
+
+	@Override
+	public void clearQueue() {
+		events.clear();
+	}
+
+	@Override
 	public void shutdown() {
 		eventsPushExecutor.shutdown();
 	}
@@ -123,7 +133,7 @@ final class EventsServiceImpl implements EventsService {
 
 			if (this.configurer.octaneConfiguration.isDisabled()) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + events.size() + " items from queue");
-				events.clear();
+				clearQueue();
 				continue;
 			}
 

@@ -116,9 +116,7 @@ final class LogsServiceImpl implements LogsService {
 
 			if (this.configurer.octaneConfiguration.isDisabled()) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + buildLogsQueue.size() + " items from queue");
-				while (buildLogsQueue.size() > 0) {
-					buildLogsQueue.remove();
-				}
+				clearQueue();
 				continue;
 			}
 
@@ -245,6 +243,18 @@ final class LogsServiceImpl implements LogsService {
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
 		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
+	}
+
+	@Override
+	public long getQueueSize() {
+		return buildLogsQueue.size();
+	}
+
+	@Override
+	public void clearQueue() {
+		while (buildLogsQueue.size() > 0) {
+			buildLogsQueue.remove();
+		}
 	}
 
 	private static final class BuildLogQueueItem implements QueueingService.QueueItem {

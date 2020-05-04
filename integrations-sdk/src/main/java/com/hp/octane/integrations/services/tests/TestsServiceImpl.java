@@ -208,9 +208,7 @@ final class TestsServiceImpl implements TestsService {
 
 			if (this.configurer.octaneConfiguration.isDisabled()) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + testResultsQueue.size() + " items from queue");
-				while (testResultsQueue.size() > 0) {
-					testResultsQueue.remove();
-				}
+				clearQueue();
 				continue;
 			}
 
@@ -291,6 +289,18 @@ final class TestsServiceImpl implements TestsService {
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
 		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
+	}
+
+	@Override
+	public long getQueueSize() {
+		return testResultsQueue.size();
+	}
+
+	@Override
+	public void clearQueue() {
+		while (testResultsQueue.size() > 0) {
+			testResultsQueue.remove();
+		}
 	}
 
 	private static final class TestsResultQueueItem implements QueueingService.QueueItem {

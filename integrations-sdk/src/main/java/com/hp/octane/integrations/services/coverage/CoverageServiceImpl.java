@@ -94,9 +94,7 @@ class CoverageServiceImpl implements CoverageService {
 
 			if (this.configurer.octaneConfiguration.isDisabled()) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + coveragePushQueue.size() + " items from queue");
-				while (coveragePushQueue.size() > 0) {
-					coveragePushQueue.remove();
-				}
+				clearQueue();
 				continue;
 			}
 
@@ -252,6 +250,18 @@ class CoverageServiceImpl implements CoverageService {
 
 	private String getAnalyticsContextPath(String octaneBaseUrl, String sharedSpaceId) {
 		return octaneBaseUrl + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + sharedSpaceId + RestService.ANALYTICS_CI_PATH_PART;
+	}
+
+	@Override
+	public long getQueueSize() {
+		return coveragePushQueue.size();
+	}
+
+	@Override
+	public void clearQueue() {
+		while (coveragePushQueue.size() > 0) {
+			coveragePushQueue.remove();
+		}
 	}
 
 	private static final class CoverageQueueItem implements QueueingService.QueueItem {
