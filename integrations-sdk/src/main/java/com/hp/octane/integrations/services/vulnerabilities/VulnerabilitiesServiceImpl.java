@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -337,6 +338,14 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		while (vulnerabilitiesQueue.size() > 0) {
 			vulnerabilitiesQueue.remove();
 		}
+	}
+
+	@Override
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("isShutdown", this.isShutdown());
+		map.put("queueSize", this.getQueueSize());
+		return map;
 	}
 
 	private static final class VulnerabilitiesPushWorkerThreadFactory implements ThreadFactory {

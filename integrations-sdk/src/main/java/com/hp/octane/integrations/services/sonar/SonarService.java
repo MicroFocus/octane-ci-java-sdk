@@ -18,6 +18,7 @@ package com.hp.octane.integrations.services.sonar;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.services.ClosableService;
+import com.hp.octane.integrations.services.HasMetricsService;
 import com.hp.octane.integrations.services.HasQueueService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
@@ -32,7 +33,7 @@ import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolSe
  * - push relevant convent to Octane
  */
 
-public interface SonarService extends ClosableService, HasQueueService {
+public interface SonarService extends ClosableService, HasQueueService, HasMetricsService {
 
 	/**
 	 * Sonar integration Service instance producer - for internal usage only (protected by inaccessible configurer)

@@ -88,6 +88,7 @@ final class BridgeServiceImpl implements BridgeService {
     @Override
     public Map<String, Object> getMetrics() {
         Map<String, Object> map = new LinkedHashMap<>();
+        map.put("isShutdown", isShutdown());
         map.put("state", serviceState.name());
         map.put("stateStartTime", new Date(stateStartTime));
         map.put("lastRequestToOctaneTime", new Date(lastRequestToOctaneTime));
@@ -95,7 +96,6 @@ final class BridgeServiceImpl implements BridgeService {
         map.put("connectivityExecutors.isTerminated", connectivityExecutors.isTerminated());
         map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
         map.put("connectivityExecutors.getCompletedTaskCount", ((ThreadPoolExecutor) connectivityExecutors).getCompletedTaskCount());
-        map.put("isShutdown", isShutdown());
         return map;
     }
 
@@ -173,10 +173,10 @@ final class BridgeServiceImpl implements BridgeService {
     }
 
     private void changeServiceState(ServiceState newState) {
-        serviceState = newState;
         if (!serviceState.equals(newState)) {
             stateStartTime = System.currentTimeMillis();
         }
+        serviceState = newState;
 
         if (newState.equals(ServiceState.WaitingToOctane)) {
             lastRequestToOctaneTime = System.currentTimeMillis();

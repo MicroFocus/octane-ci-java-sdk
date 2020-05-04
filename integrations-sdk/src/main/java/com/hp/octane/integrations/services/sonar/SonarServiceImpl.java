@@ -46,6 +46,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -355,6 +357,14 @@ public class SonarServiceImpl implements SonarService {
 		while (sonarIntegrationQueue.size() > 0) {
 			sonarIntegrationQueue.remove();
 		}
+	}
+
+	@Override
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("isShutdown", this.isShutdown());
+		map.put("queueSize", this.getQueueSize());
+		return map;
 	}
 
 	private static final class SonarBuildCoverageQueueItem implements QueueingService.QueueItem {
