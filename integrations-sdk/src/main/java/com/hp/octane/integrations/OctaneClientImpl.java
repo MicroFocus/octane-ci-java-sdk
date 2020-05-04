@@ -306,6 +306,8 @@ final class OctaneClientImpl implements OctaneClient {
 	public Map<String, Object> getMetrics() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("location", configurer.octaneConfiguration.geLocationForLog());
+		map.put("sdkSupported", configurer.octaneConfiguration.isSdkSupported());
+		map.put("isDisabled", configurer.octaneConfiguration.isDisabled());
 		map.put("shutdownHookActivated", this.isShutdownHookActivated);
 		if (isShutdownHookActivated) {
 			map.put("shutdownHookActivatedTime", new Date(shutdownHookActivatedTime));
