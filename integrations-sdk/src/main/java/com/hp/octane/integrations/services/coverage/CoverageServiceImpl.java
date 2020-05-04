@@ -224,6 +224,11 @@ class CoverageServiceImpl implements CoverageService {
 		coveragePushExecutor.shutdown();
 	}
 
+	@Override
+	public boolean isShutdown() {
+		return coveragePushExecutor.isShutdown();
+	}
+
 	private void pushCoverageWithPreflight(CoverageQueueItem queueItem) {
 		//  preflight
 		if (!isSonarReportRelevant(queueItem.jobId)) {

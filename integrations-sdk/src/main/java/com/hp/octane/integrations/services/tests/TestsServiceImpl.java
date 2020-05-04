@@ -197,6 +197,11 @@ final class TestsServiceImpl implements TestsService {
 		testsPushExecutor.shutdown();
 	}
 
+	@Override
+	public boolean isShutdown() {
+		return testsPushExecutor.isShutdown();
+	}
+
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!testsPushExecutor.isShutdown()) {

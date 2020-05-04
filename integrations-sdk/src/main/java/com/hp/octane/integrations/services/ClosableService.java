@@ -7,4 +7,6 @@ public interface ClosableService {
 	 * - this method won't wait for executors termination
 	 */
 	void shutdown();
+
+	boolean isShutdown();
 }

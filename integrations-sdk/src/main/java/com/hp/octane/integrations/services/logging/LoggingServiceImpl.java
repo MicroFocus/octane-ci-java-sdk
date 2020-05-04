@@ -31,6 +31,7 @@ final class LoggingServiceImpl implements LoggingService {
 	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
 	private final Object INIT_LOCKER = new Object();
 	private final OctaneSDK.SDKServicesConfigurer configurer;
+	private boolean isShutdown;
 
 	private static LoggerContext commonLoggerContext;
 
@@ -48,7 +49,13 @@ final class LoggingServiceImpl implements LoggingService {
 		if (OctaneSDK.getClients().isEmpty() && commonLoggerContext != null) {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "last client is closing; general logger context is STOPPING");
 			commonLoggerContext.stop();
+			isShutdown = true;
 		}
+	}
+
+	@Override
+	public boolean isShutdown() {
+		return isShutdown;
 	}
 
 	private void configureLogger() {

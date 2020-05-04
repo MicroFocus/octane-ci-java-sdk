@@ -105,6 +105,11 @@ final class BridgeServiceImpl implements BridgeService {
         changeServiceState(ServiceState.Closed);
     }
 
+    @Override
+    public boolean isShutdown() {
+        return connectivityExecutors.isShutdown() || taskProcessingExecutors.isShutdown();
+    }
+
     //  infallible everlasting background worker
     private void worker() {
         try {

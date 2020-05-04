@@ -147,6 +147,11 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		}
 	}
 
+	@Override
+	public boolean isShutdown() {
+		return vulnerabilitiesProcessingExecutor.isShutdown();
+	}
+
 	//  TODO: implement retries counter per item and strategy of discard
 	//  TODO: consider moving the overall queue managing logic to some generic location
 	//  infallible everlasting background worker

@@ -37,6 +37,7 @@ final class QueueingServiceImpl implements QueueingService {
 	private static final Logger logger = LogManager.getLogger(QueueingServiceImpl.class);
 	private final File storageDirectory;
 	private final List<FileObjectQueue> fileObjectQueues = new LinkedList<>();
+	private boolean isShutdown;
 
 	QueueingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -83,6 +84,7 @@ final class QueueingServiceImpl implements QueueingService {
 
 	@Override
 	public void shutdown() {
+		isShutdown = true;
 		fileObjectQueues.forEach(fileObjectQueue -> {
 			try {
 				fileObjectQueue.close();
@@ -90,6 +92,11 @@ final class QueueingServiceImpl implements QueueingService {
 				logger.error("failed to close " + fileObjectQueue, e);
 			}
 		});
+	}
+
+	@Override
+	public boolean isShutdown() {
+		return isShutdown;
 	}
 
 	private static final class GenericOctaneQueueItemConverter<T> implements FileObjectQueue.Converter<T> {

@@ -104,6 +104,11 @@ final class LogsServiceImpl implements LogsService {
 		logsPushExecutor.shutdown();
 	}
 
+	@Override
+	public boolean isShutdown() {
+		return logsPushExecutor.isShutdown();
+	}
+
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!logsPushExecutor.isShutdown()) {

@@ -114,6 +114,11 @@ final class EventsServiceImpl implements EventsService {
 		eventsPushExecutor.shutdown();
 	}
 
+	@Override
+	public boolean isShutdown() {
+		return eventsPushExecutor.isShutdown();
+	}
+
 	private void removeEvents(List<CIEvent> eventsToRemove) {
 		if (eventsToRemove != null && !eventsToRemove.isEmpty()) {
 			events.removeAll(eventsToRemove);
