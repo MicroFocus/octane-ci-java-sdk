@@ -17,11 +17,12 @@ package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
+import com.hp.octane.integrations.services.HasMetricsService;
 import com.hp.octane.integrations.services.HasQueueService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.events.CIEvent;
 
-public interface EventsService extends ClosableService, HasQueueService {
+public interface EventsService extends ClosableService, HasQueueService, HasMetricsService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)

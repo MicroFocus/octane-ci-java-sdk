@@ -38,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.hp.octane.integrations.services.rest.RestService.*;
 
@@ -215,6 +216,14 @@ final class EventsServiceImpl implements EventsService {
 		} else if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
 			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());
 		}
+	}
+
+	@Override
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("isShutdown", this.isShutdown());
+		map.put("queueSize", this.getQueueSize());
+		return map;
 	}
 
 	private static final class EventsServiceWorkerThreadFactory implements ThreadFactory {

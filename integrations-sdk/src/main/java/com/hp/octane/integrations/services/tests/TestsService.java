@@ -19,6 +19,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.ClosableService;
+import com.hp.octane.integrations.services.HasMetricsService;
 import com.hp.octane.integrations.services.HasQueueService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -26,7 +27,7 @@ import com.hp.octane.integrations.services.rest.RestService;
 import java.io.IOException;
 import java.io.InputStream;
 
-public interface TestsService extends ClosableService, HasQueueService {
+public interface TestsService extends ClosableService, HasQueueService, HasMetricsService {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)

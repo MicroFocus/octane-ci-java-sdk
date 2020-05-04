@@ -41,6 +41,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -306,6 +307,14 @@ final class TestsServiceImpl implements TestsService {
 		while (testResultsQueue.size() > 0) {
 			testResultsQueue.remove();
 		}
+	}
+
+	@Override
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("isShutdown", this.isShutdown());
+		map.put("queueSize", this.getQueueSize());
+		return map;
 	}
 
 	private static final class TestsResultQueueItem implements QueueingService.QueueItem {

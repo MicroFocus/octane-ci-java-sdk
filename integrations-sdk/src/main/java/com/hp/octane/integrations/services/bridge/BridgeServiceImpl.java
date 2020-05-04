@@ -85,6 +85,7 @@ final class BridgeServiceImpl implements BridgeService {
         logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
     }
 
+    @Override
     public Map<String, Object> getMetrics() {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("state", serviceState.name());
@@ -94,6 +95,7 @@ final class BridgeServiceImpl implements BridgeService {
         map.put("connectivityExecutors.isTerminated", connectivityExecutors.isTerminated());
         map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
         map.put("connectivityExecutors.getCompletedTaskCount", ((ThreadPoolExecutor) connectivityExecutors).getCompletedTaskCount());
+        map.put("isShutdown", isShutdown());
         return map;
     }
 
