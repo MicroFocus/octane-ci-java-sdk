@@ -15,7 +15,6 @@
 
 package com.hp.octane.integrations.services.events;
 
-import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -25,6 +24,7 @@ import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -34,16 +34,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 
 import static com.hp.octane.integrations.services.rest.RestService.*;
 
 /**
  * EventsService implementation
+ * Handled by :
+ * com.hp.mqm.analytics.common.resources.CIAnalyticsCommonSSAResource#handleEvents
+ * com.hp.mqm.analytics.devops.insights.services.liveview.LiveSnapshotsServiceOnEventImpl#processEvent
  */
 
 final class EventsServiceImpl implements EventsService {
@@ -61,6 +64,11 @@ final class EventsServiceImpl implements EventsService {
 	private final long REGULAR_CYCLE_PAUSE = System.getProperty("octane.sdk.events.regular-cycle-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.regular-cycle-pause")) : 2000;
 	private final long NO_EVENTS_PAUSE = System.getProperty("octane.sdk.events.empty-list-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.empty-list-pause")) : 15000;
 	private final long TEMPORARY_FAILURE_PAUSE = System.getProperty("octane.sdk.events.temp-fail-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.temp-fail-pause")) : 15000;
+
+	//Metrics
+	private long requestTimeoutCount = 0;
+	private long lastRequestTimeoutTime = 0;
+	private long lastIterationTime = 0;
 
 	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -130,6 +138,7 @@ final class EventsServiceImpl implements EventsService {
 	private void worker() {
 		while (!eventsPushExecutor.isShutdown()) {
 			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+			lastIterationTime = System.currentTimeMillis();
 
 			//  have any events to send?
 			if (events.isEmpty()) {
@@ -161,12 +170,17 @@ final class EventsServiceImpl implements EventsService {
 
 			//  send the data to Octane
 			try {
-				logEventsToBeSent(configurer.octaneConfiguration, eventsSnapshot);
-				sendEventsData(configurer.octaneConfiguration, eventsSnapshot);
+				logEventsToBeSent(eventsSnapshot);
+				sendEventsData(eventsSnapshot);
 				removeEvents(eventsChunk);
 				if (events.size() > 0) {
 					logger.info(configurer.octaneConfiguration.geLocationForLog() + "left to send " + events.size() + " events");
 				}
+			} catch (RequestTimeoutException rte){
+				requestTimeoutCount++;
+				lastRequestTimeoutTime = System.currentTimeMillis();
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + rte.getMessage());
+				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
 			} catch (TemporaryException tqie) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
@@ -180,7 +194,7 @@ final class EventsServiceImpl implements EventsService {
 		}
 	}
 
-	private void logEventsToBeSent(OctaneConfiguration configuration, CIEventsList eventsList) {
+	private void logEventsToBeSent(CIEventsList eventsList) {
 		try {
 			List<String> eventsStringified = new LinkedList<>();
 			for (CIEvent event : eventsList.getEvents()) {
@@ -192,19 +206,23 @@ final class EventsServiceImpl implements EventsService {
 		}
 	}
 
-	private void sendEventsData(OctaneConfiguration configuration, CIEventsList eventsList) {
+	private void sendEventsData(CIEventsList eventsList) {
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
-				.setUrl(configuration.getUrl() +
-						SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() +
+				.setUrl(configurer.octaneConfiguration.getUrl() +
+						SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
 						ANALYTICS_CI_PATH_PART + "events?ci_server_identity=" + configurer.octaneConfiguration.getInstanceId())
 				.setHeaders(headers)
+				.setTimeoutSec(60)
 				.setBody(dtoFactory.dtoToJsonStream(eventsList));
 		OctaneResponse octaneResponse;
 		try {
 			octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
+		} catch (InterruptedIOException ie) {
+			String msg = "!!!!!!!!!!!!!!!!!!! request timeout" + ie.getClass().getCanonicalName() + " - " + ie.getMessage();
+			throw new RequestTimeoutException(msg);
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
 		}
@@ -223,6 +241,11 @@ final class EventsServiceImpl implements EventsService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
+		map.put("requestTimeoutCount", this.requestTimeoutCount);
+		if (lastRequestTimeoutTime > 0) {
+			map.put("lastRequestTimeoutTime", new Date(lastRequestTimeoutTime));
+		}
+		map.put("lastIterationTime", new Date(this.lastIterationTime));
 		return map;
 	}
 

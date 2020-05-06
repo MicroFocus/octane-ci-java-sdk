@@ -46,6 +46,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
+ * Handled by:
+ * com.hp.mqm.analytics.common.resources.CIAnalyticsCommonSSAResource#getAbridgedTaskAsync
  */
 
 final class BridgeServiceImpl implements BridgeService {
@@ -61,9 +63,12 @@ final class BridgeServiceImpl implements BridgeService {
     private long lastLogTime = 0;
     private final static long MILLI_TO_HOUR = 1000 * 60 * 60;
 
+    //Metrics
     private long lastRequestToOctaneTime = 0;
     private ServiceState serviceState = ServiceState.Initial;
     private long stateStartTime = 0;
+    private long requestTimeoutCount = 0;
+    private long lastRequestTimeoutTime = 0;
 
     BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
         if (configurer == null) {
@@ -92,10 +97,12 @@ final class BridgeServiceImpl implements BridgeService {
         map.put("state", serviceState.name());
         map.put("stateStartTime", new Date(stateStartTime));
         map.put("lastRequestToOctaneTime", new Date(lastRequestToOctaneTime));
-        map.put("connectivityExecutors.isShutdown", connectivityExecutors.isShutdown());
-        map.put("connectivityExecutors.isTerminated", connectivityExecutors.isTerminated());
-        map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
-        map.put("connectivityExecutors.getCompletedTaskCount", ((ThreadPoolExecutor) connectivityExecutors).getCompletedTaskCount());
+        //map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
+        //map.put("connectivityExecutors.getCompletedTaskCount", ((ThreadPoolExecutor) connectivityExecutors).getCompletedTaskCount());
+        map.put("requestTimeoutCount", this.requestTimeoutCount);
+        if (lastRequestTimeoutTime > 0) {
+            map.put("lastRequestTimeoutTime", new Date(lastRequestTimeoutTime));
+        }
         return map;
     }
 
@@ -235,8 +242,10 @@ final class BridgeServiceImpl implements BridgeService {
                 }
             }
         } catch (InterruptedIOException ie) {
-            long timeout = (System.currentTimeMillis() - stateStartTime) / 1000;
-            breathingOnException("Timeout occurred after " + timeout + " sec", 5, ie);
+            requestTimeoutCount++;
+            lastRequestTimeoutTime = System.currentTimeMillis();
+            long timeout = (lastRequestTimeoutTime - stateStartTime) / 1000;
+            breathingOnException("!!!!!!!!!!!!!!!!!!! request timeout after request timeout after " + timeout + " sec", 5, ie);
         } catch (SocketException | UnknownHostException e) {
             breathingOnException("Failed to retrieve abridged tasks. ALM Octane Server is not accessible", 30, e);
         } catch (IOException ioe) {

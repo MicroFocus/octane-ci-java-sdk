@@ -72,6 +72,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
 
+	//Metrics
+	private long lastIterationTime = 0;
+
 
 	public VulnerabilitiesServiceImpl(QueueingService queueingService, VulnerabilitiesToolService[] vulnerabilitiesToolServices,
 									  OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
@@ -159,6 +162,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private void worker() {
 		while (!vulnerabilitiesProcessingExecutor.isShutdown()) {
 			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+			lastIterationTime = System.currentTimeMillis();
+
 			if (vulnerabilitiesQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_VULNERABILITIES_RESULTS_MONITOR);
 				continue;
@@ -345,6 +350,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
+		map.put("lastIterationTime", new Date(this.lastIterationTime));
 		return map;
 	}
 

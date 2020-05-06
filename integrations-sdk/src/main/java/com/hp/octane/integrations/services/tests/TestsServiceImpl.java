@@ -22,6 +22,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -38,8 +39,10 @@ import org.apache.logging.log4j.Logger;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -49,6 +52,9 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * Default implementation of tests service
+ * Handled by
+ * com.hp.mqm.analytics.devops.insights.resources.DevopsInsightsSSAResource#isTestResultNeeded
+ * com.hp.mqm.testbox.rest.TestResultCIPushResource#pushXml
  */
 
 final class TestsServiceImpl implements TestsService {
@@ -65,6 +71,11 @@ final class TestsServiceImpl implements TestsService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 	private int REGULAR_CYCLE_PAUSE = 250;
+
+	//Metrics
+	private long lastIterationTime = 0;
+	private long requestTimeoutCount = 0;
+	private long lastRequestTimeoutTime = 0;
 
 	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null) {
@@ -104,7 +115,11 @@ final class TestsServiceImpl implements TestsService {
 		if (rootJobId != null && !rootJobId.isEmpty()) {
 			url += "?rootJobId=" + CIPluginSDKUtils.urlEncodePathParam(rootJobId);
 		}
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
+		OctaneRequest preflightRequest = dtoFactory
+				.newDTO(OctaneRequest.class)
+				.setMethod(HttpMethod.GET)
+				.setTimeoutSec(60)
+				.setUrl(url);
 
 		try {
 			OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
@@ -118,6 +133,8 @@ final class TestsServiceImpl implements TestsService {
 			} else {
 				throw new PermanentException("preflight request failed with status " + response.getStatus() + ". JobId: '" + jobId + "'. Request URL : " + url);
 			}
+		} catch (InterruptedIOException ie) {
+			throw new RequestTimeoutException("!!!!!!!!!!!!!!!!!!! request timeout during preflight : " + ie.getClass().getCanonicalName() + " - " + ie.getMessage());
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
 		}
@@ -171,8 +188,14 @@ final class TestsServiceImpl implements TestsService {
 				.setMethod(HttpMethod.POST)
 				.setUrl(uri)
 				.setHeaders(headers)
-				.setBody(testsResult);
-		return octaneRestClient.execute(request);
+				.setBody(testsResult)
+				.setTimeoutSec(60*3);//give 3 min for case of big number of tests
+
+		try {
+			return octaneRestClient.execute(request);
+		} catch (InterruptedIOException ie) {
+			throw new RequestTimeoutException("!!!!!!!!!!!!!!!!!!! request timeout during pushTestsResult : " + ie.getClass().getCanonicalName() + " - " + ie.getMessage());
+		}
 	}
 
 	@Override
@@ -207,6 +230,8 @@ final class TestsServiceImpl implements TestsService {
 	private void worker() {
 		while (!testsPushExecutor.isShutdown()) {
 			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+			lastIterationTime = System.currentTimeMillis();
+
 			if (testResultsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_TEST_RESULTS_MONITOR);
 				continue;
@@ -223,6 +248,11 @@ final class TestsServiceImpl implements TestsService {
 				testsResultQueueItem = testResultsQueue.peek();
 				doPreflightAndPushTestResult(testsResultQueueItem);
 				testResultsQueue.remove();
+			} catch (RequestTimeoutException rte){
+				requestTimeoutCount++;
+				lastRequestTimeoutTime = System.currentTimeMillis();
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + rte.getMessage());
+				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (TemporaryException tque) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
@@ -314,6 +344,11 @@ final class TestsServiceImpl implements TestsService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
+		map.put("requestTimeoutCount", this.requestTimeoutCount);
+		if (lastRequestTimeoutTime > 0) {
+			map.put("lastRequestTimeoutTime", new Date(lastRequestTimeoutTime));
+		}
+		map.put("lastIterationTime", new Date(this.lastIterationTime));
 		return map;
 	}
 

@@ -46,6 +46,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -78,6 +79,9 @@ public class SonarServiceImpl implements SonarService {
 	private int LIST_EMPTY_INTERVAL = 3000;
 	private int REGULAR_CYCLE_PAUSE = 250;
 
+	//Metrics
+	private long lastIterationTime = 0;
+
 	public SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
@@ -107,6 +111,8 @@ public class SonarServiceImpl implements SonarService {
 	private void worker() {
 		while (!sonarIntegrationExecutor.isShutdown()) {
 			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+			lastIterationTime = System.currentTimeMillis();
+
 			if (sonarIntegrationQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_SONAR_COVERAGE_ITEMS_MONITOR);
 				continue;
@@ -364,6 +370,7 @@ public class SonarServiceImpl implements SonarService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
+		map.put("lastIterationTime", new Date(this.lastIterationTime));
 		return map;
 	}
 

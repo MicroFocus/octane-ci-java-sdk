@@ -30,9 +30,11 @@ import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -57,6 +59,9 @@ final class LogsServiceImpl implements LogsService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 	private int REGULAR_CYCLE_PAUSE = 250;
+
+	//Metrics
+	private long lastIterationTime = 0;
 
 	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
@@ -115,6 +120,7 @@ final class LogsServiceImpl implements LogsService {
 	private void worker() {
 		while (!logsPushExecutor.isShutdown()) {
 			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
+			lastIterationTime = System.currentTimeMillis();
 
 			if (buildLogsQueue.size() == 0) {
 				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_LOGS_MONITOR);
@@ -269,6 +275,7 @@ final class LogsServiceImpl implements LogsService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
+		map.put("lastIterationTime", new Date(this.lastIterationTime));
 		return map;
 	}
 
