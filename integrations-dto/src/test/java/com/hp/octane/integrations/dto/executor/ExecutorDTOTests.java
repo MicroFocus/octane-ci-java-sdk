@@ -52,36 +52,4 @@ public class ExecutorDTOTests {
         Assert.assertNotNull(json);
     }
 
-    @Test
-    public void testTestExecutionInfo() throws IOException {
-
-        SCMRepository scm = dtoFactory.newDTO(SCMRepository.class);
-        scm.setType(SCMType.GIT);
-        scm.setUrl("git:bubu");
-
-        TestExecutionInfo testExecInfo1 = dtoFactory.newDTO(TestExecutionInfo.class);
-        testExecInfo1
-                .setPackageName("pac1")
-                .setTestName("test1");
-
-        TestExecutionInfo testExecInfo2 = dtoFactory.newDTO(TestExecutionInfo.class);
-        testExecInfo2
-                .setPackageName("pac2")
-                .setTestName("test2");
-        List<TestExecutionInfo> tests = new ArrayList<>();
-        tests.add(testExecInfo1);
-        tests.add(testExecInfo2);
-
-        TestSuiteExecutionInfo testSuiteInfo = dtoFactory.newDTO(TestSuiteExecutionInfo.class);
-        testSuiteInfo
-                .setTestingToolType(TestingToolType.UFT)
-                .setWorkspaceId("789")
-                .setScmRepository(scm)
-                .setSuiteId("123")
-                .setTests(tests);
-
-
-        String json = dtoFactory.dtoToJson(testSuiteInfo);
-        Assert.assertNotNull(json);
-    }
 }

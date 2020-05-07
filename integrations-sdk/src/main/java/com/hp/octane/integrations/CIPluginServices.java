@@ -20,7 +20,6 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
@@ -254,9 +253,6 @@ public abstract class CIPluginServices {
 		return null;
 	}
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
-	}
-
-	public void runTestSuiteExecution(TestSuiteExecutionInfo testSuiteExecutionInfo) {
 	}
 
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {

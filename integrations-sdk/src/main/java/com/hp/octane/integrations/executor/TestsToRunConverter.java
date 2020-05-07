@@ -94,7 +94,7 @@ public abstract class TestsToRunConverter {
         for (String rawtest : rawTestsArr) {
             String[] testParts = rawtest.split("\\|");
             if (testParts.length < TEST_PARTS_MINIMAL_SIZE) {
-                throw new IllegalArgumentException("Test '" + rawtest + "' doesnot contains all required components");
+                throw new IllegalArgumentException("Test '" + rawtest + "' does not contains all required components");
             }
             TestToRunData data = new TestToRunData();
             result.add(data);

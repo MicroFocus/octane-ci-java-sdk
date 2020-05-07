@@ -29,8 +29,6 @@ public final class DTOExecutorsProvider extends DTOInternalProviderBase {
 	public DTOExecutorsProvider(DTOFactory.DTOConfiguration configuration) {
 		super(configuration);
 		dtoPairs.put(DiscoveryInfo.class, DiscoveryInfoImpl.class);
-		dtoPairs.put(TestSuiteExecutionInfo.class, TestSuiteExecutionInfoImpl.class);
-		dtoPairs.put(TestExecutionInfo.class, TestExecutionInfoImpl.class);
 		dtoPairs.put(TestConnectivityInfo.class, TestConnectivityInfoImpl.class);
 		dtoPairs.put(CredentialsInfo.class, CredentialsInfoImpl.class);
 	}

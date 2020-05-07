@@ -21,7 +21,6 @@ import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.executor.TestSuiteExecutionInfo;
 import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
@@ -138,10 +137,6 @@ final class TasksProcessorImpl implements TasksProcessor {
 							result.setBody(dtoFactory.dtoToJson(node));
 							result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 						}
-						result.setStatus(HttpStatus.SC_OK);
-					} else if (SUITE_RUN.equalsIgnoreCase(path[1])) {
-						TestSuiteExecutionInfo testSuiteExecutionInfo = dtoFactory.dtoFromJson(task.getBody(), TestSuiteExecutionInfo.class);
-						configurer.pluginServices.runTestSuiteExecution(testSuiteExecutionInfo);
 						result.setStatus(HttpStatus.SC_OK);
 					} else if (TEST_CONN.equalsIgnoreCase(path[1])) {
 						TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
