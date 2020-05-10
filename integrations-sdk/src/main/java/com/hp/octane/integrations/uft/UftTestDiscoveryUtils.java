@@ -23,6 +23,9 @@ import org.apache.logging.log4j.Logger;
 import org.apache.poi.poifs.filesystem.*;
 import org.apache.poi.util.StringUtil;
 import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -38,6 +41,8 @@ public class UftTestDiscoveryUtils {
 	private static final Logger logger = LogManager.getLogger(UftTestDiscoveryUtils.class);
 
 	private static final String STFileExtention = ".st";//api test
+	private static final String API_ACTIONS_FILE = "actions.xml";//api test
+
 	private static final String QTPFileExtention = ".tsp";//gui test
 	private static final String XLSXExtention = ".xlsx";//excel file
 	private static final String XLSExtention = ".xls";//excel file
@@ -104,22 +109,17 @@ public class UftTestDiscoveryUtils {
 	}
 
 	public static boolean isTestMainFilePath(String path) {
-		String lowerPath = path.toLowerCase();
-		if (lowerPath.endsWith(STFileExtention)) {
-			return true;
-		} else if (lowerPath.endsWith(QTPFileExtention)) {
-			return true;
-		}
-
-		return false;
+		return !getUftTestType(path).isNone();
 	}
 
 	public static UftTestType getUftTestType(String testMainFilePath) {
 		String lowerPath = testMainFilePath.toLowerCase();
-		if (lowerPath.endsWith(STFileExtention)) {
-			return UftTestType.API;
-		} else if (lowerPath.endsWith(QTPFileExtention)) {
+		if (lowerPath.endsWith(QTPFileExtention)) {
 			return UftTestType.GUI;
+		}
+
+		if (lowerPath.endsWith(STFileExtention) || lowerPath.endsWith(API_ACTIONS_FILE)) {
+			return UftTestType.API;
 		}
 
 		return UftTestType.None;
@@ -142,12 +142,8 @@ public class UftTestDiscoveryUtils {
 		String packageName = relativePath.length() != dirPath.getName().length() ? relativePath.substring(0, relativePath.length() - dirPath.getName().length() - 1) : "";
 		test.setPackage(packageName);
 		test.setExecutable(true);
-
-		if (testType != null && !testType.isNone()) {
-			test.setUftTestType(testType);
-		}
-
-		String description = getTestDescription(dirPath);
+		test.setUftTestType(testType);
+		String description = getTestDescription(dirPath, testType);
 		test.setDescription(description);
 		test.setOctaneStatus(OctaneStatus.NEW);
 
@@ -171,34 +167,70 @@ public class UftTestDiscoveryUtils {
 	 * Note : UFT API test doesn't contain description
 	 *
 	 * @param dirPath path of UFT test
+	 * @param testType
 	 * @return test description
 	 */
-	private static String getTestDescription(File dirPath) {
+	private static String getTestDescription(File dirPath, UftTestType testType) {
 		try {
-			if (!dirPath.exists()) {
+			if (!dirPath.exists() || testType.isNone()) {
 				return null;
 			}
 
-			File tspTestFile = new File(dirPath, "Test.tsp");
-			if (!tspTestFile.exists()) {
-				return null;
+			if (UftTestType.GUI.equals(testType)) {
+				return getTestDescriptionFromGuiTest(dirPath);
+			} else {
+				return getTestDescriptionFromAPITest(dirPath);
 			}
-
-			InputStream is = new FileInputStream(tspTestFile);
-			String xmlContent = extractXmlContentFromTspFile(is);
-
-			DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			//documentBuilderFactory.setIgnoringComments(true);
-			//documentBuilderFactory.setIgnoringElementContentWhitespace(true);
-			//documentBuilderFactory.setValidating(false);
-			DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
-			String desc = document.getElementsByTagName("Description").item(0).getTextContent();
-			return desc;
-		} catch (IOException | ParserConfigurationException | SAXException e) {
+		} catch (Exception e) {
 			return null;
 		}
 	}
+
+	private static String getTestDescriptionFromAPITest(File dirPath) throws ParserConfigurationException, IOException, SAXException {
+
+		//Actions.xml
+		//<Actions>
+		//<Action internalName="MainAction" userDefinedName="APITest1" description="radi end test description" />
+		//</Actions>
+
+		File actionsFile = new File(dirPath, "Actions.xml");
+		if (!actionsFile.exists()) {
+			return null;
+		}
+
+		DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+		Document doc = dBuilder.parse(actionsFile);
+
+		NodeList actions = doc.getElementsByTagName("Action");
+		for (int temp = 0; temp < actions.getLength(); temp++) {
+			Node nNode = actions.item(temp);
+			NamedNodeMap attributes = nNode.getAttributes();
+			Node internalNameAttr = attributes.getNamedItem("internalName");
+			if (internalNameAttr != null && "MainAction".equals(internalNameAttr.getNodeValue())) {
+				return attributes.getNamedItem("description").getNodeValue();
+			}
+		}
+		return null;
+	}
+
+	private static String getTestDescriptionFromGuiTest(File dirPath) throws IOException, ParserConfigurationException, SAXException {
+
+		File tspTestFile = new File(dirPath, "Test.tsp");
+		if (!tspTestFile.exists()) {
+			return null;
+		}
+
+		InputStream is = new FileInputStream(tspTestFile);
+		String xmlContent = extractXmlContentFromTspFile(is);
+
+		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+		Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
+		String desc = document.getElementsByTagName("Description").item(0).getTextContent();
+		return desc;
+	}
+
 
 	private static String extractXmlContentFromTspFile(InputStream stream) throws IOException {
 		POIFSFileSystem poiFS = new POIFSFileSystem(stream);
