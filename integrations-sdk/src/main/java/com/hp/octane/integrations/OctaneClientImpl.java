@@ -259,8 +259,11 @@ final class OctaneClientImpl implements OctaneClient {
 	 * use-cases: OctaneClient configuration being removed from consumer's application
 	 */
 	void remove() {
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "Removing client");
 		//  shut down services
 		close();
+
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "Removing client - services closed");
 
 		//  clean storage
 		if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
@@ -272,6 +275,7 @@ final class OctaneClientImpl implements OctaneClient {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to clean dedicated storage");
 			}
 		}
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "Removing client done");
 	}
 
 	private void ensureStorageIfAny() {
