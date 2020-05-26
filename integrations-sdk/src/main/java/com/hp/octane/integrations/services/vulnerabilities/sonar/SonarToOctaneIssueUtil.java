@@ -91,13 +91,12 @@ public class SonarToOctaneIssueUtil {
             return null;
         }
         //"2017-02-12T12:31:44.000+0000"
-        DateFormat sourceDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
-        Date date;
         try {
-            date = sourceDateFormat.parse(inputFoundDate);
-            //"2018-06-03T14:06:58Z"
-            SimpleDateFormat targetDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-            return targetDateFormat.format(date);
+            //convert date to string in utc
+            SimpleDateFormat sourceDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ssz");
+            DateFormat dfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.ROOT);
+            dfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
+            return dfUtc.format(sourceDateFormat.parse(inputFoundDate));
         } catch (ParseException e) {
             logger.error(e.getMessage());
             logger.error(e.getStackTrace());
