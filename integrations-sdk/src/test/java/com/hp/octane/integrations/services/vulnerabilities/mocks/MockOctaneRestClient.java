@@ -32,6 +32,12 @@ public class MockOctaneRestClient implements OctaneRestClient {
     public void shutdown() {
 
     }
+
+    @Override
+    public Map<String, Object> getMetrics() {
+        return null;
+    }
+
     public static class DummyResponse implements OctaneResponse {
         private final String response;
         private final int responseCode;
