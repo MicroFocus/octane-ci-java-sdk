@@ -18,10 +18,11 @@ package com.hp.octane.integrations.services.rest;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.services.HasMetrics;
 
 import java.io.IOException;
 
-public interface OctaneRestClient {
+public interface OctaneRestClient extends HasMetrics {
 
 	/**
 	 * Executes Octane server oriented request based on the pre-configuration

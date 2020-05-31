@@ -97,8 +97,7 @@ final class BridgeServiceImpl implements BridgeService {
         map.put("state", serviceState.name());
         map.put("stateStartTime", new Date(stateStartTime));
         map.put("lastRequestToOctaneTime", new Date(lastRequestToOctaneTime));
-        //map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
-        //map.put("connectivityExecutors.getCompletedTaskCount", ((ThreadPoolExecutor) connectivityExecutors).getCompletedTaskCount());
+        map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
         map.put("requestTimeoutCount", this.requestTimeoutCount);
         if (lastRequestTimeoutTime > 0) {
             map.put("lastRequestTimeoutTime", new Date(lastRequestTimeoutTime));

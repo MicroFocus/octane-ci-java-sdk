@@ -69,6 +69,10 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,8 +93,14 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final CloseableHttpClient httpClient;
-	private final List<HttpUriRequest> ongoingRequests = new LinkedList<>();
+
+	private final ExecutorService requestMonitorExecutors = Executors.newFixedThreadPool(5, new RequestMonitorExecutorsFactory());
+	private long requestMonitorExecutorsAbortedCount = 0;
+	private long lastRequestMonitorWorkerTime = 0;
+	private final Map<HttpUriRequest, Long> ongoingRequests2Started = new HashMap();
+	private final long REQUEST_ABORT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(120);//120 sec in ms
 	private final Object REQUESTS_LIST_LOCK = new Object();
+	private boolean shutdownActivated = false;
 
 	private Cookie LWSSO_TOKEN = null;
 	private boolean loginRequiredForRefreshLwssoToken = false;
@@ -99,6 +109,8 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
+
+		requestMonitorExecutors.execute(this::requestMonitorWorker);
 
 		this.configurer = configurer;
 
@@ -139,10 +151,12 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 	@Override
 	public void shutdown() {
+		shutdownActivated = true;
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting REST client shutdown sequence...");
 		abortAllRequests();
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "closing the client...");
 		HttpClientUtils.closeQuietly(httpClient);
+		requestMonitorExecutors.shutdown();
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "REST client shutdown done");
 	}
 
@@ -152,11 +166,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	}
 
 	private void abortAllRequests() {
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "aborting " + ongoingRequests.size() + " request/s...");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "aborting " + ongoingRequests2Started.size() + " request/s...");
 		synchronized (REQUESTS_LIST_LOCK) {
 			LWSSO_TOKEN = null;
 			loginRequiredForRefreshLwssoToken = true;
-			for (HttpUriRequest request : ongoingRequests) {
+			for (HttpUriRequest request : ongoingRequests2Started.keySet()) {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "\taborting " + request);
 				request.abort();
 			}
@@ -184,11 +198,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				uriRequest = createHttpRequest(request);
 				context = createHttpContext(request.getUrl(), request.getTimeoutSec(), false);
 				synchronized (REQUESTS_LIST_LOCK) {
-					ongoingRequests.add(uriRequest);
+					ongoingRequests2Started.put(uriRequest, System.currentTimeMillis());
 				}
 				httpResponse = httpClient.execute(uriRequest, context);
 				synchronized (REQUESTS_LIST_LOCK) {
-					ongoingRequests.remove(uriRequest);
+					ongoingRequests2Started.remove(uriRequest);
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
@@ -215,9 +229,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed executing " + request, ioe);
 			throw ioe;
 		} finally {
-			if (uriRequest != null && ongoingRequests.contains(uriRequest)) {
+			if (uriRequest != null && ongoingRequests2Started.containsKey(uriRequest)) {
 				synchronized (REQUESTS_LIST_LOCK) {
-					ongoingRequests.remove(uriRequest);
+					ongoingRequests2Started.remove(uriRequest);
 				}
 			}
 			if (httpResponse != null) {
@@ -427,6 +441,41 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		}
 	}
 
+	private void requestMonitorWorker() {
+		while (!shutdownActivated) {
+			lastRequestMonitorWorkerTime = System.currentTimeMillis();
+			try {
+				synchronized (REQUESTS_LIST_LOCK) {
+					ongoingRequests2Started.entrySet().forEach(entry -> {
+						long expectedEnd = entry.getValue() + REQUEST_ABORT_TIMEOUT_MS;
+						long diff = System.currentTimeMillis() - expectedEnd;
+						if (diff > 0 && !entry.getKey().isAborted()) {
+							logger.info(configurer.octaneConfiguration.geLocationForLog() + " Aborting " + entry.getKey() + " as expected timeout is over ");
+							entry.getKey().abort();
+							requestMonitorExecutorsAbortedCount++;
+						}
+					});
+				}
+			} catch (Exception e) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "requestMonitorWorker error : " + e.getMessage(), e);
+			}
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "requestMonitorWorker sleep interrupted : " + e.getMessage());
+			}
+		}
+	}
+
+	@Override
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("requestMonitorExecutorsAbortedCount", requestMonitorExecutorsAbortedCount);
+		map.put("ongoingRequests.size", ongoingRequests2Started.size());
+		map.put("lastRequestMonitorWorkerTime", new Date(lastRequestMonitorWorkerTime));
+		return map;
+	}
+
 	public static final class CustomHostnameVerifier implements HostnameVerifier {
 		private final HostnameVerifier defaultVerifier = new DefaultHostnameVerifier();
 
@@ -471,6 +520,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			return "LoginApiBody {" +
 					"client_id: " + client_id +
 					", client_secret: " + client_secret + "}";
+		}
+	}
+
+	private static final class RequestMonitorExecutorsFactory implements ThreadFactory {
+		public Thread newThread(Runnable runnable) {
+			Thread result = new Thread(runnable);
+			result.setName("OctaneRestClientRequestWorker-" + result.getId());
+			result.setDaemon(true);
+			return result;
 		}
 	}
 }
