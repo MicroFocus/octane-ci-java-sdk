@@ -76,6 +76,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final Thread shutdownHook;
 	private boolean isShutdownHookActivated;
 	private long shutdownHookActivatedTime;
+	private long started = System.currentTimeMillis();
 
 	OctaneClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -317,6 +318,7 @@ final class OctaneClientImpl implements OctaneClient {
 		if (isShutdownHookActivated) {
 			map.put("shutdownHookActivatedTime", new Date(shutdownHookActivatedTime));
 		}
+		map.put("started", new Date(started));
 		return map;
 	}
 }
