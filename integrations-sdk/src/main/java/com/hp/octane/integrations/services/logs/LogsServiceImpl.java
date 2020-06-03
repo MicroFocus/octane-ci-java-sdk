@@ -248,7 +248,11 @@ final class LogsServiceImpl implements LogsService {
 			try {
 				result = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
 			} catch (IOException ioe) {
-				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
+				if (CIPluginSDKUtils.isServiceTemporaryUnavailable(response.getBody())) {
+					throw new TemporaryException("Saas service is temporary unavailable.");
+				} else {
+					throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
+				}
 			}
 		}
 		return result;
