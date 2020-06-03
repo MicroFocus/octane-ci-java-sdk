@@ -253,5 +253,11 @@ public class CIPluginSDKUtils {
 		}
 	}
 
+	public static boolean isServiceTemporaryUnavailable(String body) {
+		return body != null && body.contains("Service Temporar");
+		//Service Temporary Unavailable
+		//Service Temporarily Unavailable"
+	}
+
 }
 

@@ -232,6 +232,9 @@ final class EventsServiceImpl implements EventsService {
 			CIPluginSDKUtils.doWait(30000);
 			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());
 		} else if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
+			if (CIPluginSDKUtils.isServiceTemporaryUnavailable(octaneResponse.getBody())) {
+				throw new TemporaryException("Saas service is temporary unavailable.");
+			}
 			throw new PermanentException("PUT events failed with status " + octaneResponse.getStatus());
 		}
 	}

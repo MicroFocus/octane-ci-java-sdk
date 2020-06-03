@@ -215,7 +215,7 @@ final class BridgeServiceImpl implements BridgeService {
             if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
                 responseBody = octaneResponse.getBody();
 
-                if (isServiceTemporaryUnavailable(responseBody)) {
+                if (CIPluginSDKUtils.isServiceTemporaryUnavailable(responseBody)) {
                     breathingOnException("Saas service is temporary unavailable.", 60, null);
                     responseBody = null;
                 }
@@ -283,12 +283,6 @@ final class BridgeServiceImpl implements BridgeService {
         } catch (Exception e) {
             logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to process tasks", e);
         }
-    }
-
-    private boolean isServiceTemporaryUnavailable(String tasksJSON) {
-        return tasksJSON != null && tasksJSON.contains("Service Temporar");
-        //Service Temporary Unavailable
-        //Service Temporarily Unavailable"
     }
 
     private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
