@@ -113,7 +113,7 @@ final class TestsServiceImpl implements TestsService {
 				"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
 				"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight";
 		if (rootJobId != null && !rootJobId.isEmpty()) {
-			url += "?rootJobId=" + CIPluginSDKUtils.urlEncodePathParam(rootJobId);
+			url += "?rootJobId=" + CIPluginSDKUtils.urlEncodeQueryParam(rootJobId);
 		}
 		OctaneRequest preflightRequest = dtoFactory
 				.newDTO(OctaneRequest.class)
