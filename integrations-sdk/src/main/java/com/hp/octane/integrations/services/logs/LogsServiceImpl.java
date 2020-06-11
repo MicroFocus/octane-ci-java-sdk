@@ -43,6 +43,7 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * Default implementation of build logs dispatching service
+ * com.hp.mqm.analytics.common.resources.CIAnalyticsCommonWSAResource#bdiDispatchLogs
  */
 
 final class LogsServiceImpl implements LogsService {
@@ -156,7 +157,7 @@ final class LogsServiceImpl implements LogsService {
 		OctaneConfiguration octaneConfiguration = configurer.octaneConfiguration;
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
 		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
-		String encodedRootJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.rootJobId);
+		String encodedRootJobId = CIPluginSDKUtils.urlEncodeQueryParam(queueItem.rootJobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(queueItem.buildId);
 
 		//  preflight
