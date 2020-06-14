@@ -44,6 +44,7 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * Default implementation of Coverage Service
+ * com.hp.mqm.analytics.common.resources.CIAnalyticsCommonSSAResource#pushCoverage
  */
 
 class CoverageServiceImpl implements CoverageService {
