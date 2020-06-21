@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -135,13 +136,20 @@ class CoverageServiceImpl implements CoverageService {
 		boolean result = false;
 		OctaneResponse response;
 
+		boolean base64 = isEncodeBase64();
+		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodePathParam(jobId);
+
 		//  get result
 		try {
-			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-					.setMethod(HttpMethod.GET)
-					.setUrl(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-							"servers/" + CIPluginSDKUtils.urlEncodePathParam(configurer.octaneConfiguration.getInstanceId()) +
-							"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/workspaceId");
+			String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+					"servers/" + CIPluginSDKUtils.urlEncodePathParam(configurer.octaneConfiguration.getInstanceId()) +
+					"/jobs/" + encodedJobId + "/workspaceId";
+			if (base64) {
+				url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+			}
+
+			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
+
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
@@ -169,6 +177,10 @@ class CoverageServiceImpl implements CoverageService {
 		return result;
 	}
 
+	private boolean isEncodeBase64() {
+		return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
+	}
+
 	@Override
 	public OctaneResponse pushCoverage(String jobId, String buildId, CoverageReportType reportType, InputStream coverageReport) {
 		if (jobId == null || jobId.isEmpty()) {
@@ -183,15 +195,23 @@ class CoverageServiceImpl implements CoverageService {
 		if (coverageReport == null) {
 			throw new IllegalArgumentException("coverage report data MUST NOT be null");
 		}
+		boolean base64 = isEncodeBase64();
+		String tempJobId = jobId;
+		if (base64) {
+			tempJobId = CIPluginSDKUtils.urlEncodeBase64(jobId);
+		}
 
 		String url;
 		try {
 			url = new URIBuilder(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) + "coverage")
 					.setParameter("ci-server-identity", configurer.octaneConfiguration.getInstanceId())
-					.setParameter("ci-job-id", jobId)
+					.setParameter("ci-job-id", tempJobId)
 					.setParameter("ci-build-id", buildId)
 					.setParameter("file-type", reportType.name())
 					.toString();
+			if (base64) {
+				url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+			}
 		} catch (URISyntaxException urise) {
 			throw new PermanentException("failed to build URL to push coverage report", urise);
 		}

@@ -1,11 +1,14 @@
 package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OctaneConfiguration {
     private final String instanceId;
@@ -18,6 +21,7 @@ public class OctaneConfiguration {
     private boolean suspended;
     private boolean sdkSupported = true;
     private String impersonatedUser;
+    private Map<String, ConfigurationParameter> parameters = new HashMap<>();
 
     public OctaneConfiguration(String instanceId, String url, String sharedSpace) {
         if (instanceId == null || instanceId.isEmpty()) {
@@ -154,5 +158,17 @@ public class OctaneConfiguration {
 
     protected void setSdkSupported(boolean sdkSupported) {
         this.sdkSupported = sdkSupported;
+    }
+
+    public void clearParameters(){
+        this.parameters.clear();
+    }
+
+    public void addParameter(ConfigurationParameter param) {
+        this.parameters.put(param.getKey(), param);
+    }
+
+    public ConfigurationParameter getParameter(String key) {
+        return this.parameters.get(key);
     }
 }

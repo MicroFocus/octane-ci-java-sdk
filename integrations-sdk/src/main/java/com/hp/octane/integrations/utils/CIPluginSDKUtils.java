@@ -20,6 +20,8 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
+import com.hp.octane.integrations.services.configurationparameters.EncodeCiJobBase64Parameter;
+import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,6 +34,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
@@ -173,6 +176,20 @@ public class CIPluginSDKUtils {
 		}
 		return result;
 	}
+
+	public static String urlEncodeBase64(String input) {
+		String result = input;
+		if (input != null) {
+			result = Base64.getUrlEncoder().encodeToString(input.getBytes(Charsets.UTF_8));
+		}
+		return result;
+	}
+
+	public static String addParameterEncode64ToUrl(String url) {
+		String tmp = url + (url.contains("?") ? "&" : "?") + EncodeCiJobBase64Parameter.OCTANE_PARAMETER + "=" + EncodeCiJobBase64Parameter.OCTANE_PARAMETER_VALUE;
+		return tmp;
+	}
+
 
 	/**
 	 * encodes string as query param

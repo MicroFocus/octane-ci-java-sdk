@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -42,10 +43,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -109,12 +107,20 @@ final class TestsServiceImpl implements TestsService {
 			throw new IllegalArgumentException("job CI ID MUST NOT be null nor empty");
 		}
 
+		boolean base64 = isEncodeBase64();
+		String jobIdEncoded = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodePathParam(jobId);
+		String rootJobIdEncoded = base64 ? CIPluginSDKUtils.urlEncodeBase64(rootJobId) : CIPluginSDKUtils.urlEncodeQueryParam(rootJobId);
+
 		String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 				"servers/" + CIPluginSDKUtils.urlEncodePathParam(serverCiId) +
-				"/jobs/" + CIPluginSDKUtils.urlEncodePathParam(jobId) + "/tests-result-preflight";
+				"/jobs/" + jobIdEncoded + "/tests-result-preflight";
 		if (rootJobId != null && !rootJobId.isEmpty()) {
-			url += "?rootJobId=" + CIPluginSDKUtils.urlEncodeQueryParam(rootJobId);
+			url += "?rootJobId=" + rootJobIdEncoded;
 		}
+		if (base64) {
+			url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+		}
+
 		OctaneRequest preflightRequest = dtoFactory
 				.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
@@ -138,6 +144,10 @@ final class TestsServiceImpl implements TestsService {
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
 		}
+	}
+
+	private boolean isEncodeBase64() {
+		return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
 	}
 
 	@Override
@@ -172,24 +182,34 @@ final class TestsServiceImpl implements TestsService {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
+
+		String tempJobId = jobId;
+		boolean base64 = isEncodeBase64();
+		if (base64) {
+			tempJobId = CIPluginSDKUtils.urlEncodeBase64(jobId);
+		}
+
 		String uri;
 		try {
 			uri = new URIBuilder(getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) + "test-results")
 					.addParameter("skip-errors", "false")
 					.addParameter("instance-id", configurer.octaneConfiguration.getInstanceId())
-					.addParameter("job-ci-id", jobId)
+					.addParameter("job-ci-id", tempJobId)
 					.addParameter("build-ci-id", buildId)
 					.build()
 					.toString();
 		} catch (URISyntaxException urise) {
 			throw new PermanentException("failed to build URL to Octane's 'test-results' resource", urise);
 		}
+		if (base64) {
+			uri = CIPluginSDKUtils.addParameterEncode64ToUrl(uri);
+		}
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
 				.setUrl(uri)
 				.setHeaders(headers)
 				.setBody(testsResult)
-				.setTimeoutSec(60*3);//give 3 min for case of big number of tests
+				.setTimeoutSec(60 * 2);//give 2 min for case of big number of tests
 
 		try {
 			return octaneRestClient.execute(request);

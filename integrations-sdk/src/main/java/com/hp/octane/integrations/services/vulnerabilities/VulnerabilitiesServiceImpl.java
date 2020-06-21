@@ -22,6 +22,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -46,6 +47,8 @@ import java.util.concurrent.*;
 
 /**
  * Default implementation of vulnerabilities service
+ * com.hp.mqm.analytics.devops.insights.resources.DevopsInsightsSSAPublicApiResource#isVulnerabilitiesRelevant
+ * com.hp.mqm.analytics.devops.insights.resources.DevopsInsightsSSAPublicApiResource#upsertVulnerabilities
  */
 
 public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
@@ -251,16 +254,29 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		}
 	}
 
+	private boolean isEncodeBase64() {
+		return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
+	}
+
 	private void pushVulnerabilities(InputStream vulnerabilities, String jobId, String buildId) throws IOException {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+
+		boolean base64 = isEncodeBase64();
+		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodePathParam(jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
+
+		String url = getVulnerabilitiesContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+				"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId;
+
+		if (base64) {
+			url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+		}
+
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.POST)
-				.setUrl(getVulnerabilitiesContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-						"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId)
+				.setUrl(url)
 				.setHeaders(headers)
 				.setBody(vulnerabilities);
 
@@ -313,14 +329,16 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	private OctaneResponse getBaselineDateFromOctane(String jobId, String buildId) throws IOException {
-		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
+		boolean base64 = isEncodeBase64();
+		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodePathParam(jobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
+		String url = getVulnerabilitiesPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+				"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId;
+		if (base64) {
+			url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+		}
 
-		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-				.setMethod(HttpMethod.GET)
-				.setUrl(getVulnerabilitiesPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-						"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId);
-
+		OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
 		return restService.obtainOctaneRestClient().execute(preflightRequest);
 	}
 
