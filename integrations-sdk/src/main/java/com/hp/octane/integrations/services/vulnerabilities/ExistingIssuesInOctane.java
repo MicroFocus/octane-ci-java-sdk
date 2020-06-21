@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -33,6 +34,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/***
+ * com.hp.mqm.analytics.devops.insights.resources.DevopsInsightsSSAPublicApiResource#getRemoteIdsOfIssueOfSiblingRuns
+ */
 public class ExistingIssuesInOctane {
 
     private final static Logger logger = LogManager.getLogger(ExistingIssuesInOctane.class);
@@ -45,18 +49,29 @@ public class ExistingIssuesInOctane {
         this.octaneRestClient = octaneRestClient;
         this.octaneConfiguration = octaneConfiguration;
     }
+
     public List<String> getRemoteIdsOpenVulnsFromOctane(String jobId, String runId, String remoteTag) throws IOException {
 
         Map<String, String> headers = new HashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 
+        boolean base64 = ConfigurationParameterFactory.isEncodeCiJobBase64(octaneConfiguration);
+        String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodeQueryParam(jobId);
+
+        String url = getOpenVulnerabilitiesContextPath(octaneConfiguration.getUrl(),
+                octaneConfiguration.getSharedSpace()) +
+                "?instance-id=" + octaneConfiguration.getInstanceId() +
+                String.format("&job-ci-id=%s&build-ci-id=%s&state=open&remote-tag=%s",
+                        encodedJobId,
+                        CIPluginSDKUtils.urlEncodeQueryParam(runId),
+                        CIPluginSDKUtils.urlEncodeQueryParam(remoteTag));
+        if (base64) {
+            url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+        }
+
         OctaneRequest request = DTOFactory.getInstance().newDTO(OctaneRequest.class)
                 .setMethod(HttpMethod.GET)
-                .setUrl(getOpenVulnerabilitiesContextPath(octaneConfiguration.getUrl(),
-                        octaneConfiguration.getSharedSpace()) +
-                        "?instance-id=" + octaneConfiguration.getInstanceId() +
-                        String.format("&job-ci-id=%s&build-ci-id=%s&state=open&remote-tag=%s", CIPluginSDKUtils.urlEncodeQueryParam(jobId), CIPluginSDKUtils.urlEncodeQueryParam(runId),
-                                CIPluginSDKUtils.urlEncodeQueryParam(remoteTag)))
+                .setUrl(url)
                 .setHeaders(headers);
 
 

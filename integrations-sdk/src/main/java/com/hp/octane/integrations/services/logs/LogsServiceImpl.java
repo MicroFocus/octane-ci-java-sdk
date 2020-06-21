@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -156,12 +157,14 @@ final class LogsServiceImpl implements LogsService {
 	private void pushBuildLog(String serverId, BuildLogQueueItem queueItem) {
 		OctaneConfiguration octaneConfiguration = configurer.octaneConfiguration;
 		String encodedServerId = CIPluginSDKUtils.urlEncodePathParam(serverId);
-		String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
-		String encodedRootJobId = CIPluginSDKUtils.urlEncodeQueryParam(queueItem.rootJobId);
 		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(queueItem.buildId);
 
+		boolean base64 = isEncodeBase64();
+		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(queueItem.jobId) : CIPluginSDKUtils.urlEncodePathParam(queueItem.jobId);
+		String encodedRootJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(queueItem.rootJobId) : CIPluginSDKUtils.urlEncodeQueryParam(queueItem.rootJobId);
+
 		//  preflight
-		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId, encodedRootJobId);
+		String[] workspaceIDs = preflightRequest(octaneConfiguration, encodedServerId, encodedJobId, encodedRootJobId, base64);
 		if (workspaceIDs.length == 0) {
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "log of " + queueItem + ", no interested workspace is found");
 			return;
@@ -175,11 +178,16 @@ final class LogsServiceImpl implements LogsService {
 		OctaneRequest request;
 		OctaneResponse response;
 		for (String workspaceId : workspaceIDs) {
+			String url = octaneConfiguration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
+					"/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART +
+					encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs";
+			if (base64) {
+				url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+			}
+
 			request = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.POST)
-					.setUrl(octaneConfiguration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + octaneConfiguration.getSharedSpace() +
-							"/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART +
-							encodedServerId + "/" + encodedJobId + "/" + encodedBuildId + "/logs");
+					.setUrl(url);
 			try {
 				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
 				if (log == null) {
@@ -216,15 +224,22 @@ final class LogsServiceImpl implements LogsService {
 		}
 	}
 
-	private String[] preflightRequest(OctaneConfiguration octaneConfiguration, String serverId, String jobId, String rootJobId) {
+	private boolean isEncodeBase64() {
+		return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
+	}
+
+	private String[] preflightRequest(OctaneConfiguration octaneConfiguration, String encodedServerId, String encodedJobId, String encodedRootJobId, boolean base64) {
 		String[] result = new String[0];
 		OctaneResponse response;
 
 		//  get result
 		String url = getAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), octaneConfiguration.getSharedSpace()) +
-				"servers/" + serverId + "/jobs/" + jobId + "/workspaceId";
-		if (rootJobId != null && !rootJobId.isEmpty()) {
-			url += "?rootJobId=" + rootJobId;
+				"servers/" + encodedServerId + "/jobs/" + encodedJobId + "/workspaceId";
+		if (encodedRootJobId != null && !encodedRootJobId.isEmpty()) {
+			url += "?rootJobId=" + encodedRootJobId;
+		}
+		if (base64) {
+			url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
 		}
 		try {
 			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
@@ -238,7 +253,7 @@ final class LogsServiceImpl implements LogsService {
 				CIPluginSDKUtils.doWait(30000);
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
-				throw new PermanentException("preflight request failed with status " + response.getStatus()  + ". JobId: '" + jobId + "'. Request URL : " + url);
+				throw new PermanentException("preflight request failed with status " + response.getStatus()  + ". JobId: '" + encodedJobId + "'. Request URL : " + url);
 			}
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
@@ -252,7 +267,7 @@ final class LogsServiceImpl implements LogsService {
 				if (CIPluginSDKUtils.isServiceTemporaryUnavailable(response.getBody())) {
 					throw new TemporaryException("Saas service is temporary unavailable.");
 				} else {
-					throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
+					throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + encodedJobId + "'");
 				}
 			}
 		}
