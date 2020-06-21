@@ -26,6 +26,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelineContext;
 import com.hp.octane.integrations.dto.pipelines.PipelineContextList;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.exceptions.OctaneRestException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -75,10 +76,21 @@ final class PipelineContextServiceImpl implements PipelineContextService {
 	}
 
 	private String getConfigurationUrl(String serverIdentity, String jobName) {
-		return getSharedspaceAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
+		boolean base64 = isEncodeBase64();
+		String jobNameEncoded = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobName) : CIPluginSDKUtils.urlEncodePathParam(jobName);
+		String url = getSharedspaceAnalyticsContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 				String.format("servers/%s/jobs/%s/configuration",
 						CIPluginSDKUtils.urlEncodePathParam(serverIdentity),
-						CIPluginSDKUtils.urlEncodePathParam(jobName));
+						jobNameEncoded);
+		if (base64) {
+			url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+			logger.info("Using base64, " + url);
+		}
+		return url;
+	}
+
+	private boolean isEncodeBase64() {
+		return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
 	}
 
 	@Override
