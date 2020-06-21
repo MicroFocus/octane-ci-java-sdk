@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class OctaneConfiguration {
     private final String instanceId;
@@ -162,6 +163,10 @@ public class OctaneConfiguration {
 
     public void clearParameters(){
         this.parameters.clear();
+    }
+
+    public Set<String> getParameterNames(){
+        return this.parameters.keySet();
     }
 
     public void addParameter(ConfigurationParameter param) {

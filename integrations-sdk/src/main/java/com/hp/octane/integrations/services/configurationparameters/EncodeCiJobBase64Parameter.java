@@ -18,11 +18,11 @@ public class EncodeCiJobBase64Parameter implements ConfigurationParameter {
 
 	public static EncodeCiJobBase64Parameter create(String rawValue) {
 		if (rawValue == null) {
-			throw new IllegalArgumentException("Expected boolean value");
+			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
 		}
 
 		if (!(rawValue.equalsIgnoreCase("true") || rawValue.equalsIgnoreCase("false"))) {
-			throw new IllegalArgumentException("Expected boolean value");
+			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
 		}
 
 		return new EncodeCiJobBase64Parameter(Boolean.parseBoolean(rawValue));
@@ -31,5 +31,10 @@ public class EncodeCiJobBase64Parameter implements ConfigurationParameter {
 	@Override
 	public String getKey() {
 		return KEY;
+	}
+
+	@Override
+	public String getRawValue() {
+		return Boolean.toString(isEncoded);
 	}
 }

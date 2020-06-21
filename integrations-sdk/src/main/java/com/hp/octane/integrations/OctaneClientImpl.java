@@ -146,6 +146,11 @@ final class OctaneClientImpl implements OctaneClient {
 		});
 		Runtime.getRuntime().addShutdownHook(shutdownHook);
 
+		configurer.octaneConfiguration.getParameterNames().forEach(paramName -> {
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + String.format("System parameter %s:%s", paramName,
+					configurer.octaneConfiguration.getParameter(paramName).getRawValue()));
+		});
+
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId());
 	}
 

@@ -119,6 +119,7 @@ final class TestsServiceImpl implements TestsService {
 		}
 		if (base64) {
 			url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
+			logger.info("Using base64, " + url);
 		}
 
 		OctaneRequest preflightRequest = dtoFactory
