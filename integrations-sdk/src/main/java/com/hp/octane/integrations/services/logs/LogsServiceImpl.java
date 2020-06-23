@@ -142,7 +142,7 @@ final class LogsServiceImpl implements LogsService {
 				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully processed " + buildLogQueueItem);
 				buildLogsQueue.remove();
 			} catch (TemporaryException tque) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + buildLogQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying");
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + buildLogQueueItem + ", passing over", pqie);
