@@ -18,6 +18,7 @@ package com.hp.octane.integrations.services.bridge;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 
@@ -29,10 +30,11 @@ public interface BridgeService extends ClosableService, HasMetrics {
 	 * @param configurer     SDK services configurer object
 	 * @param restService    Rest Service
 	 * @param tasksProcessor Tasks Processor
+	 * @param configurationService
 	 * @return initialized service
 	 */
-	static BridgeService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
-		return new BridgeServiceImpl(configurer, restService, tasksProcessor);
+	static BridgeService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor, ConfigurationService configurationService) {
+		return new BridgeServiceImpl(configurer, restService, tasksProcessor, configurationService);
 	}
 
 }
