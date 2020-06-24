@@ -114,18 +114,18 @@ final class OctaneClientImpl implements OctaneClient {
 		logsService = LogsService.newInstance(configurer, queueingService, restService);
 		testsService = TestsService.newInstance(configurer, queueingService, restService);
 
-		sscService = SSCService.newInstance(configurer,restService);
-		sonarService = SonarService.newInstance(configurer, queueingService,coverageService);
-        sonarVulnerabilitiesService = SonarVulnerabilitiesService.newInstance(configurer,restService);
-		FODService fodService = FODService.newInstance(configurer,restService);
+		sscService = SSCService.newInstance(configurer, restService);
+		sonarService = SonarService.newInstance(configurer, queueingService, coverageService);
+		sonarVulnerabilitiesService = SonarVulnerabilitiesService.newInstance(configurer, restService);
+		FODService fodService = FODService.newInstance(configurer, restService);
 
 		VulnerabilitiesToolService[] vulnerabilitiesToolServices = {sscService, sonarVulnerabilitiesService, fodService};
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer,restService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer, restService);
 
 		pullRequestService = PullRequestService.newInstance(configurer, restService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
-		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor);
+		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor, configurationService);
 
 		//  register shutdown hook to allow graceful shutdown of services/resources
 		shutdownHook = new Thread(() -> {
@@ -156,9 +156,8 @@ final class OctaneClientImpl implements OctaneClient {
 
 	@Override
 	public void refreshSdkSupported() {
-		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(true);
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(false);
 		if (octaneConnectivityStatus != null) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
 			configurer.octaneConfiguration.setSdkSupported(CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus));
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sdkSupported = " + configurer.octaneConfiguration.isSdkSupported());
 		} else {
@@ -308,7 +307,7 @@ final class OctaneClientImpl implements OctaneClient {
 		return folder.delete();
 	}
 
-	void notifyCredentialsChanged(){
+	void notifyCredentialsChanged() {
 		restService.notifyConfigurationChange();
 	}
 
@@ -323,6 +322,8 @@ final class OctaneClientImpl implements OctaneClient {
 		if (isShutdownHookActivated) {
 			map.put("shutdownHookActivatedTime", new Date(shutdownHookActivatedTime));
 		}
+		OctaneConnectivityStatus status = this.getConfigurationService().getOctaneConnectivityStatus(false);
+		map.put("octaneConnectivityStatus", status == null ? "" : status);
 		map.put("started", new Date(started));
 		return map;
 	}

@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
@@ -59,9 +60,12 @@ final class BridgeServiceImpl implements BridgeService {
 
     private final OctaneSDK.SDKServicesConfigurer configurer;
     private final RestService restService;
+    private final ConfigurationService configurationService;
     private final TasksProcessor tasksProcessor;
     private long lastLogTime = 0;
     private final static long MILLI_TO_HOUR = 1000 * 60 * 60;
+    private long continuousExceptionsCounter = 0;
+    private long forcedGetOctaneConnectivityStatusCalls = 0;
 
     //Metrics
     private long lastRequestToOctaneTime = 0;
@@ -70,7 +74,7 @@ final class BridgeServiceImpl implements BridgeService {
     private long requestTimeoutCount = 0;
     private long lastRequestTimeoutTime = 0;
 
-    BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor) {
+    BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor, ConfigurationService configurationService) {
         if (configurer == null) {
             throw new IllegalArgumentException("invalid configurer");
         }
@@ -80,7 +84,11 @@ final class BridgeServiceImpl implements BridgeService {
         if (tasksProcessor == null) {
             throw new IllegalArgumentException("task processor MUST NOT be null");
         }
+        if (configurationService == null) {
+            throw new IllegalArgumentException("configuration service MUST NOT be null");
+        }
 
+        this.configurationService = configurationService;
         this.configurer = configurer;
         this.restService = restService;
         this.tasksProcessor = tasksProcessor;
@@ -99,6 +107,9 @@ final class BridgeServiceImpl implements BridgeService {
         map.put("lastRequestToOctaneTime", new Date(lastRequestToOctaneTime));
         map.put("connectivityExecutors.getActiveCount", ((ThreadPoolExecutor) connectivityExecutors).getActiveCount());
         map.put("requestTimeoutCount", this.requestTimeoutCount);
+        map.put("forcedGetOctaneConnectivityStatus.calls", this.forcedGetOctaneConnectivityStatusCalls);
+        map.put("continuousExceptionsCounter", this.continuousExceptionsCounter);
+
         if (lastRequestTimeoutTime > 0) {
             map.put("lastRequestTimeoutTime", new Date(lastRequestTimeoutTime));
         }
@@ -223,8 +234,10 @@ final class BridgeServiceImpl implements BridgeService {
             } else {
                 if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
                     logger.debug(configurer.octaneConfiguration.geLocationForLog() + "no tasks found on server");
+                    setConnectionSuccessful();
                 } else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
                     logger.debug(configurer.octaneConfiguration.geLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
+                    setConnectionSuccessful();
                 } else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
                     breathingOnException("Octane service is unavailable.", 30, null);
                 } else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED) {
@@ -255,7 +268,17 @@ final class BridgeServiceImpl implements BridgeService {
         return responseBody;
     }
 
+    private void setConnectionSuccessful() {
+        if (continuousExceptionsCounter > 10) {
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + "Force getOctaneConnectivityStatus after " + continuousExceptionsCounter + " failed trials");
+            configurationService.getOctaneConnectivityStatus(true);
+            forcedGetOctaneConnectivityStatusCalls++;
+        }
+        continuousExceptionsCounter = 0;
+    }
+
     private void breathingOnException(String msg, int secs, Throwable t) {
+        continuousExceptionsCounter ++;
         String error = (t == null) ? "" : " : " + t.getClass().getCanonicalName() + " - " + t.getMessage();
         logger.error(configurer.octaneConfiguration.geLocationForLog() + msg + error + ". Breathing " + secs + " secs.");
         changeServiceState(ServiceState.PostponingOnException);

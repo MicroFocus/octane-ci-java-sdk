@@ -22,21 +22,21 @@ public class BridgeServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new BridgeServiceImpl(null, null, null);
+		new BridgeServiceImpl(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new BridgeServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		new BridgeServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		BridgeService.newInstance(null, null, null);
+		BridgeService.newInstance(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		BridgeService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		BridgeService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 }

@@ -66,7 +66,7 @@ final class TestsServiceImpl implements TestsService {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 
-	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
+	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 	private int LIST_EMPTY_INTERVAL = 3000;
 	private int REGULAR_CYCLE_PAUSE = 250;
 

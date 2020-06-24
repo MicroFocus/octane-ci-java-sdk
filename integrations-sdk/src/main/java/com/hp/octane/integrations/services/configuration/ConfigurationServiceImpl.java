@@ -68,9 +68,10 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	public OctaneConnectivityStatus getOctaneConnectivityStatus(boolean forceFetch) {
 
 		try {
-			if (forceFetch || octaneConnectivityStatus == null || isLastUpdateDone24HBefore()) {
-				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatusInternal(configurer.octaneConfiguration);
+			if (forceFetch || octaneConnectivityStatus == null) {
+				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatus();
 				octaneConnectivityStatusDate = System.currentTimeMillis();
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
 			}
 		} catch (Exception e) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to getOctaneConnectivityStatus : " + e.getMessage());
@@ -79,27 +80,13 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		return octaneConnectivityStatus;
 	}
 
-	private boolean isLastUpdateDone24HBefore() {
-		long diffInMillies = System.currentTimeMillis() - octaneConnectivityStatusDate;
-		long diffInHours = TimeUnit.HOURS.convert(diffInMillies, TimeUnit.MILLISECONDS);
-		return diffInHours > 24;
-	}
-
 	@Override
 	public OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus() throws IOException {
-		return validateConfigurationAndGetConnectivityStatusInternal(configurer.octaneConfiguration);
-	}
-
-	private OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatusInternal(OctaneConfiguration configuration) throws IOException {
-		if (configuration == null) {
-			throw new IllegalArgumentException("configuration MUST not be null");
-		}
-
 		OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.GET)
-				.setUrl(configuration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configuration.getSharedSpace() + CONNECTIVITY_STATUS_URL);
+				.setUrl(configurer.octaneConfiguration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() + CONNECTIVITY_STATUS_URL);
 
-		OctaneResponse response = restService.obtainOctaneRestClient().execute(request, configuration);
+		OctaneResponse response = restService.obtainOctaneRestClient().execute(request, configurer.octaneConfiguration);
 		if (response.getStatus() == 401) {
 			throw new OctaneConnectivityException(response.getStatus(), OctaneConnectivityException.AUTHENTICATION_FAILURE_KEY, OctaneConnectivityException.AUTHENTICATION_FAILURE_MESSAGE);
 		} else if (response.getStatus() == 403) {
