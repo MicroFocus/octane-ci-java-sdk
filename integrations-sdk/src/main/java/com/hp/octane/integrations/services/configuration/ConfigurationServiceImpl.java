@@ -23,19 +23,17 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
-import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Base implementation of Configuration Service API
  */
 
-final class ConfigurationServiceImpl implements ConfigurationService {
+public final class ConfigurationServiceImpl implements ConfigurationService {
 	private static final Logger logger = LogManager.getLogger(ConfigurationServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
@@ -45,6 +43,7 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	private final RestService restService;
 	private OctaneConnectivityStatus octaneConnectivityStatus;
 	private long octaneConnectivityStatusDate;
+	private volatile  boolean isConnected;
 
 	ConfigurationServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null) {
@@ -65,13 +64,14 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
-	public OctaneConnectivityStatus getOctaneConnectivityStatus(boolean forceFetch) {
+	public synchronized OctaneConnectivityStatus getOctaneConnectivityStatus(boolean forceFetch) {
 
 		try {
 			if (forceFetch || octaneConnectivityStatus == null) {
 				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatus();
 				octaneConnectivityStatusDate = System.currentTimeMillis();
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
+				isConnected = true;
 			}
 		} catch (Exception e) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to getOctaneConnectivityStatus : " + e.getMessage());
@@ -99,5 +99,15 @@ final class ConfigurationServiceImpl implements ConfigurationService {
 		} else {
 			throw new OctaneConnectivityException(response.getStatus(), OctaneConnectivityException.UNEXPECTED_FAILURE_KEY, OctaneConnectivityException.UNEXPECTED_FAILURE_MESSAGE + ": " + response.getStatus());
 		}
+	}
+
+
+	@Override
+	public boolean isConnected() {
+		return isConnected;
+	}
+
+	public void setConnected(boolean connected) {
+		isConnected = connected;
 	}
 }

@@ -22,6 +22,8 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.WorkerPreflight;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -56,7 +58,6 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private static final String VULNERABILITIES_QUEUE_FILE = "vulnerabilities-queue.dat";
 
 	private final ExecutorService vulnerabilitiesProcessingExecutor = Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory());
-	private final Object NO_VULNERABILITIES_RESULTS_MONITOR = new Object();
 	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 	protected final RestService restService;
 	protected final OctaneSDK.SDKServicesConfigurer configurer;
@@ -65,22 +66,15 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	protected SonarVulnerabilitiesService sonarVulnerabilitiesService;
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-
-
-	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
-	private int LIST_EMPTY_INTERVAL = 10000;
-	private int REGULAR_CYCLE_PAUSE = 250;
+	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
 	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
-
-	//Metrics
-	private long lastIterationTime = 0;
-
+	private final WorkerPreflight workerPreflight;
 
 	public VulnerabilitiesServiceImpl(QueueingService queueingService, VulnerabilitiesToolService[] vulnerabilitiesToolServices,
-									  OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+									  OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
 
 		if (queueingService == null) {
 			throw new IllegalArgumentException("queue Service MUST NOT be null");
@@ -89,12 +83,16 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 		if (configurer == null) {
-			throw new IllegalArgumentException("configurer service MUST NOT be null");
+			throw new IllegalArgumentException("configurer MUST NOT be null");
+		}
+		if (configurationService == null) {
+			throw new IllegalArgumentException("configuration service MUST NOT be null");
 		}
 
 
 		this.restService = restService;
 		this.configurer = configurer;
+		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 		FodConnectionFactory.setConfigurer(this.configurer);
 
 		for (VulnerabilitiesToolService vulnToolService : vulnerabilitiesToolServices) {
@@ -137,21 +135,13 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was added to vulnerabilities queue");
 
-		synchronized (NO_VULNERABILITIES_RESULTS_MONITOR) {
-			NO_VULNERABILITIES_RESULTS_MONITOR.notify();
-		}
+		workerPreflight.itemAddedToQueue();
 	}
 
 	@Override
 	public void shutdown() {
 		workerExited = new CompletableFuture<>();
 		vulnerabilitiesProcessingExecutor.shutdown();
-		try {
-			NO_VULNERABILITIES_RESULTS_MONITOR.notify();
-			workerExited.get(3000, TimeUnit.SECONDS);
-		} catch (Exception e) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "interrupted while waiting for the worker SHUT DOWN");
-		}
 	}
 
 	@Override
@@ -164,17 +154,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!vulnerabilitiesProcessingExecutor.isShutdown()) {
-			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
-			lastIterationTime = System.currentTimeMillis();
-
-			if (vulnerabilitiesQueue.size() == 0) {
-				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_VULNERABILITIES_RESULTS_MONITOR);
-				continue;
-			}
-
-			if (this.configurer.octaneConfiguration.isDisabled()) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + vulnerabilitiesQueue.size() + " items from queue");
-				clearQueue();
+			if(!workerPreflight.preflight()){
 				continue;
 			}
 
@@ -368,7 +348,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
-		map.put("lastIterationTime", new Date(this.lastIterationTime));
+		workerPreflight.addMetrics(map);
 		return map;
 	}
 

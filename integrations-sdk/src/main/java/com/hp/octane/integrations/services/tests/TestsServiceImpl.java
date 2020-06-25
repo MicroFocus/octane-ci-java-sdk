@@ -24,6 +24,8 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.WorkerPreflight;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -59,23 +61,20 @@ final class TestsServiceImpl implements TestsService {
 	private static final Logger logger = LogManager.getLogger(TestsServiceImpl.class);
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String TESTS_RESULTS_QUEUE_FILE = "test-results-queue.dat";
+	public static int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 
 	private final ExecutorService testsPushExecutor = Executors.newSingleThreadExecutor(new TestsResultPushWorkerThreadFactory());
-	private final Object NO_TEST_RESULTS_MONITOR = new Object();
 	private final ObjectQueue<TestsResultQueueItem> testResultsQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
+	private final WorkerPreflight workerPreflight;
 
-	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
-	private int LIST_EMPTY_INTERVAL = 3000;
-	private int REGULAR_CYCLE_PAUSE = 250;
 
 	//Metrics
-	private long lastIterationTime = 0;
 	private long requestTimeoutCount = 0;
 	private long lastRequestTimeoutTime = 0;
 
-	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
+	TestsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
 		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -85,6 +84,10 @@ final class TestsServiceImpl implements TestsService {
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
+		if (configurationService == null) {
+			throw new IllegalArgumentException("configuration service MUST NOT be null");
+		}
+
 
 		if (queueingService.isPersistenceEnabled()) {
 			testResultsQueue = queueingService.initFileQueue(TESTS_RESULTS_QUEUE_FILE, TestsResultQueueItem.class);
@@ -94,6 +97,7 @@ final class TestsServiceImpl implements TestsService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		testsPushExecutor.execute(this::worker);
@@ -232,9 +236,7 @@ final class TestsServiceImpl implements TestsService {
 		}
 
 		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId, rootJobId));
-		synchronized (NO_TEST_RESULTS_MONITOR) {
-			NO_TEST_RESULTS_MONITOR.notify();
-		}
+		workerPreflight.itemAddedToQueue();
 	}
 
 	@Override
@@ -250,17 +252,7 @@ final class TestsServiceImpl implements TestsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!testsPushExecutor.isShutdown()) {
-			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
-			lastIterationTime = System.currentTimeMillis();
-
-			if (testResultsQueue.size() == 0) {
-				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_TEST_RESULTS_MONITOR);
-				continue;
-			}
-
-			if (this.configurer.octaneConfiguration.isDisabled()) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + testResultsQueue.size() + " items from queue");
-				clearQueue();
+			if(!workerPreflight.preflight()){
 				continue;
 			}
 
@@ -369,7 +361,7 @@ final class TestsServiceImpl implements TestsService {
 		if (lastRequestTimeoutTime > 0) {
 			map.put("lastRequestTimeoutTime", new Date(lastRequestTimeoutTime));
 		}
-		map.put("lastIterationTime", new Date(this.lastIterationTime));
+		workerPreflight.addMetrics(map);
 		return map;
 	}
 

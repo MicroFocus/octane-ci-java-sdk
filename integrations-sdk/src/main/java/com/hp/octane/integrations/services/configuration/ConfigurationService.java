@@ -56,4 +56,6 @@ public interface ConfigurationService {
 	 * @throws IOException throw if configuration is not valid
 	 */
 	OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus() throws IOException;
+
+	boolean isConnected();
 }

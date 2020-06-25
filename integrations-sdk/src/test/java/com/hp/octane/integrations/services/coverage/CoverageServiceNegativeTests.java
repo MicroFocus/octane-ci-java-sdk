@@ -36,43 +36,43 @@ public class CoverageServiceNegativeTests {
 	//  Coverage service
 	@Test(expected = IllegalArgumentException.class)
 	public void testA1() {
-		new CoverageServiceImpl(null, null, null);
+		new CoverageServiceImpl(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testA2() {
-		new CoverageServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		new CoverageServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA3() {
-		CoverageService.newInstance(null, null, null);
+		CoverageService.newInstance(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testA4() {
-		CoverageService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		CoverageService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	//  Sonar service
 	@Test(expected = IllegalArgumentException.class)
 	public void testB1() {
-		new SonarServiceImpl(null, null, null);
+		new SonarServiceImpl(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB2() {
-		new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testB3() {
-		SonarService.newInstance(null, null, null);
+		SonarService.newInstance(null, null, null,null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB4() {
-		SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	//  enqueue API negative testing validation

@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.HasQueueService;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 
@@ -40,8 +41,8 @@ public interface CoverageService extends ClosableService, HasQueueService, HasMe
 	 * @param restService restService
 	 * @return initialized service
 	 */
-	static CoverageService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		return new CoverageServiceImpl(configurer, queueingService, restService);
+	static CoverageService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
+		return new CoverageServiceImpl(configurer, queueingService, restService, configurationService);
 	}
 
 	/**

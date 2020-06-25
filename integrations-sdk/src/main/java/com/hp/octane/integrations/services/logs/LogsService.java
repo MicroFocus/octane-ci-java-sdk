@@ -19,6 +19,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.HasQueueService;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 
@@ -32,8 +33,8 @@ public interface LogsService extends ClosableService, HasQueueService, HasMetric
 	 * @param restService  Rest Service
 	 * @return initialized service
 	 */
-	static LogsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		return new LogsServiceImpl(configurer, queueingService, restService);
+	static LogsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
+		return new LogsServiceImpl(configurer, queueingService, restService, configurationService);
 	}
 
 	/**

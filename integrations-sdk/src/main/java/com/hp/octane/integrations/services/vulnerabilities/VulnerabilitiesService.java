@@ -19,6 +19,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.HasQueueService;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 
@@ -35,8 +36,8 @@ public interface VulnerabilitiesService extends ClosableService, HasQueueService
 	 * @return return initialized service
 	 */
 	static VulnerabilitiesService newInstance (QueueingService queueingService,VulnerabilitiesToolService[] vulnerabilitiesToolServices,
-											   OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		return new VulnerabilitiesServiceImpl(queueingService, vulnerabilitiesToolServices, configurer, restService);
+											   OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
+		return new VulnerabilitiesServiceImpl(queueingService, vulnerabilitiesToolServices, configurer, restService, configurationService);
 	}
 
 	/**

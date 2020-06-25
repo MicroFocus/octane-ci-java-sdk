@@ -22,21 +22,21 @@ public class EventsServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new EventsServiceImpl(null, null);
+		new EventsServiceImpl(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new EventsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
+		new EventsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		EventsService.newInstance(null, null);
+		EventsService.newInstance(null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		EventsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null);
+		EventsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
 	}
 }

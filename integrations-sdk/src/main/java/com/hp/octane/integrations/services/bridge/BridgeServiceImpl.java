@@ -22,6 +22,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
@@ -225,12 +226,12 @@ final class BridgeServiceImpl implements BridgeService {
             changeServiceState(ServiceState.AfterWaitingToOctane);
             if (octaneResponse.getStatus() == HttpStatus.SC_OK) {
                 responseBody = octaneResponse.getBody();
-
                 if (CIPluginSDKUtils.isServiceTemporaryUnavailable(responseBody)) {
                     breathingOnException("Saas service is temporary unavailable.", 60, null);
                     responseBody = null;
+                } else {
+                    setConnectionSuccessful();
                 }
-
             } else {
                 if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
                     logger.debug(configurer.octaneConfiguration.geLocationForLog() + "no tasks found on server");
@@ -269,6 +270,7 @@ final class BridgeServiceImpl implements BridgeService {
     }
 
     private void setConnectionSuccessful() {
+        ((ConfigurationServiceImpl)configurationService).setConnected(true);
         if (continuousExceptionsCounter > 10) {
             logger.info(configurer.octaneConfiguration.geLocationForLog() + "Force getOctaneConnectivityStatus after " + continuousExceptionsCounter + " failed trials");
             configurationService.getOctaneConnectivityStatus(true);
@@ -278,6 +280,7 @@ final class BridgeServiceImpl implements BridgeService {
     }
 
     private void breathingOnException(String msg, int secs, Throwable t) {
+        ((ConfigurationServiceImpl)configurationService).setConnected(false);
         continuousExceptionsCounter ++;
         String error = (t == null) ? "" : " : " + t.getClass().getCanonicalName() + " - " + t.getMessage();
         logger.error(configurer.octaneConfiguration.geLocationForLog() + msg + error + ". Breathing " + secs + " secs.");
