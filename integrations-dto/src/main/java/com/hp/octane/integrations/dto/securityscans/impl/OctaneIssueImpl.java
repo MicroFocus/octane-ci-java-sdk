@@ -200,4 +200,9 @@ public class OctaneIssueImpl implements OctaneIssue {
     public void setOwnerEmail(String ownerEmail){
         this.owner_email = ownerEmail;
     }
+
+    @Override
+    public String toString() {
+        return "remote_id=" + remote_id;
+    }
 }
