@@ -284,7 +284,7 @@ public class SonarServiceImpl implements SonarService {
 					return null;
 				} else {
 					String errorMessage = ""
-							.concat("failed to get webhook key from soanrqube with notification URL: ")
+							.concat("failed to get webhook key from sonarqube with notification URL: ")
 							.concat(ciNotificationUrl)
 							.concat(" with status code: ").concat(String.valueOf(response.getStatusLine().getStatusCode()))
 							.concat(" with errors: ").concat(jsonResponse.get("errors").toString());
@@ -298,7 +298,7 @@ public class SonarServiceImpl implements SonarService {
 			throw e;
 		} catch (Exception e) {
 			String errorMessage = ""
-					.concat("failed to get webhook key from soanrqube with notification URL: ").concat(ciNotificationUrl);
+					.concat("failed to get webhook key from sonarqube with notification URL: ").concat(ciNotificationUrl);
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + errorMessage, e);
 			throw new SonarIntegrationException(errorMessage, e);
 		}
