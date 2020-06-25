@@ -49,22 +49,22 @@ public class TestsServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new TestsServiceImpl(null, null, null);
+		new TestsServiceImpl(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new TestsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		new TestsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		TestsService.newInstance(null, null, null);
+		TestsService.newInstance(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		TestsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		TestsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)

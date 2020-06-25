@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.HasQueueService;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 
@@ -37,8 +38,8 @@ public interface TestsService extends ClosableService, HasQueueService, HasMetri
 	 * @param restService     Rest Service
 	 * @return initialized service
 	 */
-	static TestsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
-		return new TestsServiceImpl(configurer, queueingService, restService);
+	static TestsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
+		return new TestsServiceImpl(configurer, queueingService, restService, configurationService);
 	}
 
 	/**

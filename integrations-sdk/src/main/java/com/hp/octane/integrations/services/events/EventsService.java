@@ -19,6 +19,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.HasQueueService;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.dto.events.CIEvent;
 
@@ -31,8 +32,8 @@ public interface EventsService extends ClosableService, HasQueueService, HasMetr
 	 * @param restService Rest Service
 	 * @return initialized service
 	 */
-	static EventsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
-		return new EventsServiceImpl(configurer, restService);
+	static EventsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
+		return new EventsServiceImpl(configurer, restService, configurationService);
 	}
 
 	/**

@@ -20,6 +20,7 @@ import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.HasQueueService;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 
@@ -43,8 +44,9 @@ public interface SonarService extends ClosableService, HasQueueService, HasMetri
 	 * @return initialized service
 
 	 */
-	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService ) {
-		return new SonarServiceImpl(configurer, queueingService, coverageService);
+	static SonarService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService,
+									CoverageService coverageService, ConfigurationService configurationService) {
+		return new SonarServiceImpl(configurer, queueingService, coverageService, configurationService);
 	}
 
 	/**

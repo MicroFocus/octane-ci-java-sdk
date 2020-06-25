@@ -26,6 +26,8 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.WorkerPreflight;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
@@ -58,28 +60,31 @@ final class EventsServiceImpl implements EventsService {
 	private final RestService restService;
 	private final List<CIEvent> events = Collections.synchronizedList(new LinkedList<>());
 
-	private final Object NO_EVENTS_MONITOR = new Object();
+
 	private final int EVENTS_CHUNK_SIZE = System.getProperty("octane.sdk.events.chunk-size") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.chunk-size")) : 10;
 	private final int MAX_EVENTS_TO_KEEP = System.getProperty("octane.sdk.events.max-to-keep") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.max-to-keep")) : 3000;
-	private final long REGULAR_CYCLE_PAUSE = System.getProperty("octane.sdk.events.regular-cycle-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.regular-cycle-pause")) : 2000;
-	private final long NO_EVENTS_PAUSE = System.getProperty("octane.sdk.events.empty-list-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.empty-list-pause")) : 15000;
 	private final long TEMPORARY_FAILURE_PAUSE = System.getProperty("octane.sdk.events.temp-fail-pause") != null ? Integer.parseInt(System.getProperty("octane.sdk.events.temp-fail-pause")) : 15000;
 
 	//Metrics
 	private long requestTimeoutCount = 0;
 	private long lastRequestTimeoutTime = 0;
-	private long lastIterationTime = 0;
+	private final WorkerPreflight workerPreflight;
 
-	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
+	EventsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
+		if (configurationService == null) {
+			throw new IllegalArgumentException("configuration service MUST NOT be null");
+		}
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
+		workerPreflight.setWaitAfterConnection(false);
 
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		eventsPushExecutor.execute(this::worker);
@@ -103,9 +108,7 @@ final class EventsServiceImpl implements EventsService {
 				events.remove(0);
 			}
 		}
-		synchronized (NO_EVENTS_MONITOR) {
-			NO_EVENTS_MONITOR.notify();
-		}
+		workerPreflight.itemAddedToQueue();
 	}
 
 	@Override
@@ -137,18 +140,7 @@ final class EventsServiceImpl implements EventsService {
 	//  infallible everlasting worker function
 	private void worker() {
 		while (!eventsPushExecutor.isShutdown()) {
-			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
-			lastIterationTime = System.currentTimeMillis();
-
-			//  have any events to send?
-			if (events.isEmpty()) {
-				CIPluginSDKUtils.doBreakableWait(NO_EVENTS_PAUSE, NO_EVENTS_MONITOR);
-				continue;
-			}
-
-			if (this.configurer.octaneConfiguration.isDisabled()) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + events.size() + " items from queue");
-				clearQueue();
+			if(!workerPreflight.preflight()){
 				continue;
 			}
 
@@ -248,7 +240,7 @@ final class EventsServiceImpl implements EventsService {
 		if (lastRequestTimeoutTime > 0) {
 			map.put("lastRequestTimeoutTime", new Date(lastRequestTimeoutTime));
 		}
-		map.put("lastIterationTime", new Date(this.lastIterationTime));
+		workerPreflight.addMetrics(map);
 		return map;
 	}
 

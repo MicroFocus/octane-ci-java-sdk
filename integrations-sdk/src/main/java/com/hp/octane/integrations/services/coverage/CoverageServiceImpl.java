@@ -23,6 +23,8 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.WorkerPreflight;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -53,20 +55,15 @@ class CoverageServiceImpl implements CoverageService {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final ExecutorService coveragePushExecutor = Executors.newSingleThreadExecutor(new CoveragePushWorkerThreadFactory());
-	private final Object NO_COVERAGES_MONITOR = new Object();
 	private final String BUILD_COVERAGE_QUEUE_FILE = "coverage-push-queue.dat";
 	private final ObjectQueue<CoverageQueueItem> coveragePushQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
+	private final WorkerPreflight workerPreflight;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
-	private int LIST_EMPTY_INTERVAL = 3000;
-	private int REGULAR_CYCLE_PAUSE = 250;
 
-	//Metrics
-	private long lastIterationTime = 0;
-
-	CoverageServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
+	CoverageServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -76,9 +73,13 @@ class CoverageServiceImpl implements CoverageService {
 		if (restService == null) {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
+		if (configurationService == null) {
+			throw new IllegalArgumentException("configuration service MUST NOT be null");
+		}
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		if (queueingService.isPersistenceEnabled()) {
 			coveragePushQueue = queueingService.initFileQueue(BUILD_COVERAGE_QUEUE_FILE, CoverageQueueItem.class);
@@ -94,17 +95,7 @@ class CoverageServiceImpl implements CoverageService {
 	// infallible everlasting background worker
 	private void worker() {
 		while (!coveragePushExecutor.isShutdown()) {
-			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
-			lastIterationTime = System.currentTimeMillis();
-
-			if (coveragePushQueue.size() == 0) {
-				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_COVERAGES_MONITOR);
-				continue;
-			}
-
-			if (this.configurer.octaneConfiguration.isDisabled()) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + coveragePushQueue.size() + " items from queue");
-				clearQueue();
+			if(!workerPreflight.preflight()){
 				continue;
 			}
 
@@ -242,10 +233,7 @@ class CoverageServiceImpl implements CoverageService {
 		}
 
 		coveragePushQueue.add(new CoverageQueueItem(jobId, buildId, reportType, reportFileName));
-
-		synchronized (NO_COVERAGES_MONITOR) {
-			NO_COVERAGES_MONITOR.notify();
-		}
+		workerPreflight.itemAddedToQueue();
 	}
 
 	@Override
@@ -303,7 +291,7 @@ class CoverageServiceImpl implements CoverageService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
-		map.put("lastIterationTime", new Date(this.lastIterationTime));
+		workerPreflight.addMetrics(map);
 		return map;
 	}
 

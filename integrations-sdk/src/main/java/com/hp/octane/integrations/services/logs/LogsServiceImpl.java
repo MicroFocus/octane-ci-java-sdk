@@ -23,6 +23,8 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.WorkerPreflight;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -53,19 +55,14 @@ final class LogsServiceImpl implements LogsService {
 	private static final String BUILD_LOG_QUEUE_FILE = "build-logs-queue.dat";
 
 	private final ExecutorService logsPushExecutor = Executors.newSingleThreadExecutor(new BuildLogsPushWorkerThreadFactory());
-	private final Object NO_LOGS_MONITOR = new Object();
 	private final ObjectQueue<BuildLogQueueItem> buildLogsQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
+	private final WorkerPreflight workerPreflight;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
-	private int LIST_EMPTY_INTERVAL = 3000;
-	private int REGULAR_CYCLE_PAUSE = 250;
 
-	//Metrics
-	private long lastIterationTime = 0;
-
-	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService) {
+	LogsServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -76,6 +73,10 @@ final class LogsServiceImpl implements LogsService {
 			throw new IllegalArgumentException("rest service MUST NOT be null");
 		}
 
+		if (configurationService == null) {
+			throw new IllegalArgumentException("configuration service MUST NOT be null");
+		}
+
 		if (queueingService.isPersistenceEnabled()) {
 			buildLogsQueue = queueingService.initFileQueue(BUILD_LOG_QUEUE_FILE, BuildLogQueueItem.class);
 		} else {
@@ -84,6 +85,7 @@ final class LogsServiceImpl implements LogsService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
 		logsPushExecutor.execute(this::worker);
@@ -103,9 +105,7 @@ final class LogsServiceImpl implements LogsService {
 		}
 
 		buildLogsQueue.add(new BuildLogQueueItem(jobId, buildId, rootJobId));
-		synchronized (NO_LOGS_MONITOR) {
-			NO_LOGS_MONITOR.notify();
-		}
+		workerPreflight.itemAddedToQueue();
 	}
 
 	@Override
@@ -121,17 +121,7 @@ final class LogsServiceImpl implements LogsService {
 	//  infallible everlasting background worker
 	private void worker() {
 		while (!logsPushExecutor.isShutdown()) {
-			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
-			lastIterationTime = System.currentTimeMillis();
-
-			if (buildLogsQueue.size() == 0) {
-				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_LOGS_MONITOR);
-				continue;
-			}
-
-			if (this.configurer.octaneConfiguration.isDisabled()) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + buildLogsQueue.size() + " items from queue");
-				clearQueue();
+			if(!workerPreflight.preflight()){
 				continue;
 			}
 
@@ -295,7 +285,7 @@ final class LogsServiceImpl implements LogsService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
-		map.put("lastIterationTime", new Date(this.lastIterationTime));
+		workerPreflight.addMetrics(map);
 		return map;
 	}
 

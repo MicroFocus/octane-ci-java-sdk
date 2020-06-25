@@ -22,21 +22,21 @@ public class LogsServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new LogsServiceImpl(null, null, null);
+		new LogsServiceImpl(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new LogsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		new LogsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC() {
-		LogsService.newInstance(null, null, null);
+		LogsService.newInstance(null, null, null, null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testD() {
-		LogsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+		LogsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
 	}
 }

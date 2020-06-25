@@ -107,20 +107,20 @@ final class OctaneClientImpl implements OctaneClient {
 
 		//  dependent services init
 
-		coverageService = CoverageService.newInstance(configurer, queueingService, restService);
+		coverageService = CoverageService.newInstance(configurer, queueingService, restService, configurationService);
 		entitiesService = EntitiesService.newInstance(configurer, restService);
 		pipelineContextService = PipelineContextService.newInstance(configurer, restService);
-		eventsService = EventsService.newInstance(configurer, restService);
-		logsService = LogsService.newInstance(configurer, queueingService, restService);
-		testsService = TestsService.newInstance(configurer, queueingService, restService);
+		eventsService = EventsService.newInstance(configurer, restService, configurationService);
+		logsService = LogsService.newInstance(configurer, queueingService, restService, configurationService);
+		testsService = TestsService.newInstance(configurer, queueingService, restService, configurationService);
 
 		sscService = SSCService.newInstance(configurer, restService);
-		sonarService = SonarService.newInstance(configurer, queueingService, coverageService);
+		sonarService = SonarService.newInstance(configurer, queueingService, coverageService, configurationService);
 		sonarVulnerabilitiesService = SonarVulnerabilitiesService.newInstance(configurer, restService);
 		FODService fodService = FODService.newInstance(configurer, restService);
 
 		VulnerabilitiesToolService[] vulnerabilitiesToolServices = {sscService, sonarVulnerabilitiesService, fodService};
-		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer, restService);
+		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer, restService, configurationService);
 
 		pullRequestService = PullRequestService.newInstance(configurer, restService);
 
@@ -324,6 +324,7 @@ final class OctaneClientImpl implements OctaneClient {
 		}
 		OctaneConnectivityStatus status = this.getConfigurationService().getOctaneConnectivityStatus(false);
 		map.put("octaneConnectivityStatus", status == null ? "" : status);
+		map.put("isConnected", this.getConfigurationService().isConnected());
 		map.put("started", new Date(started));
 		return map;
 	}

@@ -25,6 +25,8 @@ import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
+import com.hp.octane.integrations.services.WorkerPreflight;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -69,20 +71,14 @@ public class SonarServiceImpl implements SonarService {
 	private static final String COMPONENT_TREE_URI = "/api/measures/component_tree";
 
 	private final ExecutorService sonarIntegrationExecutor = Executors.newSingleThreadExecutor(new SonarIntegrationWorkerThreadFactory());
-	private final Object NO_SONAR_COVERAGE_ITEMS_MONITOR = new Object();
 	private final ObjectQueue<SonarBuildCoverageQueueItem> sonarIntegrationQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final CoverageService coverageService;
-
+	private final WorkerPreflight workerPreflight;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
-	private int LIST_EMPTY_INTERVAL = 3000;
-	private int REGULAR_CYCLE_PAUSE = 250;
 
-	//Metrics
-	private long lastIterationTime = 0;
-
-	public SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService) {
+	public SonarServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, CoverageService coverageService, ConfigurationService configurationService) {
 		if (configurer == null || configurer.pluginServices == null || configurer.octaneConfiguration == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
@@ -95,6 +91,7 @@ public class SonarServiceImpl implements SonarService {
 
 		this.configurer = configurer;
 		this.coverageService = coverageService;
+		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		if (queueingService.isPersistenceEnabled()) {
 			sonarIntegrationQueue = queueingService.initFileQueue(SONAR_COVERAGE_QUEUE_FILE, SonarBuildCoverageQueueItem.class);
@@ -110,17 +107,7 @@ public class SonarServiceImpl implements SonarService {
 	// infallible everlasting background worker
 	private void worker() {
 		while (!sonarIntegrationExecutor.isShutdown()) {
-			CIPluginSDKUtils.doWait(REGULAR_CYCLE_PAUSE);
-			lastIterationTime = System.currentTimeMillis();
-
-			if (sonarIntegrationQueue.size() == 0) {
-				CIPluginSDKUtils.doBreakableWait(LIST_EMPTY_INTERVAL, NO_SONAR_COVERAGE_ITEMS_MONITOR);
-				continue;
-			}
-
-			if (this.configurer.octaneConfiguration.isDisabled()) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "client is disabled, removing " + sonarIntegrationQueue.size() + " items from queue");
-				clearQueue();
+			if(!workerPreflight.preflight()){
 				continue;
 			}
 
@@ -207,9 +194,7 @@ public class SonarServiceImpl implements SonarService {
 		}
 
 		sonarIntegrationQueue.add(new SonarBuildCoverageQueueItem(jobId, buildId, projectKey, sonarURL, sonarToken));
-		synchronized (NO_SONAR_COVERAGE_ITEMS_MONITOR) {
-			NO_SONAR_COVERAGE_ITEMS_MONITOR.notify();
-		}
+		workerPreflight.itemAddedToQueue();
 	}
 
 	@Override
@@ -370,7 +355,7 @@ public class SonarServiceImpl implements SonarService {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
-		map.put("lastIterationTime", new Date(this.lastIterationTime));
+		workerPreflight.addMetrics(map);
 		return map;
 	}
 
