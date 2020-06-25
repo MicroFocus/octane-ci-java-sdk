@@ -58,13 +58,13 @@ public class FODServiceImpl implements FODService {
     @Override
     public InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem) throws IOException {
 
-        logger.debug("Entered getVulnerabilitiesScanResultStream");
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "Entered getVulnerabilitiesScanResultStream");
         String targetDir = getTargetDir(configurer.pluginServices.getAllowedOctaneStorage(),
                 queueItem.getJobId(), queueItem.getBuildId());
-        logger.debug("getVulnerabilitiesScanResultStream target Dir:" + targetDir);
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "getVulnerabilitiesScanResultStream target Dir:" + targetDir);
         InputStream cachedScanResult = getCachedScanResult(targetDir);
         if (cachedScanResult != null) {
-            logger.warn("results "+ queueItem.toString()+ "are cached!");
+            logger.warn("results " + queueItem.toString() + "are cached!");
             return cachedScanResult;
         }
         enrichItemWithFODParams(queueItem);
@@ -72,12 +72,12 @@ public class FODServiceImpl implements FODService {
         if (pplnRunStatus.continuePolling) {
             return null;
         } else if (pplnRunStatus.tryGetIssues) {
-            List<OctaneIssue> octaneIssues =  fetchIssues(queueItem, getRelease(queueItem).toString());
-            cacheIssues(targetDir,octaneIssues);
-            return  serializeIssues(octaneIssues);
+            List<OctaneIssue> octaneIssues = fetchIssues(queueItem, getRelease(queueItem).toString());
+            cacheIssues(targetDir, octaneIssues);
+            return serializeIssues(octaneIssues);
 
         } else {
-            throw new PermanentException(queueItem.getJobId() +"#"+ queueItem.getBuildId() +
+            throw new PermanentException(queueItem.getJobId() + "#" + queueItem.getBuildId() +
                     " , Polling is stopped");
         }
     }
@@ -99,21 +99,21 @@ public class FODServiceImpl implements FODService {
 
     private PplnRunStatus fodScanIsStillInProgress(VulnerabilitiesQueueItem queueItem) {
 
-        logger.debug("Check if scan is in progress." + queueItem.getJobId() +"#" +queueItem.getJobId());
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "Check if scan is in progress." + queueItem.getJobId() + "#" + queueItem.getJobId());
 
         Long pplRunStartTime = queueItem.getStartTime();
 
         //It is done , but it's scan still active.
         if (getScan(queueItem) == null) {
-            logger.debug("need to retrieve the scan Id");
+            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "need to retrieve the scan Id");
             List<Scan> scans = FODReleaseService.getScansLastInFirstFetched(getRelease(queueItem), pplRunStartTime);
             setScanIdForItem(queueItem, scans);
             if (getScan(queueItem) == null) {
                 incFailedTries(queueItem);
-                logger.warn("scan Id was not found yet");
+                logger.warn(configurer.octaneConfiguration.geLocationForLog() + "scan Id was not found yet");
             }
         } else {
-            logger.debug("scanId is already retrieved from previous polling:" + getScan(queueItem));
+            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "scanId is already retrieved from previous polling:" + getScan(queueItem));
         }
         if (getScan(queueItem) != null) {
             Long release = getRelease(queueItem);
@@ -131,22 +131,21 @@ public class FODServiceImpl implements FODService {
     }
 
     private void incFailedTries(VulnerabilitiesQueueItem queueItem) {
-        String failedTriesToGetScanStr = queueItem.getAdditionalProperties().
-                get("failedTriesToGetScan");
+        String failedTriesToGetScanStr = queueItem.getAdditionalProperties().get("failedTriesToGetScan");
         Integer failedTriesToGetScan = 1;
-        if(failedTriesToGetScanStr != null){
+        if (failedTriesToGetScanStr != null) {
             failedTriesToGetScan = Integer.parseInt(failedTriesToGetScanStr) + 1;
         }
         queueItem.getAdditionalProperties().put("failedTriesToGetScan", failedTriesToGetScan.toString());
     }
+
     private int getFailedTries(VulnerabilitiesQueueItem queueItem) {
-        String failedTriesToGetScanStr = queueItem.getAdditionalProperties().
-                get("failedTriesToGetScan");
-        return failedTriesToGetScanStr == null ?  0 : Integer.parseInt(failedTriesToGetScanStr);
+        String failedTriesToGetScanStr = queueItem.getAdditionalProperties().get("failedTriesToGetScan");
+        return failedTriesToGetScanStr == null ? 0 : Integer.parseInt(failedTriesToGetScanStr);
     }
 
     private void enrichItemWithFODParams(VulnerabilitiesQueueItem queueItem) {
-        if(queueItem.getAdditionalProperties() == null){
+        if (queueItem.getAdditionalProperties() == null) {
             queueItem.setAdditionalProperties(new HashMap<>());
         }
         String releaseId = queueItem.getAdditionalProperties().get("releaseId");
@@ -154,23 +153,25 @@ public class FODServiceImpl implements FODService {
             releaseId = this.configurer.pluginServices.getFodRelease(queueItem.getJobId(), queueItem.getBuildId()).toString();
             queueItem.getAdditionalProperties().put("releaseId", releaseId);
         }
-        logger.warn("FOD ReleaseId:" + releaseId);
+        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "FOD ReleaseId:" + releaseId);
     }
 
-    Long getRelease(VulnerabilitiesQueueItem item){
+    Long getRelease(VulnerabilitiesQueueItem item) {
         return Long.valueOf(item.getAdditionalProperties().get("releaseId"));
 
     }
-    Long getScan(VulnerabilitiesQueueItem item){
+
+    Long getScan(VulnerabilitiesQueueItem item) {
         return !item.getAdditionalProperties().containsKey("scanId") ? null :
                 Long.valueOf(item.getAdditionalProperties().get("scanId"));
     }
+
     private List<OctaneIssue> fetchIssues(VulnerabilitiesQueueItem queueItem, String remoteTag) throws IOException {
 
-        logger.warn("Security scan is done, time to get issues from.");
+        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "Security scan is done, time to get issues from.");
         List<Vulnerability> allVulnerabilities =
                 FODVulnerabilityService.getAllVulnerabilities(getRelease(queueItem));
-        List<Vulnerability> nonClosedIssues = filterOutBeforeBaselineIssues(queueItem.getBaselineDate(),allVulnerabilities);
+        List<Vulnerability> nonClosedIssues = filterOutBeforeBaselineIssues(queueItem.getBaselineDate(), allVulnerabilities);
         ExistingIssuesInOctane existingIssuesInOctane = new ExistingIssuesInOctane(this.restService.obtainOctaneRestClient(),
                 this.configurer.octaneConfiguration);
         List<String> existingIssuesInOc = existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane(queueItem.getJobId(),
@@ -178,7 +179,7 @@ public class FODServiceImpl implements FODService {
 
 
         PackIssuesToOctaneUtils.SortedIssues<Vulnerability> sortedIssues =
-                PackIssuesToOctaneUtils.packToOctaneIssues(nonClosedIssues, existingIssuesInOc,true);
+                PackIssuesToOctaneUtils.packToOctaneIssues(nonClosedIssues, existingIssuesInOc, true);
 
         FODValuesConverter securityIssueValuesHelper = new FODValuesConverter();
         securityIssueValuesHelper.init();
@@ -191,24 +192,31 @@ public class FODServiceImpl implements FODService {
 
         List<OctaneIssue> total = new ArrayList<>();
         total.addAll(octaneIssuesToUpdate);
-        logger.warn("ToUpdate:" + octaneIssuesToUpdate.toString());
+        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "ToUpdate " + octaneIssuesToUpdate.size() + " items : " + octaneIssuesToUpdate);
         total.addAll(sortedIssues.issuesToClose);
-        logger.warn("ToClose:" + sortedIssues.issuesToClose);
+        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "ToClose " + sortedIssues.issuesToClose.size() + " items : " + sortedIssues.issuesToClose);
         return total;
     }
 
-    private Map<String, VulnerabilityAllData> getVulnerabilityAllDataMap(Long releaseId,
-                                                                         List<Vulnerability> requiredExtendedData) {
-        Map<String,VulnerabilityAllData> idToAllData = new HashMap<>();
+    private Map<String, VulnerabilityAllData> getVulnerabilityAllDataMap(Long releaseId, List<Vulnerability> requiredExtendedData) {
+        long SLEEP_MS = 2000;
+        long EXPECTED_REQUEST_TIME_MS = 1000;
+        logger.warn(configurer.octaneConfiguration.geLocationForLog() + String.format("getVulnerabilityAllDataMap, requiredExtendedData.size=%s, expected processing duration is %s sec",
+                requiredExtendedData.size(), requiredExtendedData.size() * (SLEEP_MS + EXPECTED_REQUEST_TIME_MS) / 1000));
+        Map<String, VulnerabilityAllData> idToAllData = new HashMap<>();
 
-                for(int i =0; i< requiredExtendedData.size(); i++){
-                    Vulnerability t = requiredExtendedData.get(i);
-                    if(i > 0){
-                        doWait(2000);
-                    }
-                    idToAllData.put(t.id,
-                        FODVulnerabilityService.getSingleVulnAlldata(releaseId, t.vulnId));
-                }
+        for (int i = 0; i < requiredExtendedData.size(); i++) {
+            Vulnerability t = requiredExtendedData.get(i);
+            if (i > 0) {
+                doWait(SLEEP_MS);
+            }
+            if (i > 0 && i % 50 == 0) {
+                logger.warn(configurer.octaneConfiguration.geLocationForLog() + String.format("getVulnerabilityAllDataMap, %s/%s is done, remaining processing duration is %s sec",
+                        i, requiredExtendedData.size(), (requiredExtendedData.size() - i) * (SLEEP_MS + EXPECTED_REQUEST_TIME_MS) / 1000));
+            }
+
+            idToAllData.put(t.id, FODVulnerabilityService.getSingleVulnAlldata(releaseId, t.vulnId));
+        }
         return idToAllData;
     }
 
@@ -218,8 +226,7 @@ public class FODServiceImpl implements FODService {
         return allVulnerabilities.stream().filter(
                 t -> {
                     Date date = FODValuesConverter.dateOfDateString(t.introducedDate);
-                    return date.after(baseline) ||
-                    sameDay(date, baseline);
+                    return date.after(baseline) || sameDay(date, baseline);
                 })
                 .collect(Collectors.toList());
 
@@ -232,7 +239,7 @@ public class FODServiceImpl implements FODService {
                 return false;
             }
 
-            logger.debug("scan:" + scanId + " is:" + completeScan.status);
+            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "scan:" + scanId + " is:" + completeScan.status);
 
             if (completeScan.status == null) {
                 return false;
@@ -244,18 +251,20 @@ public class FODServiceImpl implements FODService {
             return false;
         }
     }
+
     private void setScanIdForItem(VulnerabilitiesQueueItem queueItem, List<Scan> scans) {
         Long relevantScanId = getRelevantScan(scans, queueItem);
-        logger.debug("scan Id is retrieved:" + relevantScanId);
-        if(relevantScanId !=  null) {
+        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "scan Id is retrieved:" + relevantScanId);
+        if (relevantScanId != null) {
             queueItem.getAdditionalProperties().put("scanId", relevantScanId.toString());
         }
 
     }
+
     private Long getRelevantScan(List<Scan> scans, VulnerabilitiesQueueItem queueItem) {
 
         Scan scanByNotes = getScanByNotes(scans, queueItem);
-        if(scanByNotes != null){
+        if (scanByNotes != null) {
             return scanByNotes.scanId;
         }
         for (Scan scan : scans) {
@@ -269,9 +278,8 @@ public class FODServiceImpl implements FODService {
     private Scan getScanByNotes(List<Scan> scans,
                                 VulnerabilitiesQueueItem queueItem) {
         //   "notes": "[80] #80 - Assessment submitted from Jenkins FoD Plugin".
-        for(Scan scan : scans) {
-            if (scan.notes != null &&
-                    scan.notes.contains("[" + queueItem.getBuildId() + "]")) {
+        for (Scan scan : scans) {
+            if (scan.notes != null && scan.notes.contains("[" + queueItem.getBuildId() + "]")) {
                 return scan;
             }
         }

@@ -133,7 +133,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		vulnerabilitiesQueueItem.setToolType(toolType);
 		vulnerabilitiesQueueItem.setAdditionalProperties(additionalProperties);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was added to vulnerabilities queue");
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + vulnerabilitiesQueueItem.getJobId() + ":" + vulnerabilitiesQueueItem.getBuildId() + " was added to vulnerabilities queue");
 
 		workerPreflight.itemAddedToQueue();
 	}
