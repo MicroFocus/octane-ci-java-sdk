@@ -76,11 +76,6 @@ public abstract class TestsToRunConverter {
         try {
             final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             TestToRunDataCollection result = objectMapper.readValue(rawTestsJson, TestToRunDataCollection.class);
-
-//            if (!result.getVersion().equalsIgnoreCase(TESTS_TO_RUN_JSON_VERSION)) {
-//                throw new IllegalArgumentException("Invalid format. Not supported version " + result.getVersion() + ".");
-//            }
-
             return result.getTestsToRun();
         } catch (IOException e) {
             throw new IllegalArgumentException("Invalid tests format: " + e.getMessage(), e);
@@ -102,7 +97,9 @@ public abstract class TestsToRunConverter {
             for (int i = TEST_PARTS_MINIMAL_SIZE; i < testParts.length; i++) {
                 String[] parameterParts = testParts[i].split("=");
                 if (parameterParts.length != PARAMETER_SIZE) {
-                    throw new IllegalArgumentException("Test' " + rawtest + "' contains illegal parameter format");
+                    throw new IllegalArgumentException("Test' " + rawtest + "' contains illegal parameter format."+
+                            "\nTextual format uses several characters as separators : '|' , ';'  and '='. "+
+                            "If some of your values contain those characters, switch to JSON format by defining in ALM Octane space parameter 'TESTS_TO_RUN_PARAMETER_JSON_FORMAT' = true.");
                 }
                 data.addParameters(parameterParts[0], parameterParts[1]);
             }
