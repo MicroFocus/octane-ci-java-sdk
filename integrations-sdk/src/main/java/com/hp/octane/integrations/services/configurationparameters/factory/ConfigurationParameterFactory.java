@@ -2,6 +2,7 @@ package com.hp.octane.integrations.services.configurationparameters.factory;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.services.configurationparameters.EncodeCiJobBase64Parameter;
+import com.hp.octane.integrations.services.configurationparameters.UftJobCreationFolderParameter;
 
 public class ConfigurationParameterFactory {
 
@@ -9,6 +10,8 @@ public class ConfigurationParameterFactory {
 		switch (paramKey) {
 			case EncodeCiJobBase64Parameter.KEY:
 				return EncodeCiJobBase64Parameter.create(paramValue);
+			case UftJobCreationFolderParameter.KEY:
+				return UftJobCreationFolderParameter.create(paramValue);
 			default:
 				throw new IllegalArgumentException("Unknown parameter : " + paramKey);
 		}
