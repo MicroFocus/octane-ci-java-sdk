@@ -32,7 +32,6 @@ import com.hp.octane.integrations.dto.parameters.impl.DTOParametersProvider;
 import com.hp.octane.integrations.dto.securityscans.impl.DTOSecurityContextProvider;
 import com.hp.octane.integrations.dto.pipelines.impl.DTOPipelinesProvider;
 import com.hp.octane.integrations.dto.scm.impl.DTOSCMProvider;
-import com.hp.octane.integrations.dto.snapshots.impl.DTOSnapshotsProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOJUnitTestsProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOTestsProvider;
 
@@ -278,7 +277,6 @@ public final class DTOFactory {
 			providers.add(new DTOParametersProvider(this));
 			providers.add(new DTOPipelinesProvider(this));
 			providers.add(new DTOSCMProvider(this));
-			providers.add(new DTOSnapshotsProvider(this));
 			providers.add(new DTOTestsProvider(this));
 			providers.add(new DTOExecutorsProvider(this));
 			providers.add(new DTOJUnitTestsProvider(this));
