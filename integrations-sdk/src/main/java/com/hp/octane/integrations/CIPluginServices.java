@@ -168,17 +168,6 @@ public abstract class CIPluginServices {
 	}
 
 	/**
-	 * Provides Snapshot of the latest CI Build of the specified CI Job
-	 *
-	 * @param jobId   Job CI ID to get latest snapshot for
-	 * @param subTree should the snapshot include sub tree or not
-	 * @return latest snapshot's structure or null if build data not found
-	 */
-	public SnapshotNode getSnapshotLatest(String jobId, boolean subTree) {
-		return null;
-	}
-
-	/**
 	 * Provides Snapshot of the specified CI Build of the specified CI Job
 	 *
 	 * @param jobId   Job CI ID to get the specified snapshot for
