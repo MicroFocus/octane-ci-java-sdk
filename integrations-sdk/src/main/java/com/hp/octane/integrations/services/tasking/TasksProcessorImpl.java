@@ -26,7 +26,6 @@ import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
-import com.hp.octane.integrations.dto.snapshots.SnapshotNode;
 import com.hp.octane.integrations.exceptions.ErrorCodeBasedException;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 import org.apache.http.HttpHeaders;
@@ -250,26 +249,6 @@ final class TasksProcessorImpl implements TasksProcessor {
 		boolean toSuspend = Boolean.parseBoolean(suspend);
 		configurer.pluginServices.suspendCIEvents(toSuspend);
 		result.setStatus(HttpStatus.SC_CREATED);
-	}
-
-	private void executeLatestSnapshotRequest(OctaneResultAbridged result, String jobId) {
-		SnapshotNode data = configurer.pluginServices.getSnapshotLatest(jobId, false);
-		if (data != null) {
-			result.setBody(dtoFactory.dtoToJson(data));
-		} else {
-			result.setStatus(HttpStatus.SC_NOT_FOUND);
-		}
-		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
-	}
-
-	private void executeSnapshotByNumberRequest(OctaneResultAbridged result, String jobCiId, String buildCiId) {
-		SnapshotNode data = configurer.pluginServices.getSnapshotByNumber(jobCiId, buildCiId, false);
-		if (data != null) {
-			result.setBody(dtoFactory.dtoToJson(data));
-		} else {
-			result.setStatus(HttpStatus.SC_NOT_FOUND);
-		}
-		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 	}
 
 	private void executeUpsertCredentials(OctaneResultAbridged result, CredentialsInfo credentialsInfo) {
