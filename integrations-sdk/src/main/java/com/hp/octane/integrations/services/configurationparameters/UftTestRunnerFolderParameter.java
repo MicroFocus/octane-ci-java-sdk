@@ -3,11 +3,11 @@ package com.hp.octane.integrations.services.configurationparameters;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
-public class UftJobCreationFolderParameter implements ConfigurationParameter {
-	public static final String KEY = "UFT_JOB_CREATION_FOLDER";
+public class UftTestRunnerFolderParameter implements ConfigurationParameter {
+	public static final String KEY = "UFT_TEST_RUNNER_FOLDER";
 	private String folder;
 
-	private UftJobCreationFolderParameter(String folder) {
+	private UftTestRunnerFolderParameter(String folder) {
 		this.folder = folder;
 	}
 
@@ -15,12 +15,12 @@ public class UftJobCreationFolderParameter implements ConfigurationParameter {
 		return folder;
 	}
 
-	public static UftJobCreationFolderParameter create(String folder) {
+	public static UftTestRunnerFolderParameter create(String folder) {
 		if (SdkStringUtils.isEmpty(folder)) {
 			throw new IllegalArgumentException("Parameter " + KEY + " : Expected string value");
 		}
 
-		return new UftJobCreationFolderParameter(folder);
+		return new UftTestRunnerFolderParameter(folder);
 	}
 
 	@Override
