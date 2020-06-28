@@ -116,13 +116,6 @@ final class TasksProcessorImpl implements TasksProcessor {
 					executePipelineRunExecuteRequest(result, path[1], task.getBody());
 				} else if (path.length == 3 && STOP.equals(path[2])) {
 					executePipelineRunStopRequest(result, path[1], task.getBody());
-				} else if (path.length == 4 && BUILDS.equals(path[2])) {
-					//TODO: in the future should take the last parameter from the request
-					if (LATEST.equals(path[3])) {
-						executeLatestSnapshotRequest(result, path[1]);
-					} else {
-						executeSnapshotByNumberRequest(result, path[1], path[3]);
-					}
 				} else {
 					result.setStatus(HttpStatus.SC_NOT_FOUND);
 				}
