@@ -168,18 +168,6 @@ public abstract class CIPluginServices {
 	}
 
 	/**
-	 * Provides Snapshot of the specified CI Build of the specified CI Job
-	 *
-	 * @param jobId   Job CI ID to get the specified snapshot for
-	 * @param buildId Build CI ID to get snapshot of
-	 * @param subTree should the snapshot include sub tree or not
-	 * @return specified snapshot's structure or null if build data not found
-	 */
-	public SnapshotNode getSnapshotByNumber(String jobId, String buildId, boolean subTree) {
-		return null;
-	}
-
-	/**
 	 * Provides tests result report for the specific build
 	 *
 	 * @param jobId   Job CI ID to get tests results of
