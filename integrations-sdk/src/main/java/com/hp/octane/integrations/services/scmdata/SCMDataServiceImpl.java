@@ -30,7 +30,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -43,14 +42,12 @@ public class SCMDataServiceImpl implements SCMDataService {
     protected final ConfigurationService configurationService;
     protected final EventsService eventsService;
     protected final OctaneSDK.SDKServicesConfigurer configurer;
+    private final WorkerPreflight workerPreflight;
 
     private final ExecutorService scmProcessingExecutor = Executors.newSingleThreadExecutor(new SCMDataServiceImpl.SCMPushWorkerThreadFactory());
     private final ObjectQueue<SCMDataQueueItem> scmDataQueue;
     
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-
-    private CompletableFuture<Boolean> workerExited;
-    private final WorkerPreflight workerPreflight;
 
     private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
 
@@ -171,7 +168,6 @@ public class SCMDataServiceImpl implements SCMDataService {
                 scmDataQueue.remove();
             }
         }
-        workerExited.complete(true);
     }
 
 
