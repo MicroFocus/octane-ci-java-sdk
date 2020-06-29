@@ -53,15 +53,24 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
 
         //users
         Set<String> userUrls = pullRequests.stream().map(PullRequest::getUser).map(PullRequestUser::getUrl).collect(Collectors.toSet());
+        logConsumer.accept("Fetching PR owners information ...");
+        int counter = 0;
         Map<String, User> login2User = new HashMap<>();
         for (String url : userUrls) {
             User user = getEntity(url, User.class);
             login2User.put(user.getLogin(), user);
+            if (counter > 0 && counter % 10 == 0) {
+                logConsumer.accept("Fetching PR owners information " + counter * 100 / userUrls.size() + "%");
+            }
+            counter++;
             //if (user.getEmail() == null) {
             //    logConsumer.accept(String.format("WARNING : The User '%s' has no defined PUBLIC email in Github. User should set up a public email in their profile, otherwise - the user won't be recognized in ALM Octane.", user.getLogin()));
             //}
         }
+        logConsumer.accept("Fetching PR owners information is done");
 
+        logConsumer.accept("Fetching commits ...");
+        counter = 0;
         for (PullRequest pr : filteredPullRequests) {
             //commits are returned in asc order by update time , therefore we need to get all before filtering , therefore page size equals to max total
             List<Commit> commits = getPagedEntities(pr.getCommitsUrl(), Commit.class, parameters.getMaxCommitsToFetch(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
@@ -100,7 +109,14 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                     .setTargetRepository(targetRepository)
                     .setCommits(dtoCommits);
             result.add(dtoPullRequest);
+
+            if (counter > 0 && counter % 40 == 0) {
+                logConsumer.accept("Fetching commits " + counter * 100 / filteredPullRequests.size() + "%");
+            }
+            counter++;
         }
+        logConsumer.accept("Fetching commits is done");
+        logConsumer.accept("Pull requests are ready");
         return result;
     }
 

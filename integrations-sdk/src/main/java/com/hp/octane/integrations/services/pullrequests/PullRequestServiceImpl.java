@@ -27,6 +27,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.rest.RestService;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -96,25 +97,34 @@ final class PullRequestServiceImpl implements PullRequestService {
     public void sendPullRequests(List<PullRequest> pullRequests, String workspaceId, FetchParameters fetchParameters, Consumer<String> logConsumer) throws IOException {
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-        String json = dtoFactory.dtoCollectionToJson(pullRequests);
-        OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
-                .setMethod(HttpMethod.PUT)
-                .setUrl(configurer.octaneConfiguration.getUrl() +
-                        RestService.SHARED_SPACE_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
-                        "/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART + "pull-requests/")
-                .setHeaders(headers)
-                .setBody(json);
+        logConsumer.accept("Sending to ALM Octane : " + configurer.octaneConfiguration.geLocationForLog() + ", workspace " + workspaceId);
 
-        logConsumer.accept("Sending to ALM Octane : " + configurer.octaneConfiguration.geLocationForLog() +", workspace " + workspaceId);
-        OctaneResponse octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
-        if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
-            if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-                throw new RuntimeException("Failed to sendPullRequests : received 404 status. Validate that you have ALM Octane version that is greater than 15.0.48");
+        String url = configurer.octaneConfiguration.getUrl() +
+                RestService.SHARED_SPACE_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
+                "/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART + "pull-requests/";
+
+        int sentCounter = 0;
+        List<List<PullRequest>> subSets = ListUtils.partition(pullRequests, 200);
+        for (List<PullRequest> list : subSets) {
+            String json = dtoFactory.dtoCollectionToJson(list);
+            OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
+                    .setMethod(HttpMethod.PUT)
+                    .setUrl(url)
+                    .setHeaders(headers)
+                    .setBody(json);
+
+            OctaneResponse octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
+            if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
+                if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
+                    throw new RuntimeException("Failed to sendPullRequests : received 404 status. Validate that you have ALM Octane version that is greater than 15.0.48");
+                } else {
+                    throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
+                }
             } else {
-                throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
+                sentCounter += list.size();
+                logConsumer.accept(String.format("Sent %s/%s pull requests.", sentCounter, pullRequests.size()));
             }
         }
-        logConsumer.accept("Sent to ALM Octane successfully");
 
         long lastUpdateTime = pullRequests.stream().map(PullRequest::getUpdatedTime).max(Comparator.naturalOrder()).orElse(0L);
         saveLastUpdateTime(workspaceId, fetchParameters.getRepoUrl(), lastUpdateTime);
