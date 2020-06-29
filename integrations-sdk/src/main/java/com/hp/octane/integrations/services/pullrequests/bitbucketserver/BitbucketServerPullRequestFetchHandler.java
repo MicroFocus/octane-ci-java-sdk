@@ -61,6 +61,8 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                 .collect(Collectors.toList());
         logConsumer.accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
 
+        logConsumer.accept("Fetching commits ...");
+        int counter = 0;
         for (PullRequest pr : filteredPullRequests) {
             String url = baseUrl + "/pull-requests/" + pr.getId() + "/commits";
             List<Commit> commits = getPagedEntities(url, Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
@@ -99,7 +101,13 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                     .setIsMerged(isMerged);
             result.add(dtoPullRequest);
 
+            if (counter > 0 && counter % 40 == 0) {
+                logConsumer.accept("Fetching commits " + counter * 100 / filteredPullRequests.size() + "%");
+            }
+            counter++;
         }
+        logConsumer.accept("Fetching commits is done");
+        logConsumer.accept("Pull requests are ready");
         return result;
     }
 
