@@ -262,8 +262,4 @@ public class SCMDataServiceImpl implements SCMDataService {
     private String getSCMDataContextPath(String octaneBaseUrl, String sharedSpaceId) {
         return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.SCMDATA_API_PATH_PART;
     }
-
-    private String getSCMDataPreFlightContextPath(String octaneBaseUrl, String sharedSpaceId) {
-        return octaneBaseUrl + RestService.SHARED_SPACE_API_PATH_PART + sharedSpaceId + RestService.SCMDATA_API_PATH_PART;
-    }
 }
