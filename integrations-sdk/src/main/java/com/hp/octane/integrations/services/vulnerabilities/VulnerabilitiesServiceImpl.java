@@ -244,8 +244,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
 
 		boolean base64 = isEncodeBase64();
-		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodeQueryParam(jobId);
-		String encodedBuildId = CIPluginSDKUtils.urlEncodeQueryParam(buildId);
+		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodePathParam(jobId);
+		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
 
 		String url = getVulnerabilitiesContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 				"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId;
