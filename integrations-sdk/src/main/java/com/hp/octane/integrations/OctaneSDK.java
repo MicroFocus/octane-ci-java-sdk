@@ -40,6 +40,8 @@ public final class OctaneSDK {
 	public static final Integer API_VERSION;
 	public static final String SDK_VERSION;
 
+	public static final String OCTANE_COLDPLAY_SCM_REST_API="15.1.8";
+
 	static {
 		Properties p = new Properties();
 		try {

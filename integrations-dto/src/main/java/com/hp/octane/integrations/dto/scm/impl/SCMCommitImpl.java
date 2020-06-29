@@ -27,7 +27,7 @@ import java.util.List;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class SCMCommitImpl implements SCMCommit {
+public class SCMCommitImpl implements SCMCommit {
 	private Long time;
 	private String user;
 	private String userEmail;
@@ -35,6 +35,10 @@ class SCMCommitImpl implements SCMCommit {
 	private String parentRevId;
 	private String comment;
 	private List<SCMChange> changes;
+
+	//  this constructor MUST be present, don't remove
+	public SCMCommitImpl() {
+	}
 
 	public Long getTime() {
 		return time;

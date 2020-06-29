@@ -25,10 +25,14 @@ import com.hp.octane.integrations.dto.scm.SCMType;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class SCMRepositoryImpl implements SCMRepository {
+public class SCMRepositoryImpl implements SCMRepository {
 	private SCMType type;
 	private String url;
 	private String branch;
+
+	//  this constructor MUST be present, don't remove
+	public SCMRepositoryImpl() {
+	}
 
 	public SCMType getType() {
 		return type;

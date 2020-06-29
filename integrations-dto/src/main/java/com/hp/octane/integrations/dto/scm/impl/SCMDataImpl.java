@@ -29,7 +29,7 @@ import java.util.List;
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-class SCMDataImpl implements SCMData {
+public class SCMDataImpl implements SCMData {
 
 
 	private SCMRepository repository;
@@ -37,6 +37,9 @@ class SCMDataImpl implements SCMData {
 	private List<SCMCommit> commits;
 	private List<SCMFileBlame> fileBlameList;
 
+	//  this constructor MUST be present, don't remove
+	public SCMDataImpl() {
+	}
 
 	public SCMRepository getRepository() {
 		return repository;
