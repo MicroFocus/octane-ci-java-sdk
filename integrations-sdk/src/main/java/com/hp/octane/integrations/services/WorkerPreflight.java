@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class WorkerPreflight {
 
-
+    private static boolean skipConnectionValidation;
     private final static int QUEUE_EMPTY_INTERVAL = 10000;
     private final static int REGULAR_CYCLE_PAUSE = 250;
     private final static int NO_CONNECTION_PAUSE = 30000;
@@ -23,10 +23,16 @@ public class WorkerPreflight {
     private long lastIterationTime = 0;
     private boolean waitAfterConnected = true;
 
+
+
     public WorkerPreflight(HasQueueService service, ConfigurationService confService, Logger logger) {
         this.service = service;
         this.logger = logger;
         this.confService = confService;
+    }
+
+    public static void setSkipConnectionValidation(boolean value) {
+        skipConnectionValidation = value;
     }
 
     public boolean preflight() {
@@ -45,13 +51,13 @@ public class WorkerPreflight {
             return false;
         }
 
-        if (!confService.isConnected()) {
+        if (!skipConnectionValidation && !confService.isConnected()) {
             logger.warn(confService.getCurrentConfiguration().geLocationForLog() + "client is not connected. waiting " + NO_CONNECTION_PAUSE / 1000 + " sec");
             CIPluginSDKUtils.doWait(NO_CONNECTION_PAUSE);
             previousIterationWasNotConnected = true;
             return false;
         }
-        if (previousIterationWasNotConnected && waitAfterConnected) {
+        if (!skipConnectionValidation && previousIterationWasNotConnected && waitAfterConnected) {
             logger.warn(confService.getCurrentConfiguration().geLocationForLog() + "client is connected now. Giving time to events to be sent.");
             CIPluginSDKUtils.doWait(NO_CONNECTION_PAUSE);
             previousIterationWasNotConnected = false;
