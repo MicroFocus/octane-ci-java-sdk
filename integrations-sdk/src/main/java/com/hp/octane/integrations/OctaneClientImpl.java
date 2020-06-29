@@ -258,6 +258,7 @@ final class OctaneClientImpl implements OctaneClient {
 		vulnerabilitiesService.shutdown();
 		restService.obtainOctaneRestClient().shutdown();
 		loggingService.shutdown();
+		scmDataService.shutdown();
 		Runtime.getRuntime().removeShutdownHook(shutdownHook);
 	}
 

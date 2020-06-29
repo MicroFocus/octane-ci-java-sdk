@@ -1,6 +1,5 @@
 package com.hp.octane.integrations.services.scmdata;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
@@ -50,14 +49,10 @@ public class SCMDataServiceImpl implements SCMDataService {
     
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-
     private CompletableFuture<Boolean> workerExited;
     private final WorkerPreflight workerPreflight;
 
     private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
-    private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
-
 
     public SCMDataServiceImpl(QueueingService queueingService, OctaneSDK.SDKServicesConfigurer configurer,
                               RestService restService, ConfigurationService configurationService, EventsService eventsService) {
@@ -109,14 +104,11 @@ public class SCMDataServiceImpl implements SCMDataService {
         } else {
             pushSCMDataByEvent(scmData, jobId, buildId);
         }
-
-
-
     }
 
     @Override
     public void shutdown() {
-
+        scmProcessingExecutor.shutdown();
     }
 
     @Override
@@ -265,18 +257,6 @@ public class SCMDataServiceImpl implements SCMDataService {
         mapScmEventCause.put(scmEventCause.generateKey(), scmEventCause);
 
         return new ArrayList<>(mapScmEventCause.values());
-    }
-
-    private OctaneResponse getBaselineDateFromOctane(String jobId, String buildId) throws IOException {
-        String encodedJobId = CIPluginSDKUtils.urlEncodePathParam(jobId);
-        String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
-
-        OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class)
-                .setMethod(HttpMethod.GET)
-                .setUrl(getSCMDataPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
-                        "?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId);
-
-        return restService.obtainOctaneRestClient().execute(preflightRequest);
     }
 
     private String getSCMDataContextPath(String octaneBaseUrl, String sharedSpaceId) {
