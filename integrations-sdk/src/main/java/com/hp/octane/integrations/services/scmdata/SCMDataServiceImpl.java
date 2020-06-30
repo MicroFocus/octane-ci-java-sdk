@@ -224,6 +224,11 @@ public class SCMDataServiceImpl implements SCMDataService {
 
     private void pushSCMDataByEvent(SCMData scmData, String jobId, String buildId) {
 
+        if (jobId == null || jobId.isEmpty())
+            throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+        if (buildId == null || buildId.isEmpty())
+            throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
+
         try {
             if (scmData != null) {
 
@@ -232,7 +237,7 @@ public class SCMDataServiceImpl implements SCMDataService {
                         .setProject(jobId)
                         .setBuildCiId(buildId)
                         .setCauses(generateScmCauses())
-                        .setNumber(String.valueOf(buildId))
+                        .setNumber(buildId)
                         .setScmData(scmData);
 
                 eventsService.publishEvent(event);
