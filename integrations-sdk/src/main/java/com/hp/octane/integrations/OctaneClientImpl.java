@@ -156,7 +156,7 @@ final class OctaneClientImpl implements OctaneClient {
 
 	@Override
 	public void refreshSdkSupported() {
-		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus(false);
+		OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus();
 		if (octaneConnectivityStatus != null) {
 			configurer.octaneConfiguration.setSdkSupported(CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus));
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sdkSupported = " + configurer.octaneConfiguration.isSdkSupported());
@@ -322,7 +322,7 @@ final class OctaneClientImpl implements OctaneClient {
 		if (isShutdownHookActivated) {
 			map.put("shutdownHookActivatedTime", new Date(shutdownHookActivatedTime));
 		}
-		OctaneConnectivityStatus status = this.getConfigurationService().getOctaneConnectivityStatus(false);
+		OctaneConnectivityStatus status = this.getConfigurationService().getOctaneConnectivityStatus();
 		map.put("octaneConnectivityStatus", status == null ? "" : status);
 		map.put("isConnected", this.getConfigurationService().isConnected());
 		map.put("started", new Date(started));
