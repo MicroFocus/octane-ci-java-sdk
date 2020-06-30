@@ -32,6 +32,7 @@ public interface RestService {
 	String CONTENT_TYPE_HEADER = "content-type";
 	String CONTENT_ENCODING_HEADER = "content-encoding";
 	String GZIP_ENCODING = "gzip";
+	String SCMDATA_API_PATH_PART = "/scm-commits";
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)

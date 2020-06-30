@@ -20,6 +20,7 @@ import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.pullrequests.PullRequestService;
+import com.hp.octane.integrations.services.scmdata.SCMDataService;
 import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
@@ -140,4 +141,11 @@ public interface OctaneClient extends HasMetrics {
 	 * @return service, MUST NOT be null
 	 */
 	VulnerabilitiesService getVulnerabilitiesService();
+
+	/**
+	 *  provides SCMDataService service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	SCMDataService getSCMDataService();
 }
