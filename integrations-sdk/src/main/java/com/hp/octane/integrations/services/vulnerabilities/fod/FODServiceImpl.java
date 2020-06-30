@@ -200,7 +200,7 @@ public class FODServiceImpl implements FODService {
 
     private Map<String, VulnerabilityAllData> getVulnerabilityAllDataMap(Long releaseId, List<Vulnerability> requiredExtendedData) {
         long SLEEP_MS = 2000;
-        long EXPECTED_REQUEST_TIME_MS = 1000;
+        long EXPECTED_REQUEST_TIME_MS = 1000;//used to compute waiting time
         logger.warn(configurer.octaneConfiguration.geLocationForLog() + String.format("getVulnerabilityAllDataMap, requiredExtendedData.size=%s, expected processing duration is %s sec",
                 requiredExtendedData.size(), requiredExtendedData.size() * (SLEEP_MS + EXPECTED_REQUEST_TIME_MS) / 1000));
         Map<String, VulnerabilityAllData> idToAllData = new HashMap<>();
@@ -208,6 +208,7 @@ public class FODServiceImpl implements FODService {
         for (int i = 0; i < requiredExtendedData.size(); i++) {
             Vulnerability t = requiredExtendedData.get(i);
             if (i > 0) {
+                //adding sleep in order to avoid FOD DOS filter that might block our requests
                 doWait(SLEEP_MS);
             }
             if (i > 0 && i % 50 == 0) {
