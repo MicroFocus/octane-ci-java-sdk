@@ -64,6 +64,10 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
+	public synchronized OctaneConnectivityStatus getOctaneConnectivityStatus() {
+		return getOctaneConnectivityStatus(false);
+	}
+
 	public synchronized OctaneConnectivityStatus getOctaneConnectivityStatus(boolean forceFetch) {
 
 		try {
