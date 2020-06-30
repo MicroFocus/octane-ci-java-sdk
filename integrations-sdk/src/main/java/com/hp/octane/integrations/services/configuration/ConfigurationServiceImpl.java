@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -105,6 +106,11 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 		}
 	}
 
+	@Override
+	public boolean isOctaneVersionGreaterOrEqual(String version) {
+		OctaneConnectivityStatus octaneStatus = getOctaneConnectivityStatus();
+		return (octaneStatus != null && octaneStatus.getOctaneVersion() != null && CIPluginSDKUtils.compareStringVersion(octaneStatus.getOctaneVersion(), version) >=0 ) ;
+	}
 
 	@Override
 	public boolean isConnected() {

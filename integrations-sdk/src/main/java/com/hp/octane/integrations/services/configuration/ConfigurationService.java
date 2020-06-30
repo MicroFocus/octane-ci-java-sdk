@@ -56,5 +56,7 @@ public interface ConfigurationService {
 	 */
 	OctaneConnectivityStatus validateConfigurationAndGetConnectivityStatus() throws IOException;
 
+	boolean isOctaneVersionGreaterOrEqual(String version);
+
 	boolean isConnected();
 }
