@@ -189,6 +189,18 @@ public abstract class CIPluginServices {
 	}
 
 	/**
+	 * Provides SCM data as an InputStream
+	 *
+	 * @param jobId   job CI ID of the specific build to get log for
+	 * @param buildId build CI ID to get log for
+	 * @return SCM data as an InputStream; NULL if no SCM data available
+	 */
+	public InputStream getSCMData(String jobId, String buildId) {
+		return null;
+	}
+
+
+	/**
 	 * Provides tests result report for the specific build
 	 *
 	 * @param jobId          Job CI ID to get tests results of

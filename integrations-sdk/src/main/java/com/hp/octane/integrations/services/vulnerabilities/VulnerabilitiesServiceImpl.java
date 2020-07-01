@@ -310,8 +310,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 	private OctaneResponse getBaselineDateFromOctane(String jobId, String buildId) throws IOException {
 		boolean base64 = isEncodeBase64();
-		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodePathParam(jobId);
-		String encodedBuildId = CIPluginSDKUtils.urlEncodePathParam(buildId);
+		String encodedJobId = base64 ? CIPluginSDKUtils.urlEncodeBase64(jobId) : CIPluginSDKUtils.urlEncodeQueryParam(jobId);
+		String encodedBuildId = CIPluginSDKUtils.urlEncodeQueryParam(buildId);
 		String url = getVulnerabilitiesPreFlightContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 				"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId;
 		if (base64) {

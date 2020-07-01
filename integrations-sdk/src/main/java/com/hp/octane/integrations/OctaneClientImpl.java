@@ -28,6 +28,7 @@ import com.hp.octane.integrations.services.pipelines.PipelineContextService;
 import com.hp.octane.integrations.services.pullrequests.PullRequestService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.scmdata.SCMDataService;
 import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
 import com.hp.octane.integrations.services.tests.TestsService;
@@ -73,6 +74,7 @@ final class OctaneClientImpl implements OctaneClient {
 	private final TestsService testsService;
 	private final VulnerabilitiesService vulnerabilitiesService;
 	private final PullRequestService pullRequestService;
+	private final SCMDataService scmDataService;
 	private final Thread shutdownHook;
 	private boolean isShutdownHookActivated;
 	private long shutdownHookActivatedTime;
@@ -123,6 +125,8 @@ final class OctaneClientImpl implements OctaneClient {
 		vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer, restService, configurationService);
 
 		pullRequestService = PullRequestService.newInstance(configurer, restService);
+
+		scmDataService = SCMDataService.newInstance(queueingService, configurer, restService, configurationService, eventsService);
 
 		//  bridge init is the last one, to make sure we are not processing any task until all services are up
 		bridgeService = BridgeService.newInstance(configurer, restService, tasksProcessor, configurationService);
@@ -237,6 +241,9 @@ final class OctaneClientImpl implements OctaneClient {
 	}
 
 	@Override
+	public SCMDataService getSCMDataService() { return scmDataService; }
+
+	@Override
 	public String toString() {
 		return "OctaneClientImpl{ instanceId: " + configurer.octaneConfiguration.getInstanceId() + " }";
 	}
@@ -256,6 +263,7 @@ final class OctaneClientImpl implements OctaneClient {
 		vulnerabilitiesService.shutdown();
 		restService.obtainOctaneRestClient().shutdown();
 		loggingService.shutdown();
+		scmDataService.shutdown();
 		Runtime.getRuntime().removeShutdownHook(shutdownHook);
 	}
 
