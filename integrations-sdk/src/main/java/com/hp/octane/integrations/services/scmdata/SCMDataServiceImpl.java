@@ -218,7 +218,7 @@ public class SCMDataServiceImpl implements SCMDataService {
         OctaneResponse response = octaneRestClient.execute(request);
         logger.info(configurer.octaneConfiguration.geLocationForLog() + "scmData pushed; status: " + response.getStatus() + ", response: " + response.getBody());
         if (response.getStatus() == HttpStatus.SC_OK) {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "scmData push SUCCEED for " + jobId + " #" + buildId);
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + "scmData push SUCCEED for " + jobId + " #" + buildId + "response body: " + response.getBody());
         } else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
             throw new TemporaryException("scmData push FAILED, service unavailable");
         } else {
