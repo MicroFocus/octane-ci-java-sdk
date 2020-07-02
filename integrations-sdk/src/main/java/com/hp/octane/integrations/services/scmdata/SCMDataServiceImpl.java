@@ -93,7 +93,7 @@ public class SCMDataServiceImpl implements SCMDataService {
         if( isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(OctaneSDK.OCTANE_COLDPLAY_SCM_REST_API)) {
             SCMDataQueueItem scmDataQueueItem = new SCMDataQueueItem(jobId, buildId);
             scmDataQueue.add(scmDataQueueItem);
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getBuildId() + "/" + scmDataQueueItem.getJobId() + " was added to scmdata queue");
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getJobId() + " #" + scmDataQueueItem.getBuildId() + " was added to scmdata queue");
 
             workerPreflight.itemAddedToQueue();
         } else {
@@ -216,9 +216,8 @@ public class SCMDataServiceImpl implements SCMDataService {
                 .setBody(scmData);
 
         OctaneResponse response = octaneRestClient.execute(request);
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "scmData pushed; status: " + response.getStatus() + ", response: " + response.getBody());
         if (response.getStatus() == HttpStatus.SC_OK) {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "scmData push SUCCEED for " + jobId + " #" + buildId);
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + "scmData for " + jobId + " #" + buildId + ", push SUCCEED");
         } else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
             throw new TemporaryException("scmData push FAILED, service unavailable");
         } else {
