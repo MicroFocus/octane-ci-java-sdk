@@ -2,6 +2,7 @@ package com.hp.octane.integrations.services.configurationparameters.factory;
 
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.services.configurationparameters.EncodeCiJobBase64Parameter;
+import com.hp.octane.integrations.services.configurationparameters.SCMRestAPIParameter;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
 
 public class ConfigurationParameterFactory {
@@ -12,6 +13,8 @@ public class ConfigurationParameterFactory {
 				return EncodeCiJobBase64Parameter.create(paramValue);
 			case UftTestRunnerFolderParameter.KEY:
 				return UftTestRunnerFolderParameter.create(paramValue);
+			case SCMRestAPIParameter.KEY:
+				return SCMRestAPIParameter.create(paramValue);
 			default:
 				throw new IllegalArgumentException("Unknown parameter : " + paramKey);
 		}
@@ -33,4 +36,13 @@ public class ConfigurationParameterFactory {
 		}
 		return false;
 	}
+
+	public static boolean isSCMRestAPI(OctaneConfiguration configuration) {
+		SCMRestAPIParameter scmRestAPIParameter = (SCMRestAPIParameter) configuration.getParameter(SCMRestAPIParameter.KEY);
+		if (scmRestAPIParameter != null) {
+			return scmRestAPIParameter.isSCMRestAPI();
+		}
+		return true;
+	}
+
 }

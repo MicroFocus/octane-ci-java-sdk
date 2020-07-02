@@ -90,7 +90,7 @@ public class SCMDataServiceImpl implements SCMDataService {
             return;
         }
 
-        if(configurationService.isOctaneVersionGreaterOrEqual(OctaneSDK.OCTANE_COLDPLAY_SCM_REST_API)) {
+        if( isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(OctaneSDK.OCTANE_COLDPLAY_SCM_REST_API)) {
             SCMDataQueueItem scmDataQueueItem = new SCMDataQueueItem(jobId, buildId);
             scmDataQueue.add(scmDataQueueItem);
             logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getBuildId() + "/" + scmDataQueueItem.getJobId() + " was added to scmdata queue");
@@ -186,6 +186,10 @@ public class SCMDataServiceImpl implements SCMDataService {
 
     private boolean isEncodeBase64() {
         return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
+    }
+
+    private boolean isSCMRestAPI() {
+        return ConfigurationParameterFactory.isSCMRestAPI(configurer.octaneConfiguration);
     }
 
     private void pushSCMDataByRestAPI(String jobId, String buildId, InputStream scmData) throws IOException {
