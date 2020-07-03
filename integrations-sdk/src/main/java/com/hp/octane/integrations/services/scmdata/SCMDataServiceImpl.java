@@ -49,6 +49,7 @@ public class SCMDataServiceImpl implements SCMDataService {
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
+    public static final String SCM_REST_API_SUPPORTED_VERSION = "15.1.20";
 
     public SCMDataServiceImpl(QueueingService queueingService, OctaneSDK.SDKServicesConfigurer configurer,
                               RestService restService, ConfigurationService configurationService, EventsService eventsService) {
@@ -90,7 +91,7 @@ public class SCMDataServiceImpl implements SCMDataService {
             return;
         }
 
-        if( isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(OctaneSDK.OCTANE_COLDPLAY_SCM_REST_API)) {
+        if( isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(SCM_REST_API_SUPPORTED_VERSION)) {
             SCMDataQueueItem scmDataQueueItem = new SCMDataQueueItem(jobId, buildId);
             scmDataQueue.add(scmDataQueueItem);
             logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getJobId() + " #" + scmDataQueueItem.getBuildId() + " was added to queue");
