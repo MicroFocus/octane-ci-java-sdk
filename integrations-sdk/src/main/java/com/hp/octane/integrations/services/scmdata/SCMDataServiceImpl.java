@@ -93,7 +93,7 @@ public class SCMDataServiceImpl implements SCMDataService {
         if( isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(OctaneSDK.OCTANE_COLDPLAY_SCM_REST_API)) {
             SCMDataQueueItem scmDataQueueItem = new SCMDataQueueItem(jobId, buildId);
             scmDataQueue.add(scmDataQueueItem);
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getJobId() + " #" + scmDataQueueItem.getBuildId() + " was added to scmdata queue");
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getJobId() + " #" + scmDataQueueItem.getBuildId() + " was added to queue");
 
             workerPreflight.itemAddedToQueue();
         } else {
