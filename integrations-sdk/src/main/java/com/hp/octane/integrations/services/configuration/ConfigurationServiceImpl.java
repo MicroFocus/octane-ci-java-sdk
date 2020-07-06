@@ -43,7 +43,6 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private OctaneConnectivityStatus octaneConnectivityStatus;
-	private long octaneConnectivityStatusDate;
 	private volatile  boolean isConnected;
 
 	ConfigurationServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
@@ -74,7 +73,6 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 		try {
 			if (forceFetch || octaneConnectivityStatus == null) {
 				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatus();
-				octaneConnectivityStatusDate = System.currentTimeMillis();
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
 				isConnected = true;
 			}
