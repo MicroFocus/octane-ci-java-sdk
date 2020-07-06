@@ -5,6 +5,8 @@ import com.hp.octane.integrations.services.configurationparameters.EncodeCiJobBa
 import com.hp.octane.integrations.services.configurationparameters.SCMRestAPIParameter;
 import com.hp.octane.integrations.services.configurationparameters.UftTestRunnerFolderParameter;
 
+import java.util.NoSuchElementException;
+
 public class ConfigurationParameterFactory {
 
 	public static ConfigurationParameter tryCreate(String paramKey, String paramValue) {
@@ -16,7 +18,7 @@ public class ConfigurationParameterFactory {
 			case SCMRestAPIParameter.KEY:
 				return SCMRestAPIParameter.create(paramValue);
 			default:
-				throw new IllegalArgumentException("Unknown parameter : " + paramKey);
+				throw new NoSuchElementException("Unknown parameter : " + paramKey);
 		}
 	}
 
