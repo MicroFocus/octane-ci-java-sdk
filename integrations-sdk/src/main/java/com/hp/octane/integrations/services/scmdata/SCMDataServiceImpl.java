@@ -49,7 +49,7 @@ public class SCMDataServiceImpl implements SCMDataService {
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
-    public static final String SCM_REST_API_SUPPORTED_VERSION = "15.1.20";
+    public static final String SCM_REST_API_SUPPORTED_VERSION = "15.1.21";
 
     public SCMDataServiceImpl(QueueingService queueingService, OctaneSDK.SDKServicesConfigurer configurer,
                               RestService restService, ConfigurationService configurationService, EventsService eventsService) {
