@@ -272,7 +272,7 @@ final class BridgeServiceImpl implements BridgeService {
     private void setConnectionSuccessful() {
         ((ConfigurationServiceImpl)configurationService).setConnected(true);
         if (continuousExceptionsCounter > 10) {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "Force getOctaneConnectivityStatus after " + continuousExceptionsCounter + " failed trials");
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + "force getOctaneConnectivityStatus after " + continuousExceptionsCounter + " failed trials");
             ((ConfigurationServiceImpl)configurationService).getOctaneConnectivityStatus(true);
             forcedGetOctaneConnectivityStatusCalls++;
         }
