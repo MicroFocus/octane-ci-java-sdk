@@ -72,7 +72,7 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                 com.hp.octane.integrations.dto.scm.SCMCommit dtoCommit = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.SCMCommit.class)
                         .setRevId(commit.getId())
                         .setComment(commit.getMessage())
-                        .setUser(commit.getCommitter().getName())
+                        .setUser(getUserName(commit.getCommitter().getEmailAddress(), commit.getCommitter().getName()))
                         .setUserEmail(commit.getCommitter().getEmailAddress())
                         .setTime(commit.getCommitterTimestamp())
                         .setParentRevId(commit.getParents().get(0).getId());
@@ -90,7 +90,7 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                     .setState(pr.getState())
                     .setCreatedTime(pr.getCreatedDate())
                     .setUpdatedTime(pr.getUpdatedTime())
-                    .setAuthorName(pr.getAuthor().getUser().getName())
+                    .setAuthorName(getUserName(pr.getAuthor().getUser().getEmailAddress(), pr.getAuthor().getUser().getName()))
                     .setAuthorEmail(pr.getAuthor().getUser().getEmailAddress())
                     .setClosedTime(pr.getClosedDate())
                     .setSelfUrl(pr.getLinks().getSelf().get(0).getHref())

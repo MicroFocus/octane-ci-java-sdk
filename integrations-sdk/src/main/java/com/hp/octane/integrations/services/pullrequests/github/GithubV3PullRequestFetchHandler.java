@@ -81,7 +81,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                 com.hp.octane.integrations.dto.scm.SCMCommit dtoCommit = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.SCMCommit.class)
                         .setRevId(commit.getSha())
                         .setComment(commit.getCommit().getMessage())
-                        .setUser(commit.getCommit().getCommitter().getName())
+                        .setUser(getUserName(commit.getCommit().getCommitter().getEmail(), commit.getCommit().getCommitter().getName()))
                         .setUserEmail(commit.getCommit().getCommitter().getEmail())
                         .setTime(convertDateToLong(commit.getCommit().getCommitter().getDate()))
                         .setParentRevId(commit.getParents().get(0).getSha());
@@ -101,7 +101,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                     .setUpdatedTime(convertDateToLong(pr.getUpdatedAt()))
                     .setMergedTime(convertDateToLong(pr.getMergedAt()))
                     .setIsMerged(pr.getMergedAt() != null)
-                    .setAuthorName(prAuthor.getName() == null ? prAuthor.getLogin() : prAuthor.getName())
+                    .setAuthorName(getUserName(prAuthor.getEmail(), prAuthor.getName(), prAuthor.getLogin()))
                     .setAuthorEmail(prAuthor.getEmail())
                     .setClosedTime(convertDateToLong(pr.getClosedAt()))
                     .setSelfUrl(pr.getHtmlUrl())
@@ -110,7 +110,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                     .setCommits(dtoCommits);
             result.add(dtoPullRequest);
 
-            if (counter > 0 && counter % 40 == 0) {
+            if (counter > 0 && counter % 25 == 0) {
                 logConsumer.accept("Fetching commits " + counter * 100 / filteredPullRequests.size() + "%");
             }
             counter++;
@@ -119,6 +119,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
         logConsumer.accept("Pull requests are ready");
         return result;
     }
+
 
     public static Long convertDateToLong(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) {

@@ -85,4 +85,22 @@ public abstract class PullRequestFetchHandler {
             throw new IllegalArgumentException("Repo url must end with '.git'");
         }
     }
+
+    protected static String getUserName(String email, String name) {
+        return getUserName(email, name, null);
+    }
+
+    protected static String getUserName(String email, String name, String loginName) {
+        if (email != null && email.contains("@")) {
+            String[] emailParts = email.split("@");
+            if (emailParts.length > 1) {
+                String id = emailParts[0].trim();
+                if (!id.isEmpty()) {
+                    return id;
+                }
+            }
+        }
+
+        return name == null ? loginName : name;
+    }
 }
