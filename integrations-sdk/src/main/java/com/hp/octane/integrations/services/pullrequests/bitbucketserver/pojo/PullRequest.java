@@ -22,7 +22,7 @@ public class PullRequest extends Entity implements SupportUpdatedTime {
 
     public final  static String MERGED_STATE = "MERGED";
     private int version;
-    private String title;
+    private String title = "";
 
     private String state;
 
@@ -33,7 +33,7 @@ public class PullRequest extends Entity implements SupportUpdatedTime {
     private long createdDate;
     private long updatedDate;
     private Long  closedDate;
-    private String  description;
+    private String  description = "";
     private User author;
 
     public int getVersion() {
