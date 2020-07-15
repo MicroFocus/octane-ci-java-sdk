@@ -42,6 +42,8 @@ import java.util.regex.Pattern;
 
 /**
  * Tasks routing service handles ALM Octane tasks, both coming from abridged logic as well as plugin's REST call delegation
+ *
+ * Sent from octane : CIServersServiceImpl
  */
 
 final class TasksProcessorImpl implements TasksProcessor {
@@ -55,10 +57,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String RUN = "run";
 	private static final String STOP = "stop";
 	private static final String BUILDS = "builds";
-	private static final String LATEST = "latest";
 	private static final String EXECUTOR = "executor";
 	private static final String INIT = "init";
-	private static final String SUITE_RUN = "suite_run";
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 
