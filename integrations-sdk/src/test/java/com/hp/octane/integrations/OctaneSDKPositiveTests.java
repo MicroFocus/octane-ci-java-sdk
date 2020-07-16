@@ -51,12 +51,12 @@ public class OctaneSDKPositiveTests {
 		OctaneClient client = OctaneSDK.getClientByInstanceId(oc1.getInstanceId());
 		Assert.assertNotNull(client);
 		Assert.assertEquals(instance1, client.getInstanceId());
-		Assert.assertEquals(oc1, client.getConfigurationService().getCurrentConfiguration());
+		Assert.assertEquals(oc1, client.getConfigurationService().getConfiguration());
 
 		client = OctaneSDK.getClientByInstanceId(oc2.getInstanceId());
 		Assert.assertNotNull(client);
 		Assert.assertEquals(instance2, client.getInstanceId());
-		Assert.assertEquals(oc2, client.getConfigurationService().getCurrentConfiguration());
+		Assert.assertEquals(oc2, client.getConfigurationService().getConfiguration());
 
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
 	}
@@ -73,22 +73,22 @@ public class OctaneSDKPositiveTests {
 		OctaneClient client = OctaneSDK.getClientByInstanceId(oc.getInstanceId());
 		Assert.assertNotNull(client);
 		Assert.assertEquals(instance, client.getInstanceId());
-		Assert.assertEquals(url, client.getConfigurationService().getCurrentConfiguration().getUrl());
-		Assert.assertEquals(sp, client.getConfigurationService().getCurrentConfiguration().getSharedSpace());
+		Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
+		Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
 		//  same values should work smooth
 		oc.setSharedSpace(sp);
 		oc.setUrl(url);
-		Assert.assertEquals(url, client.getConfigurationService().getCurrentConfiguration().getUrl());
-		Assert.assertEquals(sp, client.getConfigurationService().getCurrentConfiguration().getSharedSpace());
+		Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
+		Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
 		//  new unique values should work as well
 		url = "http://localhost:8081";
 		sp = UUID.randomUUID().toString();
 		oc.setSharedSpace(sp);
 		oc.setUrl(url);
-		Assert.assertEquals(url, client.getConfigurationService().getCurrentConfiguration().getUrl());
-		Assert.assertEquals(sp, client.getConfigurationService().getCurrentConfiguration().getSharedSpace());
+		Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
+		Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
 		OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
 	}

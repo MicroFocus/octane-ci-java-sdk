@@ -173,7 +173,12 @@ public class OctaneConfiguration {
         this.parameters.put(param.getKey(), param);
     }
 
+
     public ConfigurationParameter getParameter(String key) {
         return this.parameters.get(key);
+    }
+
+    public boolean isParameterDefined(String key) {
+        return this.parameters.containsKey(key);
     }
 }

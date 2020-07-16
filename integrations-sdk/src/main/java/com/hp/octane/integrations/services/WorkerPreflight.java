@@ -39,20 +39,20 @@ public class WorkerPreflight {
             return false;
         }
 
-        if (confService.getCurrentConfiguration().isDisabled()) {
-            logger.error(confService.getCurrentConfiguration().geLocationForLog() + "client is disabled, removing " + service.getQueueSize() + " items from queue");
+        if (confService.getConfiguration().isDisabled()) {
+            logger.error(confService.getConfiguration().geLocationForLog() + "client is disabled, removing " + service.getQueueSize() + " items from queue");
             service.clearQueue();
             return false;
         }
 
         if (!confService.isConnected()) {
-            logger.warn(confService.getCurrentConfiguration().geLocationForLog() + "client is not connected. waiting " + NO_CONNECTION_PAUSE / 1000 + " sec");
+            logger.warn(confService.getConfiguration().geLocationForLog() + "client is not connected. waiting " + NO_CONNECTION_PAUSE / 1000 + " sec");
             CIPluginSDKUtils.doWait(NO_CONNECTION_PAUSE);
             previousIterationWasNotConnected = true;
             return false;
         }
         if (previousIterationWasNotConnected && waitAfterConnected) {
-            logger.warn(confService.getCurrentConfiguration().geLocationForLog() + "client is connected now. Giving time to events to be sent.");
+            logger.warn(confService.getConfiguration().geLocationForLog() + "client is connected now. Giving time to events to be sent.");
             CIPluginSDKUtils.doWait(NO_CONNECTION_PAUSE);
             previousIterationWasNotConnected = false;
             return false;

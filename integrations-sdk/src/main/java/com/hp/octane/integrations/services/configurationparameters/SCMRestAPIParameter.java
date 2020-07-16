@@ -4,6 +4,7 @@ import com.hp.octane.integrations.services.configurationparameters.factory.Confi
 
 public class SCMRestAPIParameter implements ConfigurationParameter {
 	public static final String KEY = "SCM_REST_API";
+	public static final boolean DEFAULT = true;
 	private boolean isSCMRestAPI;
 
 	private SCMRestAPIParameter(boolean isSCMRestAPI) {

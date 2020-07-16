@@ -59,7 +59,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 	}
 
 	@Override
-	public OctaneConfiguration getCurrentConfiguration() {
+	public OctaneConfiguration getConfiguration() {
 		return configurer.octaneConfiguration;
 	}
 

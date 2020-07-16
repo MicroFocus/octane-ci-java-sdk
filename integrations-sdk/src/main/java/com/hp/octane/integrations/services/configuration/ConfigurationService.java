@@ -41,7 +41,7 @@ public interface ConfigurationService {
 	 *
 	 * @return current Octane Configuration
 	 */
-	OctaneConfiguration getCurrentConfiguration();
+	OctaneConfiguration getConfiguration();
 
 	/**
 	 * Get connectivity status : octane version, supported SDK version

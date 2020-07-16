@@ -6,6 +6,7 @@ public class EncodeCiJobBase64Parameter implements ConfigurationParameter {
 	public static final String KEY = "ENCODE_CI_JOB_BASE64";
 	public static final String OCTANE_PARAMETER = "ci-job-encoding";
 	public static final String OCTANE_PARAMETER_VALUE = "base64";
+	public static final boolean DEFAULT = false;
 	private boolean isEncoded;
 
 	private EncodeCiJobBase64Parameter(boolean isEncoded) {
