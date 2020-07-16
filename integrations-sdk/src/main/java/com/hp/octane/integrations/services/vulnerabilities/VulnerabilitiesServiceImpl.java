@@ -24,6 +24,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configurationparameters.FortifySSCFetchTimeout;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -69,7 +70,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
-	private Long DEFAULT_TIME_OUT_FOR_QUEUE_ITEM = 12 * 60 * 60 * 1000L;
+	private Long DEFAULT_TIMEOUT_FOR_QUEUE_ITEM = FortifySSCFetchTimeout.DEFAULT_TIMEOUT * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
 	private final WorkerPreflight workerPreflight;
 
@@ -129,7 +130,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 		VulnerabilitiesQueueItem vulnerabilitiesQueueItem = new VulnerabilitiesQueueItem(jobId, buildId);
 		vulnerabilitiesQueueItem.setStartTime(startRunTime);
-		vulnerabilitiesQueueItem.setTimeout(queueItemTimeout <= 0 ? DEFAULT_TIME_OUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000);
+		vulnerabilitiesQueueItem.setTimeout(queueItemTimeout <= 0 ? DEFAULT_TIMEOUT_FOR_QUEUE_ITEM : queueItemTimeout * 60 * 60 * 1000);
 		vulnerabilitiesQueueItem.setToolType(toolType);
 		vulnerabilitiesQueueItem.setAdditionalProperties(additionalProperties);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);

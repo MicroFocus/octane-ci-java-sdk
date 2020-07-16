@@ -17,8 +17,8 @@ public class ConfigurationParameterFactory {
 				return SCMRestAPIParameter.create(paramValue);
 			case FortifySSCTokenParameter.KEY:
 				return FortifySSCTokenParameter.create(paramValue);
-			case FortifySSCMaxTimeoutHours.KEY:
-				return FortifySSCMaxTimeoutHours.create(paramValue);
+			case FortifySSCFetchTimeout.KEY:
+				return FortifySSCFetchTimeout.create(paramValue);
 			default:
 				throw new NoSuchElementException("Unknown parameter : " + paramKey);
 		}
