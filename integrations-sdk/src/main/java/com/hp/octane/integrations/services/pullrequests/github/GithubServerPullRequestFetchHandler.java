@@ -27,7 +27,11 @@ public class GithubServerPullRequestFetchHandler extends GithubV3PullRequestFetc
     public String getRepoApiPath(String repoHttpCloneUrl) {
         validateHttpCloneUrl(repoHttpCloneUrl);
 
-        //https://github.houston.softwaregrp.net:443/MQM/mqm.git; =>https://github.houston.softwaregrp.net/api/v3/MQM/mqm
+        if(repoHttpCloneUrl.toLowerCase().startsWith(CLOUD_SERVICE_PREFIX)){
+            throw new IllegalArgumentException("Supplied repository URL : " + repoHttpCloneUrl + " is Git Cloud URL. Change 'SCM Tool type' to Github Cloud.");
+        }
+        //   https://github.houston.softwaregrp.net:443/MQM/mqm.git;
+        // =>https://github.houston.softwaregrp.net/api/v3/MQM/mqm
         int repoSlashIndex = repoHttpCloneUrl.lastIndexOf("/");
         int teamSlashIndex = repoHttpCloneUrl.substring(0, repoSlashIndex).lastIndexOf("/");
         String result = repoHttpCloneUrl.substring(0, teamSlashIndex) + "/api/v3/repos" + repoHttpCloneUrl.substring(teamSlashIndex);

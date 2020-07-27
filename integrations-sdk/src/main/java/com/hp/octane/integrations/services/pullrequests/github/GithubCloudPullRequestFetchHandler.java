@@ -32,9 +32,13 @@ public class GithubCloudPullRequestFetchHandler extends GithubV3PullRequestFetch
     public String getRepoApiPath(String repoHttpCloneUrl) {
         validateHttpCloneUrl(repoHttpCloneUrl);
 
-        String cloudServicePrefix = "https://github.com/";
-        //"https://github.com/jenkinsci/hpe-application-automation-tools-plugin.git"; =>https://api.github.com/repos/jenkinsci/hpe-application-automation-tools-plugin
-        List<String> parts = Arrays.asList(repoHttpCloneUrl.trim().substring(cloudServicePrefix.length()).split("/"));
+
+        //"  https://github.com/jenkinsci/hpe-application-automation-tools-plugin.git";
+        // =>https://api.github.com/repos/jenkinsci/hpe-application-automation-tools-plugin
+        if(!repoHttpCloneUrl.toLowerCase().startsWith(CLOUD_SERVICE_PREFIX)){
+            throw new IllegalArgumentException("Unexpected github cloud repository URL : " + repoHttpCloneUrl + ". Git Cloud URL must start with : https://github.com/. ");
+        }
+        List<String> parts = Arrays.asList(repoHttpCloneUrl.trim().substring(CLOUD_SERVICE_PREFIX.length()).split("/"));
         if (parts.size() != 2) {
             throw new IllegalArgumentException("Unexpected github cloud repository URL : " + repoHttpCloneUrl + ". Expected format : https://github.com/<user_name>/<repo_name>.git");
         }

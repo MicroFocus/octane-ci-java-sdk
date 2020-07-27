@@ -79,7 +79,7 @@ public abstract class PullRequestFetchHandler {
             throw new IllegalArgumentException("SSH protocol is not supported by this action.");
         }
         if (!clonePath.toLowerCase().startsWith("http")) {
-            throw new IllegalArgumentException("Repo url must start with 'http'");
+            throw new IllegalArgumentException("Repo url must start with 'http(s)'");
         }
         if (!clonePathLowerCase.endsWith(repoSuffix)) {
             throw new IllegalArgumentException("Repo url must end with '.git'");

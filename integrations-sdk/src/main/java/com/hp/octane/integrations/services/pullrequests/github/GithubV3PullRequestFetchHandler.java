@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
 
 public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHandler {
 
+    public static final String CLOUD_SERVICE_PREFIX = "https://github.com/";
+
     public GithubV3PullRequestFetchHandler(AuthenticationStrategy authenticationStrategy) {
         super(authenticationStrategy);
     }
