@@ -38,7 +38,7 @@ public abstract class PullRequestFetchHandler {
         restClient = new GeneralRestClient(authenticationStrategy);
     }
 
-    public abstract List<PullRequest> fetchPullRequests(FetchParameters parameters, Consumer<String> logger) throws IOException;
+    public abstract List<PullRequest> fetchPullRequests(FetchParameters parameters, CommitUserIdPicker commitUserIdPicker, Consumer<String> logger) throws IOException;
 
     protected abstract String getRepoApiPath(String clonePath);
 
@@ -86,11 +86,15 @@ public abstract class PullRequestFetchHandler {
         }
     }
 
-    protected static String getUserName(String email, String name) {
-        return getUserName(email, name, null);
+
+    public static String getUserName(CommitUserIdPicker idPicker, String email, String name) {
+        if (idPicker != null) {
+            return idPicker.getUserIdForCommit(email, name);
+        }
+        return getUserName(email, name);
     }
 
-    protected static String getUserName(String email, String name, String loginName) {
+    public static String getUserName(String email, String name) {
         if (email != null && email.contains("@")) {
             String[] emailParts = email.split("@");
             if (emailParts.length > 1) {
@@ -101,6 +105,6 @@ public abstract class PullRequestFetchHandler {
             }
         }
 
-        return name == null ? loginName : name;
+        return name;
     }
 }

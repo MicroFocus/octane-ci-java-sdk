@@ -6,6 +6,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import com.hp.octane.integrations.services.pullrequests.factory.CommitUserIdPicker;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchUtils;
 import com.hp.octane.integrations.services.pullrequests.factory.PullRequestFetchHandler;
@@ -33,7 +34,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
     }
 
     @Override
-    public List<com.hp.octane.integrations.dto.scm.PullRequest> fetchPullRequests(FetchParameters parameters, Consumer<String> logConsumer) throws IOException {
+    public List<com.hp.octane.integrations.dto.scm.PullRequest> fetchPullRequests(FetchParameters parameters, CommitUserIdPicker commitUserIdPicker, Consumer<String> logConsumer) throws IOException {
 
         List<com.hp.octane.integrations.dto.scm.PullRequest> result = new ArrayList<>();
         String baseUrl = getRepoApiPath(parameters.getRepoUrl());
@@ -94,6 +95,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
             SCMRepository targetRepository = buildScmRepository(pr.getBase());
 
             User prAuthor = login2User.get(pr.getUser().getLogin());
+            String userId = getUserName(commitUserIdPicker, prAuthor.getEmail(), prAuthor.getLogin());
             com.hp.octane.integrations.dto.scm.PullRequest dtoPullRequest = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.PullRequest.class)
                     .setId(Integer.toString(pr.getNumber()))
                     .setTitle(pr.getTitle())
@@ -103,7 +105,7 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                     .setUpdatedTime(convertDateToLong(pr.getUpdatedAt()))
                     .setMergedTime(convertDateToLong(pr.getMergedAt()))
                     .setIsMerged(pr.getMergedAt() != null)
-                    .setAuthorName(getUserName(prAuthor.getEmail(), prAuthor.getName(), prAuthor.getLogin()))
+                    .setAuthorName(userId)
                     .setAuthorEmail(prAuthor.getEmail())
                     .setClosedTime(convertDateToLong(pr.getClosedAt()))
                     .setSelfUrl(pr.getHtmlUrl())

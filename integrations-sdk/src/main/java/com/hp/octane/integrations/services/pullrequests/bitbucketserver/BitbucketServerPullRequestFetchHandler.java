@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.services.pullrequests.bitbucketserver.pojo.*;
+import com.hp.octane.integrations.services.pullrequests.factory.CommitUserIdPicker;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchParameters;
 import com.hp.octane.integrations.services.pullrequests.factory.FetchUtils;
 import com.hp.octane.integrations.services.pullrequests.factory.PullRequestFetchHandler;
@@ -42,7 +43,7 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
     }
 
     @Override
-    public List<com.hp.octane.integrations.dto.scm.PullRequest> fetchPullRequests(FetchParameters parameters, Consumer<String> logConsumer) throws IOException {
+    public List<com.hp.octane.integrations.dto.scm.PullRequest> fetchPullRequests(FetchParameters parameters, CommitUserIdPicker commitUserIdPicker, Consumer<String> logConsumer) throws IOException {
 
         List<com.hp.octane.integrations.dto.scm.PullRequest> result = new ArrayList<>();
         String baseUrl = getRepoApiPath(parameters.getRepoUrl());
@@ -83,6 +84,7 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
             SCMRepository targetRepository = buildScmRepository(pr.getToRef());
 
             boolean isMerged = PullRequest.MERGED_STATE.equals(pr.getState());
+            String userId = getUserName(commitUserIdPicker, pr.getAuthor().getUser().getEmailAddress(), pr.getAuthor().getUser().getName());
             com.hp.octane.integrations.dto.scm.PullRequest dtoPullRequest = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.PullRequest.class)
                     .setId(pr.getId())
                     .setTitle(pr.getTitle())
@@ -90,7 +92,7 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                     .setState(pr.getState())
                     .setCreatedTime(pr.getCreatedDate())
                     .setUpdatedTime(pr.getUpdatedTime())
-                    .setAuthorName(getUserName(pr.getAuthor().getUser().getEmailAddress(), pr.getAuthor().getUser().getName()))
+                    .setAuthorName(userId)
                     .setAuthorEmail(pr.getAuthor().getUser().getEmailAddress())
                     .setClosedTime(pr.getClosedDate())
                     .setSelfUrl(pr.getLinks().getSelf().get(0).getHref())
