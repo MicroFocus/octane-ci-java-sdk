@@ -54,73 +54,78 @@ public abstract class GithubV3PullRequestFetchHandler extends PullRequestFetchHa
                 .collect(Collectors.toList());
         logConsumer.accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
 
-        //users
-        Set<String> userUrls = pullRequests.stream().map(PullRequest::getUser).map(PullRequestUser::getUrl).collect(Collectors.toSet());
-        logConsumer.accept("Fetching PR owners information ...");
-        int counter = 0;
-        Map<String, User> login2User = new HashMap<>();
-        for (String url : userUrls) {
-            User user = getEntity(url, User.class);
-            login2User.put(user.getLogin(), user);
-            if (counter > 0 && counter % 10 == 0) {
-                logConsumer.accept("Fetching PR owners information " + counter * 100 / userUrls.size() + "%");
+        if (!filteredPullRequests.isEmpty()) {
+            //users
+            Set<String> userUrls = filteredPullRequests.stream().map(PullRequest::getUser).map(PullRequestUser::getUrl).collect(Collectors.toSet());
+            logConsumer.accept("Fetching PR owners information ...");
+            int counter = 0;
+            Map<String, User> login2User = new HashMap<>();
+            for (String url : userUrls) {
+                User user = getEntity(url, User.class);
+                login2User.put(user.getLogin(), user);
+                if (counter > 0 && counter % 10 == 0) {
+                    logConsumer.accept("Fetching PR owners information " + counter * 100 / userUrls.size() + "%");
+                }
+                counter++;
             }
-            counter++;
-            //if (user.getEmail() == null) {
-            //    logConsumer.accept(String.format("WARNING : The User '%s' has no defined PUBLIC email in Github. User should set up a public email in their profile, otherwise - the user won't be recognized in ALM Octane.", user.getLogin()));
-            //}
+            Set<String> usersWithoutMails = login2User.values().stream().filter(u -> u.getEmail() == null).map(u -> u.getLogin()).collect(Collectors.toSet());
+            if (!usersWithoutMails.isEmpty()) {
+                logConsumer.accept("Note : Some users doesn't have defined public email in their profile. For such users, SCM user will contain their login name:  " + usersWithoutMails);
+            }
+            logConsumer.accept("Fetching PR owners information is done");
+
+            logConsumer.accept("Fetching commits ...");
+            counter = 0;
+            for (PullRequest pr : filteredPullRequests) {
+                //commits are returned in asc order by update time , therefore we need to get all before filtering , therefore page size equals to max total
+                List<Commit> commits = getPagedEntities(pr.getCommitsUrl(), Commit.class, parameters.getMaxCommitsToFetch(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
+
+                //commits
+                List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
+                for (Commit commit : commits) {
+                    com.hp.octane.integrations.dto.scm.SCMCommit dtoCommit = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.SCMCommit.class)
+                            .setRevId(commit.getSha())
+                            .setComment(commit.getCommit().getMessage())
+                            .setUser(getUserName(commit.getCommit().getCommitter().getEmail(), commit.getCommit().getCommitter().getName()))
+                            .setUserEmail(commit.getCommit().getCommitter().getEmail())
+                            .setTime(convertDateToLong(commit.getCommit().getCommitter().getDate()))
+                            .setParentRevId(commit.getParents().get(0).getSha());
+                    dtoCommits.add(dtoCommit);
+                }
+
+                SCMRepository sourceRepository = buildScmRepository(pr.getHead());
+                SCMRepository targetRepository = buildScmRepository(pr.getBase());
+
+                User prAuthor = login2User.get(pr.getUser().getLogin());
+                String userId = getUserName(commitUserIdPicker, prAuthor.getEmail(), prAuthor.getLogin());
+                com.hp.octane.integrations.dto.scm.PullRequest dtoPullRequest = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.PullRequest.class)
+                        .setId(Integer.toString(pr.getNumber()))
+                        .setTitle(pr.getTitle())
+                        .setDescription(pr.getBody())
+                        .setState(pr.getState())
+                        .setCreatedTime(convertDateToLong(pr.getCreatedAt()))
+                        .setUpdatedTime(convertDateToLong(pr.getUpdatedAt()))
+                        .setMergedTime(convertDateToLong(pr.getMergedAt()))
+                        .setIsMerged(pr.getMergedAt() != null)
+                        .setAuthorName(userId)
+                        .setAuthorEmail(prAuthor.getEmail())
+                        .setClosedTime(convertDateToLong(pr.getClosedAt()))
+                        .setSelfUrl(pr.getHtmlUrl())
+                        .setSourceRepository(sourceRepository)
+                        .setTargetRepository(targetRepository)
+                        .setCommits(dtoCommits);
+                result.add(dtoPullRequest);
+
+                if (counter > 0 && counter % 25 == 0) {
+                    logConsumer.accept("Fetching commits " + counter * 100 / filteredPullRequests.size() + "%");
+                }
+                counter++;
+            }
+            logConsumer.accept("Fetching commits is done");
+            logConsumer.accept("Pull requests are ready");
+        } else {
+            logConsumer.accept("No new/updated PR is found.");
         }
-        logConsumer.accept("Fetching PR owners information is done");
-
-        logConsumer.accept("Fetching commits ...");
-        counter = 0;
-        for (PullRequest pr : filteredPullRequests) {
-            //commits are returned in asc order by update time , therefore we need to get all before filtering , therefore page size equals to max total
-            List<Commit> commits = getPagedEntities(pr.getCommitsUrl(), Commit.class, parameters.getMaxCommitsToFetch(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
-
-            //commits
-            List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
-            for (Commit commit : commits) {
-                com.hp.octane.integrations.dto.scm.SCMCommit dtoCommit = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.SCMCommit.class)
-                        .setRevId(commit.getSha())
-                        .setComment(commit.getCommit().getMessage())
-                        .setUser(getUserName(commit.getCommit().getCommitter().getEmail(), commit.getCommit().getCommitter().getName()))
-                        .setUserEmail(commit.getCommit().getCommitter().getEmail())
-                        .setTime(convertDateToLong(commit.getCommit().getCommitter().getDate()))
-                        .setParentRevId(commit.getParents().get(0).getSha());
-                dtoCommits.add(dtoCommit);
-            }
-
-            SCMRepository sourceRepository = buildScmRepository(pr.getHead());
-            SCMRepository targetRepository = buildScmRepository(pr.getBase());
-
-            User prAuthor = login2User.get(pr.getUser().getLogin());
-            String userId = getUserName(commitUserIdPicker, prAuthor.getEmail(), prAuthor.getLogin());
-            com.hp.octane.integrations.dto.scm.PullRequest dtoPullRequest = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.PullRequest.class)
-                    .setId(Integer.toString(pr.getNumber()))
-                    .setTitle(pr.getTitle())
-                    .setDescription(pr.getBody())
-                    .setState(pr.getState())
-                    .setCreatedTime(convertDateToLong(pr.getCreatedAt()))
-                    .setUpdatedTime(convertDateToLong(pr.getUpdatedAt()))
-                    .setMergedTime(convertDateToLong(pr.getMergedAt()))
-                    .setIsMerged(pr.getMergedAt() != null)
-                    .setAuthorName(userId)
-                    .setAuthorEmail(prAuthor.getEmail())
-                    .setClosedTime(convertDateToLong(pr.getClosedAt()))
-                    .setSelfUrl(pr.getHtmlUrl())
-                    .setSourceRepository(sourceRepository)
-                    .setTargetRepository(targetRepository)
-                    .setCommits(dtoCommits);
-            result.add(dtoPullRequest);
-
-            if (counter > 0 && counter % 25 == 0) {
-                logConsumer.accept("Fetching commits " + counter * 100 / filteredPullRequests.size() + "%");
-            }
-            counter++;
-        }
-        logConsumer.accept("Fetching commits is done");
-        logConsumer.accept("Pull requests are ready");
         return result;
     }
 

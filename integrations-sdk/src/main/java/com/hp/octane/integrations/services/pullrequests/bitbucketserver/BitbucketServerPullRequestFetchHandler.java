@@ -62,54 +62,58 @@ public class BitbucketServerPullRequestFetchHandler extends PullRequestFetchHand
                 .collect(Collectors.toList());
         logConsumer.accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
 
-        logConsumer.accept("Fetching commits ...");
-        int counter = 0;
-        for (PullRequest pr : filteredPullRequests) {
-            String url = baseUrl + "/pull-requests/" + pr.getId() + "/commits";
-            List<Commit> commits = getPagedEntities(url, Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
+        if (!filteredPullRequests.isEmpty()) {
+            logConsumer.accept("Fetching commits ...");
+            int counter = 0;
+            for (PullRequest pr : filteredPullRequests) {
+                String url = baseUrl + "/pull-requests/" + pr.getId() + "/commits";
+                List<Commit> commits = getPagedEntities(url, Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
 
-            List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
-            for (Commit commit : commits) {
-                com.hp.octane.integrations.dto.scm.SCMCommit dtoCommit = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.SCMCommit.class)
-                        .setRevId(commit.getId())
-                        .setComment(commit.getMessage())
-                        .setUser(getUserName(commit.getCommitter().getEmailAddress(), commit.getCommitter().getName()))
-                        .setUserEmail(commit.getCommitter().getEmailAddress())
-                        .setTime(commit.getCommitterTimestamp())
-                        .setParentRevId(commit.getParents().get(0).getId());
-                dtoCommits.add(dtoCommit);
+                List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
+                for (Commit commit : commits) {
+                    com.hp.octane.integrations.dto.scm.SCMCommit dtoCommit = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.SCMCommit.class)
+                            .setRevId(commit.getId())
+                            .setComment(commit.getMessage())
+                            .setUser(getUserName(commit.getCommitter().getEmailAddress(), commit.getCommitter().getName()))
+                            .setUserEmail(commit.getCommitter().getEmailAddress())
+                            .setTime(commit.getCommitterTimestamp())
+                            .setParentRevId(commit.getParents().get(0).getId());
+                    dtoCommits.add(dtoCommit);
+                }
+
+                SCMRepository sourceRepository = buildScmRepository(pr.getFromRef());
+                SCMRepository targetRepository = buildScmRepository(pr.getToRef());
+
+                boolean isMerged = PullRequest.MERGED_STATE.equals(pr.getState());
+                String userId = getUserName(commitUserIdPicker, pr.getAuthor().getUser().getEmailAddress(), pr.getAuthor().getUser().getName());
+                com.hp.octane.integrations.dto.scm.PullRequest dtoPullRequest = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.PullRequest.class)
+                        .setId(pr.getId())
+                        .setTitle(pr.getTitle())
+                        .setDescription(pr.getDescription())
+                        .setState(pr.getState())
+                        .setCreatedTime(pr.getCreatedDate())
+                        .setUpdatedTime(pr.getUpdatedTime())
+                        .setAuthorName(userId)
+                        .setAuthorEmail(pr.getAuthor().getUser().getEmailAddress())
+                        .setClosedTime(pr.getClosedDate())
+                        .setSelfUrl(pr.getLinks().getSelf().get(0).getHref())
+                        .setSourceRepository(sourceRepository)
+                        .setTargetRepository(targetRepository)
+                        .setCommits(dtoCommits)
+                        .setMergedTime(isMerged ? pr.getClosedDate() : null)
+                        .setIsMerged(isMerged);
+                result.add(dtoPullRequest);
+
+                if (counter > 0 && counter % 40 == 0) {
+                    logConsumer.accept("Fetching commits " + counter * 100 / filteredPullRequests.size() + "%");
+                }
+                counter++;
             }
-
-            SCMRepository sourceRepository = buildScmRepository(pr.getFromRef());
-            SCMRepository targetRepository = buildScmRepository(pr.getToRef());
-
-            boolean isMerged = PullRequest.MERGED_STATE.equals(pr.getState());
-            String userId = getUserName(commitUserIdPicker, pr.getAuthor().getUser().getEmailAddress(), pr.getAuthor().getUser().getName());
-            com.hp.octane.integrations.dto.scm.PullRequest dtoPullRequest = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.PullRequest.class)
-                    .setId(pr.getId())
-                    .setTitle(pr.getTitle())
-                    .setDescription(pr.getDescription())
-                    .setState(pr.getState())
-                    .setCreatedTime(pr.getCreatedDate())
-                    .setUpdatedTime(pr.getUpdatedTime())
-                    .setAuthorName(userId)
-                    .setAuthorEmail(pr.getAuthor().getUser().getEmailAddress())
-                    .setClosedTime(pr.getClosedDate())
-                    .setSelfUrl(pr.getLinks().getSelf().get(0).getHref())
-                    .setSourceRepository(sourceRepository)
-                    .setTargetRepository(targetRepository)
-                    .setCommits(dtoCommits)
-                    .setMergedTime(isMerged ? pr.getClosedDate() : null)
-                    .setIsMerged(isMerged);
-            result.add(dtoPullRequest);
-
-            if (counter > 0 && counter % 40 == 0) {
-                logConsumer.accept("Fetching commits " + counter * 100 / filteredPullRequests.size() + "%");
-            }
-            counter++;
+            logConsumer.accept("Fetching commits is done");
+            logConsumer.accept("Pull requests are ready");
+        } else {
+            logConsumer.accept("No new/updated PR is found.");
         }
-        logConsumer.accept("Fetching commits is done");
-        logConsumer.accept("Pull requests are ready");
         return result;
     }
 
