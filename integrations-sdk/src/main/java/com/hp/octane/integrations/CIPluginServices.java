@@ -32,6 +32,8 @@ import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Definition of CIPluginServices SPI
@@ -252,6 +254,14 @@ public abstract class CIPluginServices {
 
 	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
 		return null;
+	}
+
+	/**
+	 * Get credentials ids and names (no real passwords) for auto generation of UFT test runners
+	 * @return
+	 */
+	public List<CredentialsInfo> getCredentials() {
+		return Collections.emptyList();
 	}
 
 	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {

@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 /**
  * Tasks routing service handles ALM Octane tasks, both coming from abridged logic as well as plugin's REST call delegation
  *
- * Sent from octane : CIServersServiceImpl
+ * Sent from octane : CIServersServiceImpl, CIExecutorsServiceImpl
  */
 
 final class TasksProcessorImpl implements TasksProcessor {
@@ -61,6 +61,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String INIT = "init";
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
+	private static final String CREDENTIALS = "credentials";
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 
@@ -144,7 +145,14 @@ final class TasksProcessorImpl implements TasksProcessor {
 				} else if (HttpMethod.DELETE.equals(task.getMethod()) && path.length == 2) {
 					String id = path[1];
 					configurer.pluginServices.deleteExecutor(id);
+				} else if (HttpMethod.GET.equals(task.getMethod()) && path.length == 2) {
+					if (CREDENTIALS.equalsIgnoreCase(path[1])) {
+						List<CredentialsInfo> credentials = configurer.pluginServices.getCredentials();
+						String json = dtoFactory.dtoCollectionToJson(credentials);
+						result.setBody(json);
+					}
 				}
+
 			} else {
 				result.setStatus(HttpStatus.SC_NOT_FOUND);
 			}
@@ -256,4 +264,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.setBody(response.getBody());
 		result.setStatus(response.getStatus());
 	}
+
+	private void executeGetCredentialsRequest(OctaneResultAbridged result) {
+		List<CredentialsInfo> credentials = configurer.pluginServices.getCredentials();
+		result.setBody(dtoFactory.dtoCollectionToJson(credentials));
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+	}
+
 }
