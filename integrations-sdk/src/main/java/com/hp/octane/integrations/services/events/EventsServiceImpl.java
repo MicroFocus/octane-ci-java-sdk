@@ -21,6 +21,7 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.CIEventsList;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.exceptions.PermanentException;
@@ -190,7 +191,12 @@ final class EventsServiceImpl implements EventsService {
 		try {
 			List<String> eventsStringified = new LinkedList<>();
 			for (CIEvent event : eventsList.getEvents()) {
-				eventsStringified.add(event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType());
+				String str = event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType();
+				if (CIEventType.FINISHED.equals(event.getEventType()) && event.getTestResultExpected()) {
+					str += "(tests=true)";
+				}
+				eventsStringified.add(str);
+
 			}
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s ...");
 		} catch (Exception e) {
