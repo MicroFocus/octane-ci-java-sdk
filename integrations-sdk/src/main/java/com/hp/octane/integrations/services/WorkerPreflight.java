@@ -12,7 +12,8 @@ public class WorkerPreflight {
 
     private final static int QUEUE_EMPTY_INTERVAL = 10000;
     private final static int REGULAR_CYCLE_PAUSE = 250;
-    private final static int NO_CONNECTION_PAUSE = 60000;
+    private final static int NO_CONNECTION_PAUSE = 30000;
+    private final static int AFTER_RECONNECTION_PAUSE = 60000;
     private final Object EMPTY_QUEUE_MONITOR = new Object();
 
     private ConfigurationService confService;
@@ -46,14 +47,14 @@ public class WorkerPreflight {
         }
 
         if (!confService.isConnected()) {
-            logger.warn(confService.getConfiguration().geLocationForLog() + "client is not connected. waiting " + NO_CONNECTION_PAUSE / 1000 + " sec");
+            //logger.warn(confService.getConfiguration().geLocationForLog() + "client is not connected. waiting " + NO_CONNECTION_PAUSE / 1000 + " sec");
             CIPluginSDKUtils.doWait(NO_CONNECTION_PAUSE);
             previousIterationWasNotConnected = true;
             return false;
         }
         if (previousIterationWasNotConnected && waitAfterConnected) {
             logger.warn(confService.getConfiguration().geLocationForLog() + "client is connected now. Giving time to events to be sent.");
-            CIPluginSDKUtils.doWait(NO_CONNECTION_PAUSE);
+            CIPluginSDKUtils.doWait(AFTER_RECONNECTION_PAUSE);
             previousIterationWasNotConnected = false;
             return false;
         }
