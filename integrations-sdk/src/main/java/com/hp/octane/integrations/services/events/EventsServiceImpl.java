@@ -192,7 +192,7 @@ final class EventsServiceImpl implements EventsService {
 			List<String> eventsStringified = new LinkedList<>();
 			for (CIEvent event : eventsList.getEvents()) {
 				String str = event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType();
-				if (CIEventType.FINISHED.equals(event.getEventType()) && event.getTestResultExpected()) {
+				if (CIEventType.FINISHED.equals(event.getEventType()) && event.getTestResultExpected() != null && event.getTestResultExpected() == true) {
 					str += "(tests=true)";
 				}
 				eventsStringified.add(str);
