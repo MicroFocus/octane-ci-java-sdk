@@ -29,9 +29,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.*;
 
 public class SCMDataServiceImpl implements SCMDataService {
 
@@ -45,11 +43,12 @@ public class SCMDataServiceImpl implements SCMDataService {
 
     private final ExecutorService scmProcessingExecutor = Executors.newSingleThreadExecutor(new SCMDataServiceImpl.SCMPushWorkerThreadFactory());
     private final ObjectQueue<SCMDataQueueItem> scmDataQueue;
-    
+
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     private int TEMPORARY_ERROR_BREATHE_INTERVAL = 10000;
     public static final String SCM_REST_API_SUPPORTED_VERSION = "15.1.23";
+    private final ScheduledExecutorService publishService = Executors.newScheduledThreadPool(5);
 
     public SCMDataServiceImpl(QueueingService queueingService, OctaneSDK.SDKServicesConfigurer configurer,
                               RestService restService, ConfigurationService configurationService, EventsService eventsService) {
@@ -91,7 +90,22 @@ public class SCMDataServiceImpl implements SCMDataService {
             return;
         }
 
-        if( isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(SCM_REST_API_SUPPORTED_VERSION)) {
+        if (jobId == null || jobId.isEmpty()) {
+            throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
+        }
+        if (buildId == null || buildId.isEmpty()) {
+            throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
+        }
+        if (scmData == null) {
+            return;
+        }
+
+        //delay scm handling as sometimes it comes before start event is handled on Octane side
+        publishService.schedule(() -> enqueueSCMDataInternal(jobId, buildId, scmData), 5, TimeUnit.SECONDS);
+    }
+
+    private void enqueueSCMDataInternal(String jobId, String buildId, SCMData scmData) {
+        if (isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(SCM_REST_API_SUPPORTED_VERSION)) {
             SCMDataQueueItem scmDataQueueItem = new SCMDataQueueItem(jobId, buildId);
             scmDataQueue.add(scmDataQueueItem);
             logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getJobId() + " #" + scmDataQueueItem.getBuildId() + " was added to queue");
@@ -148,7 +162,7 @@ public class SCMDataServiceImpl implements SCMDataService {
     //  infallible everlasting background worker
     private void worker() {
         while (!scmProcessingExecutor.isShutdown()) {
-            if(!workerPreflight.preflight()){
+            if (!workerPreflight.preflight()) {
                 continue;
             }
 
@@ -227,26 +241,15 @@ public class SCMDataServiceImpl implements SCMDataService {
     }
 
     private void pushSCMDataByEvent(SCMData scmData, String jobId, String buildId) {
-
-        if (jobId == null || jobId.isEmpty())
-            throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
-        if (buildId == null || buildId.isEmpty())
-            throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
-
         try {
-            if (scmData != null) {
-
-                CIEvent event = dtoFactory.newDTO(CIEvent.class)
-                        .setEventType(CIEventType.SCM)
-                        .setProject(jobId)
-                        .setBuildCiId(buildId)
-                        .setCauses(generateScmCauses())
-                        .setNumber(buildId)
-                        .setScmData(scmData);
-
-                eventsService.publishEvent(event);
-            }
-
+            CIEvent event = dtoFactory.newDTO(CIEvent.class)
+                    .setEventType(CIEventType.SCM)
+                    .setProject(jobId)
+                    .setBuildCiId(buildId)
+                    .setCauses(generateScmCauses())
+                    .setNumber(buildId)
+                    .setScmData(scmData);
+            eventsService.publishEvent(event);
         } catch (Exception e) {
             logger.error("failed to send SCM event for job " + jobId + " build " + buildId, e);
         }
