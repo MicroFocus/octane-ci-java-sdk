@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.RequestTimeoutException;
@@ -149,7 +150,8 @@ final class EventsServiceImpl implements EventsService {
 			List<CIEvent> eventsChunk = null;
 			CIEventsList eventsSnapshot;
 			try {
-				eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
+				eventsChunk = getEventsChunk();
+
 				CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
 				serverInfo.setInstanceId(configurer.octaneConfiguration.getInstanceId());
 				eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
@@ -185,6 +187,24 @@ final class EventsServiceImpl implements EventsService {
 				removeEvents(eventsChunk);
 			}
 		}
+	}
+
+	private List<CIEvent> getEventsChunk() {
+		// - octane generate multibranch child pipeline on the fly
+		// - multibranch child may trigger another job
+		// - if multibranch child pipeline still didn't created, and multibranch child start event comes along with
+		//    downstream job start event, the latest event is thrown in PipelinesServiceImpl#shouldProcessEvent.
+		//    So first run of pipeline might be partial (without structure,tests,commits)
+		// - if in iteration we encounter multibranch child start event - no other event is allowed to be after it and will be pushed in next bulk
+		List<CIEvent> eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
+		for (int i = 0; i < eventsChunk.size(); i++) {
+			CIEvent ciEvent = eventsChunk.get(i);
+			if (CIEventType.STARTED.equals(ciEvent.getEventType()) && MultiBranchType.MULTI_BRANCH_CHILD.equals(ciEvent.getMultiBranchType()) && i + 1 < eventsChunk.size()) {
+				eventsChunk = new ArrayList<>(eventsChunk.subList(0, i + 1));
+				break;
+			}
+		}
+		return eventsChunk;
 	}
 
 	private void logEventsToBeSent(CIEventsList eventsList) {
