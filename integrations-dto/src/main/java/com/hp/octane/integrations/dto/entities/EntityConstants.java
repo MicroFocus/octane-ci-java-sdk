@@ -32,7 +32,15 @@ public class EntityConstants {
     }
 
     public static class ScmRepository extends Base {
+        public static final String COLLECTION_NAME = "scm_repositories";
         public static final String ENTITY_NAME = "scm_repository";
+        public static final String BRANCH = "branch";
+        public static final String PARENT = "repository";
+    }
+
+    public static class ScmRepositoryRoot extends Base {
+        public static final String COLLECTION_NAME = "scm_repository_roots";
+        public static final String ENTITY_NAME = "scm_repository_root";
     }
 
     public static class Executors extends Base {

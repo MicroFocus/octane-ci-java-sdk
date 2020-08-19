@@ -19,7 +19,9 @@ package com.hp.octane.integrations.services.entities;
 
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Created by berkovir on 17/05/2017.
@@ -34,7 +36,7 @@ public class QueryHelper {
         return name + "={" + condition(refName, value) + "}";
     }
 
-    public static String conditionRefEmtpy(String name) {
+    public static String conditionRefEmpty(String name) {
         return name + "={null}";
     }
 
@@ -50,8 +52,16 @@ public class QueryHelper {
         return name + "=" + value;
     }
 
+    public static String conditionEmpty(String name) {
+        return name + "=null";
+    }
+
     public static String condition(String name, long value) {
         return name + "=" + value;
+    }
+
+    public static String orConditions(String... conditions) {
+        return "(" + Arrays.stream(conditions).map(c -> "(" + c + ")").collect(Collectors.joining("||")) + ")";
     }
 
     public static String conditionIn(String name, Collection<?> ids, boolean isNumber) {
