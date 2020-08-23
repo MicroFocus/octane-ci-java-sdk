@@ -52,6 +52,7 @@ class CIEventImpl implements CIEvent {
 	private String previousProject;
 	private String previousProjectDisplayName;
 	private ItemType itemType;
+	private Boolean skipValidation;
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -69,6 +70,15 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setProjectDisplayName(String projectDisplayName) {
 		this.projectDisplayName = projectDisplayName;
+		return this;
+	}
+
+	public Boolean getSkipValidation() {
+		return skipValidation;
+	}
+
+	public CIEvent setSkipValidation(Boolean skipValidation) {
+		this.skipValidation = skipValidation;
 		return this;
 	}
 

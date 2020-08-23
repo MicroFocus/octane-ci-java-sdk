@@ -35,6 +35,8 @@ class PipelineNodeImpl implements PipelineNode {
 	private List<CIParameter> parameters = new ArrayList<>();
 	private List<PipelinePhase> phasesInternal = new ArrayList<>();
 	private List<PipelinePhase> phasesPostBuild = new ArrayList<>();
+	private Boolean hasUpstream;
+	private Boolean isTestRunner;
 
 	public String getJobCiId() {
 		return jobCiId;
@@ -89,6 +91,28 @@ class PipelineNodeImpl implements PipelineNode {
 	@Override
 	public PipelineNode setMultiBranchType(MultiBranchType multiBranchType) {
 		this.multiBranchType = multiBranchType;
+		return this;
+	}
+
+	@Override
+	public Boolean getHasUpstream() {
+		return hasUpstream;
+	}
+
+	@Override
+	public PipelineNode setHasUpstream(Boolean hasUpstream) {
+		this.hasUpstream = hasUpstream;
+		return this;
+	}
+
+	@Override
+	public Boolean getIsTestRunner() {
+		return isTestRunner;
+	}
+
+	@Override
+	public PipelineNode setIsTestRunner(Boolean isTestRunner) {
+		this.isTestRunner = isTestRunner;
 		return this;
 	}
 }
