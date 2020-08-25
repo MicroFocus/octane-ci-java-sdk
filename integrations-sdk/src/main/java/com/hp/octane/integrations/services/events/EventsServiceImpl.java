@@ -30,6 +30,7 @@ import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configurationparameters.SendEventsInBulk;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
@@ -196,7 +197,8 @@ final class EventsServiceImpl implements EventsService {
 		//    downstream job start event, the latest event is thrown in PipelinesServiceImpl#shouldProcessEvent.
 		//    So first run of pipeline might be partial (without structure,tests,commits)
 		// - if in iteration we encounter multibranch child start event - no other event is allowed to be after it and will be pushed in next bulk
-		List<CIEvent> eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
+		int maxInBulk = isSendInBulk() ? 10 : 1;
+		List<CIEvent> eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), maxInBulk)));
 		for (int i = 0; i < eventsChunk.size(); i++) {
 			CIEvent ciEvent = eventsChunk.get(i);
 			if (CIEventType.STARTED.equals(ciEvent.getEventType()) && MultiBranchType.MULTI_BRANCH_CHILD.equals(ciEvent.getMultiBranchType()) && i + 1 < eventsChunk.size()) {
@@ -205,6 +207,14 @@ final class EventsServiceImpl implements EventsService {
 			}
 		}
 		return eventsChunk;
+	}
+
+	private boolean isSendInBulk() {
+		SendEventsInBulk param = (SendEventsInBulk) configurer.octaneConfiguration.getParameter(SendEventsInBulk.KEY);
+		if (param != null) {
+			return param.isBulk();
+		}
+		return SendEventsInBulk.DEFAULT;
 	}
 
 	private void logEventsToBeSent(CIEventsList eventsList) {

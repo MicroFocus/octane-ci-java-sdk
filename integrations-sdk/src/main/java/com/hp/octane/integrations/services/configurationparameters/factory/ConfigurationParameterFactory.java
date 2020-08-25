@@ -19,6 +19,8 @@ public class ConfigurationParameterFactory {
 				return FortifySSCTokenParameter.create(paramValue);
 			case FortifySSCFetchTimeout.KEY:
 				return FortifySSCFetchTimeout.create(paramValue);
+			case SendEventsInBulk.KEY:
+				return SendEventsInBulk.create(paramValue);
 			default:
 				throw new NoSuchElementException("Unknown parameter : " + paramKey);
 		}
