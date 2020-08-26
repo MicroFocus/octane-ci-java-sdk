@@ -2,6 +2,11 @@ package com.hp.octane.integrations.services.configurationparameters;
 
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
 
+/**
+ * Indicate whether to send send aggregated events in one bulk or one-by-one.
+ * Sometimes, Octane ignore events in bulk as it doesn't find appropriate context, for example when there is some dependency between two events in the same bulk.
+ * This parameter allows sending events one-by-one, and in this way context for dependent event will be created before it reach OCtane
+ */
 public class SendEventsInBulk implements ConfigurationParameter {
 	public static final String KEY = "SEND_EVENTS_IN_BULK";
 	private boolean isBulk;

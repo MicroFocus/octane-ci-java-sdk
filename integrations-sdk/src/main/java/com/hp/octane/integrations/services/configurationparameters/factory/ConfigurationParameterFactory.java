@@ -21,6 +21,8 @@ public class ConfigurationParameterFactory {
 				return FortifySSCFetchTimeout.create(paramValue);
 			case SendEventsInBulk.KEY:
 				return SendEventsInBulk.create(paramValue);
+			case LogEventsParameter.KEY:
+				return LogEventsParameter.create(paramValue);
 			default:
 				throw new NoSuchElementException("Unknown parameter : " + paramKey);
 		}
@@ -49,5 +51,21 @@ public class ConfigurationParameterFactory {
 			return scmRestAPIParameter.isSCMRestAPI();
 		}
 		return SCMRestAPIParameter.DEFAULT;
+	}
+
+	public static boolean isSendEventsInBulk(OctaneConfiguration configuration) {
+		SendEventsInBulk param = (SendEventsInBulk) configuration.getParameter(SendEventsInBulk.KEY);
+		if (param != null) {
+			return param.isBulk();
+		}
+		return SendEventsInBulk.DEFAULT;
+	}
+
+	public static boolean isLogEvents(OctaneConfiguration configuration) {
+		LogEventsParameter param = (LogEventsParameter) configuration.getParameter(LogEventsParameter.KEY);
+		if (param != null) {
+			return param.isLogEvents();
+		}
+		return LogEventsParameter.DEFAULT;
 	}
 }

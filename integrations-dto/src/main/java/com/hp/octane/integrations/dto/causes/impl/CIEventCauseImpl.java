@@ -16,6 +16,7 @@
 
 package com.hp.octane.integrations.dto.causes.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 
@@ -26,6 +27,7 @@ import java.util.List;
  * CIEventCause DTO implementation
  */
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 class CIEventCauseImpl implements CIEventCause {
 	private CIEventCauseType type;
 	private String user;

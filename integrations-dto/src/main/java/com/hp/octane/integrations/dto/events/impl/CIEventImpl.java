@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.dto.events.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.events.*;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
@@ -29,6 +30,7 @@ import java.util.List;
  * Base implementation of CI Event object
  */
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIEventImpl implements CIEvent {
 	private CIEventType eventType;

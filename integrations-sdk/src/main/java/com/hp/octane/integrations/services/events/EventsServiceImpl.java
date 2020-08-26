@@ -30,13 +30,15 @@ import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
-import com.hp.octane.integrations.services.configurationparameters.SendEventsInBulk;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -56,6 +58,7 @@ import static com.hp.octane.integrations.services.rest.RestService.*;
 
 final class EventsServiceImpl implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
+	Marker eventsMarker = MarkerManager.getMarker("EVENTS");
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final ExecutorService eventsPushExecutor = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
@@ -191,30 +194,25 @@ final class EventsServiceImpl implements EventsService {
 	}
 
 	private List<CIEvent> getEventsChunk() {
+		int maxInBulk = ConfigurationParameterFactory.isSendEventsInBulk(configurer.octaneConfiguration) ? EVENTS_CHUNK_SIZE : 1;
+		List<CIEvent> eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), maxInBulk)));
+
 		// - octane generate multibranch child pipeline on the fly
 		// - multibranch child may trigger another job
 		// - if multibranch child pipeline still didn't created, and multibranch child start event comes along with
 		//    downstream job start event, the latest event is thrown in PipelinesServiceImpl#shouldProcessEvent.
 		//    So first run of pipeline might be partial (without structure,tests,commits)
 		// - if in iteration we encounter multibranch child start event - no other event is allowed to be after it and will be pushed in next bulk
-		int maxInBulk = isSendInBulk() ? 10 : 1;
-		List<CIEvent> eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), maxInBulk)));
-		for (int i = 0; i < eventsChunk.size(); i++) {
-			CIEvent ciEvent = eventsChunk.get(i);
-			if (CIEventType.STARTED.equals(ciEvent.getEventType()) && MultiBranchType.MULTI_BRANCH_CHILD.equals(ciEvent.getMultiBranchType()) && i + 1 < eventsChunk.size()) {
-				eventsChunk = new ArrayList<>(eventsChunk.subList(0, i + 1));
-				break;
+		if (eventsChunk.size() > 1) {
+			for (int i = 0; i < eventsChunk.size(); i++) {
+				CIEvent ciEvent = eventsChunk.get(i);
+				if (CIEventType.STARTED.equals(ciEvent.getEventType()) && MultiBranchType.MULTI_BRANCH_CHILD.equals(ciEvent.getMultiBranchType()) && i + 1 < eventsChunk.size()) {
+					eventsChunk = new ArrayList<>(eventsChunk.subList(0, i + 1));
+					break;
+				}
 			}
 		}
 		return eventsChunk;
-	}
-
-	private boolean isSendInBulk() {
-		SendEventsInBulk param = (SendEventsInBulk) configurer.octaneConfiguration.getParameter(SendEventsInBulk.KEY);
-		if (param != null) {
-			return param.isBulk();
-		}
-		return SendEventsInBulk.DEFAULT;
 	}
 
 	private void logEventsToBeSent(CIEventsList eventsList) {
@@ -229,6 +227,14 @@ final class EventsServiceImpl implements EventsService {
 
 			}
 			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s ...");
+
+			if (ConfigurationParameterFactory.isLogEvents(configurer.octaneConfiguration)) {
+				for (CIEvent event : eventsList.getEvents()) {
+					String str = String.format("%s%s:%s:%s %s", configurer.octaneConfiguration.geLocationForLog(), event.getProject(), event.getBuildCiId(),
+							event.getEventType(), dtoFactory.dtoToJson(event));
+					logger.info(eventsMarker, str);
+				}
+			}
 		} catch (Exception e) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to log events to be sent", e);
 		}

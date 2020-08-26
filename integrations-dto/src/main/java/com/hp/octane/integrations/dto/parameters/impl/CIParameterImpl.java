@@ -24,7 +24,7 @@ import com.hp.octane.integrations.dto.parameters.CIParameterType;
 /**
  * Default implementation of CI Parameter DTO
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIParameterImpl implements CIParameter {
 	private CIParameterType type;
