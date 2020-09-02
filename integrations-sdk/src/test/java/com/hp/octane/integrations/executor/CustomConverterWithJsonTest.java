@@ -99,7 +99,7 @@ public class CustomConverterWithJsonTest {
     }
 
     @Test
-    public void joinStringWIthDuplicationTest() {
+    public void joinStringWithDuplicationTest() {
         String json = "{" +
                 "\"testPattern\": \"$package\"," +
                 "\"replacements\": [" +
@@ -110,6 +110,21 @@ public class CustomConverterWithJsonTest {
         String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
         Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;prefix|MFA.simpleA.tests|suffix;", actual);
+    }
+
+    @Test
+    public void joinStringWithoutDuplicationTest() {
+        String json = "{" +
+                "\"allowDuplication\": \"false\"," +
+                "\"testPattern\": \"$package\"," +
+                "\"replacements\": [" +
+                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix;\"}" +
+                "]}";
+
+        CustomConverter converter = new CustomConverter(json);
+        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+
+        Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;", actual);
     }
 
     @Test

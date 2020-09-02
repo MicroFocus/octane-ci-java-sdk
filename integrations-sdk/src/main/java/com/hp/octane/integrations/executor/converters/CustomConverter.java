@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
  * Converter to any given format
@@ -65,6 +66,7 @@ public class CustomConverter extends TestsToRunConverter {
         CustomFormat customFormat = new CustomFormat();
         String defaultErrorTemplate = "Field '%s' is missing in format json";
         Map<String, Object> parsed = parseJson(format, Map.class);
+        customFormat.setAllowDuplication(Boolean.parseBoolean(getMapValue(parsed, "allowDuplication", false, "true")));
         customFormat.setTestPattern(getMapValue(parsed, "testPattern", defaultErrorTemplate));
         customFormat.setTestDelimiter(getMapValue(parsed, "testDelimiter", false, ""));
         customFormat.setPrefix(getMapValue(parsed, "prefix", false, ""));
@@ -159,11 +161,15 @@ public class CustomConverter extends TestsToRunConverter {
         addToSetIfPatterContains(existingKeys, $_TEST_NAME);
         data.stream().flatMap(t -> t.getParameters().keySet().stream()).map(param -> "$" + param).forEach(key -> addToSetIfPatterContains(existingKeys, key));
 
-        String collect = data.stream()
+        Stream<String> stream = data.stream()
                 .map(n -> convertToFormat(n, existingKeys))
-                .filter(str -> str != null && !str.isEmpty())
-                .collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
-        return collect;
+                .filter(str -> str != null && !str.isEmpty());
+
+        if (!customFormat.allowDuplication) {
+            stream = stream.distinct();
+        }
+        String result = stream.collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
+        return result;
     }
 
     private void addToSetIfPatterContains(Set<String> set, String key) {
@@ -276,6 +282,7 @@ public class CustomConverter extends TestsToRunConverter {
         private String testPattern = "";
         private String prefix = "";
         private String suffix = "";
+        private boolean allowDuplication = true;
         private String testsToRunConvertedParameterName;
         private Map<String, List<ReplaceAction>> replacements = new HashMap<>();
 
@@ -326,6 +333,14 @@ public class CustomConverter extends TestsToRunConverter {
         public CustomFormat setTestsToRunConvertedParameterName(String testsToRunConvertedParameterName) {
             this.testsToRunConvertedParameterName = testsToRunConvertedParameterName;
             return this;
+        }
+
+        public boolean isAllowDuplication() {
+            return allowDuplication;
+        }
+
+        public void setAllowDuplication(boolean allowDuplication) {
+            this.allowDuplication = allowDuplication;
         }
     }
 
