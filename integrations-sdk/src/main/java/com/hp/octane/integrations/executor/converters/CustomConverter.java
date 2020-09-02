@@ -162,7 +162,6 @@ public class CustomConverter extends TestsToRunConverter {
         String collect = data.stream()
                 .map(n -> convertToFormat(n, existingKeys))
                 .filter(str -> str != null && !str.isEmpty())
-                .distinct()
                 .collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
         return collect;
     }
