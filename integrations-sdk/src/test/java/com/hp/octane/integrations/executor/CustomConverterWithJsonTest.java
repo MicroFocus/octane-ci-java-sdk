@@ -99,17 +99,17 @@ public class CustomConverterWithJsonTest {
     }
 
     @Test
-    public void joinStringTest() {
+    public void joinStringWIthDuplicationTest() {
         String json = "{" +
                 "\"testPattern\": \"$package\"," +
                 "\"replacements\": [" +
-                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix\"}" +
+                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix;\"}" +
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
         String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
-        Assert.assertEquals("prefix|MFA.simpleA.tests|suffix", actual);
+        Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;prefix|MFA.simpleA.tests|suffix;", actual);
     }
 
     @Test
