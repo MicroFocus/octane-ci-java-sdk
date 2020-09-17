@@ -23,7 +23,6 @@ import org.apache.http.client.utils.URLEncodedUtils;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.List;
 
 public class OctaneUrlParser {
@@ -35,9 +34,9 @@ public class OctaneUrlParser {
     private static final String UI_SPACE = "/ui";
 
     private static final String UNEXPECTED_SHARED_SPACE_EXCEPTION = "Unexpected shared space parameter value";
-    private static final String APPLICATION_CONTEXT_NOT_FOUND_EXCEPTION = "Application context not found in URL";
-    private static final String MISSING_SHARED_SPACE_EXCEPTION = "Missing shared space parameter";
-    private static final String URL_INVALID_EXCEPTION = "Invalid URL";
+    private static final String APPLICATION_CONTEXT_NOT_FOUND_EXCEPTION = "Application context (/ui) not found in URL";
+    public static final String MISSING_SHARED_SPACE_EXCEPTION = "Missing shared space parameter";
+    public static final String URL_INVALID_EXCEPTION = "Invalid URL";
 
 
     public OctaneUrlParser(String location, String sharedSpace) {
@@ -55,9 +54,6 @@ public class OctaneUrlParser {
 
 
     public static OctaneUrlParser parse(String uiLocation) throws IllegalArgumentException {
-        if (uiLocation == null || uiLocation.isEmpty()) {
-            throw new IllegalArgumentException("UiLocation must not be empty");
-        }
         try {
 
             //move all values after the #.
@@ -79,9 +75,6 @@ public class OctaneUrlParser {
             List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), Charsets.UTF_8);
             for (NameValuePair param : params) {
                 if (param.getName().equals(PARAM_SHARED_SPACE)) {
-                    if (param.getValue() == null || param.getValue().isEmpty()) {
-                        throw new IllegalArgumentException(UNEXPECTED_SHARED_SPACE_EXCEPTION);
-                    }
                     String[] sharedSpaceAndWorkspace = param.getValue().split("/");
                     // we are relaxed and allow parameter without workspace in order not to force user to makeup
                     // workspace value when configuring manually or via config API and not via copy & paste

@@ -192,16 +192,17 @@ public final class OctaneSDK {
 	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
 	 * In case of failed configuration , IllegalArgumentException is thrown
 	 *
-	 * @param uiLocation   uiLocation of octane
+	 * @param octaneServerUrl base Octane server URL
+	 * @param sharedSpaceId   shared space ID
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
 	 * @param pluginServicesClass class that extends CIPluginServices
 	 * @return   List of available workspaces
 	 * @throws IOException in case of basic connectivity failure
 	 */
-	public static List<Entity> testOctaneConfigurationAndFetchAvailableWorkspaces(String uiLocation, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
+	public static List<Entity> testOctaneConfigurationAndFetchAvailableWorkspaces(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
 		//  instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
-		OctaneConfiguration configuration = OctaneConfiguration.createWithUiLocation(UUID.randomUUID().toString(), uiLocation);
+		OctaneConfiguration configuration = OctaneConfiguration.create(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
 		configuration.setSecret(secret);
 		configuration.setClient(client);
 		if (pluginServicesClass == null) {

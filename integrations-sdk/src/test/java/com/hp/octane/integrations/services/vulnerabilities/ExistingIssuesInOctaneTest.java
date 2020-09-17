@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.MockOctaneRestClient;
 import org.junit.Assert;

@@ -197,7 +197,7 @@ public class OctaneSDKNegativeTests {
         Assert.assertNotNull(clientB);
 
         try {
-            oc1.setUiLocation(((OctaneConfigurationIntern) oc2).getUiLocation());
+            oc1.setUrlAndSpace(oc2.getUrl(), oc2.getSharedSpace());
         } finally {
             Assert.assertNotNull(OctaneSDK.removeClient(clientA));
             Assert.assertNotNull(OctaneSDK.removeClient(clientB));
@@ -217,7 +217,7 @@ public class OctaneSDKNegativeTests {
         Assert.assertNotNull(clientB);
 
         try {
-            oc1.setUiLocation(((OctaneConfigurationIntern) oc2).getUiLocation());
+            oc1.setUrlAndSpace(oc2.getUrl(), oc2.getSharedSpace());
         } finally {
             Assert.assertNotNull(OctaneSDK.removeClient(clientA));
             Assert.assertNotNull(OctaneSDK.removeClient(clientB));
@@ -237,7 +237,7 @@ public class OctaneSDKNegativeTests {
         Assert.assertNotNull(clientB);
 
         try {
-            oc1.setUiLocation(((OctaneConfigurationIntern) oc2).getUiLocation());
+            oc1.setUrlAndSpace(oc2.getUrl(), oc2.getSharedSpace());
         } finally {
             Assert.assertNotNull(OctaneSDK.removeClient(clientA));
             Assert.assertNotNull(OctaneSDK.removeClient(clientB));
@@ -257,7 +257,7 @@ public class OctaneSDKNegativeTests {
         Assert.assertNotNull(clientB);
 
         try {
-            oc1.setUiLocation(((OctaneConfigurationIntern) oc2).getUiLocation());
+            oc1.setUrlAndSpace(oc2.getUrl(), oc2.getSharedSpace());
         } finally {
             Assert.assertNotNull(OctaneSDK.removeClient(clientA));
             Assert.assertNotNull(OctaneSDK.removeClient(clientB));
@@ -272,7 +272,7 @@ public class OctaneSDKNegativeTests {
         Assert.assertNotNull(client);
 
         try {
-            oc.setUiLocation("http://localhost");
+            oc.setUrlAndSpace(oc.getUrl(), null);
         } finally {
             Assert.assertNotNull(OctaneSDK.removeClient(client));
         }
@@ -286,7 +286,7 @@ public class OctaneSDKNegativeTests {
         Assert.assertNotNull(client);
 
         try {
-            oc.setUiLocation("http://localhost/ui?p=");
+            oc.setUrlAndSpace(oc.getUrl(), "");
         } finally {
             Assert.assertNotNull(OctaneSDK.removeClient(client));
         }
@@ -295,32 +295,32 @@ public class OctaneSDKNegativeTests {
     //  illegal OctaneConfiguration properties for test Octane configuration
     @Test(expected = IllegalArgumentException.class)
     public void sdkTestNegativeQ1() throws IOException {
-        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(null, null, null, null);
+        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(null, null, null, null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void sdkTestNegativeQ2() throws IOException {
-        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("non-valid-url", null, null, null);
+        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("non-valid-url", null, null, null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void sdkTestNegativeQ3() throws IOException {
-        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999", null, null, null);
+        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999", null, null, null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void sdkTestNegativeQ4() throws IOException {
-        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999/ui?p", "", null, null);
+        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999", "", null, null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void sdkTestNegativeQ5() throws IOException {
-        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999/ui?p=1001", null, null, null);
+        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999", "1001", null, null, null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void sdkTestNegativeQ6() throws IOException {
-        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999/ui?p=1001", null, null, PluginServices3.class);
+        OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces("http://localhost:9999", "1001", null, null, PluginServices3.class);
     }
 
     //  illegal OctaneClient creation
@@ -413,5 +413,4 @@ public class OctaneSDKNegativeTests {
             instance.setInstanceId(instanceId);
         }
     }
-
 }

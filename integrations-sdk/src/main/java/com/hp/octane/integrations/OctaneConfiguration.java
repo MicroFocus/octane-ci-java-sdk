@@ -36,6 +36,12 @@ public class OctaneConfiguration {
         return oc;
     }
 
+    public static OctaneConfiguration create(String instanceId, String serverUrl, String sharedSpace) throws OctaneSDKGeneralException {
+        OctaneConfiguration oc = new OctaneConfiguration(instanceId);
+        oc.setUrlAndSpace(serverUrl, sharedSpace);
+        return oc;
+    }
+
     public final String getInstanceId() {
         return instanceId;
     }
@@ -45,18 +51,40 @@ public class OctaneConfiguration {
     }
 
     public final void setUiLocation(String uiLocation) {
-
         OctaneUrlParser parseLocation = OctaneUrlParser.parse(uiLocation);
-        if (parseLocation.getLocation().equals(this.url) && parseLocation.getSharedSpace().equals(this.sharedSpace)) {
+        setUrlAndSpace(parseLocation.getLocation(), parseLocation.getSharedSpace());
+    }
+
+    public final void setUrlAndSpace(String serverUrl, String space) {
+
+        if (serverUrl == null || serverUrl.trim().isEmpty()) {
+            throw new IllegalArgumentException(OctaneUrlParser.URL_INVALID_EXCEPTION);
+        }
+        if (space == null || space.trim().isEmpty()) {
+            throw new IllegalArgumentException(OctaneUrlParser.MISSING_SHARED_SPACE_EXCEPTION);
+        }
+        String myServerUrl = serverUrl.trim();
+        String mySpace = space.trim();
+        if (myServerUrl.contains("?")) {
+            myServerUrl = myServerUrl.substring(0, myServerUrl.indexOf("?"));
+        }
+
+        try {
+            new URL(myServerUrl);//validation of url validity
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException(OctaneUrlParser.URL_INVALID_EXCEPTION);
+        }
+
+        if (myServerUrl.equals(this.url) && mySpace.equals(this.sharedSpace)) {
             return;
         }
 
-        if (attached && !OctaneSDK.isSharedSpaceUnique(parseLocation.getLocation(), parseLocation.getSharedSpace())) {
-            throw new IllegalArgumentException("shared space '" + parseLocation.getSharedSpace() + "' of Octane '" + parseLocation.getLocation() + "' is already in use");
+        if (attached && !OctaneSDK.isSharedSpaceUnique(myServerUrl, mySpace)) {
+            throw new IllegalArgumentException("shared space '" + mySpace + "' of Octane '" + myServerUrl + "' is already in use");
         }
 
-        this.url = parseLocation.getLocation();
-        this.sharedSpace = parseLocation.getSharedSpace();
+        this.url = myServerUrl;
+        this.sharedSpace = mySpace;
     }
 
     public final String getSharedSpace() {
