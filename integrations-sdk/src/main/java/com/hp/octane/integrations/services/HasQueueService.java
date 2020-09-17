@@ -20,8 +20,9 @@ package com.hp.octane.integrations.services;
  */
 public interface HasQueueService {
 
-	/**
+	/***
 	 * Get queue size
+	 * @return queue size
 	 */
 	long getQueueSize();
 

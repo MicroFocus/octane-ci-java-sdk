@@ -22,8 +22,9 @@ import java.util.Map;
  */
 public interface HasMetrics {
 
-	/**
+	/***
 	 * Get metrics
+	 * @return metrics map
 	 */
 	Map<String, Object> getMetrics();
 
