@@ -34,6 +34,7 @@ public interface SCMDataService extends ClosableService, HasQueueService, HasMet
 	 * @param configurer configurer
 	 * @param restService restService
 	 * @param configurationService Configuration Service
+	 * @param eventsService Event service
 	 * @return return initialized service
 	 */
 	static SCMDataService newInstance(QueueingService queueingService, OctaneSDK.SDKServicesConfigurer configurer,
