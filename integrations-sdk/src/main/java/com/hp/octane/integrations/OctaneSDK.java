@@ -83,7 +83,7 @@ public final class OctaneSDK {
 
 		//  validate shared space ID uniqueness
 		String sharedSpace = octaneConfiguration.getSharedSpace();
-		if (!isSharedSpaceUnique(octaneConfiguration.getFarm(), sharedSpace)) {
+		if (!isSharedSpaceUnique(octaneConfiguration.getUrl(), sharedSpace)) {
 			throw new IllegalStateException("SDK instance claiming for shared space ID [" + sharedSpace + "] is already present");
 		}
 
@@ -192,16 +192,15 @@ public final class OctaneSDK {
 	 * This method allows to test Octane configuration prior to creating full functioning Octane client (use case - test connection in UI)
 	 * In case of failed configuration , IllegalArgumentException is thrown
 	 *
-	 * @param octaneServerUrl base Octane server URL
-	 * @param sharedSpaceId   shared space ID
+	 * @param uiLocation   uiLocation of octane
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
 	 * @param pluginServicesClass class that extends CIPluginServices
 	 * @throws IOException in case of basic connectivity failure
 	 */
-	public static List<Entity> testOctaneConfigurationAndFetchAvailableWorkspaces(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
+	public static List<Entity> testOctaneConfigurationAndFetchAvailableWorkspaces(String uiLocation, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
 		//  instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
-		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
+		OctaneConfiguration configuration = OctaneConfiguration.createWithUiLocation(UUID.randomUUID().toString(), uiLocation);
 		configuration.setSecret(secret);
 		configuration.setClient(client);
 		if (pluginServicesClass == null) {
@@ -237,7 +236,7 @@ public final class OctaneSDK {
 	}
 
 	static boolean isSharedSpaceUnique(String host, String sharedSpace) {
-		return clients.keySet().stream().noneMatch(oc -> (oc.getFarm() + oc.getSharedSpace()).equals(host + sharedSpace));
+		return clients.keySet().stream().noneMatch(oc -> (oc.getUrl() + oc.getSharedSpace()).equals(host + sharedSpace));
 	}
 
 	/**
