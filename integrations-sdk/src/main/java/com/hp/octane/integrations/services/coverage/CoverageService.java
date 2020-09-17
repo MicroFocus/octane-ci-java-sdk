@@ -39,6 +39,7 @@ public interface CoverageService extends ClosableService, HasQueueService, HasMe
 	 * @param configurer SDK services configurer object
 	 * @param queueingService queueingService
 	 * @param restService restService
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 	 */
 	static CoverageService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {

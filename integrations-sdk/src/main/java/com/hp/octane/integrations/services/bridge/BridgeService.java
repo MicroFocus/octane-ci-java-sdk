@@ -30,7 +30,7 @@ public interface BridgeService extends ClosableService, HasMetrics {
 	 * @param configurer     SDK services configurer object
 	 * @param restService    Rest Service
 	 * @param tasksProcessor Tasks Processor
-	 * @param configurationService
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 	 */
 	static BridgeService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor, ConfigurationService configurationService) {

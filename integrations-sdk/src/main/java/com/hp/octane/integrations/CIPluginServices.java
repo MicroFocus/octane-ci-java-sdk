@@ -258,7 +258,7 @@ public abstract class CIPluginServices {
 
 	/**
 	 * Get credentials ids and names (no real passwords) for auto generation of UFT test runners
-	 * @return
+	 * @return return existing credentials
 	 */
 	public List<CredentialsInfo> getCredentials() {
 		return Collections.emptyList();

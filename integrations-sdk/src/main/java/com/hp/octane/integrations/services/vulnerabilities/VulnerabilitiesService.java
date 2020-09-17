@@ -33,6 +33,7 @@ public interface VulnerabilitiesService extends ClosableService, HasQueueService
 	 * @param vulnerabilitiesToolServices vulnerabilitiesToolServices
 	 * @param configurer configurer
 	 * @param restService restService
+	 * @param configurationService Configuration Service
 	 * @return return initialized service
 	 */
 	static VulnerabilitiesService newInstance (QueueingService queueingService,VulnerabilitiesToolService[] vulnerabilitiesToolServices,

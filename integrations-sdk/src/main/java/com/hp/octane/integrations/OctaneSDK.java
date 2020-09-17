@@ -196,6 +196,7 @@ public final class OctaneSDK {
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
 	 * @param pluginServicesClass class that extends CIPluginServices
+	 * @return   List of available workspaces
 	 * @throws IOException in case of basic connectivity failure
 	 */
 	public static List<Entity> testOctaneConfigurationAndFetchAvailableWorkspaces(String uiLocation, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {

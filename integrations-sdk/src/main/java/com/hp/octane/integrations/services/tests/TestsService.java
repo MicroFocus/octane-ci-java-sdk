@@ -36,6 +36,7 @@ public interface TestsService extends ClosableService, HasQueueService, HasMetri
 	 * @param configurer      SDK services configurer object
 	 * @param queueingService Queue service
 	 * @param restService     Rest Service
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 	 */
 	static TestsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {

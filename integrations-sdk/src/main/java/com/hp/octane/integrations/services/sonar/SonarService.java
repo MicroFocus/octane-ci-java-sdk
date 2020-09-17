@@ -41,6 +41,7 @@ public interface SonarService extends ClosableService, HasQueueService, HasMetri
 	 * @param configurer SDK services configurer object
 	 * @param queueingService queueingService
 	 * @param coverageService coverageService
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 
 	 */
