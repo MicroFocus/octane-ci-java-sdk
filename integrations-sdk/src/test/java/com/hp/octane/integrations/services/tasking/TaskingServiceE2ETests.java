@@ -2,6 +2,7 @@ package com.hp.octane.integrations.services.tasking;
 
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
@@ -48,7 +49,7 @@ public class TaskingServiceE2ETests {
 		Assert.assertNotNull(octaneSPEndpointSimulator);
 
 		//  setup Octane client
-		OctaneConfiguration configuration = new OctaneConfiguration(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
 		client = OctaneSDK.addClient(configuration, TaskingTestPluginServicesTest.class);
 	}
 

@@ -15,7 +15,7 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.hp.octane.integrations.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.MockOctaneRestClient;
 import org.junit.Assert;
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class ExistingIssuesInOctaneTest {
     private ExistingIssuesInOctane buildExistingIssuesInOctane(String s) {
 
         return new ExistingIssuesInOctane(new MockOctaneRestClient(s, 200),
-                new OctaneConfiguration("instanceID", "http://URL:8080", "1002"));
+                new OctaneConfigurationIntern("instanceID", "http://URL:8080", "1002"));
     }
 
     @Test

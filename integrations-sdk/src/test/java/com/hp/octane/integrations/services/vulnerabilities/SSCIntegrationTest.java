@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
@@ -76,7 +77,7 @@ public class SSCIntegrationTest {
             //  I
             //  add one client and verify it works okay
             //
-            OctaneConfiguration configA = new OctaneConfiguration(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
+            OctaneConfiguration configA = new OctaneConfigurationIntern(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
             OctaneClient clientA = OctaneSDK.addClient(configA, VulnerabilitiesServicePluginServicesTest.class);
             VulnerabilitiesService vulnerabilitiesServiceA = clientA.getVulnerabilitiesService();
 

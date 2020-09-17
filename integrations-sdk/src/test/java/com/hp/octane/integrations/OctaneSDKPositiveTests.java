@@ -77,16 +77,16 @@ public class OctaneSDKPositiveTests {
 		Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
 		//  same values should work smooth
-		oc.setSharedSpace(sp);
-		oc.setUrl(url);
+		String uiLocation = url + "/ui/?&p=" + sp;
+		oc.setUiLocation(uiLocation);
 		Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
 		Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
 		//  new unique values should work as well
 		url = "http://localhost:8081";
 		sp = UUID.randomUUID().toString();
-		oc.setSharedSpace(sp);
-		oc.setUrl(url);
+		uiLocation =  url + "/ui/?&p=" + sp;
+		oc.setUiLocation(uiLocation);
 		Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
 		Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
@@ -168,7 +168,6 @@ public class OctaneSDKPositiveTests {
 		Assert.assertNotNull(clientB);
 
 		Assert.assertNotNull(OctaneSDK.removeClient(clientB));
-		oc2.setSharedSpace(oc1.getSharedSpace());
 	}
 
 	public static class PluginServices extends CIPluginServices {
@@ -185,14 +184,6 @@ public class OctaneSDKPositiveTests {
 		@Override
 		public File getAllowedOctaneStorage() {
 			return new File("temp");
-		}
-	}
-
-	private static class OctaneConfigurationIntern extends OctaneConfiguration {
-		private OctaneConfigurationIntern(String iId, String url, String spId, String client, String secret) {
-			super(iId, url, spId);
-			this.setClient(client);
-			this.setSecret(secret);
 		}
 	}
 }

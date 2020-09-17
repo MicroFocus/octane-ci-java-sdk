@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.tests;
 
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.TestsResult;
@@ -38,7 +39,7 @@ public class TestsServiceNegativeTests {
 	public static void setupClient() {
 		String inId = UUID.randomUUID().toString();
 		String sspId = UUID.randomUUID().toString();
-		OctaneConfiguration configuration = new OctaneConfiguration(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
 		client = OctaneSDK.addClient(configuration, TestsServicePluginServicesTest.class);
 	}
 

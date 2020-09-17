@@ -18,26 +18,22 @@ public class OctaneConfiguration {
     private String client;
     private String secret;
     volatile boolean attached;
-    private String farm;
     private boolean suspended;
     private boolean sdkSupported = true;
     private String impersonatedUser;
     private Map<String, ConfigurationParameter> parameters = new HashMap<>();
 
-    public OctaneConfiguration(String instanceId, String url, String sharedSpace) {
+    public OctaneConfiguration(String instanceId) {
         if (instanceId == null || instanceId.isEmpty()) {
             throw new IllegalArgumentException("instance ID MUST NOT be null nor empty");
         }
-
         this.instanceId = instanceId;
-        setUrl(url);
-        setSharedSpace(sharedSpace);
     }
 
     public static OctaneConfiguration createWithUiLocation(String instanceId, String uiLocation) throws OctaneSDKGeneralException {
-
-        OctaneUrlParser parseLocation = OctaneUrlParser.parse(uiLocation);
-        return new OctaneConfiguration(instanceId, parseLocation.getLocation(), parseLocation.getSharedSpace());
+        OctaneConfiguration oc = new OctaneConfiguration(instanceId);
+        oc.setUiLocation(uiLocation);
+        return oc;
     }
 
     public final String getInstanceId() {
@@ -48,47 +44,23 @@ public class OctaneConfiguration {
         return url;
     }
 
-    public final void setUrl(String url) {
-        if (url == null || url.isEmpty()) {
-            throw new IllegalArgumentException("url MUST NOT be null nor empty");
+    public final void setUiLocation(String uiLocation) {
+
+        OctaneUrlParser parseLocation = OctaneUrlParser.parse(uiLocation);
+        if (parseLocation.getLocation().equals(this.url) && parseLocation.getSharedSpace().equals(this.sharedSpace)) {
+            return;
         }
 
-        try {
-            URL tmp = new URL(url);
-            String tmpFarm = tmp.getHost() + (tmp.getPort() > 0 ? (":" + tmp.getPort()) : "");
-            if ((tmp.getProtocol() + "://" + tmpFarm).equals(this.url)) {
-                return;
-            }
-
-            if (attached && !OctaneSDK.isSharedSpaceUnique(tmpFarm, sharedSpace)) {
-                throw new IllegalArgumentException("shared space '" + sharedSpace + "' of Octane '" + tmpFarm + "' is already in use");
-            }
-
-            farm = tmpFarm;
-            this.url = tmp.getProtocol() + "://" + tmpFarm;
-        } catch (MalformedURLException mue) {
-            throw new IllegalArgumentException("Invalid URL", mue);
+        if (attached && !OctaneSDK.isSharedSpaceUnique(parseLocation.getLocation(), parseLocation.getSharedSpace())) {
+            throw new IllegalArgumentException("shared space '" + parseLocation.getSharedSpace() + "' of Octane '" + parseLocation.getLocation() + "' is already in use");
         }
+
+        this.url = parseLocation.getLocation();
+        this.sharedSpace = parseLocation.getSharedSpace();
     }
 
     public final String getSharedSpace() {
         return sharedSpace;
-    }
-
-    public final void setSharedSpace(String sharedSpace) {
-        if (sharedSpace == null || sharedSpace.isEmpty()) {
-            throw new IllegalArgumentException("shared space ID MUST NOT be null nor empty");
-        }
-
-        if (sharedSpace.equals(this.sharedSpace)) {
-            return;
-        }
-
-        if (attached && !OctaneSDK.isSharedSpaceUnique(farm, sharedSpace)) {
-            throw new IllegalArgumentException("shared space '" + sharedSpace + "' of Octane '" + farm + "' is already in use");
-        }
-
-        this.sharedSpace = sharedSpace;
     }
 
     public String getClient() {
@@ -113,10 +85,6 @@ public class OctaneConfiguration {
 
     public void setSecret(String secret) {
         this.secret = secret;
-    }
-
-    final String getFarm() {
-        return farm;
     }
 
     @Override
@@ -161,11 +129,11 @@ public class OctaneConfiguration {
         this.sdkSupported = sdkSupported;
     }
 
-    public void clearParameters(){
+    public void clearParameters() {
         this.parameters.clear();
     }
 
-    public Set<String> getParameterNames(){
+    public Set<String> getParameterNames() {
         return this.parameters.keySet();
     }
 

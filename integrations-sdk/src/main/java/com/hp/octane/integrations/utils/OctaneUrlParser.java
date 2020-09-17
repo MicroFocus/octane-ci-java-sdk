@@ -15,13 +15,15 @@
 
 package com.hp.octane.integrations.utils;
 
-import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
+
+import org.apache.commons.codec.Charsets;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.List;
 
 public class OctaneUrlParser {
@@ -52,7 +54,10 @@ public class OctaneUrlParser {
     }
 
 
-    public static OctaneUrlParser parse(String uiLocation) throws OctaneSDKGeneralException {
+    public static OctaneUrlParser parse(String uiLocation) throws IllegalArgumentException {
+        if (uiLocation == null || uiLocation.isEmpty()) {
+            throw new IllegalArgumentException("UiLocation must not be empty");
+        }
         try {
 
             //move all values after the #.
@@ -66,26 +71,29 @@ public class OctaneUrlParser {
             String location;
             int contextPos = myUiLocation.indexOf(UI_SPACE);
             if (contextPos < 0) {
-                throw new OctaneSDKGeneralException(APPLICATION_CONTEXT_NOT_FOUND_EXCEPTION);
+                throw new IllegalArgumentException(APPLICATION_CONTEXT_NOT_FOUND_EXCEPTION);
 
             } else {
                 location = myUiLocation.substring(0, contextPos);
             }
-            List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), "UTF-8");
+            List<NameValuePair> params = URLEncodedUtils.parse(url.toURI(), Charsets.UTF_8);
             for (NameValuePair param : params) {
                 if (param.getName().equals(PARAM_SHARED_SPACE)) {
+                    if (param.getValue() == null || param.getValue().isEmpty()) {
+                        throw new IllegalArgumentException(UNEXPECTED_SHARED_SPACE_EXCEPTION);
+                    }
                     String[] sharedSpaceAndWorkspace = param.getValue().split("/");
                     // we are relaxed and allow parameter without workspace in order not to force user to makeup
                     // workspace value when configuring manually or via config API and not via copy & paste
                     if (sharedSpaceAndWorkspace.length < 1 || SdkStringUtils.isEmpty(sharedSpaceAndWorkspace[0])) {
-                        throw new OctaneSDKGeneralException(UNEXPECTED_SHARED_SPACE_EXCEPTION);
+                        throw new IllegalArgumentException(UNEXPECTED_SHARED_SPACE_EXCEPTION);
                     }
                     return new OctaneUrlParser(location, sharedSpaceAndWorkspace[0]);
                 }
             }
-            throw new OctaneSDKGeneralException(MISSING_SHARED_SPACE_EXCEPTION);
+            throw new IllegalArgumentException(MISSING_SHARED_SPACE_EXCEPTION);
         } catch (MalformedURLException | URISyntaxException e) {
-            throw new OctaneSDKGeneralException(URL_INVALID_EXCEPTION);
+            throw new IllegalArgumentException(URL_INVALID_EXCEPTION);
         }
     }
 }

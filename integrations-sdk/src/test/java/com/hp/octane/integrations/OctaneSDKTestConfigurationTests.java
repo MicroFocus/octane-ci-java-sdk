@@ -39,7 +39,7 @@ public class OctaneSDKTestConfigurationTests {
 			}
 		});
 
-		OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(OctaneSPEndpointSimulator.getSimulatorUrl(), spId, "client", "secret", PluginServices.class);
+		OctaneSDK.testOctaneConfigurationAndFetchAvailableWorkspaces(OctaneSPEndpointSimulator.getSimulatorUrl() +"/ui/?&p=" + spId, "client", "secret", PluginServices.class);
 		OctaneSPEndpointSimulator.removeInstance(spId);
 	}
 

@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.*;
@@ -79,7 +80,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
             //  I
             //  add one client and verify it works okay
             //
-            OctaneConfiguration configA = new OctaneConfiguration(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
+            OctaneConfiguration configA = new OctaneConfigurationIntern(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
             OctaneClient clientA = OctaneSDK.addClient(configA, VulnerabilitiesServicePluginServicesTest.class);
             VulnerabilitiesService vulnerabilitiesServiceA = clientA.getVulnerabilitiesService();
             Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
@@ -89,7 +90,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
             //  II
             //  add one more client and verify they are both works okay
             //
-            OctaneConfiguration configB = new OctaneConfiguration(clientBInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdB);
+            OctaneConfiguration configB = new OctaneConfigurationIntern(clientBInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdB);
             OctaneClient clientB = OctaneSDK.addClient(configB, VulnerabilitiesServicePluginServicesTest.class);
             VulnerabilitiesService vulnerabilitiesServiceB = clientB.getVulnerabilitiesService();
 
@@ -153,7 +154,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
             //  I
             //  add one client and verify it works okay
             //
-            OctaneConfiguration configA = new OctaneConfiguration(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
+            OctaneConfiguration configA = new OctaneConfigurationIntern(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
             OctaneClient clientA = OctaneSDK.addClient(configA, VulnerabilitiesServicePluginServicesTest.class);
             VulnerabilitiesService vulnerabilitiesServiceA = clientA.getVulnerabilitiesService();
 
