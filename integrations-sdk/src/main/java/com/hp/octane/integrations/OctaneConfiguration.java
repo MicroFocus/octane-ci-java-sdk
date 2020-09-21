@@ -1,6 +1,5 @@
 package com.hp.octane.integrations;
 
-import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
 import com.hp.octane.integrations.utils.OctaneUrlParser;
 import com.hp.octane.integrations.utils.SdkStringUtils;
@@ -30,13 +29,13 @@ public class OctaneConfiguration {
         this.instanceId = instanceId;
     }
 
-    public static OctaneConfiguration createWithUiLocation(String instanceId, String uiLocation) throws OctaneSDKGeneralException {
+    public static OctaneConfiguration createWithUiLocation(String instanceId, String uiLocation) throws IllegalArgumentException {
         OctaneConfiguration oc = new OctaneConfiguration(instanceId);
         oc.setUiLocation(uiLocation);
         return oc;
     }
 
-    public static OctaneConfiguration create(String instanceId, String serverUrl, String sharedSpace) throws OctaneSDKGeneralException {
+    public static OctaneConfiguration create(String instanceId, String serverUrl, String sharedSpace) throws IllegalArgumentException {
         OctaneConfiguration oc = new OctaneConfiguration(instanceId);
         oc.setUrlAndSpace(serverUrl, sharedSpace);
         return oc;

@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
-import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.services.configurationparameters.EncodeCiJobBase64Parameter;
 import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;
@@ -134,13 +133,13 @@ public class CIPluginSDKUtils {
 	 *
 	 * @param input valid URL sting
 	 * @return parsed URL
-	 * @throws OctaneSDKGeneralException exception on any incorrect URL input
+	 * @throws IllegalArgumentException exception on any incorrect URL input
 	 */
 	public static URL parseURL(String input) {
 		try {
 			return new URL(input);
 		} catch (MalformedURLException murle) {
-			throw new OctaneSDKGeneralException("failed to parse '" + input + "' as URL", murle);
+			throw new IllegalArgumentException("failed to parse '" + input + "' as URL", murle);
 		}
 	}
 

@@ -38,7 +38,6 @@ public class OctaneUrlParser {
     public static final String MISSING_SHARED_SPACE_EXCEPTION = "Missing shared space parameter";
     public static final String URL_INVALID_EXCEPTION = "Invalid URL";
 
-
     public OctaneUrlParser(String location, String sharedSpace) {
         this.location = location;
         this.sharedSpace = sharedSpace;
