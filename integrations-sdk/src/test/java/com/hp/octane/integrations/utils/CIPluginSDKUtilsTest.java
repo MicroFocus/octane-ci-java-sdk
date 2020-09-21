@@ -164,17 +164,17 @@ public class CIPluginSDKUtilsTest {
 		Assert.assertNotNull(url);
 	}
 
-	@Test(expected = OctaneSDKGeneralException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testsParseURLNeg1() {
 		CIPluginSDKUtils.parseURL("something-wrong-here");
 	}
 
-	@Test(expected = OctaneSDKGeneralException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testsParseURLNeg2() {
 		CIPluginSDKUtils.parseURL(null);
 	}
 
-	@Test(expected = OctaneSDKGeneralException.class)
+	@Test(expected = IllegalArgumentException.class)
 	public void testsParseURLNeg3() {
 		CIPluginSDKUtils.parseURL("");
 	}
