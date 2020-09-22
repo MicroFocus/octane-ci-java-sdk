@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations.executor;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.hp.octane.integrations.executor.converters.CustomConverter;
 import org.junit.Assert;
 import org.junit.Test;
@@ -115,7 +116,7 @@ public class CustomConverterWithJsonTest {
     @Test
     public void joinStringWithoutDuplicationTest() {
         String json = "{" +
-                "\"allowDuplication\": \"false\"," +
+                "\"allowDuplication\": false," +
                 "\"testPattern\": \"$package\"," +
                 "\"replacements\": [" +
                 "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix;\"}" +
@@ -125,6 +126,25 @@ public class CustomConverterWithJsonTest {
         String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
 
         Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;", actual);
+    }
+
+    @Test
+    public void booleanAsStringTest() {
+        String json = "{" +
+                "\"allowDuplication\": \"false\"," +
+                "\"testPattern\": \"$package\"," +
+                "\"replacements\": [" +
+                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix;\"}" +
+                "]}";
+
+        try {
+            CustomConverter converter = new CustomConverter(json);
+            Assert.fail("Fail is expected");
+        }catch (IllegalArgumentException e){
+            Assert.assertEquals("Illegal value for field allowDuplication. Expected boolean value.", e.getMessage());
+        }catch (Exception e1){
+            Assert.fail("Wrong exception is received");
+        }
     }
 
     @Test
