@@ -1,6 +1,7 @@
 package com.hp.octane.integrations.services.configurationparameters;
 
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 
 /*
 Whether  log sent events to log or not
@@ -19,15 +20,7 @@ public class LogEventsParameter implements ConfigurationParameter {
 	}
 
 	public static LogEventsParameter create(String rawValue) {
-		if (rawValue == null) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		if (!(rawValue.equalsIgnoreCase("true") || rawValue.equalsIgnoreCase("false"))) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		return new LogEventsParameter(Boolean.parseBoolean(rawValue));
+		return new LogEventsParameter(ConfigurationParameterFactory.validateBooleanValue(rawValue,KEY));
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.hp.octane.integrations.services.configurationparameters;
 
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 
 public class SCMRestAPIParameter implements ConfigurationParameter {
 	public static final String KEY = "SCM_REST_API";
@@ -16,15 +17,7 @@ public class SCMRestAPIParameter implements ConfigurationParameter {
 	}
 
 	public static SCMRestAPIParameter create(String rawValue) {
-		if (rawValue == null) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		if (!(rawValue.equalsIgnoreCase("true") || rawValue.equalsIgnoreCase("false"))) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		return new SCMRestAPIParameter(Boolean.parseBoolean(rawValue));
+		return new SCMRestAPIParameter(ConfigurationParameterFactory.validateBooleanValue(rawValue,KEY));
 	}
 
 	@Override

@@ -42,4 +42,9 @@ public interface TasksProcessor {
 	 * @return OctaneResultAbridged
 	 */
 	OctaneResultAbridged execute(OctaneTaskAbridged task);
+
+	/**
+	 * Clear caches of getJobList
+	 */
+	void clearJobListCache();
 }

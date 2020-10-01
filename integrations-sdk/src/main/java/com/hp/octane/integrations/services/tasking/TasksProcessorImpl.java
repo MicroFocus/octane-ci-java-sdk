@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.exceptions.ErrorCodeBasedException;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -62,6 +63,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 	private static final String CREDENTIALS = "credentials";
+	private final Map<String, CacheItem> cacheMap = new HashMap<>();
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 
@@ -178,6 +180,14 @@ final class TasksProcessorImpl implements TasksProcessor {
 		return result;
 	}
 
+	@Override
+	public void clearJobListCache() {
+		if (!cacheMap.isEmpty()) {
+			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "TasksProcessorImpl - jobListCache is cleared");
+			cacheMap.clear();
+		}
+	}
+
 	private String[] pathTokenizer(String url) {
 		Map<Integer, String> params = new HashMap<>();
 		String[] path = Pattern.compile("^.*" + NGA_API + "/?").matcher(url).replaceFirst("").split("/");
@@ -220,7 +230,32 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters, Long workspaceId) {
-		CIJobsList content = configurer.pluginServices.getJobsList(includingParameters, workspaceId);
+		String cacheKey = "JobsList" + includingParameters + workspaceId;
+		CIJobsList content = null;
+		boolean cacheAllowed = ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration);
+		if (cacheAllowed) {
+			if (cacheMap.containsKey(cacheKey)) {
+				long currentTime = System.currentTimeMillis();
+				long hours = (currentTime - cacheMap.get(cacheKey).time) / (1000 * 60 * 60);
+				if (hours > 24) {
+					cacheMap.remove(cacheKey);
+				} else {
+					CacheItem ci = cacheMap.get(cacheKey);
+					if (ci != null) {//second check is used to avoid race condition (because of clear)
+						content = (CIJobsList) ci.value;
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: cache is used");
+					}
+
+				}
+			}
+		}
+		if (content == null) {
+			content = configurer.pluginServices.getJobsList(includingParameters, workspaceId);
+			if (cacheAllowed) {
+				cacheMap.put(cacheKey, CacheItem.create(content));
+			}
+		}
+
 		if (content != null) {
 			String body = dtoFactory.dtoToJson(content);
 			result.setBody(body);
@@ -272,6 +307,18 @@ final class TasksProcessorImpl implements TasksProcessor {
 		List<CredentialsInfo> credentials = configurer.pluginServices.getCredentials();
 		result.setBody(dtoFactory.dtoCollectionToJson(credentials));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+	}
+
+	private static class CacheItem {
+		long time;
+		Object value;
+
+		public static CacheItem create(Object value){
+			CacheItem ci = new CacheItem();
+			ci.value = value;
+			ci.time = System.currentTimeMillis();
+			return ci;
+		}
 	}
 
 }

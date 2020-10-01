@@ -23,6 +23,8 @@ public class ConfigurationParameterFactory {
 				return SendEventsInBulk.create(paramValue);
 			case LogEventsParameter.KEY:
 				return LogEventsParameter.create(paramValue);
+			case JobListCacheAllowed.KEY:
+				return JobListCacheAllowed.create(paramValue);
 			default:
 				throw new NoSuchElementException("Unknown parameter : " + paramKey);
 		}
@@ -67,5 +69,25 @@ public class ConfigurationParameterFactory {
 			return param.isLogEvents();
 		}
 		return LogEventsParameter.DEFAULT;
+	}
+
+	public static boolean jobListCacheAllowed(OctaneConfiguration configuration) {
+		JobListCacheAllowed param = (JobListCacheAllowed) configuration.getParameter(JobListCacheAllowed.KEY);
+		if (param != null) {
+			return param.isAllowed();
+		}
+		return JobListCacheAllowed.DEFAULT;
+	}
+
+	public static Boolean validateBooleanValue(String rawValue, String key){
+		if (rawValue == null) {
+			throw new IllegalArgumentException("Parameter " + key + " : Expected boolean value (true/false)");
+		}
+
+		if (!(rawValue.equalsIgnoreCase("true") || rawValue.equalsIgnoreCase("false"))) {
+			throw new IllegalArgumentException("Parameter " + key + " : Expected boolean value (true/false)");
+		}
+
+		return Boolean.parseBoolean(rawValue);
 	}
 }

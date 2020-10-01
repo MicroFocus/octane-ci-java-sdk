@@ -1,6 +1,7 @@
 package com.hp.octane.integrations.services.configurationparameters;
 
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 
 /**
  * Indicate whether to send send aggregated events in one bulk or one-by-one.
@@ -21,15 +22,7 @@ public class SendEventsInBulk implements ConfigurationParameter {
 	}
 
 	public static SendEventsInBulk create(String rawValue) {
-		if (rawValue == null) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		if (!(rawValue.equalsIgnoreCase("true") || rawValue.equalsIgnoreCase("false"))) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		return new SendEventsInBulk(Boolean.parseBoolean(rawValue));
+		return new SendEventsInBulk(ConfigurationParameterFactory.validateBooleanValue(rawValue,KEY));
 	}
 
 	@Override

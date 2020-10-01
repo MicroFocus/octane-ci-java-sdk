@@ -1,6 +1,7 @@
 package com.hp.octane.integrations.services.configurationparameters;
 
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 
 public class EncodeCiJobBase64Parameter implements ConfigurationParameter {
 	public static final String KEY = "ENCODE_CI_JOB_BASE64";
@@ -18,15 +19,7 @@ public class EncodeCiJobBase64Parameter implements ConfigurationParameter {
 	}
 
 	public static EncodeCiJobBase64Parameter create(String rawValue) {
-		if (rawValue == null) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		if (!(rawValue.equalsIgnoreCase("true") || rawValue.equalsIgnoreCase("false"))) {
-			throw new IllegalArgumentException("Parameter " + KEY + " : Expected boolean value (true/false)");
-		}
-
-		return new EncodeCiJobBase64Parameter(Boolean.parseBoolean(rawValue));
+		return new EncodeCiJobBase64Parameter(ConfigurationParameterFactory.validateBooleanValue(rawValue,KEY));
 	}
 
 	@Override
