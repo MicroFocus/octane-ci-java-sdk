@@ -83,6 +83,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		if (!task.getUrl().contains(NGA_API)) {
 			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA_API + "'; wrong handler call?");
 		}
+		long startTime = System.currentTimeMillis();
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		OctaneResultAbridged result = DTOFactory.getInstance().newDTO(OctaneResultAbridged.class);
@@ -173,7 +174,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "OctaneResultAbridged.execute failed : " + e.getMessage());
 		}
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "result for task '" + task.getId() + "' available with status " + result.getStatus());
+		logger.info(configurer.octaneConfiguration.geLocationForLog() + "result for task '" + task.getId() + "' available with status " + result.getStatus() +", processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
 		return result;
 	}
 
@@ -221,7 +222,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters, Long workspaceId) {
 		CIJobsList content = configurer.pluginServices.getJobsList(includingParameters, workspaceId);
 		if (content != null) {
-			result.setBody(dtoFactory.dtoToJson(content));
+			String body = dtoFactory.dtoToJson(content);
+			result.setBody(body);
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: found " + content.getJobs().length + " jobs, body size is " + body.length());
 		} else {
 			TaskProcessingErrorBody errorMessage = dtoFactory.newDTO(TaskProcessingErrorBody.class)
 					.setErrorMessage("'getJobsList' API is not implemented OR returns NULL, which contradicts API requirement (MAY be empty list)");
