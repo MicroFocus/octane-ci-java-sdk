@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.exceptions.ErrorCodeBasedException;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -39,6 +40,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
 
 /**
@@ -63,7 +66,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 	private static final String CREDENTIALS = "credentials";
-	private final Map<String, CacheItem> cacheMap = new HashMap<>();
+
+	private ExecutorService jobListCacheExecutor = Executors.newSingleThreadExecutor();
+	private CacheItem jobListCacheItem;
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 
@@ -181,10 +186,19 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	@Override
-	public void clearJobListCache() {
-		if (!cacheMap.isEmpty()) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "TasksProcessorImpl - jobListCache is cleared");
-			cacheMap.clear();
+	public void resetJobListCache() {
+		if (ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration)) {
+			jobListCacheExecutor.submit(() -> {
+				CIJobsList content = configurer.pluginServices.getJobsList(true, null);
+				if (content != null) {
+					jobListCacheItem = CacheItem.create(content);
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: cache is reset");
+				} else {
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: failed to update cache");
+				}
+			});
+		} else {
+			jobListCacheItem = null;
 		}
 	}
 
@@ -230,43 +244,46 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executeJobsListRequest(OctaneResultAbridged result, boolean includingParameters, Long workspaceId) {
-		String cacheKey = "JobsList" + includingParameters + workspaceId;
-		CIJobsList content = null;
-		boolean cacheAllowed = ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration);
-		if (cacheAllowed) {
-			if (cacheMap.containsKey(cacheKey)) {
-				long currentTime = System.currentTimeMillis();
-				long hours = (currentTime - cacheMap.get(cacheKey).time) / (1000 * 60 * 60);
-				if (hours > 24) {
-					cacheMap.remove(cacheKey);
-				} else {
-					CacheItem ci = cacheMap.get(cacheKey);
-					if (ci != null) {//second check is used to avoid race condition (because of clear)
-						content = (CIJobsList) ci.value;
-						logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: cache is used");
-					}
-
-				}
-			}
-		}
-		if (content == null) {
-			content = configurer.pluginServices.getJobsList(includingParameters, workspaceId);
-			if (cacheAllowed) {
-				cacheMap.put(cacheKey, CacheItem.create(content));
-			}
-		}
-
-		if (content != null) {
-			String body = dtoFactory.dtoToJson(content);
-			result.setBody(body);
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: found " + content.getJobs().length + " jobs, body size is " + body.length());
-		} else {
-			TaskProcessingErrorBody errorMessage = dtoFactory.newDTO(TaskProcessingErrorBody.class)
-					.setErrorMessage("'getJobsList' API is not implemented OR returns NULL, which contradicts API requirement (MAY be empty list)");
-			result.setBody(dtoFactory.dtoToJson(errorMessage));
-			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
-		}
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+
+		//try get from cache
+		boolean cacheAllowed = ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration);
+		boolean cacheIsUsed = false;
+		if (cacheAllowed) {
+
+			CacheItem myJobListCacheItem = jobListCacheItem;//save instance because it might be cleaned
+			if (myJobListCacheItem != null) {
+				long currentTime = System.currentTimeMillis();
+				long hours = (currentTime - myJobListCacheItem.time) / (1000 * 60 );
+				if (hours > 1) {//if exceed hour, refresh the cache data
+					resetJobListCache();
+					CIPluginSDKUtils.doWait(5000);//give 5 sec to try to refresh, if not - old item will be used
+				}
+				CIJobsList content = (CIJobsList) myJobListCacheItem.value;
+				result.setBody(dtoFactory.dtoToJson(content));
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: cache is used, found " +
+						content.getJobs().length + " jobs, body size is " + result.getBody().length());
+				cacheIsUsed = true;
+			}
+		}
+
+		if (!cacheIsUsed) {
+			Long myWorkspaceId = cacheAllowed? null:workspaceId;//workspaceId is not support for cache
+			CIJobsList content = configurer.pluginServices.getJobsList(includingParameters, myWorkspaceId);
+			if (content != null) {
+				result.setBody(dtoFactory.dtoToJson(content));
+				if (cacheAllowed) {
+					jobListCacheItem = CacheItem.create(content);
+				}
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: found " +
+						content.getJobs().length + " jobs, body size is " + result.getBody().length());
+			} else {
+				TaskProcessingErrorBody errorMessage = dtoFactory.newDTO(TaskProcessingErrorBody.class)
+						.setErrorMessage("'getJobsList' API is not implemented OR returns NULL, which contradicts API requirement (MAY be empty list)");
+				result.setBody(dtoFactory.dtoToJson(errorMessage));
+				result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
+			}
+		}
 	}
 
 	private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
@@ -307,6 +324,16 @@ final class TasksProcessorImpl implements TasksProcessor {
 		List<CredentialsInfo> credentials = configurer.pluginServices.getCredentials();
 		result.setBody(dtoFactory.dtoCollectionToJson(credentials));
 		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+	}
+
+	@Override
+	public void shutdown() {
+		jobListCacheExecutor.shutdown();
+	}
+
+	@Override
+	public boolean isShutdown() {
+		return jobListCacheExecutor.isShutdown();
 	}
 
 	private static class CacheItem {

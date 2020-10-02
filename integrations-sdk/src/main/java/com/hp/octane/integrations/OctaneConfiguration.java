@@ -168,7 +168,6 @@ public class OctaneConfiguration {
         this.parameters.put(param.getKey(), param);
     }
 
-
     public ConfigurationParameter getParameter(String key) {
         return this.parameters.get(key);
     }

@@ -19,6 +19,7 @@ import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.events.EventsService;
@@ -106,6 +107,7 @@ final class OctaneClientImpl implements OctaneClient {
 
 		//  independent services init
 		tasksProcessor = TasksProcessor.newInstance(configurer);
+		tasksProcessor.resetJobListCache();
 
 		//  dependent services init
 
