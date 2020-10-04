@@ -37,8 +37,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.regex.Pattern;
 
 /**
@@ -183,9 +182,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	@Override
-	public void resetJobListCache() {
+	public Future<Boolean> resetJobListCache() {
 		if (ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration)) {
-			jobListCacheExecutor.submit(() -> {
+			return jobListCacheExecutor.submit(() -> {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache submitted");
 				try {
 					long startTime = System.currentTimeMillis();
@@ -193,15 +192,19 @@ final class TasksProcessorImpl implements TasksProcessor {
 					if (content != null) {
 						jobListCacheItem = CacheItem.create(content);
 						logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: cache is reset, found " + content.getJobs().length + " jobs, processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+						return true;
 					} else {
 						logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: failed to update cache. Content is empty.");
+						return false;
 					}
 				} catch (Exception e) {
 					logger.info(configurer.octaneConfiguration.geLocationForLog() + "Failed to resetJobListCache : " + e.getMessage());
+					return false;
 				}
 			});
 		} else {
 			jobListCacheItem = null;
+			return CompletableFuture.completedFuture(false);
 		}
 	}
 
@@ -254,13 +257,18 @@ final class TasksProcessorImpl implements TasksProcessor {
 		boolean cacheIsUsed = false;
 		if (cacheAllowed) {
 
-			CacheItem myJobListCacheItem = jobListCacheItem;//save instance because it might be cleaned
+			CacheItem myJobListCacheItem = jobListCacheItem;//save instance because jobListCacheItem might be cleaned
 			if (myJobListCacheItem != null) {
 				long currentTime = System.currentTimeMillis();
 				long hours = (currentTime - myJobListCacheItem.time) / (1000 * 60 * 60);
-				if (hours > 1) {//if exceed hour, refresh the cache data
-					resetJobListCache();
-					CIPluginSDKUtils.doWait(5000);//give 5 sec to try to refresh, if not - old item will be used
+				if (hours >= 1) {//if exceed hour, refresh the cache data
+					try {//give upto 10 sec to try to refresh, if not - old item will be used
+						if(resetJobListCache().get(10, TimeUnit.SECONDS)){
+							myJobListCacheItem = jobListCacheItem;//update myJobListCacheItem
+						}
+					} catch (InterruptedException|ExecutionException|TimeoutException e) {
+						//do nothing, use previous cache data
+					}
 				}
 				CIJobsList content = (CIJobsList) myJobListCacheItem.value;
 				result.setBody(dtoFactory.dtoToJson(content));
