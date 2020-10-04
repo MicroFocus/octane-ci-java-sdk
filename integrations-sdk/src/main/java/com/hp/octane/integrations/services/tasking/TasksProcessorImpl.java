@@ -257,7 +257,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 			CacheItem myJobListCacheItem = jobListCacheItem;//save instance because it might be cleaned
 			if (myJobListCacheItem != null) {
 				long currentTime = System.currentTimeMillis();
-				long hours = (currentTime - myJobListCacheItem.time) / (1000 * 60 );
+				long hours = (currentTime - myJobListCacheItem.time) / (1000 * 60 * 60);
 				if (hours > 1) {//if exceed hour, refresh the cache data
 					resetJobListCache();
 					CIPluginSDKUtils.doWait(5000);//give 5 sec to try to refresh, if not - old item will be used
