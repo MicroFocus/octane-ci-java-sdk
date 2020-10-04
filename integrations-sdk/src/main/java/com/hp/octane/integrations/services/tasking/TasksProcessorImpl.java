@@ -36,10 +36,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
@@ -189,12 +186,18 @@ final class TasksProcessorImpl implements TasksProcessor {
 	public void resetJobListCache() {
 		if (ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration)) {
 			jobListCacheExecutor.submit(() -> {
-				CIJobsList content = configurer.pluginServices.getJobsList(true, null);
-				if (content != null) {
-					jobListCacheItem = CacheItem.create(content);
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: cache is reset");
-				} else {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: failed to update cache");
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache submitted");
+				try {
+					long startTime = System.currentTimeMillis();
+					CIJobsList content = configurer.pluginServices.getJobsList(true, null);
+					if (content != null) {
+						jobListCacheItem = CacheItem.create(content);
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: cache is reset, found " + content.getJobs().length + " jobs, processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+					} else {
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: failed to update cache. Content is empty.");
+					}
+				} catch (Exception e) {
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "Failed to resetJobListCache : " + e.getMessage());
 				}
 			});
 		} else {
@@ -334,6 +337,17 @@ final class TasksProcessorImpl implements TasksProcessor {
 	@Override
 	public boolean isShutdown() {
 		return jobListCacheExecutor.isShutdown();
+	}
+
+	@Override
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("jobListCacheAllowed", ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration));
+		if(jobListCacheItem!=null){
+			map.put("jobListCache_jobCount", ((CIJobsList)jobListCacheItem.value).getJobs().length);
+			map.put("jobListCache_time",  new Date(jobListCacheItem.time));
+		}
+		return map;
 	}
 
 	private static class CacheItem {
