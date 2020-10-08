@@ -24,7 +24,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
-import com.hp.octane.integrations.services.configurationparameters.FortifySSCFetchTimeout;
+import com.hp.octane.integrations.services.configurationparameters.FortifySSCFetchTimeoutParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -70,7 +70,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 
 	private int SKIP_QUEUE_ITEM_INTERVAL = 5000;
-	private Long DEFAULT_TIMEOUT_FOR_QUEUE_ITEM = FortifySSCFetchTimeout.DEFAULT_TIMEOUT * 60 * 60 * 1000L;
+	private Long DEFAULT_TIMEOUT_FOR_QUEUE_ITEM = FortifySSCFetchTimeoutParameter.DEFAULT_TIMEOUT * 60 * 60 * 1000L;
 	private CompletableFuture<Boolean> workerExited;
 	private final WorkerPreflight workerPreflight;
 

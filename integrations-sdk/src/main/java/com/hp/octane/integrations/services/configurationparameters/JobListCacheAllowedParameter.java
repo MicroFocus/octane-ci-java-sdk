@@ -6,12 +6,12 @@ import com.hp.octane.integrations.services.configurationparameters.factory.Confi
 /*
 
  */
-public class JobListCacheAllowed implements ConfigurationParameter {
+public class JobListCacheAllowedParameter implements ConfigurationParameter {
 	public static final String KEY = "JOB_LIST_CACHE_ALLOWED";
 	private boolean allowed;
 	public static final boolean DEFAULT = false;
 
-	private JobListCacheAllowed(boolean allowed) {
+	private JobListCacheAllowedParameter(boolean allowed) {
 		this.allowed = allowed;
 	}
 
@@ -19,8 +19,8 @@ public class JobListCacheAllowed implements ConfigurationParameter {
 		return allowed;
 	}
 
-	public static JobListCacheAllowed create(String rawValue) {
-		return new JobListCacheAllowed(ConfigurationParameterFactory.validateBooleanValue(rawValue,KEY));
+	public static JobListCacheAllowedParameter create(String rawValue) {
+		return new JobListCacheAllowedParameter(ConfigurationParameterFactory.validateBooleanValue(rawValue,KEY));
 	}
 
 	@Override

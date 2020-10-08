@@ -2,17 +2,17 @@ package com.hp.octane.integrations.services.configurationparameters;
 
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameter;
 
-public class FortifySSCFetchTimeout implements ConfigurationParameter {
+public class FortifySSCFetchTimeoutParameter implements ConfigurationParameter {
     public static final String KEY = "FORTIFY_SSC_FETCH_TIMEOUT";
     public static final int DEFAULT_TIMEOUT = 12;
     private int timeout;
 
-    private FortifySSCFetchTimeout(int timeout) {
+    private FortifySSCFetchTimeoutParameter(int timeout) {
         this.timeout = timeout;
     }
 
 
-    public static FortifySSCFetchTimeout create(String rawValue) {
+    public static FortifySSCFetchTimeoutParameter create(String rawValue) {
         if (rawValue == null || rawValue.trim().isEmpty()) {
             throw new IllegalArgumentException("Parameter " + KEY + " : Expected non-empty integer value");
         }
@@ -28,7 +28,7 @@ public class FortifySSCFetchTimeout implements ConfigurationParameter {
             throw new IllegalArgumentException("Parameter " + KEY + " : Expected integer value. The valid values are 1-12.");
         }
 
-        return new FortifySSCFetchTimeout(value);
+        return new FortifySSCFetchTimeoutParameter(value);
     }
 
     @Override

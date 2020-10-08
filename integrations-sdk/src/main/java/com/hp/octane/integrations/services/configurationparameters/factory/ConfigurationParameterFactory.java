@@ -17,14 +17,16 @@ public class ConfigurationParameterFactory {
 				return SCMRestAPIParameter.create(paramValue);
 			case FortifySSCTokenParameter.KEY:
 				return FortifySSCTokenParameter.create(paramValue);
-			case FortifySSCFetchTimeout.KEY:
-				return FortifySSCFetchTimeout.create(paramValue);
-			case SendEventsInBulk.KEY:
-				return SendEventsInBulk.create(paramValue);
+			case FortifySSCFetchTimeoutParameter.KEY:
+				return FortifySSCFetchTimeoutParameter.create(paramValue);
+			case SendEventsInBulkParameter.KEY:
+				return SendEventsInBulkParameter.create(paramValue);
 			case LogEventsParameter.KEY:
 				return LogEventsParameter.create(paramValue);
-			case JobListCacheAllowed.KEY:
-				return JobListCacheAllowed.create(paramValue);
+			case JobListCacheAllowedParameter.KEY:
+				return JobListCacheAllowedParameter.create(paramValue);
+			case OctaneRootsCacheAllowedParameter.KEY:
+				return OctaneRootsCacheAllowedParameter.create(paramValue);
 			default:
 				throw new NoSuchElementException("Unknown parameter : " + paramKey);
 		}
@@ -56,11 +58,11 @@ public class ConfigurationParameterFactory {
 	}
 
 	public static boolean isSendEventsInBulk(OctaneConfiguration configuration) {
-		SendEventsInBulk param = (SendEventsInBulk) configuration.getParameter(SendEventsInBulk.KEY);
+		SendEventsInBulkParameter param = (SendEventsInBulkParameter) configuration.getParameter(SendEventsInBulkParameter.KEY);
 		if (param != null) {
 			return param.isBulk();
 		}
-		return SendEventsInBulk.DEFAULT;
+		return SendEventsInBulkParameter.DEFAULT;
 	}
 
 	public static boolean isLogEvents(OctaneConfiguration configuration) {
@@ -72,11 +74,19 @@ public class ConfigurationParameterFactory {
 	}
 
 	public static boolean jobListCacheAllowed(OctaneConfiguration configuration) {
-		JobListCacheAllowed param = (JobListCacheAllowed) configuration.getParameter(JobListCacheAllowed.KEY);
+		JobListCacheAllowedParameter param = (JobListCacheAllowedParameter) configuration.getParameter(JobListCacheAllowedParameter.KEY);
 		if (param != null) {
 			return param.isAllowed();
 		}
-		return JobListCacheAllowed.DEFAULT;
+		return JobListCacheAllowedParameter.DEFAULT;
+	}
+
+	public static boolean octaneRootsCacheAllowed(OctaneConfiguration configuration) {
+		OctaneRootsCacheAllowedParameter param = (OctaneRootsCacheAllowedParameter) configuration.getParameter(OctaneRootsCacheAllowedParameter.KEY);
+		if (param != null) {
+			return param.isAllowed();
+		}
+		return OctaneRootsCacheAllowedParameter.DEFAULT;
 	}
 
 	public static Boolean validateBooleanValue(String rawValue, String key){
