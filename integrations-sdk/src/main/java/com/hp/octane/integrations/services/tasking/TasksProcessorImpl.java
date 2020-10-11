@@ -29,7 +29,6 @@ import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.exceptions.ErrorCodeBasedException;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
-import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -279,8 +278,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 		}
 
 		if (!cacheIsUsed) {
-			Long myWorkspaceId = cacheAllowed? null:workspaceId;//workspaceId is not support for cache
-			CIJobsList content = configurer.pluginServices.getJobsList(includingParameters, myWorkspaceId);
+			Long myWorkspaceId = cacheAllowed ? null : workspaceId;//workspaceId is not support for cache
+			Boolean myIncludingParameters = cacheAllowed ? true : includingParameters;//myIncludingParameters should be true is cache is allowed
+			CIJobsList content = configurer.pluginServices.getJobsList(myIncludingParameters, myWorkspaceId);
 			if (content != null) {
 				result.setBody(dtoFactory.dtoToJson(content));
 				if (cacheAllowed) {
