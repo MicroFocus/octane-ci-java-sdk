@@ -202,6 +202,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 				}
 			});
 		} else {
+			if (jobListCacheItem != null) {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache : cache is cleared");
+			}
 			jobListCacheItem = null;
 			return CompletableFuture.completedFuture(false);
 		}
@@ -259,7 +262,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 			CacheItem myJobListCacheItem = jobListCacheItem;//save instance because jobListCacheItem might be cleaned
 			if (myJobListCacheItem != null) {
 				long currentTime = System.currentTimeMillis();
-				long hours = (currentTime - myJobListCacheItem.time) / (1000 * 60 * 60);
+				long hours = (currentTime - myJobListCacheItem.time) / (1000 * 60 * 5);
 				if (hours >= 1) {//if exceed hour, refresh the cache data
 					try {//give upto 10 sec to try to refresh, if not - old item will be used
 						if(resetJobListCache().get(10, TimeUnit.SECONDS)){
@@ -351,9 +354,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 	public Map<String, Object> getMetrics() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("jobListCacheAllowed", ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration));
-		if(jobListCacheItem!=null){
-			map.put("jobListCache_jobCount", ((CIJobsList)jobListCacheItem.value).getJobs().length);
-			map.put("jobListCache_time",  new Date(jobListCacheItem.time));
+		if (jobListCacheItem != null) {
+			map.put("jobListCache_jobCount", ((CIJobsList) jobListCacheItem.value).getJobs().length);
+			map.put("jobListCache_time", new Date(jobListCacheItem.time));
 		}
 		return map;
 	}
