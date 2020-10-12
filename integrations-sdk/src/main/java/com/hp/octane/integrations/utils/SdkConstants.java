@@ -22,4 +22,8 @@ public class SdkConstants {
         public static final String WINDOWS_PATH_SPLITTER = "\\";
         public static final String LINUX_PATH_SPLITTER = "/";
     }
+
+    public static class General{
+        public static final String JOB_PARENT_DELIMITER = ";";
+    }
 }

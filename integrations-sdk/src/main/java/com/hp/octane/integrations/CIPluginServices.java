@@ -267,4 +267,22 @@ public abstract class CIPluginServices {
 	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
 		return null;
 	}
+
+	/**
+	 * Check if job is defined as testRunner (contains parameter testsToRun)
+	 * @param jobId
+	 * @return
+	 */
+	public boolean isTestRunnerJob (String jobId) {
+		return false;
+	}
+
+	/**
+	 * Check if job is multibranch child, and if so - returns parent name, otherwise null
+	 * @param jobId
+	 * @return
+	 */
+	public String getMultibranchParentIfItsChild (String jobId) {
+		return null;
+	}
 }

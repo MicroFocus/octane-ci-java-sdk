@@ -24,6 +24,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.configurationparameters.FortifySSCFetchTimeoutParameter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
@@ -61,6 +62,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private final ExecutorService vulnerabilitiesProcessingExecutor = Executors.newSingleThreadExecutor(new VulnerabilitiesPushWorkerThreadFactory());
 	private final ObjectQueue<VulnerabilitiesQueueItem> vulnerabilitiesQueue;
 	protected final RestService restService;
+	protected final ConfigurationService configurationService;
 	protected final OctaneSDK.SDKServicesConfigurer configurer;
 	protected SSCService sscService;
 	protected FODService fodService;
@@ -92,6 +94,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.configurer = configurer;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 		FodConnectionFactory.setConfigurer(this.configurer);
@@ -123,8 +126,12 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	                                                  ToolType toolType,
 	                                                  long startRunTime,
 	                                                  long queueItemTimeout,
-													  Map<String,String> additionalProperties) {
+													  Map<String,String> additionalProperties,
+													  String rootJobId) {
 		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+		if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
 			return;
 		}
 

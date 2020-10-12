@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations.services.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -23,12 +24,20 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
+import com.hp.octane.integrations.utils.SdkConstants;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Base implementation of Configuration Service API
@@ -40,10 +49,16 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 
 	private static final String CONNECTIVITY_STATUS_URL = "/analytics/ci/servers/connectivity/status";
 
+	private static final String PIPELINE_ROOTS_URL = "/analytics/ci/servers/%s/pipeline-roots";//{%s - ciServerIdentity}
+	private static final String OCTANE_ROOTS_VERSION = "15.1.8";
+	private Set<String> octaneRoots = null;
+	private static final ObjectMapper mapper = new ObjectMapper();
+
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private OctaneConnectivityStatus octaneConnectivityStatus;
 	private volatile  boolean isConnected;
+	private ExecutorService octaneRootsCacheExecutor = Executors.newSingleThreadExecutor();
 
 	ConfigurationServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService) {
 		if (configurer == null) {
@@ -75,6 +90,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 				octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatus();
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
 				isConnected = true;
+				resetOctaneRootsCache();
 			}
 		} catch (Exception e) {
 			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to getOctaneConnectivityStatus : " + e.getMessage());
@@ -117,5 +133,102 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 
 	public void setConnected(boolean connected) {
 		isConnected = connected;
+	}
+
+	@Override
+	public Future<Boolean> resetOctaneRootsCache() {
+		if (isOctaneRootsCacheActivated() && isOctaneVersionGreaterOrEqual(OCTANE_ROOTS_VERSION) && !configurer.octaneConfiguration.isDisabled()) {
+			return octaneRootsCacheExecutor.submit(() -> {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetOctaneRootCache started");
+				try {
+					long startTime = System.currentTimeMillis();
+					String url = configurer.octaneConfiguration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART +
+							configurer.octaneConfiguration.getSharedSpace() + String.format(PIPELINE_ROOTS_URL, configurer.octaneConfiguration.getInstanceId());
+					OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
+
+					OctaneResponse response = restService.obtainOctaneRestClient().execute(request, configurer.octaneConfiguration);
+					octaneRoots = mapper.readValue(response.getBody(), mapper.getTypeFactory().constructCollectionType(Set.class, String.class));
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetOctaneRootCache: successfully update octane roots, found " +
+							octaneRoots.size() + " roots, processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+					return true;
+				} catch (Exception e) {
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "Failed to resetOctaneRootCache : " + e.getMessage());
+					return false;
+				}
+			});
+		} else {
+			if (octaneRoots != null) {
+				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetOctaneRootsCache : cache is cleared");
+			}
+			octaneRoots = null;
+			return CompletableFuture.completedFuture(false);
+		}
+	}
+
+	@Override
+	public void addToOctaneRootsCache(String rootJob) {
+		if (octaneRoots != null) {
+			octaneRoots.add(rootJob);
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "addToOctaneRootsCache: new root is added [" + rootJob + "]");
+		}
+	}
+
+	@Override
+	public boolean removeFromOctaneRoots(String rootJob) {
+		if (octaneRoots != null) {
+			return octaneRoots.remove(rootJob);
+		}
+		return false;
+	}
+
+	public boolean isRelevantForOctane(String rootJobs) {
+		if (rootJobs == null) {
+			return true;
+		}
+		Collection<String> parents;
+		if (rootJobs.contains(SdkConstants.General.JOB_PARENT_DELIMITER)) {
+			parents = Arrays.asList(rootJobs.split(SdkConstants.General.JOB_PARENT_DELIMITER));
+		} else {
+			parents = Collections.singleton(rootJobs);
+		}
+		return isRelevantForOctane(parents);
+	}
+
+	@Override
+	public boolean isRelevantForOctane(Collection<String> rootJobs) {
+		if (isOctaneRootsCacheActivated() && octaneRoots != null) {
+			for (String rootJob : rootJobs) {
+				if(SdkStringUtils.isEmpty(rootJob)){
+					continue;
+				}
+				if (octaneRoots.contains(rootJob)) {
+					return true;
+				}
+				if (configurer.pluginServices.isTestRunnerJob(rootJob)) {
+					return true;
+				}
+				String parentMultiBranch = configurer.pluginServices.getMultibranchParentIfItsChild(rootJob);
+				if (parentMultiBranch != null && octaneRoots.contains(parentMultiBranch)) {
+					return true;
+				}
+
+			}
+			return false;
+		}
+		return true;
+	}
+
+	private boolean isOctaneRootsCacheActivated() {
+		return ConfigurationParameterFactory.octaneRootsCacheAllowed(configurer.octaneConfiguration);
+	}
+
+	@Override
+	public Map<String, Object> getMetrics() {
+		Map<String, Object> map = new LinkedHashMap<>();
+		map.put("isOctaneRootsCacheActivated", isOctaneRootsCacheActivated());
+		if (isOctaneRootsCacheActivated() && octaneRoots != null) {
+			map.put("octaneRootsCache_jobCount", octaneRoots.size());
+		}
+		return map;
 	}
 }

@@ -81,7 +81,7 @@ public class CoverageServiceNegativeTests {
 
 		CoverageService coverageService = client.getCoverageService();
 		try {
-			coverageService.enqueuePushCoverage(null, null, null, null);
+			coverageService.enqueuePushCoverage(null, null, null, null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -95,7 +95,7 @@ public class CoverageServiceNegativeTests {
 
 		CoverageService coverageService = client.getCoverageService();
 		try {
-			coverageService.enqueuePushCoverage("", null, null, null);
+			coverageService.enqueuePushCoverage("", null, null, null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -109,7 +109,7 @@ public class CoverageServiceNegativeTests {
 
 		CoverageService coverageService = client.getCoverageService();
 		try {
-			coverageService.enqueuePushCoverage("job-id", null, null, null);
+			coverageService.enqueuePushCoverage("job-id", null, null, null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -123,7 +123,7 @@ public class CoverageServiceNegativeTests {
 
 		CoverageService coverageService = client.getCoverageService();
 		try {
-			coverageService.enqueuePushCoverage("job-id", "", null, null);
+			coverageService.enqueuePushCoverage("job-id", "", null, null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -137,7 +137,7 @@ public class CoverageServiceNegativeTests {
 
 		CoverageService coverageService = client.getCoverageService();
 		try {
-			coverageService.enqueuePushCoverage("job-id", "build-id", null, null);
+			coverageService.enqueuePushCoverage("job-id", "build-id", null, null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}

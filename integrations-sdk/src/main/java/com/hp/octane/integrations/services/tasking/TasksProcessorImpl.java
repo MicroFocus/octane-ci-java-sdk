@@ -28,6 +28,7 @@ import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.exceptions.ErrorCodeBasedException;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
@@ -66,11 +67,17 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private CacheItem jobListCacheItem;
 
 	private final OctaneSDK.SDKServicesConfigurer configurer;
+	private final ConfigurationService configurationService;
 
-	TasksProcessorImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+	TasksProcessorImpl(OctaneSDK.SDKServicesConfigurer configurer, ConfigurationService configurationService) {
 		if (configurer == null) {
 			throw new IllegalArgumentException("invalid configurer");
 		}
+		if(configurationService == null){
+			throw new IllegalArgumentException("configurationService shouldnot be null");
+		}
+
+		this.configurationService = configurationService;
 		this.configurer = configurer;
 	}
 
@@ -155,7 +162,6 @@ final class TasksProcessorImpl implements TasksProcessor {
 						result.setBody(json);
 					}
 				}
-
 			} else {
 				result.setStatus(HttpStatus.SC_NOT_FOUND);
 			}
@@ -182,7 +188,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 
 	@Override
 	public Future<Boolean> resetJobListCache() {
-		if (ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration)) {
+		if (ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration) && !configurer.octaneConfiguration.isDisabled()) {
 			return jobListCacheExecutor.submit(() -> {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache submitted");
 				try {
@@ -272,7 +278,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 						//do nothing, use previous cache data
 					}
 				}
-				CIJobsList content = (CIJobsList) myJobListCacheItem.value;
+				CIJobsList content = myJobListCacheItem.value;
 				result.setBody(dtoFactory.dtoToJson(content));
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: cache is used, found " +
 						content.getJobs().length + " jobs, body size is " + result.getBody().length());
@@ -300,11 +306,17 @@ final class TasksProcessorImpl implements TasksProcessor {
 		}
 	}
 
+	/**
+	 * this method is called by octane during adding new pipeline
+	 * @param result
+	 * @param jobId
+	 */
 	private void executePipelineRequest(OctaneResultAbridged result, String jobId) {
 		PipelineNode content = configurer.pluginServices.getPipeline(jobId);
 		if (content != null) {
 			result.setBody(dtoFactory.dtoToJson(content));
 			result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+			configurationService.addToOctaneRootsCache(jobId);//update cache that new pipeline root is added
 		} else {
 			result.setStatus(HttpStatus.SC_NOT_FOUND);
 		}
@@ -334,12 +346,6 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.setStatus(response.getStatus());
 	}
 
-	private void executeGetCredentialsRequest(OctaneResultAbridged result) {
-		List<CredentialsInfo> credentials = configurer.pluginServices.getCredentials();
-		result.setBody(dtoFactory.dtoCollectionToJson(credentials));
-		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
-	}
-
 	@Override
 	public void shutdown() {
 		jobListCacheExecutor.shutdown();
@@ -354,18 +360,18 @@ final class TasksProcessorImpl implements TasksProcessor {
 	public Map<String, Object> getMetrics() {
 		Map<String, Object> map = new LinkedHashMap<>();
 		map.put("jobListCacheAllowed", ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration));
-		if (jobListCacheItem != null) {
-			map.put("jobListCache_jobCount", ((CIJobsList) jobListCacheItem.value).getJobs().length);
-			map.put("jobListCache_time", new Date(jobListCacheItem.time));
+		if(jobListCacheItem != null){
+			map.put("jobListCache_jobCount", jobListCacheItem.value.getJobs().length);
+			map.put("jobListCache_time",  new Date(jobListCacheItem.time));
 		}
 		return map;
 	}
 
 	private static class CacheItem {
 		long time;
-		Object value;
+		CIJobsList value;
 
-		public static CacheItem create(Object value){
+		public static CacheItem create(CIJobsList value){
 			CacheItem ci = new CacheItem();
 			ci.value = value;
 			ci.time = System.currentTimeMillis();

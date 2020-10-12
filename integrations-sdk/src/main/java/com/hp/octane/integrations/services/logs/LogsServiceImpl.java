@@ -25,6 +25,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -37,9 +38,7 @@ import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -59,6 +58,7 @@ final class LogsServiceImpl implements LogsService {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private final WorkerPreflight workerPreflight;
+	private final ConfigurationService configurationService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 
@@ -85,6 +85,7 @@ final class LogsServiceImpl implements LogsService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
@@ -101,6 +102,10 @@ final class LogsServiceImpl implements LogsService {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
 		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+
+		if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
 			return;
 		}
 

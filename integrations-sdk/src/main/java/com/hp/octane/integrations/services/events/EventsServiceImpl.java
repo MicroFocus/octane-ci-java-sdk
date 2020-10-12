@@ -64,6 +64,7 @@ final class EventsServiceImpl implements EventsService {
 	private final ExecutorService eventsPushExecutor = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
+	private final ConfigurationService configurationService;
 	private final List<CIEvent> events = Collections.synchronizedList(new LinkedList<>());
 
 
@@ -89,6 +90,7 @@ final class EventsServiceImpl implements EventsService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 		workerPreflight.setWaitAfterConnection(false);
 
@@ -106,6 +108,20 @@ final class EventsServiceImpl implements EventsService {
 		if (this.configurer.octaneConfiguration.isDisabled()) {
 			return;
 		}
+
+
+		if (ConfigurationParameterFactory.octaneRootsCacheAllowed(configurer.octaneConfiguration)) {
+			Set<String> parents = new HashSet<>();
+			CIPluginSDKUtils.getRootJobCiIds(event.getProject(), event.getCauses(), parents);
+			if (!configurationService.isRelevantForOctane(parents)) {
+				if (CIEventType.STARTED.equals(event.getEventType())) {
+					String eventStr = event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", parents : " + parents;
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Event is ignored : " + eventStr);
+				}
+				return;
+			}
+		}
+
 		events.add(event);
 		int eventsSize = events.size();
 		if (eventsSize > MAX_EVENTS_TO_KEEP) {

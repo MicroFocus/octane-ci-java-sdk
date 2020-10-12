@@ -17,6 +17,8 @@ package com.hp.octane.integrations.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.services.configurationparameters.EncodeCiJobBase64Parameter;
@@ -36,6 +38,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -273,6 +276,26 @@ public class CIPluginSDKUtils {
 		return body != null && body.contains("Service Temporar");
 		//Service Temporary Unavailable
 		//Service Temporarily Unavailable"
+	}
+
+	/**
+	 *
+	 * @param jobId current job id
+	 * @param causes causes that called to jobId
+	 * @param parents parents - will contains final list of  parents
+	 */
+	public static void getRootJobCiIds(String jobId, List<CIEventCause> causes , Set<String> parents) {
+		if (causes != null) {
+			for (CIEventCause cause : causes) {
+				if (CIEventCauseType.UPSTREAM.equals(cause.getType())) {
+					getRootJobCiIds(cause.getProject(), cause.getCauses() , parents);
+				} else {
+					if (jobId != null && !jobId.isEmpty() && parents!=null) {
+						parents.add(jobId);
+					}
+				}
+			}
+		}
 	}
 
 }

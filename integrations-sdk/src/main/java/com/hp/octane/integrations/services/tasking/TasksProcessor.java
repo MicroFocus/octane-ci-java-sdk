@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.services.ClosableService;
 import com.hp.octane.integrations.services.HasMetrics;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 
 import java.util.concurrent.Future;
 
@@ -36,8 +37,8 @@ public interface TasksProcessor extends ClosableService, HasMetrics {
 	 * @param configurer SDK services configurer object
 	 * @return initialized service
 	 */
-	static TasksProcessor newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
-		return new TasksProcessorImpl(configurer);
+	static TasksProcessor newInstance(OctaneSDK.SDKServicesConfigurer configurer, ConfigurationService configurationService) {
+		return new TasksProcessorImpl(configurer, configurationService);
 	}
 
 	/**

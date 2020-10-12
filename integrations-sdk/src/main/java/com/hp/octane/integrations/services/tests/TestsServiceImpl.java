@@ -26,6 +26,7 @@ import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -45,7 +46,10 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -68,7 +72,7 @@ final class TestsServiceImpl implements TestsService {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private final WorkerPreflight workerPreflight;
-
+	private final ConfigurationService configurationService;
 
 	//Metrics
 	private long requestTimeoutCount = 0;
@@ -97,6 +101,7 @@ final class TestsServiceImpl implements TestsService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
@@ -232,6 +237,10 @@ final class TestsServiceImpl implements TestsService {
 			throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
 		}
 		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+
+		if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
 			return;
 		}
 

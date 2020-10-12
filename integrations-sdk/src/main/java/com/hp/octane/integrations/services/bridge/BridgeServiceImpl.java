@@ -57,7 +57,7 @@ final class BridgeServiceImpl implements BridgeService {
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
     private final ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
-    private final ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(30, new AbridgedTasksExecutorsFactory());
+    private final ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(10, new AbridgedTasksExecutorsFactory());
 
     private final OctaneSDK.SDKServicesConfigurer configurer;
     private final RestService restService;

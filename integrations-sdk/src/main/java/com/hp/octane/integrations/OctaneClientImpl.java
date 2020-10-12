@@ -106,7 +106,7 @@ final class OctaneClientImpl implements OctaneClient {
 		}
 
 		//  independent services init
-		tasksProcessor = TasksProcessor.newInstance(configurer);
+		tasksProcessor = TasksProcessor.newInstance(configurer, configurationService);
 		tasksProcessor.resetJobListCache();
 
 		//  dependent services init

@@ -57,5 +57,6 @@ public interface VulnerabilitiesService extends ClosableService, HasQueueService
 											   ToolType toolType,
 											   long startRunTime,
 											   long queueItemTimeout,
-											   Map<String,String> additionalProperties);
+											   Map<String,String> additionalProperties,
+											   String rootJobId);
 }

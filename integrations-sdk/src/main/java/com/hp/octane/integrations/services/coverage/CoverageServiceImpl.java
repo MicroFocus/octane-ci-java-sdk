@@ -25,6 +25,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -59,6 +60,7 @@ class CoverageServiceImpl implements CoverageService {
 	private final ObjectQueue<CoverageQueueItem> coveragePushQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
+	protected final ConfigurationService configurationService;
 	private final WorkerPreflight workerPreflight;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
@@ -79,6 +81,7 @@ class CoverageServiceImpl implements CoverageService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		if (queueingService.isPersistenceEnabled()) {
@@ -218,7 +221,7 @@ class CoverageServiceImpl implements CoverageService {
 	}
 
 	@Override
-	public void enqueuePushCoverage(String jobId, String buildId, CoverageReportType reportType, String reportFileName) {
+	public void enqueuePushCoverage(String jobId, String buildId, CoverageReportType reportType, String reportFileName, String rootJobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
@@ -229,6 +232,9 @@ class CoverageServiceImpl implements CoverageService {
 			throw new IllegalArgumentException("report type MUST NOT be null");
 		}
 		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+		if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
 			return;
 		}
 

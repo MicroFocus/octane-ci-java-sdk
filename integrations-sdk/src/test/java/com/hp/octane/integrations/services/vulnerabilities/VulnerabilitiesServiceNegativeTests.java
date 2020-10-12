@@ -57,7 +57,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(null, null, ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(null, null, ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -71,7 +71,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("", null, ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("", null, ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -85,7 +85,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", null, ToolType.SSC, 0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", null, ToolType.SSC, 0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -99,7 +99,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "", ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "", ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -114,7 +114,7 @@ public class VulnerabilitiesServiceNegativeTests {
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "build-id", ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "build-id", ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}

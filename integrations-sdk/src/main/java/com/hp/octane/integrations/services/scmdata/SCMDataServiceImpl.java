@@ -14,6 +14,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
@@ -85,7 +86,7 @@ public class SCMDataServiceImpl implements SCMDataService {
     }
 
     @Override
-    public void enqueueSCMData(String jobId, String buildId, SCMData scmData) {
+    public void enqueueSCMData(String jobId, String buildId, SCMData scmData, String rootJobId) {
         if (this.configurer.octaneConfiguration.isDisabled()) {
             return;
         }
@@ -96,7 +97,10 @@ public class SCMDataServiceImpl implements SCMDataService {
         if (buildId == null || buildId.isEmpty()) {
             throw new IllegalArgumentException("build ID MUST NOT be null nor empty");
         }
-        if (scmData == null) {
+        if (this.configurer.octaneConfiguration.isDisabled()) {
+            return;
+        }
+        if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
             return;
         }
 

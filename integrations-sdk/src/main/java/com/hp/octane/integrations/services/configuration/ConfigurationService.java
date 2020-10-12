@@ -18,11 +18,14 @@ package com.hp.octane.integrations.services.configuration;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
+import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
+import java.util.Collection;
+import java.util.concurrent.Future;
 
-public interface ConfigurationService {
+public interface ConfigurationService extends HasMetrics {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
@@ -59,4 +62,12 @@ public interface ConfigurationService {
 	boolean isOctaneVersionGreaterOrEqual(String version);
 
 	boolean isConnected();
+
+	Future<Boolean> resetOctaneRootsCache();
+
+	void addToOctaneRootsCache(String rootJob);
+
+	boolean removeFromOctaneRoots(String rootJob);
+
+	boolean isRelevantForOctane(Collection<String> rootJobs);
 }

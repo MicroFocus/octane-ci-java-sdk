@@ -487,8 +487,8 @@ public class OctaneSDKBasicFunctionalityTest {
 	}
 
 	private void simulatePushCoverageAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.JACOCOXML, "jacoco-coverage.xml"));
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.LCOV, "coverage-report.lcov"));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.JACOCOXML, "jacoco-coverage.xml", null));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.LCOV, "coverage-report.lcov", null));
 	}
 
 	private void removeSPEPSimulators(Collection<OctaneSPEndpointSimulator> simulators) {

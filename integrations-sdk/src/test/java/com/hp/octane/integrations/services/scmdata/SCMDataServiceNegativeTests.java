@@ -56,7 +56,7 @@ public class SCMDataServiceNegativeTests {
 
 		SCMDataService scmDataService = client.getSCMDataService();
 		try {
-			scmDataService.enqueueSCMData(null, null,null);
+			scmDataService.enqueueSCMData(null, null,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -70,7 +70,7 @@ public class SCMDataServiceNegativeTests {
 
 		SCMDataService scmDataService = client.getSCMDataService();
 		try {
-			scmDataService.enqueueSCMData("", null,null);
+			scmDataService.enqueueSCMData("", null,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -84,7 +84,7 @@ public class SCMDataServiceNegativeTests {
 
 		SCMDataService scmDataService = client.getSCMDataService();
 		try {
-			scmDataService.enqueueSCMData("job-id", null,null);
+			scmDataService.enqueueSCMData("job-id", null,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -98,7 +98,7 @@ public class SCMDataServiceNegativeTests {
 
 		SCMDataService scmDataService = client.getSCMDataService();
 		try {
-			scmDataService.enqueueSCMData("job-id", "",null);
+			scmDataService.enqueueSCMData("job-id", "",null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -113,7 +113,7 @@ public class SCMDataServiceNegativeTests {
 
 		SCMDataService scmDataService = client.getSCMDataService();
 		try {
-			scmDataService.enqueueSCMData("job-id", "build-id",null);
+			scmDataService.enqueueSCMData("job-id", "build-id",null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}

@@ -27,6 +27,7 @@ import com.hp.octane.integrations.exceptions.SonarIntegrationException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.coverage.CoverageService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -75,6 +76,7 @@ public class SonarServiceImpl implements SonarService {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final CoverageService coverageService;
 	private final WorkerPreflight workerPreflight;
+	private final ConfigurationService configurationService;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
 
@@ -91,6 +93,7 @@ public class SonarServiceImpl implements SonarService {
 
 		this.configurer = configurer;
 		this.coverageService = coverageService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		if (queueingService.isPersistenceEnabled()) {
@@ -177,7 +180,7 @@ public class SonarServiceImpl implements SonarService {
 	}
 
 	@Override
-	public void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken) {
+	public void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken, String rootJobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
@@ -187,9 +190,11 @@ public class SonarServiceImpl implements SonarService {
 		if (sonarURL == null || sonarURL.isEmpty()) {
 			throw new IllegalArgumentException("sonar URL MUST NOT be null nor empty");
 		}
-		//  [YG] TODO: check if the rest of the parameters are also non-optional and add validations
 
 		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+		if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
 			return;
 		}
 

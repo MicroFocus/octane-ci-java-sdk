@@ -78,7 +78,7 @@ public interface SonarService extends ClosableService, HasQueueService, HasMetri
 	 * @param sonarURL   Sonar server URL
 	 * @param sonarToken Sonar server authentication token
 	 */
-	void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken);
+	void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken, String rootJobId);
 
 	/**
 	 * ensure that webhook with the ciCallbackUrl exist in the Sonar server
