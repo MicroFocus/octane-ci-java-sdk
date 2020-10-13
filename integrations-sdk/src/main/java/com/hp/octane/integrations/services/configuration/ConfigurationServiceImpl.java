@@ -207,6 +207,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 				}
 				String parentMultiBranch = configurer.pluginServices.getMultibranchParentIfItsChild(rootJob);
 				if (parentMultiBranch != null && octaneRoots.contains(parentMultiBranch)) {
+					addToOctaneRootsCache(rootJob);
 					return true;
 				}
 
