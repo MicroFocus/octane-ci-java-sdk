@@ -51,6 +51,7 @@ public interface VulnerabilitiesService extends ClosableService, HasQueueService
 	 * @param startRunTime     timestamp of build start
 	 * @param queueItemTimeout timeout defined for this queue item
 	 * @param additionalProperties additionalProperties
+	 * @param rootJobId rootJobId
 	 */
 	void enqueueRetrieveAndPushVulnerabilities(String jobId,
 											   String buildId,

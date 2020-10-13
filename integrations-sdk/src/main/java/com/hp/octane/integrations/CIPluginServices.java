@@ -270,8 +270,8 @@ public abstract class CIPluginServices {
 
 	/**
 	 * Check if job is multibranch child, and if so - returns parent name, otherwise null
-	 * @param jobId
-	 * @return
+	 * @param jobId jobId
+	 * @return name of the multibranch parent job
 	 */
 	public String getMultibranchParentIfItsChild (String jobId) {
 		return null;

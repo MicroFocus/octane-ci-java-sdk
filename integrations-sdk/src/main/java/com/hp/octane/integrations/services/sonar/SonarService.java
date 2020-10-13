@@ -77,6 +77,7 @@ public interface SonarService extends ClosableService, HasQueueService, HasMetri
 	 * @param projectKey Key of a project in Sonar server
 	 * @param sonarURL   Sonar server URL
 	 * @param sonarToken Sonar server authentication token
+	 * @param rootJobId rootJobId
 	 */
 	void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken, String rootJobId);
 

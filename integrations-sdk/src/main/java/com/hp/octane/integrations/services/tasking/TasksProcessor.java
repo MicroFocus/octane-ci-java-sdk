@@ -35,6 +35,7 @@ public interface TasksProcessor extends ClosableService, HasMetrics {
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer SDK services configurer object
+	 * @param configurationService configurationService
 	 * @return initialized service
 	 */
 	static TasksProcessor newInstance(OctaneSDK.SDKServicesConfigurer configurer, ConfigurationService configurationService) {
