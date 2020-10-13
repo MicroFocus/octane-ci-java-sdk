@@ -269,15 +269,6 @@ public abstract class CIPluginServices {
 	}
 
 	/**
-	 * Check if job is defined as testRunner (contains parameter testsToRun)
-	 * @param jobId
-	 * @return
-	 */
-	public boolean isTestRunnerJob (String jobId) {
-		return false;
-	}
-
-	/**
 	 * Check if job is multibranch child, and if so - returns parent name, otherwise null
 	 * @param jobId
 	 * @return

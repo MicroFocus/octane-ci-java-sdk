@@ -324,6 +324,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 
 	private void executePipelineRunExecuteRequest(OctaneResultAbridged result, String jobId, String originalBody) {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "RunExecute job " + jobId);
+		configurationService.addToOctaneRootsCache(jobId);//test runner started from here, so it will be added to cache
 		configurer.pluginServices.runPipeline(jobId, originalBody);
 		result.setStatus(HttpStatus.SC_CREATED);
 	}
