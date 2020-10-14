@@ -120,6 +120,7 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	private final Pattern signInApiPattern = Pattern.compile("/authentication/sign_in");
 	private final Map<String, Consumer<Request>> apiHandlersRegistry = new LinkedHashMap<>();
 	private final String sp;
+	private String octaneVersion = "15.1.1";
 
 	private OctaneSPEndpointSimulator(String sp) {
 		this.sp = sp;
@@ -187,7 +188,8 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 		installApiHandler(HttpMethod.GET, "^.*/analytics/ci/servers/connectivity/status$", request -> {
 			request.getResponse().setStatus(HttpStatus.SC_OK);
 			try {
-				request.getResponse().getWriter().write("{\"supportedSdkVersion\": \"1.0.0\"}");
+				String msg = "{\"supportedSdkVersion\": \"1.0.0\", \"octaneVersion\": \"" + octaneVersion + "\"}";
+				request.getResponse().getWriter().write(msg);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -201,5 +203,13 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 			request.getResponse().setStatus(HttpStatus.SC_NO_CONTENT);
 			request.setHandled(true);
 		});
+	}
+
+	public String getOctaneVersion() {
+		return octaneVersion;
+	}
+
+	public void setOctaneVersion(String octaneVersion) {
+		this.octaneVersion = octaneVersion;
 	}
 }

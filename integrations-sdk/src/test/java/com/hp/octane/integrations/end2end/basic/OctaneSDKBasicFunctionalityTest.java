@@ -16,8 +16,11 @@
 package com.hp.octane.integrations.end2end.basic;
 
 import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.coverage.CoverageReportType;
 import com.hp.octane.integrations.dto.events.CIEvent;
 import com.hp.octane.integrations.dto.events.CIEventType;
@@ -26,6 +29,8 @@ import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.dto.tests.TestsResult;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
@@ -36,14 +41,10 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
@@ -59,18 +60,20 @@ public class OctaneSDKBasicFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(OctaneSDKBasicFunctionalityTest.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(timeout = 40000)
-	public void testE2EFunctional() {
+	@Test(timeout = 60000)
+	public void testE2EFunctional() throws ExecutionException, InterruptedException {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
 		Map<String, List<TestsResult>> testResultsCollectors = new LinkedHashMap<>();
 		Map<String, List<String>> logsCollectors = new LinkedHashMap<>();
 		Map<String, List<String>> coverageCollectors = new LinkedHashMap<>();
+		OctaneClient clientA = null;
 		try {
 			String spIdA = UUID.randomUUID().toString();
 			String spIdB = UUID.randomUUID().toString();
 			String clientAInstanceId = UUID.randomUUID().toString();
 			String clientBInstanceId = UUID.randomUUID().toString();
+
 
 			//  init 2 shared space endpoints simulators
 			simulators = initSPEPSimulators(
@@ -80,11 +83,13 @@ public class OctaneSDKBasicFunctionalityTest {
 					logsCollectors,
 					coverageCollectors);
 
+
 			//
 			//  I
 			//  add one client and verify it works okay
 			//
-			OctaneClient clientA = OctaneSDK.addClient(
+			System.out.println("Scenario 1 - add one client and verify it works okay");
+			clientA = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
 							clientAInstanceId,
 							OctaneSPEndpointSimulator.getSimulatorUrl(),
@@ -151,6 +156,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  II
 			//  add one more client and verify they are both works okay
 			//
+			System.out.println("Scenario 2 - add one more client and verify they are both works okay");
 			OctaneClient clientB = OctaneSDK.addClient(
 					new OctaneConfigurationBasicFunctionalityTest(
 							clientBInstanceId,
@@ -238,6 +244,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  III
 			//  remove one client and verify it is shut indeed and the second continue to work okay
 			//
+			System.out.println("Scenario 3 - remove one client and verify it is shut indeed and the second continue to work okay");
 			OctaneSDK.removeClient(clientA);
 			eventsCollectors.get(spIdA).clear();
 			eventsCollectors.get(spIdB).clear();
@@ -308,6 +315,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  IV
 			//  remove second client and ensure no interactions anymore
 			//
+			System.out.println("Scenario 4 - remove second client and ensure no interactions anymore");
 			OctaneSDK.removeClient(clientB);
 			eventsCollectors.get(spIdB).clear();
 			testResultsCollectors.get(spIdB).clear();
@@ -331,6 +339,134 @@ public class OctaneSDKBasicFunctionalityTest {
 			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
 			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 
+			//
+			//  V
+			//  add clientA in with deactivated Mode
+			//
+			System.out.println("Scenario 5 - add clientA in with deactivated Mode");
+			clientA = OctaneSDK.addClient(
+					new OctaneConfigurationBasicFunctionalityTest(
+							clientAInstanceId,
+							OctaneSPEndpointSimulator.getSimulatorUrl(),
+							spIdA,
+							"client_SP_A",
+							"secret_SP_A"
+					),
+					PluginServicesBasicFunctionalityTest.class);
+			clientA.getConfigurationService().getConfiguration().setSuspended(true);
+			clientA.getConfigurationService().getOctaneConnectivityStatus();
+			simulateEventsCycleAllClients();
+			simulatePushTestResultsCycleAllClients();
+			simulatePushLogsCycleAllClients();
+			simulatePushCoverageAllClients();
+
+			CIPluginSDKUtils.doWait(4000);
+
+			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+			OctaneSDK.removeClient(clientA);
+
+			//
+			//  6
+			//  add client with parameter OCTANE_ROOTS_CACHE_ALLOWED=true with no pipeline root
+			//
+			System.out.println("Scenario 6 - add client with parameter OCTANE_ROOTS_CACHE_ALLOWED=true with no pipeline root");
+			OctaneConfiguration tempConf = new OctaneConfigurationBasicFunctionalityTest(
+					clientAInstanceId,
+					OctaneSPEndpointSimulator.getSimulatorUrl(),
+					spIdA,
+					"client_SP_A",
+					"secret_SP_A");
+
+			ConfigurationParameterFactory.addParameter(tempConf, "OCTANE_ROOTS_CACHE_ALLOWED", "true");
+			clientA = OctaneSDK.addClient(tempConf, PluginServicesBasicFunctionalityTest.class);
+			clientA.getConfigurationService().getOctaneConnectivityStatus();
+
+			simulateEventsCycleAllClients();
+			simulatePushTestResultsCycleAllClients();
+			simulatePushLogsCycleAllClients();
+			simulatePushCoverageAllClients();
+
+			CIPluginSDKUtils.doWait(4000);
+
+			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+
+
+			//
+			//  7
+			//  add client with parameter OCTANE_ROOTS_CACHE_ALLOWED=true with one root
+			//
+			System.out.println("Scenario 7 - add client with parameter OCTANE_ROOTS_CACHE_ALLOWED=true ith one root");
+			clientA.getConfigurationService().addToOctaneRootsCache("job-a");
+
+			simulateEventsCycleAllClients();
+			simulatePushTestResultsCycleAllClients();
+			simulatePushLogsCycleAllClients();
+			simulatePushCoverageAllClients();
+
+			CIPluginSDKUtils.doWait(4000);
+
+			//  validate events
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
+					eventsCollectors.get(spIdA).forEach(cil -> {
+						Assert.assertNotNull(cil);
+						Assert.assertNotNull(cil.getServer());
+						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assert.assertEquals("custom", cil.getServer().getType());
+						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+					});
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
+			//  validate tests
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
+			//  validate logs
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
+			//  validate coverage
+			GeneralTestUtils.waitAtMostFor(5000, () -> {
+				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2) {
+					//  TODO: add deeper verification
+					return true;
+				} else {
+					return null;
+				}
+			});
+
 		} finally {
 			//  remove clients
 			OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
@@ -350,7 +486,7 @@ public class OctaneSDKBasicFunctionalityTest {
 
 		for (String spID : spIDs) {
 			OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
-
+			simulator.setOctaneVersion("15.1.8");//for octane roots
 			//  events API
 			simulator.installApiHandler(HttpMethod.PUT, "^.*events$", request -> {
 				try {
@@ -438,6 +574,17 @@ public class OctaneSDKBasicFunctionalityTest {
 				}
 			});
 
+			//  get roots
+			simulator.installApiHandler(HttpMethod.GET, "^.*pipeline-roots$", request -> {
+				try {
+					request.getResponse().setStatus(HttpStatus.SC_OK);
+					request.getResponse().getWriter().write("[]");
+					request.getResponse().getWriter().flush();
+				} catch (IOException ioe) {
+					throw new RuntimeException(ioe);
+				}
+			});
+
 			result.put(spID, simulator);
 		}
 
@@ -451,11 +598,13 @@ public class OctaneSDKBasicFunctionalityTest {
 						.setEventType(CIEventType.STARTED)
 						.setProject("job-a")
 						.setBuildCiId("1")
+						.setCauses(Collections.singletonList(dtoFactory.newDTO(CIEventCause.class).setType(CIEventCauseType.USER) ))
 						.setStartTime(System.currentTimeMillis());
 				octaneClient.getEventsService().publishEvent(event);
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.SCM)
 						.setProject("job-a")
+						.setCauses(Collections.singletonList(dtoFactory.newDTO(CIEventCause.class).setType(CIEventCauseType.USER) ))
 						.setBuildCiId("1")
 						.setScmData(dtoFactory.newDTO(SCMData.class)
 								.setRepository(dtoFactory.newDTO(SCMRepository.class)
@@ -468,6 +617,7 @@ public class OctaneSDKBasicFunctionalityTest {
 				octaneClient.getEventsService().publishEvent(event);
 				event = dtoFactory.newDTO(CIEvent.class)
 						.setEventType(CIEventType.FINISHED)
+						.setCauses(Collections.singletonList(dtoFactory.newDTO(CIEventCause.class).setType(CIEventCauseType.USER) ))
 						.setProject("job-a")
 						.setBuildCiId("1")
 						.setDuration(3000L);
@@ -479,16 +629,16 @@ public class OctaneSDKBasicFunctionalityTest {
 	}
 
 	private void simulatePushTestResultsCycleAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1", null));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getTestsService().enqueuePushTestsResult("job-a", "1", "job-a"));
 	}
 
 	private void simulatePushLogsCycleAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1", null));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getLogsService().enqueuePushBuildLog("job-a", "1", "job-a"));
 	}
 
 	private void simulatePushCoverageAllClients() {
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.JACOCOXML, "jacoco-coverage.xml", null));
-		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.LCOV, "coverage-report.lcov", null));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.JACOCOXML, "jacoco-coverage.xml", "job-a"));
+		OctaneSDK.getClients().forEach(octaneClient -> octaneClient.getCoverageService().enqueuePushCoverage("job-a", "1", CoverageReportType.LCOV, "coverage-report.lcov", "job-a"));
 	}
 
 	private void removeSPEPSimulators(Collection<OctaneSPEndpointSimulator> simulators) {
