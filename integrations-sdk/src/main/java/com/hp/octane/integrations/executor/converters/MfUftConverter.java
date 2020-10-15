@@ -54,6 +54,7 @@ public class MfUftConverter extends TestsToRunConverter {
     public static String convertToMtbxContent(List<TestToRunData> tests, String workingDir) {
         /*<Mtbx>
             <Test name="test1" path=workingDir + "\APITest1">
+            <Parameter type="string" name="myName" value="myValue"/> //type is optional, possible values = float,string,any,boolean,bool,int,integer,number,password,datetime,date,long,double,decimal
 			<DataTable path=workingDir+"\aa\bbb.xslx"/>
 			<Iterations mode="rngIterations|rngAll|oneIteration" start="2" end="3"/>
 			 ….
@@ -84,6 +85,35 @@ public class MfUftConverter extends TestsToRunConverter {
                         + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getTestName();
                 testElement.setAttribute("path", path);
 
+                //add parameters
+                test.getParameters().forEach((paramKey, paramValue) -> {
+                    if (DATA_TABLE_PARAMETER.equals(paramKey) || ITERATIONS_PARAMETER.equals(paramKey)) {
+                        //skip, will be handled later
+                    } else {
+                        Element parameterElement = doc.createElement("Parameter");
+                        parameterElement.setAttribute("name", paramKey);
+                        if (paramValue != null && paramValue.startsWith("(")) {
+                            //example : (float)actualParamValue
+                            int endIndex = paramValue.indexOf(")");
+                            if (endIndex != -1) {
+                                String type = paramValue.substring(1/*skip first (*/, endIndex);
+
+                                String value = "";
+                                if (paramValue.length() >= (endIndex + 1)) {
+                                    value = paramValue.substring(endIndex + 1).trim();
+                                }
+
+                                parameterElement.setAttribute("value", value);
+                                parameterElement.setAttribute("type", type);
+                            }
+                        } else {
+                            parameterElement.setAttribute("value", paramValue);
+                        }
+
+                        testElement.appendChild(parameterElement);
+                    }
+                });
+
                 //add data table
                 String dataTable = test.getParameter(DATA_TABLE_PARAMETER);
                 if (SdkStringUtils.isNotEmpty(dataTable)) {
@@ -96,16 +126,15 @@ public class MfUftConverter extends TestsToRunConverter {
                 String iterations = test.getParameter(ITERATIONS_PARAMETER);
                 if (SdkStringUtils.isNotEmpty(iterations)) {
                     String[] parts = iterations.split(",");
-                    Element dataTableElement = doc.createElement("Iterations");
-                    dataTableElement.setAttribute("mode", parts[0].trim());
+                    Element iterationElement = doc.createElement("Iterations");
+                    iterationElement.setAttribute("mode", parts[0].trim());
 
                     if (parts.length >= 3) {
-                        dataTableElement.setAttribute("start", parts[1].trim());
-                        dataTableElement.setAttribute("end", parts[2].trim());
+                        iterationElement.setAttribute("start", parts[1].trim());
+                        iterationElement.setAttribute("end", parts[2].trim());
                     }
-                    testElement.appendChild(dataTableElement);
+                    testElement.appendChild(iterationElement);
                 }
-
 
 
                 rootElement.appendChild(testElement);
