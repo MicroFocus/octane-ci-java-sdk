@@ -204,7 +204,7 @@ public class UftTestDiscoveryUtils {
                 description = description.trim();
             }
             return description;
-        } catch (Exception e) {
+        } catch (IOException | ParserConfigurationException | SAXException e) {
             return null;
         }
     }
