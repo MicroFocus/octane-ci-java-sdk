@@ -46,6 +46,9 @@ public class MfUftConverter extends TestsToRunConverter {
     public static final String DATA_TABLE_PARAMETER = "dataTable";
     public static final String ITERATIONS_PARAMETER = "iterations";
 
+    public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
+
+
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
         return convertToMtbxContent(data, executionDirectory);
@@ -87,7 +90,7 @@ public class MfUftConverter extends TestsToRunConverter {
 
                 //add parameters
                 test.getParameters().forEach((paramKey, paramValue) -> {
-                    if (DATA_TABLE_PARAMETER.equals(paramKey) || ITERATIONS_PARAMETER.equals(paramKey)) {
+                    if (DATA_TABLE_PARAMETER.equals(paramKey) || ITERATIONS_PARAMETER.equals(paramKey) || INNER_RUN_ID_PARAMETER.equals(paramKey)) {
                         //skip, will be handled later
                     } else {
                         Element parameterElement = doc.createElement("Parameter");
@@ -96,7 +99,7 @@ public class MfUftConverter extends TestsToRunConverter {
                             //example : (float)actualParamValue
                             int endIndex = paramValue.indexOf(")");
                             if (endIndex != -1) {
-                                String type = paramValue.substring(1/*skip first (*/, endIndex);
+                                String type = paramValue.substring(1/*skip first (*/, endIndex).trim();
 
                                 String value = "";
                                 if (paramValue.length() >= (endIndex + 1)) {
