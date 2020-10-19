@@ -144,11 +144,29 @@ public class UftTestDiscoveryUtils {
 		test.setExecutable(true);
 		test.setUftTestType(testType);
 		String description = getTestDescription(dirPath, testType);
+		description = convertToHtmlFormatIfRequired(description);
 		test.setDescription(description);
 		test.setOctaneStatus(OctaneStatus.NEW);
 
 
 		return test;
+	}
+
+	public static String convertToHtmlFormatIfRequired(String description) {
+		if (description == null || !description.contains("\n")) {
+			return description;
+		}
+		//aaa\nbbb = >   <html><body><p>aaa</p><p>bbb</p></body></html>
+		String[] lines = description.split("\n");
+		StringBuilder sb = new StringBuilder(description.length() + lines.length * 10 + 30);
+		sb.append("<html><body>");
+		for (String line : lines) {
+			sb.append("<p>");
+			sb.append(line);
+			sb.append("</p>");
+		}
+		sb.append("</body></html>");
+		return sb.toString();
 	}
 
 	private static String getRelativePath(File root, File path) {
