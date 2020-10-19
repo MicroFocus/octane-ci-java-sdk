@@ -20,4 +20,8 @@ public class PermissionException extends ErrorCodeBasedException {
     public PermissionException(int errorCode) {
         super(errorCode);
     }
+
+    public PermissionException(String msg, int errorCode) {
+        super(msg, errorCode);
+    }
 }
