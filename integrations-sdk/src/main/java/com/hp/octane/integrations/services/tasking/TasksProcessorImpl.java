@@ -166,7 +166,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 				result.setStatus(HttpStatus.SC_NOT_FOUND);
 			}
 		} catch (ErrorCodeBasedException pe) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "task execution failed; error: " + pe.getErrorCode());
+			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "task execution failed; error: " + pe.getErrorCode() +", message : " + pe.getMessage());
 			result.setStatus(pe.getErrorCode());
 			result.setBody(String.valueOf(pe.getErrorCode()));
 		} catch (SPIMethodNotImplementedException spimnie) {
