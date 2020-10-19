@@ -189,11 +189,11 @@ public class UftTestDiscoveryUtils {
      * @return test description
      */
     private static String getTestDescription(File dirPath, UftTestType testType) {
-        try {
-            if (!dirPath.exists() || testType.isNone()) {
-                return null;
-            }
+        if (!dirPath.exists() || testType.isNone()) {
+            return null;
+        }
 
+        try {
             String description;
             if (UftTestType.GUI.equals(testType)) {
                 description = getTestDescriptionFromGuiTest(dirPath);
