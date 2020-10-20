@@ -164,6 +164,7 @@ public class UftTestDiscoveryUtils {
             sb.append("<p>");
             sb.append(line);
             sb.append("</p>");
+            sb.append("\n");
         }
         sb.append("</body></html>");
         return sb.toString();

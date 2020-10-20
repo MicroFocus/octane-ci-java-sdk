@@ -13,7 +13,7 @@ public class UftUtilsTests {
 
     @Test
     public void UftTestDiscoveryUtilsConvertToHtmlFormatIfRequired2() {
-        Assert.assertEquals("<html><body><p>aa</p><p>bb</p></body></html>",UftTestDiscoveryUtils.convertToHtmlFormatIfRequired("aa\nbb"));
+        Assert.assertEquals("<html><body><p>aa</p>\n<p>bb</p>\n</body></html>",UftTestDiscoveryUtils.convertToHtmlFormatIfRequired("aa\nbb"));
     }
 }
 
