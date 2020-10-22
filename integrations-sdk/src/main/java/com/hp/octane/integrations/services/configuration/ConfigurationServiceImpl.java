@@ -38,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * Base implementation of Configuration Service API
@@ -133,6 +134,14 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 
 	public void setConnected(boolean connected) {
 		isConnected = connected;
+	}
+
+	@Override
+	public Collection<String> getOctaneRootsCacheCollection() {
+		if (octaneRoots == null) {
+			return Collections.EMPTY_SET;
+		}
+		return Collections.unmodifiableCollection(octaneRoots.stream().sorted().collect(Collectors.toList()));
 	}
 
 	@Override

@@ -63,6 +63,8 @@ public interface ConfigurationService extends HasMetrics {
 
 	boolean isConnected();
 
+	Collection<String> getOctaneRootsCacheCollection();
+
 	Future<Boolean> resetOctaneRootsCache();
 
 	void addToOctaneRootsCache(String rootJob);
