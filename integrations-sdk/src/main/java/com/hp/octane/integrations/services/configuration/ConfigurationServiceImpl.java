@@ -176,7 +176,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 
 	@Override
 	public void addToOctaneRootsCache(String rootJob) {
-		if (octaneRoots != null) {
+		if (octaneRoots != null && SdkStringUtils.isNotEmpty(rootJob)) {
 			if (octaneRoots.add(rootJob)) {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "addToOctaneRootsCache: new root is added [" + rootJob + "]");
 			}
@@ -214,8 +214,9 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 				if (octaneRoots.contains(rootJob)) {
 					return true;
 				}
-				String parentMultiBranch = configurer.pluginServices.getMultibranchParentIfItsChild(rootJob);
-				if (parentMultiBranch != null && octaneRoots.contains(parentMultiBranch)) {
+				//multibranch handling
+				String parentJobName = configurer.pluginServices.getParentJobName(rootJob);
+				if (parentJobName != null && octaneRoots.contains(parentJobName)) {
 					addToOctaneRootsCache(rootJob);
 					return true;
 				}
