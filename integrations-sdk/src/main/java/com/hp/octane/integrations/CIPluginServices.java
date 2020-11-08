@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.general.SonarInfo;
+import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
@@ -144,9 +145,9 @@ public abstract class CIPluginServices {
 	 * Executes the Pipeline, running the root job
 	 *
 	 * @param jobId        Job CI ID to execute
-	 * @param originalBody request body, expected to be a JSON that holds parameters
+	 * @param ciParameters execution parameters
 	 */
-	public void runPipeline(String jobId, String originalBody) {
+	public void runPipeline(String jobId, CIParameters ciParameters) {
 		throw new SPIMethodNotImplementedException("run API is not implemented");
 	}
 
@@ -154,9 +155,9 @@ public abstract class CIPluginServices {
 	 * Stops the Pipeline, running the root job
 	 *
 	 * @param jobId        Job CI ID to stop
-	 * @param originalBody request body, expected to be a JSON that holds parameters
+	 * @param ciParameters execution parameters
 	 */
-	public void stopPipelineRun(String jobId, String originalBody) {
+	public void stopPipelineRun(String jobId, CIParameters ciParameters) {
 		throw new SPIMethodNotImplementedException("stop API is not implemented");
 	}
 

@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.general.CIJobsList;
 import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.exceptions.ErrorCodeBasedException;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
@@ -325,13 +326,15 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private void executePipelineRunExecuteRequest(OctaneResultAbridged result, String jobId, String originalBody) {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "RunExecute job " + jobId);
 		configurationService.addToOctaneRootsCache(jobId);//test runner started from here, so it will be added to cache
-		configurer.pluginServices.runPipeline(jobId, originalBody);
+		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
+		configurer.pluginServices.runPipeline(jobId, ciParameters);
 		result.setStatus(HttpStatus.SC_CREATED);
 	}
 
 	private void executePipelineRunStopRequest(OctaneResultAbridged result, String jobId, String originalBody) {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "RunStop job " + jobId);
-		configurer.pluginServices.stopPipelineRun(jobId, originalBody);
+		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
+		configurer.pluginServices.stopPipelineRun(jobId, ciParameters);
 		result.setStatus(HttpStatus.SC_OK);
 	}
 

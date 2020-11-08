@@ -409,7 +409,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  7
 			//  add client with parameter OCTANE_ROOTS_CACHE_ALLOWED=true with one root
 			//
-			System.out.println("Scenario 7 - add client with parameter OCTANE_ROOTS_CACHE_ALLOWED=true ith one root");
+			System.out.println("Scenario 7 - add client with parameter OCTANE_ROOTS_CACHE_ALLOWED=true with one root");
 			clientA.getConfigurationService().addToOctaneRootsCache("job-a");
 
 			simulateEventsCycleAllClients();
