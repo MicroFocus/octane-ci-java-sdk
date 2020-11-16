@@ -19,11 +19,7 @@ import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunError;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 
 /**
  * TestRun DTO implementation.
@@ -92,6 +88,9 @@ class TestRunImpl implements TestRun {
 	}
 
 	public TestRun setTestName(String testName) {
+		if (testName == null || testName.length() == 0) {
+			throw new IllegalArgumentException("TestName cannot be empty");
+		}
 		this.testName = testName;
 		return this;
 	}
@@ -110,6 +109,9 @@ class TestRunImpl implements TestRun {
 	}
 
 	public TestRun setDuration(long duration) {
+		if (started < 0) {
+			throw new IllegalArgumentException("Duration must be a positive number");
+		}
 		this.duration = duration;
 		return this;
 	}
@@ -119,6 +121,9 @@ class TestRunImpl implements TestRun {
 	}
 
 	public TestRun setStarted(long started) {
+		if (started < 0) {
+			throw new IllegalArgumentException("Started must be a positive number");
+		}
 		this.started = started;
 		return this;
 	}

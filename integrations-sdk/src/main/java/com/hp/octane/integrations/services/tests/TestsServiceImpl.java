@@ -173,7 +173,7 @@ final class TestsServiceImpl implements TestsService {
 		}
 
 		String testsResultAsXml = dtoFactory.dtoToXml(testsResult);
-		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes(Charset.defaultCharset()));
+		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes(Charsets.UTF_8));
 		return pushTestsResult(testsResultAsStream, jobId, buildId);
 	}
 
