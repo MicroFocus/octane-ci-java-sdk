@@ -77,5 +77,15 @@ public class MockOctaneRestClient implements OctaneRestClient {
         public OctaneResponse setBody(String body) {
             return null;
         }
+
+        @Override
+        public String getCorrelationId() {
+            return null;
+        }
+
+        @Override
+        public OctaneResponse setCorrelationId(String correlationId) {
+            return null;
+        }
     }
 }
