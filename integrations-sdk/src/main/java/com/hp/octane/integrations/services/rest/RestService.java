@@ -29,6 +29,7 @@ public interface RestService {
 	String VULNERABILITIES_PRE_FLIGHT = "/vulnerabilities/preflight";
 	String OPEN_VULNERABILITIES_FROM_OCTANE = "/vulnerabilities/remote-issue-ids";
 	String ACCEPT_HEADER = "accept";
+	String CORRELATION_ID_HEADER = "X-Correlation-ID";
 	String CONTENT_TYPE_HEADER = "content-type";
 	String CONTENT_ENCODING_HEADER = "content-encoding";
 	String GZIP_ENCODING = "gzip";

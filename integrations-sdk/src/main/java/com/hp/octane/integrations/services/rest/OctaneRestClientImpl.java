@@ -224,7 +224,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				}
 			}
 
-			result = createNGAResponse(httpResponse);
+			result = createNGAResponse(request, httpResponse);
 		} catch (IOException ioe) {
 			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed executing " + request, ioe);
 			throw ioe;
@@ -344,7 +344,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		}
 	}
 
-	private OctaneResponse createNGAResponse(HttpResponse response) throws IOException {
+	private OctaneResponse createNGAResponse(OctaneRequest request, HttpResponse response) throws IOException {
 		OctaneResponse octaneResponse = dtoFactory.newDTO(OctaneResponse.class)
 				.setStatus(response.getStatusLine().getStatusCode());
 		if (response.getEntity() != null) {
@@ -356,6 +356,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				mapHeaders.put(header.getName(), header.getValue());
 			}
 			octaneResponse.setHeaders(mapHeaders);
+		}
+		if (request != null && request.getHeaders() != null) {
+			octaneResponse.setCorrelationId(request.getHeaders().get(RestService.CORRELATION_ID_HEADER));
 		}
 		return octaneResponse;
 	}
@@ -375,7 +378,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			} else {
 				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
 			}
-			result = createNGAResponse(response);
+			result = createNGAResponse(null, response);
 		} catch (IOException ioe) {
 			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed to login", ioe);
 			throw ioe;

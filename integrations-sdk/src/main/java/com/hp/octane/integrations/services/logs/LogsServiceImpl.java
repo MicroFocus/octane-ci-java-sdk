@@ -34,7 +34,6 @@ import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +41,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+
+import static com.hp.octane.integrations.services.rest.RestService.CORRELATION_ID_HEADER;
 
 /**
  * Default implementation of build logs dispatching service
@@ -180,8 +181,12 @@ final class LogsServiceImpl implements LogsService {
 				url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
 			}
 
+			String correlationId = CIPluginSDKUtils.getNextCorrelationId();
+			Map<String, String> headers = new HashMap<>();
+			headers.put(CORRELATION_ID_HEADER, correlationId);
 			request = dtoFactory.newDTO(OctaneRequest.class)
 					.setMethod(HttpMethod.POST)
+					.setHeaders(headers)
 					.setUrl(url);
 			try {
 				log = configurer.pluginServices.getBuildLog(queueItem.jobId, queueItem.buildId);
@@ -192,9 +197,9 @@ final class LogsServiceImpl implements LogsService {
 				request.setBody(log);
 				response = restService.obtainOctaneRestClient().execute(request);
 				if (response.getStatus() == HttpStatus.SC_OK) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId);
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed log of " + queueItem + " to WS " + workspaceId + ", correlation Id = " + correlationId);
 				} else {
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus());
+					logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", status: " + response.getStatus() + ", correlation Id = " + correlationId);
 				}
 			} catch (IOException ioe) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to push log of " + queueItem + " to WS " + workspaceId + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying one more time due to IOException", ioe);

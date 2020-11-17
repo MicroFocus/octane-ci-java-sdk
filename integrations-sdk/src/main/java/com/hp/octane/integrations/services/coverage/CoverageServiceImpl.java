@@ -39,12 +39,14 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+
+import static com.hp.octane.integrations.services.rest.RestService.CORRELATION_ID_HEADER;
 
 /**
  * Default implementation of Coverage Service
@@ -209,9 +211,14 @@ class CoverageServiceImpl implements CoverageService {
 		} catch (URISyntaxException urise) {
 			throw new PermanentException("failed to build URL to push coverage report", urise);
 		}
+
+		String correlationId = CIPluginSDKUtils.getNextCorrelationId();
+		Map<String, String> headers = new HashMap<>();
+		headers.put(CORRELATION_ID_HEADER, correlationId);
 		OctaneRequest pushCoverageRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(url)
+				.setHeaders(headers)
 				.setBody(coverageReport);
 		try {
 			return restService.obtainOctaneRestClient().execute(pushCoverageRequest);
@@ -268,7 +275,7 @@ class CoverageServiceImpl implements CoverageService {
 		//  push coverage
 		OctaneResponse response = pushCoverage(queueItem.jobId, queueItem.buildId, queueItem.reportType, coverageReport);
 		if (response.getStatus() == HttpStatus.SC_OK) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed coverage of " + queueItem);
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed coverage of " + queueItem + ", CorrelationId - " + response.getCorrelationId());
 		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("temporary failed to push coverage of " + queueItem + ", status: " + HttpStatus.SC_SERVICE_UNAVAILABLE);
 		} else {

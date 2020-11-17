@@ -30,6 +30,7 @@ class OctaneResponseImpl implements OctaneResponse {
 	private int status;
 	private Map<String, String> headers;
 	private String body;
+	private String correlationId;
 
 	@Override
 	public int getStatus() {
@@ -61,6 +62,17 @@ class OctaneResponseImpl implements OctaneResponse {
 	@Override
 	public OctaneResponse setBody(String body) {
 		this.body = body;
+		return this;
+	}
+
+	@Override
+	public String getCorrelationId() {
+		return correlationId;
+	}
+
+	@Override
+	public OctaneResponse setCorrelationId(String correlationId) {
+		this.correlationId = correlationId;
 		return this;
 	}
 }

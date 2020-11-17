@@ -37,4 +37,8 @@ public interface OctaneResponse extends DTOBase {
 	String getBody();
 
 	OctaneResponse setBody(String body);
+
+	String getCorrelationId();
+
+	OctaneResponse setCorrelationId(String correlationId);
 }

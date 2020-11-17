@@ -35,10 +35,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -298,5 +295,8 @@ public class CIPluginSDKUtils {
 		}
 	}
 
+	public static String getNextCorrelationId(){
+		return UUID.randomUUID().toString().replace("-","").substring(0,25);
+	}
 }
 

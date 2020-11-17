@@ -45,14 +45,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+
+import static com.hp.octane.integrations.services.rest.RestService.CORRELATION_ID_HEADER;
 
 /**
  * Default implementation of tests service
@@ -192,6 +190,7 @@ final class TestsServiceImpl implements TestsService {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
+		headers.put(CORRELATION_ID_HEADER, CIPluginSDKUtils.getNextCorrelationId());
 
 		String tempJobId = jobId;
 		boolean base64 = isEncodeBase64();
@@ -321,7 +320,8 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				OctaneResponse response = pushTestsResult(testsResultB, queueItem.jobId, queueItem.buildId);
 				if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());//addconfiguration
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() +
+							", response: " + response.getBody() + ", CorrelationId - " + response.getCorrelationId());
 				} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 					throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
 				} else {

@@ -185,8 +185,9 @@ final class EventsServiceImpl implements EventsService {
 
 			//  send the data to Octane
 			try {
-				logEventsToBeSent(eventsSnapshot);
-				sendEventsData(eventsSnapshot);
+				String correlationId = CIPluginSDKUtils.getNextCorrelationId();
+				logEventsToBeSent(eventsSnapshot, correlationId);
+				sendEventsData(eventsSnapshot, correlationId);
 				removeEvents(eventsChunk);
 				if (events.size() > 0) {
 					logger.info(configurer.octaneConfiguration.geLocationForLog() + "left to send " + events.size() + " events");
@@ -231,7 +232,7 @@ final class EventsServiceImpl implements EventsService {
 		return eventsChunk;
 	}
 
-	private void logEventsToBeSent(CIEventsList eventsList) {
+	private void logEventsToBeSent(CIEventsList eventsList, String correlationId) {
 		try {
 			List<String> eventsStringified = new LinkedList<>();
 			for (CIEvent event : eventsList.getEvents()) {
@@ -242,7 +243,7 @@ final class EventsServiceImpl implements EventsService {
 				eventsStringified.add(str);
 
 			}
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s ...");
+			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s. Correlation ID - " + correlationId);
 
 			if (ConfigurationParameterFactory.isLogEvents(configurer.octaneConfiguration)) {
 				for (CIEvent event : eventsList.getEvents()) {
@@ -256,9 +257,10 @@ final class EventsServiceImpl implements EventsService {
 		}
 	}
 
-	private void sendEventsData(CIEventsList eventsList) {
+	private void sendEventsData(CIEventsList eventsList, String correlationId) {
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+		headers.put(CORRELATION_ID_HEADER, correlationId);
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(configurer.octaneConfiguration.getUrl() +
