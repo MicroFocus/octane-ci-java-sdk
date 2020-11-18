@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.executor;
 
 import com.hp.octane.integrations.executor.converters.GradleConverter;
+import com.hp.octane.integrations.executor.converters.JBehaveJVMConverter;
 import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
@@ -24,6 +25,7 @@ public enum TestsToRunFramework {
     JUnit4("mvnSurefire", "JUnit/TestNG over Maven Surefire/Failsafe", ""),
     MF_UFT("uft", "Micro Focus UFT", ""),
     CUCUMBER_JVM("cucumber_jvm", "Cucumber-JVM over Maven", ""),
+    JBehave_JVM("jbehave_jvm", "JBehave-JVM over Maven", JBehaveJVMConverter.FORMAT),
     Protractor("protractor", "Protractor", ProtractorConverter.FORMAT),
     Gradle("gradle", "Gradle", GradleConverter.FORMAT),
     Custom("custom", "Custom", "");
