@@ -29,6 +29,8 @@ public class TestsToRunConvertersFactory {
                 return new MfUftConverter();
             case CUCUMBER_JVM:
                 return new CucumberJVMConverter();
+            case JBehave_JVM:
+                return new JBehaveJVMConverter();
             case Protractor:
                 return new ProtractorConverter();
             case Gradle:
