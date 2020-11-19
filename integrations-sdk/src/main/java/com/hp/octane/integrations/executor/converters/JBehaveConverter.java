@@ -6,11 +6,11 @@ import com.hp.octane.integrations.executor.TestsToRunConverter;
 import java.util.List;
 
 
-public class JBehaveJVMConverter extends CustomConverter {
+public class JBehaveConverter extends CustomConverter {
 
     public static final String FORMAT = "{\"testPattern\": \"$featureFilePath\",\"testDelimiter\": \",\"}";
 
-    public JBehaveJVMConverter() {
+    public JBehaveConverter() {
         super(FORMAT);
     }
 
