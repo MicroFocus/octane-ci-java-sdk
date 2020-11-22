@@ -55,6 +55,7 @@ class CIEventImpl implements CIEvent {
 	private String previousProjectDisplayName;
 	private ItemType itemType;
 	private Boolean skipValidation;
+	private Boolean isVirtualProject;
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -81,6 +82,17 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setSkipValidation(Boolean skipValidation) {
 		this.skipValidation = skipValidation;
+		return this;
+	}
+
+	@Override
+	public Boolean getIsVirtualProject() {
+		return isVirtualProject;
+	}
+
+	@Override
+	public CIEvent setIsVirtualProject(Boolean isVirtualJob) {
+		this.isVirtualProject = isVirtualJob;
 		return this;
 	}
 
