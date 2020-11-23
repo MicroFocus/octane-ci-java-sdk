@@ -9,7 +9,7 @@ import com.hp.octane.integrations.services.configurationparameters.factory.Confi
 public class OctaneRootsCacheAllowedParameter implements ConfigurationParameter {
 	public static final String KEY = "OCTANE_ROOTS_CACHE_ALLOWED";
 	private boolean allowed;
-	public static final boolean DEFAULT = false;
+	public static final boolean DEFAULT = true;
 
 	private OctaneRootsCacheAllowedParameter(boolean allowed) {
 		this.allowed = allowed;
