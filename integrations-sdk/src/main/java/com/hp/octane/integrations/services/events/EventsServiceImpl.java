@@ -116,7 +116,7 @@ final class EventsServiceImpl implements EventsService {
 			if (!configurationService.isRelevantForOctane(parents)) {
 				if (CIEventType.STARTED.equals(event.getEventType())) {
 					String eventStr = event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", parents : " + parents;
-					logger.error(configurer.octaneConfiguration.geLocationForLog() + "Event is ignored : " + eventStr);
+					logger.info(configurer.octaneConfiguration.geLocationForLog() + "Event is ignored : " + eventStr);
 				}
 				return;
 			}
