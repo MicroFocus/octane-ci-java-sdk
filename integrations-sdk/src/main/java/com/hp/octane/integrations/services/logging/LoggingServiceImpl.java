@@ -21,6 +21,8 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
@@ -71,10 +73,21 @@ final class LoggingServiceImpl implements LoggingService {
                 }
                 System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
 
-                if (OctaneSDK.getLog4JLocation() != null) {
-                    commonLoggerContext.setConfigLocation(new File(OctaneSDK.getLog4JLocation()).toURI());
-                }
                 commonLoggerContext.reconfigure();
+
+
+                //case for team city, that cannot find log4j
+                if (commonLoggerContext.getConfigLocation() == null) {
+                    URL path = this.getClass().getClassLoader().getResource("log4j2.xml");
+                    if (path != null) {
+                        try {
+                            commonLoggerContext.setConfigLocation(path.toURI());
+                            //reconfigure is called inside
+                        } catch (URISyntaxException e) {
+                            //failed to convert to URI
+                        }
+                    }
+                }
             }
         }
     }
