@@ -27,51 +27,55 @@ import java.io.File;
  */
 
 final class LoggingServiceImpl implements LoggingService {
-	private static final Logger logger = LogManager.getLogger(LoggingServiceImpl.class);
-	private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
-	private final Object INIT_LOCKER = new Object();
-	private final OctaneSDK.SDKServicesConfigurer configurer;
-	private boolean isShutdown;
+    private static final Logger logger = LogManager.getLogger(LoggingServiceImpl.class);
+    private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
+    private final Object INIT_LOCKER = new Object();
+    private final OctaneSDK.SDKServicesConfigurer configurer;
+    private boolean isShutdown;
 
-	private static LoggerContext commonLoggerContext;
+    private static LoggerContext commonLoggerContext;
 
-	LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
-		if (configurer == null) {
-			throw new IllegalArgumentException("invalid configurer");
-		}
-		this.configurer = configurer;
-		configureLogger();
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "logger is configured");
-	}
+    LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
+        if (configurer == null) {
+            throw new IllegalArgumentException("invalid configurer");
+        }
+        this.configurer = configurer;
+        configureLogger();
+        logger.info(configurer.octaneConfiguration.geLocationForLog() + "logger is configured");
+    }
 
-	@Override
-	public void shutdown() {
-		if (OctaneSDK.getClients().isEmpty() && commonLoggerContext != null) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "last client is closing; general logger context is STOPPING");
-			commonLoggerContext.stop();
-			isShutdown = true;
-		}
-	}
+    @Override
+    public void shutdown() {
+        if (OctaneSDK.getClients().isEmpty() && commonLoggerContext != null) {
+            logger.info(configurer.octaneConfiguration.geLocationForLog() + "last client is closing; general logger context is STOPPING");
+            commonLoggerContext.stop();
+            isShutdown = true;
+        }
+    }
 
-	@Override
-	public boolean isShutdown() {
-		return isShutdown;
-	}
+    @Override
+    public boolean isShutdown() {
+        return isShutdown;
+    }
 
-	private void configureLogger() {
-		File file = configurer.pluginServices.getAllowedOctaneStorage();
-		if (file != null && (file.isDirectory() || !file.exists())) {
-			synchronized (INIT_LOCKER) {
-				if (commonLoggerContext == null) {
-					commonLoggerContext = LoggerContext.getContext(false);
-				}
+    private void configureLogger() {
+        File file = configurer.pluginServices.getAllowedOctaneStorage();
+        if (file != null && (file.isDirectory() || !file.exists())) {
+            synchronized (INIT_LOCKER) {
+                if (commonLoggerContext == null) {
+                    commonLoggerContext = LoggerContext.getContext(false);
+                }
 
-				if (!commonLoggerContext.isStarted()) {
-					commonLoggerContext.start();
-				}
-				System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
-				commonLoggerContext.reconfigure();
-			}
-		}
-	}
+                if (!commonLoggerContext.isStarted()) {
+                    commonLoggerContext.start();
+                }
+                System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
+
+                if (OctaneSDK.getLog4JLocation() != null) {
+                    commonLoggerContext.setConfigLocation(new File(OctaneSDK.getLog4JLocation()).toURI());
+                }
+                commonLoggerContext.reconfigure();
+            }
+        }
+    }
 }

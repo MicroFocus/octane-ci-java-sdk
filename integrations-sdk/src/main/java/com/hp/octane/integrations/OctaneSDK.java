@@ -39,6 +39,7 @@ public final class OctaneSDK {
 
 	public static final Integer API_VERSION;
 	public static final String SDK_VERSION;
+	private static String log4JLocation;
 
 	static {
 		Properties p = new Properties();
@@ -54,6 +55,14 @@ public final class OctaneSDK {
 			logger.error("initialization failed: failed to load SDK properties", t);
 			throw new IllegalStateException("OctaneSDK initialization failed: failed to load SDK properties", t);
 		}
+	}
+
+	public static void setLog4JLocation(String location){
+		log4JLocation = location;
+	}
+
+	public static String getLog4JLocation(){
+		return log4JLocation;
 	}
 
 	/**
