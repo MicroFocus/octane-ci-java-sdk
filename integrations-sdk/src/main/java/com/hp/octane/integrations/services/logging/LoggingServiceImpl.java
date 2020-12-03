@@ -77,7 +77,7 @@ final class LoggingServiceImpl implements LoggingService {
 
 
                 //case for team city, that cannot find log4j
-                if (commonLoggerContext.getConfigLocation() == null) {
+                if (commonLoggerContext.getConfiguration() == null) {
                     URL path = this.getClass().getClassLoader().getResource("log4j2.xml");
                     if (path != null) {
                         try {
