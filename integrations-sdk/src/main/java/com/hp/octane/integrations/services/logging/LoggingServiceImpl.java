@@ -19,6 +19,7 @@ import com.hp.octane.integrations.OctaneSDK;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.xml.XmlConfiguration;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -75,9 +76,10 @@ final class LoggingServiceImpl implements LoggingService {
 
                 commonLoggerContext.reconfigure();
 
-
                 //case for team city, that cannot find log4j
-                if (commonLoggerContext.getConfiguration() == null) {
+                if (commonLoggerContext.getConfiguration() == null ||
+                        !(commonLoggerContext.getConfiguration() instanceof XmlConfiguration)) {
+
                     URL path = this.getClass().getClassLoader().getResource("log4j2.xml");
                     if (path != null) {
                         try {
