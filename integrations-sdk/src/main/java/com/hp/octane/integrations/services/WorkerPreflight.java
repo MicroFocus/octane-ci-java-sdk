@@ -13,7 +13,7 @@ public class WorkerPreflight {
     private final static int QUEUE_EMPTY_INTERVAL = 10000;
     private final static int REGULAR_CYCLE_PAUSE = 400;
     private final static int NO_CONNECTION_PAUSE = 30000;
-    private final static int AFTER_RECONNECTION_PAUSE = 60000;
+    private final static int AFTER_RECONNECTION_PAUSE = 90000;
     private final Object EMPTY_QUEUE_MONITOR = new Object();
 
     private ConfigurationService confService;
