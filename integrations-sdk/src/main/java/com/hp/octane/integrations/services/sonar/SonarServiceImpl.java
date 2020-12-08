@@ -358,7 +358,6 @@ public class SonarServiceImpl implements SonarService {
 	@Override
 	public Map<String, Object> getMetrics() {
 		Map<String, Object> map = new LinkedHashMap<>();
-		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
 		workerPreflight.addMetrics(map);
 		return map;

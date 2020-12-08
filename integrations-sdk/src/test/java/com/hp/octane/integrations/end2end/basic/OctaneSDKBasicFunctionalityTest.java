@@ -105,7 +105,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			simulatePushCoverageAllClients();
 
 			//  validate events
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					eventsCollectors.get(spIdA).forEach(cil -> {
 						Assert.assertNotNull(cil);
