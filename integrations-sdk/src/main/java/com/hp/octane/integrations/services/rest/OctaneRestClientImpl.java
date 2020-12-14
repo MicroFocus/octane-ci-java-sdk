@@ -161,19 +161,18 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	}
 
 	void notifyConfigurationChange() {
-		LWSSO_TOKEN = null;
-		loginRequiredForRefreshLwssoToken = true;
+		abortAllRequests();
 	}
 
 	private void abortAllRequests() {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "aborting " + ongoingRequests2Started.size() + " request/s...");
 		synchronized (REQUESTS_LIST_LOCK) {
-			LWSSO_TOKEN = null;
-			loginRequiredForRefreshLwssoToken = true;
 			for (HttpUriRequest request : ongoingRequests2Started.keySet()) {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "\taborting " + request);
 				request.abort();
 			}
+			loginRequiredForRefreshLwssoToken = true;
+			LWSSO_TOKEN = null;
 		}
 	}
 
