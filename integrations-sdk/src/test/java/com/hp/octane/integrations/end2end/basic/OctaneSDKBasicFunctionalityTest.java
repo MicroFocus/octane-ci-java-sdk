@@ -98,6 +98,7 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_A"
 					),
 					PluginServicesBasicFunctionalityTest.class);
+			clientA.getConfigurationService().addToOctaneRootsCache("job-a");
 			clientA.getConfigurationService().getOctaneConnectivityStatus();
 			simulateEventsCycleAllClients();
 			simulatePushTestResultsCycleAllClients();
@@ -166,7 +167,8 @@ public class OctaneSDKBasicFunctionalityTest {
 							"secret_SP_B"
 					),
 					PluginServicesBasicFunctionalityTest.class);
-			clientA.getConfigurationService().getOctaneConnectivityStatus();
+			clientB.getConfigurationService().addToOctaneRootsCache("job-a");
+			clientB.getConfigurationService().getOctaneConnectivityStatus();
 			eventsCollectors.get(spIdA).clear();
 			testResultsCollectors.get(spIdA).clear();
 			logsCollectors.get(spIdA).clear();
