@@ -100,10 +100,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private final Map<HttpUriRequest, Long> ongoingRequests2Started = new HashMap();
 	private final long REQUEST_ABORT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(120);//120 sec in ms
 	private final Object REQUESTS_LIST_LOCK = new Object();
+	private final Object RESET_LWSSO_TOKEN_LOCK = new Object();
 	private boolean shutdownActivated = false;
 
 	private Cookie LWSSO_TOKEN = null;
-	private boolean loginRequiredForRefreshLwssoToken = false;
+	private long loginRequiredForRefreshLwssoTokenUntil = 0;
 
 	OctaneRestClientImpl(OctaneSDK.SDKServicesConfigurer configurer) {
 		if (configurer == null) {
@@ -161,7 +162,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	}
 
 	void notifyConfigurationChange() {
-		abortAllRequests();
+		synchronized (RESET_LWSSO_TOKEN_LOCK) {
+			loginRequiredForRefreshLwssoTokenUntil = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(5);
+			LWSSO_TOKEN = null;
+		}
 	}
 
 	private void abortAllRequests() {
@@ -171,7 +175,6 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				logger.info(configurer.octaneConfiguration.geLocationForLog() + "\taborting " + request);
 				request.abort();
 			}
-			loginRequiredForRefreshLwssoToken = true;
 			LWSSO_TOKEN = null;
 		}
 	}
@@ -216,9 +219,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 						logger.info(configurer.octaneConfiguration.geLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
-					if (!loginRequiredForRefreshLwssoToken) {
-						refreshSecurityToken(context, false);
-					}
+					refreshSecurityToken(context, false);
 					break;
 				}
 			}
@@ -325,21 +326,22 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		return context;
 	}
 
-	private void refreshSecurityToken(HttpClientContext context, boolean mustPresent) {
-		boolean securityTokenRefreshed = false;
+	private void refreshSecurityToken(HttpClientContext context, boolean isLogin) {
 		for (Cookie cookie : context.getCookieStore().getCookies()) {
 			if (LWSSO_COOKIE_NAME.equals(cookie.getName()) && (LWSSO_TOKEN == null || cookie.getValue().compareTo(LWSSO_TOKEN.getValue()) != 0)) {
 				((BasicClientCookie) cookie).setPath("/");
-				LWSSO_TOKEN = cookie;
-				securityTokenRefreshed = true;
+
+				synchronized (RESET_LWSSO_TOKEN_LOCK) {
+					if (!isLogin && loginRequiredForRefreshLwssoTokenUntil > System.currentTimeMillis()) {
+						logger.info(configurer.octaneConfiguration.geLocationForLog() + "refreshSecurityToken is cancelled");
+					} else {
+						LWSSO_TOKEN = cookie;
+						logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully refreshed security token.isLogin=" + isLogin);
+					}
+				}
+
 				break;
 			}
-		}
-
-		if (securityTokenRefreshed) {
-			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully refreshed security token");
-		} else if (mustPresent) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "security token expected but NOT found (domain attribute configured wrongly?)");
 		}
 	}
 
@@ -372,7 +374,6 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			response = httpClient.execute(loginRequest, context);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-				loginRequiredForRefreshLwssoToken = false;
 				refreshSecurityToken(context, true);
 			} else {
 				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
