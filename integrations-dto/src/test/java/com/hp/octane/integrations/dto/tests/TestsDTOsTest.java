@@ -16,88 +16,118 @@
 
 package com.hp.octane.integrations.dto.tests;
 
-import javax.xml.bind.JAXBException;
-
 import com.hp.octane.integrations.dto.DTOFactory;
 import org.junit.Test;
 
+import javax.xml.bind.JAXBException;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 /**
  * Testing Tests DTOs
  */
 
 public class TestsDTOsTest {
-	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
-	private static final String moduleName = "module";
-	private static final String packageName = "package";
-	private static final String className = "class";
-	private static final String testName = "test";
-	private static final TestRunResult result = TestRunResult.PASSED;
-	private static final long duration = 3000;
-	private static final long started = System.currentTimeMillis();
+    private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private static final String moduleName = "module";
+    private static final String packageName = "package";
+    private static final String className = "class";
+    private static final String testName = "test";
+    private static final TestRunResult result = TestRunResult.PASSED;
+    private static final long duration = 3000;
+    private static final long started = System.currentTimeMillis();
 
-	@Test
-	public void test_A() throws JAXBException {
-		TestRun tr = dtoFactory.newDTO(TestRun.class)
-				.setModuleName(moduleName)
-				.setPackageName(packageName)
-				.setClassName(className)
-				.setTestName(testName)
-				.setResult(result)
-				.setStarted(started)
-				.setDuration(duration);
+    @Test
+    public void test_A() throws JAXBException {
+        TestRun tr = dtoFactory.newDTO(TestRun.class)
+                .setModuleName(moduleName)
+                .setPackageName(packageName)
+                .setClassName(className)
+                .setTestName(testName)
+                .setResult(result)
+                .setStarted(started)
+                .setDuration(duration);
 
-		String xml = dtoFactory.dtoToXml(tr);
-		assertNotNull(xml);
-		TestRun backO = dtoFactory.dtoFromXml(xml, TestRun.class);
-		assertNotNull(backO);
-		assertEquals(moduleName, backO.getModuleName());
-		assertEquals(packageName, backO.getPackageName());
-		assertEquals(className, backO.getClassName());
-		assertEquals(testName, backO.getTestName());
-		assertEquals(result, backO.getResult());
-		assertEquals(started, backO.getStarted());
-		assertEquals(duration, backO.getDuration());
-	}
+        String xml = dtoFactory.dtoToXml(tr);
+        assertNotNull(xml);
+        assertTrue("external_run_id should not be in xml", !xml.contains("external_run_id"));
+        assertTrue("external_test_id should not be in xml", !xml.contains("external_test_id"));
+        TestRun backO = dtoFactory.dtoFromXml(xml, TestRun.class);
+        assertNotNull(backO);
+        assertEquals(moduleName, backO.getModuleName());
+        assertEquals(packageName, backO.getPackageName());
+        assertEquals(className, backO.getClassName());
+        assertEquals(testName, backO.getTestName());
+        assertEquals(result, backO.getResult());
+        assertEquals(started, backO.getStarted());
+        assertEquals(duration, backO.getDuration());
+    }
 
-	@Test
-	public void test_B() throws JAXBException {
-		TestRun tr1 = dtoFactory.newDTO(TestRun.class)
-				.setModuleName(moduleName)
-				.setPackageName(packageName)
-				.setClassName(className)
-				.setTestName(testName)
-				.setResult(result)
-				.setStarted(started)
-				.setDuration(duration);
-		TestRun tr2 = dtoFactory.newDTO(TestRun.class)
-				.setModuleName(moduleName)
-				.setPackageName(packageName)
-				.setClassName(className)
-				.setTestName(testName)
-				.setResult(result)
-				.setStarted(started)
-				.setDuration(duration);
-		TestRun tr3 = dtoFactory.newDTO(TestRun.class)
-				.setModuleName(moduleName)
-				.setPackageName(packageName)
-				.setClassName(className)
-				.setTestName(testName)
-				.setResult(result)
-				.setStarted(started)
-				.setDuration(duration);
-		TestsResult result = dtoFactory.newDTO(TestsResult.class)
-				.setTestRuns(Arrays.asList(tr1, tr2, tr3));
+    @Test
+    public void test_A_with_externalRunAndTest() throws JAXBException {
+        String externalTestId = "externalTestId111";
+        String externalRunId = "externalRunId111";
+        TestRun tr = dtoFactory.newDTO(TestRun.class)
+                .setModuleName(moduleName)
+                .setPackageName(packageName)
+                .setClassName(className)
+                .setTestName(testName)
+                .setResult(result)
+                .setStarted(started)
+                .setDuration(duration)
+                .setExternalTestId(externalTestId)
+                .setExternalRunId(externalRunId);
 
-		String xml = dtoFactory.dtoToXml(result);
-		assertNotNull(xml);
-		TestsResult backO = dtoFactory.dtoFromXml(xml, TestsResult.class);
-		assertNotNull(backO);
-		assertNotNull(backO.getTestRuns());
-		assertEquals(3, backO.getTestRuns().size());
-	}
+        String xml = dtoFactory.dtoToXml(tr);
+        assertNotNull(xml);
+        TestRun backO = dtoFactory.dtoFromXml(xml, TestRun.class);
+        assertNotNull(backO);
+        assertEquals(moduleName, backO.getModuleName());
+        assertEquals(packageName, backO.getPackageName());
+        assertEquals(className, backO.getClassName());
+        assertEquals(testName, backO.getTestName());
+        assertEquals(result, backO.getResult());
+        assertEquals(started, backO.getStarted());
+        assertEquals(duration, backO.getDuration());
+        assertEquals(externalRunId, backO.getExternalRunId());
+        assertEquals(externalTestId, backO.getExternalTestId());
+    }
+
+    @Test
+    public void test_B() throws JAXBException {
+        TestRun tr1 = dtoFactory.newDTO(TestRun.class)
+                .setModuleName(moduleName)
+                .setPackageName(packageName)
+                .setClassName(className)
+                .setTestName(testName)
+                .setResult(result)
+                .setStarted(started)
+                .setDuration(duration);
+        TestRun tr2 = dtoFactory.newDTO(TestRun.class)
+                .setModuleName(moduleName)
+                .setPackageName(packageName)
+                .setClassName(className)
+                .setTestName(testName)
+                .setResult(result)
+                .setStarted(started)
+                .setDuration(duration);
+        TestRun tr3 = dtoFactory.newDTO(TestRun.class)
+                .setModuleName(moduleName)
+                .setPackageName(packageName)
+                .setClassName(className)
+                .setTestName(testName)
+                .setResult(result)
+                .setStarted(started)
+                .setDuration(duration);
+        TestsResult result = dtoFactory.newDTO(TestsResult.class)
+                .setTestRuns(Arrays.asList(tr1, tr2, tr3));
+
+        String xml = dtoFactory.dtoToXml(result);
+        assertNotNull(xml);
+        TestsResult backO = dtoFactory.dtoFromXml(xml, TestsResult.class);
+        assertNotNull(backO);
+        assertNotNull(backO.getTestRuns());
+        assertEquals(3, backO.getTestRuns().size());
+    }
 }

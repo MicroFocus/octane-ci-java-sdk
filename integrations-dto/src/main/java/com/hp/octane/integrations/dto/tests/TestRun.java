@@ -58,4 +58,12 @@ public interface TestRun extends DTOBase {
 	String getExternalReportUrl();
 
 	TestRun setExternalReportUrl(String externalReportUrl);
+
+	String getExternalRunId();
+
+	TestRun setExternalRunId(String externalRunId);
+
+	String getExternalTestId();
+
+	TestRun setExternalTestId(String externalTestId);
 }

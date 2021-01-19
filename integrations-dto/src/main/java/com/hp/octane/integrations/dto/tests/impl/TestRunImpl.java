@@ -56,37 +56,51 @@ class TestRunImpl implements TestRun {
 	@XmlAttribute(name = "external_report_url")
 	private String externalReportUrl;
 
+	@XmlAttribute(name = "external_test_id")
+	private String externalTestId;
+
+	@XmlAttribute(name = "external_run_id")
+	private String externalRunId;
+
+	@Override
 	public String getModuleName() {
 		return moduleName;
 	}
 
+	@Override
 	public TestRun setModuleName(String moduleName) {
 		this.moduleName = moduleName;
 		return this;
 	}
 
+	@Override
 	public String getPackageName() {
 		return packageName;
 	}
 
+	@Override
 	public TestRun setPackageName(String packageName) {
 		this.packageName = packageName;
 		return this;
 	}
 
+	@Override
 	public String getClassName() {
 		return className;
 	}
 
+	@Override
 	public TestRun setClassName(String className) {
 		this.className = className;
 		return this;
 	}
 
+	@Override
 	public String getTestName() {
 		return testName;
 	}
 
+	@Override
 	public TestRun setTestName(String testName) {
 		if (testName == null || testName.length() == 0) {
 			throw new IllegalArgumentException("TestName cannot be empty");
@@ -95,19 +109,23 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
+	@Override
 	public TestRunResult getResult() {
 		return result;
 	}
 
+	@Override
 	public TestRun setResult(TestRunResult result) {
 		this.result = result;
 		return this;
 	}
 
+	@Override
 	public long getDuration() {
 		return duration;
 	}
 
+	@Override
 	public TestRun setDuration(long duration) {
 		if (started < 0) {
 			throw new IllegalArgumentException("Duration must be a positive number");
@@ -116,10 +134,12 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
+	@Override
 	public long getStarted() {
 		return started;
 	}
 
+	@Override
 	public TestRun setStarted(long started) {
 		if (started < 0) {
 			throw new IllegalArgumentException("Started must be a positive number");
@@ -128,21 +148,47 @@ class TestRunImpl implements TestRun {
 		return this;
 	}
 
+	@Override
 	public TestRunError getError() {
 		return error;
 	}
 
+	@Override
 	public TestRun setError(TestRunError testError) {
 		this.error = testError;
 		return this;
 	}
 
+	@Override
 	public String getExternalReportUrl() {
 		return externalReportUrl;
 	}
 
+	@Override
 	public TestRun setExternalReportUrl(String externalReportUrl) {
 		this.externalReportUrl = externalReportUrl;
+		return this;
+	}
+
+	@Override
+	public String getExternalRunId() {
+		return externalRunId;
+	}
+
+	@Override
+	public TestRun setExternalRunId(String externalRunId) {
+		this.externalRunId = externalRunId;
+		return this;
+	}
+
+	@Override
+	public String getExternalTestId() {
+		return externalTestId;
+	}
+
+	@Override
+	public TestRun setExternalTestId(String externalTestId) {
+		this.externalTestId = externalTestId;
 		return this;
 	}
 }
