@@ -17,6 +17,7 @@ package com.hp.octane.integrations;
 
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
 import com.hp.octane.integrations.exceptions.OctaneConnectivityException;
+import com.hp.octane.integrations.exceptions.OctaneValidationException;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
@@ -25,7 +26,7 @@ import com.hp.octane.integrations.services.events.EventsService;
 import com.hp.octane.integrations.services.logging.LoggingService;
 import com.hp.octane.integrations.services.logs.LogsService;
 import com.hp.octane.integrations.services.pipelines.PipelineContextService;
-import com.hp.octane.integrations.services.pullrequests.PullRequestService;
+import com.hp.octane.integrations.services.pullrequestsandbranches.PullRequestAndBranchService;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.scmdata.SCMDataService;
@@ -73,7 +74,7 @@ final class OctaneClientImpl implements OctaneClient {
     private final TasksProcessor tasksProcessor;
     private final TestsService testsService;
     private final VulnerabilitiesService vulnerabilitiesService;
-    private final PullRequestService pullRequestService;
+    private final PullRequestAndBranchService pullRequestAndBranchService;
     private final SCMDataService scmDataService;
     private final Thread shutdownHook;
     private boolean isShutdownHookActivated;
@@ -125,7 +126,7 @@ final class OctaneClientImpl implements OctaneClient {
         VulnerabilitiesToolService[] vulnerabilitiesToolServices = {sscService, sonarVulnerabilitiesService, fodService};
         vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer, restService, configurationService);
 
-        pullRequestService = PullRequestService.newInstance(configurer, restService);
+        pullRequestAndBranchService = PullRequestAndBranchService.newInstance(configurer, restService, entitiesService);
 
         scmDataService = SCMDataService.newInstance(queueingService, configurer, restService, configurationService, eventsService);
 
@@ -231,8 +232,8 @@ final class OctaneClientImpl implements OctaneClient {
     }
 
     @Override
-    public PullRequestService getPullRequestService() {
-        return pullRequestService;
+    public PullRequestAndBranchService getPullRequestAndBranchService() {
+        return pullRequestAndBranchService;
     }
 
 
@@ -244,6 +245,20 @@ final class OctaneClientImpl implements OctaneClient {
     @Override
     public SCMDataService getSCMDataService() {
         return scmDataService;
+    }
+
+    @Override
+    public void validateOctaneIsActiveAndSupportVersion(String version) {
+        if (!this.getConfigurationService().isConnected()) {
+            throw new OctaneValidationException("ALM Octane is not connected.");
+        }
+        if (configurer.octaneConfiguration.isSuspended()) {
+            throw new OctaneValidationException("ALM Octane is suspended.");
+        }
+        if (!this.getConfigurationService().isOctaneVersionGreaterOrEqual(version)) {
+            throw new OctaneValidationException(String.format("Required ALM Octane version is %s, but connected ALM Octane has lower version %s.", version,
+                    this.getConfigurationService().getOctaneConnectivityStatus().getOctaneVersion()));
+        }
     }
 
     @Override
