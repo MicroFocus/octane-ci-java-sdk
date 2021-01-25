@@ -106,7 +106,7 @@ final class EntitiesServiceImpl implements EntitiesService {
         List<Entity> results = new ArrayList<>();
         ListUtils.partition(entities, MAX_UPDATE_LIMIT).forEach(list -> {
             EntityList entitiesForUpdate = dtoFactory.newDTO(EntityList.class);
-            entitiesForUpdate.setData(entities);
+            entitiesForUpdate.setData(list);
             String jsonData = dtoFactory.dtoToJson(entitiesForUpdate);
             List<Entity> temp = updateEntities(workspaceId, entityCollectionName, jsonData);
             results.addAll(temp);
@@ -139,7 +139,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 		List<Entity> results = new ArrayList<>();
     	ListUtils.partition(entities, MAX_UPDATE_LIMIT).forEach(list -> {
 			EntityList entitiesForUpdate = dtoFactory.newDTO(EntityList.class);
-			entitiesForUpdate.setData(entities);
+			entitiesForUpdate.setData(list);
 			String jsonData = dtoFactory.dtoToJson(entitiesForUpdate);
 			List<Entity> temp = postEntities(workspaceId, entityCollectionName, jsonData);
 			results.addAll(temp);
