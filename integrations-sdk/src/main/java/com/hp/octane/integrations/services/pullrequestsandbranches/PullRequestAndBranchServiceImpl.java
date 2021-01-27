@@ -338,7 +338,6 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         entity.setField(EntityConstants.ScmRepository.LAST_COMMIT_TIME_FIELD, FetchUtils.convertLongToISO8601DateString(ciBranch.getLastCommitTime()));
         entity.setField(EntityConstants.ScmRepository.SCM_USER_FIELD, idPicker.getUserIdForCommit(ciBranch.getLastCommiterEmail(), ciBranch.getLastCommiterName()));
         entity.setField(EntityConstants.ScmRepository.SCM_USER_EMAIL_FIELD, ciBranch.getLastCommiterEmail());
-        entity.setField(EntityConstants.ScmRepository.BRANCH_FIELD, ciBranch.getName());
         return entity;
     }
 
