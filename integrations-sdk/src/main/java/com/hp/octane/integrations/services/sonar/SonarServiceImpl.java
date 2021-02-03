@@ -141,8 +141,10 @@ public class SonarServiceImpl implements SonarService {
 			if (webhookKey == null) {
 				HttpClient httpClient = HttpClientBuilder.create().build();
 
+				String name = configurer.pluginServices.getServerInfo().getType() + "-" + configurer.pluginServices.getServerInfo().getUrl()
+						.replaceAll("[<>:\"/\\|?*]", "_").trim();
 				URIBuilder uriBuilder = new URIBuilder(sonarURL + WEBHOOK_CREATE_URI)
-						.setParameter("name", "ci_" + configurer.octaneConfiguration.getInstanceId())
+						.setParameter("name", name)
 						.setParameter("url", ciCallbackUrl);
 
 				HttpPost request = new HttpPost(uriBuilder.toString());
