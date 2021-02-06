@@ -90,6 +90,7 @@ public abstract class FetchHandler {
         }
     }
 
+    public abstract RepoTemplates buildRepoTemplates(String repoApiBaseUrl);
 
     public static String getUserName(CommitUserIdPicker idPicker, String email, String name) {
         if (idPicker != null) {

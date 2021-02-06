@@ -16,14 +16,9 @@
 package com.hp.octane.integrations.services.pullrequestsandbranches;
 
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.entities.Entity;
-import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.services.entities.EntitiesService;
-import com.hp.octane.integrations.services.pullrequestsandbranches.factory.BranchFetchParameters;
-import com.hp.octane.integrations.services.pullrequestsandbranches.factory.CommitUserIdPicker;
-import com.hp.octane.integrations.services.pullrequestsandbranches.factory.FetchHandler;
-import com.hp.octane.integrations.services.pullrequestsandbranches.factory.PullRequestFetchParameters;
+import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
 import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
@@ -34,7 +29,8 @@ import java.util.function.Consumer;
 public interface PullRequestAndBranchService {
 
     String  PULL_REQUEST_COLLECTION_SUPPORTED_VERSION = "15.0.48";
-    String  BRANCH_COLLECTION_SUPPORTED_VERSION = "15.1.65";
+    String  BRANCH_COLLECTION_SUPPORTED_VERSION = "15.1.67";
+    String  BRANCH_TEMPLATE_SUPPORTED_VERSION = "15.1.48";
 
     /**
      * Service instance producer - for internal usage only (protected by inaccessible configurer)
@@ -53,4 +49,13 @@ public interface PullRequestAndBranchService {
     long getPullRequestLastUpdateTime(String workspaceId, String repoUrl);
 
     BranchSyncResult syncBranchesToOctane(FetchHandler fetcherHandler, BranchFetchParameters fp, Long workspaceId, CommitUserIdPicker idPicker, Consumer<String> logConsumer) throws IOException;
+
+    /**
+     * Update repo templates. This method doesn't override existing values in ALM Octane
+     * @param repoUrl repo url to search in ALM Octane. Case sensitive.
+     * @param workspaceId workspace in ALM Octane
+     * @param templates templates to set. Not must include all templates.
+     * @return true if repo url found and templates are updated
+     */
+    boolean updateRepoTemplates(String repoUrl, Long workspaceId, RepoTemplates templates);
 }

@@ -50,6 +50,9 @@ public class EntityConstants {
         public static final String ENTITY_NAME = "scm_repository_root";
         public static final String URL_FIELD = "url";
         public static final String SCM_TYPE_FIELD = "scm_type";
+        public static final String SOURCE_VIEW_TEMPLATE ="scm_source_view";
+        public static final String DIFF_TEMPLATE = "scm_diff";
+        public static final String BRANCH_TEMPLATE ="scm_branch_file_link";
     }
 
     public static class Executors extends Base {

@@ -249,8 +249,51 @@ public class BitbucketServerFetchHandler extends FetchHandler {
         }
     }
 
+    private String getSelfUrl(String repoHttpCloneUrl) {
+        //http://myd-hvm02624.swinfra.net:7990/scm/tes/simple-tests.git=>http://myd-hvm02624.swinfra.net:7990/projects/TES/repos/simple-tests
+        //http://myd-hvm02624.swinfra.net:7990/scm/~admin/simple-tests-forked.git=>http://myd-hvm02624.swinfra.net:7990/users/admin/repos/simple-tests-forked
+        List<String> parts = Arrays.asList(repoHttpCloneUrl.trim().split("/"));
+
+        int scmIndex = repoHttpCloneUrl.toLowerCase().indexOf("/scm/");
+        StringBuilder sb = new StringBuilder();
+        sb.append(repoHttpCloneUrl, 0, scmIndex);
+
+        //add project or username
+        String projOrUserPart = parts.get(parts.size() - 2);
+        if (projOrUserPart.startsWith("~")) {
+            //set /users/userName
+            sb.append("/users/");
+            sb.append(projOrUserPart.substring(1));//remove ~
+        } else {
+            //set /projects/projName
+            sb.append("/projects/");
+            sb.append(projOrUserPart);
+        }
+
+        //add repo name without .git
+        String repoPart = parts.get(parts.size() - 1);
+        if (repoPart.toLowerCase().endsWith(".git")) {
+            repoPart = repoPart.substring(0, repoPart.length() - 4);//remove ".git"
+        }
+        sb.append("/repos/");
+        sb.append(repoPart);
+
+
+        return sb.toString();
+    }
+
     @Override
     protected String parseRequestError(OctaneResponse response) {
         return JsonConverter.getErrorMessage(response.getBody());
+    }
+
+    @Override
+    public RepoTemplates buildRepoTemplates(String repoHttpCloneUrl) {
+        String selfUrl = getSelfUrl((repoHttpCloneUrl));
+        RepoTemplates repoTemplates = new RepoTemplates();
+        repoTemplates.setDiffTemplate(selfUrl + "/commits/{revision}#{filePath}");
+        repoTemplates.setSourceViewTemplate(selfUrl + "/browse/{filePath}?until={revision}&untilPath={filePath}");
+        repoTemplates.setBranchFileTemplate(selfUrl + "/browse/{filePath}?at={branchName}");
+        return repoTemplates;
     }
 }

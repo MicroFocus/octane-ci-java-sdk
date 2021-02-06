@@ -352,4 +352,14 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
         }
         return null;
     }
+
+    @Override
+    public RepoTemplates buildRepoTemplates(String repoApiBaseUrl) {
+        String selfUrl = repoApiBaseUrl.substring(0, repoApiBaseUrl.length() - 4);//remove .git at the end
+        RepoTemplates repoTemplates = new RepoTemplates();
+        repoTemplates.setDiffTemplate(selfUrl + "/commit/{revision}#{filePath}");
+        repoTemplates.setSourceViewTemplate(selfUrl + "/blob/{revision}/{filePath}");
+        repoTemplates.setBranchFileTemplate(selfUrl + "/tree/{branchName}/{filePath}");
+        return repoTemplates;
+    }
 }

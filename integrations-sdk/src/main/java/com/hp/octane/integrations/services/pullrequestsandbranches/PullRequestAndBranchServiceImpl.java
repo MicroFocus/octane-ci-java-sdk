@@ -35,6 +35,7 @@ import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.GithubV3FetchHandler;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -177,7 +178,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         //GET BRANCHES FROM OCTANE
         String repoShortName = FetchUtils.getRepoShortName(fp.getRepoUrl());
-        List<Entity> roots = getRepositoryRoots(fp, workspaceId);
+        List<Entity> roots = getRepositoryRoots(fp.getRepoUrl(), workspaceId);
         List<Entity> octaneBranches = null;
         String rootId;
         String SHORT_NAME_FIELD = "SHORT_NAME_FIELD";
@@ -187,9 +188,17 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             octaneBranches.forEach(br -> br.setField(SHORT_NAME_FIELD, getOctaneBranchName(br)));
             logConsumer.accept("Found repository root with id " + rootId);
         } else {
-            Entity createdRoot = createCSMRepositoryRoot(fp, repoShortName, workspaceId);
+            Entity createdRoot = createRepositoryRoot(fp, repoShortName, workspaceId);
             rootId = createdRoot.getId();
             logConsumer.accept("Repository root is created with id " + rootId);
+        }
+        //update repo templates
+        try {
+            if (updateRepoTemplates(fp.getRepoUrl(), workspaceId, fetcherHandler.buildRepoTemplates(fp.getRepoUrl()))) {
+                logConsumer.accept("Repo template are updated successfully in ALM Octane");
+            }
+        } catch (Exception e) {
+            logConsumer.accept("Failed to update repo templates : " + e.getMessage());
         }
         if (octaneBranches == null) {
             octaneBranches = Collections.emptyList();
@@ -297,7 +306,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         return new File(path);
     }
 
-    private Entity createCSMRepositoryRoot(BranchFetchParameters fp, String repoShortName, Long workspaceId) {
+    private Entity createRepositoryRoot(BranchFetchParameters fp, String repoShortName, Long workspaceId) {
         Entity entity = DTOFactory.getInstance().newDTO(Entity.class);
         entity.setType(EntityConstants.ScmRepositoryRoot.ENTITY_NAME);
         entity.setField(EntityConstants.ScmRepositoryRoot.URL_FIELD, fp.getRepoUrl());
@@ -306,6 +315,39 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         List<Entity> results = entitiesService.postEntities(workspaceId, EntityConstants.ScmRepositoryRoot.COLLECTION_NAME, Arrays.asList(entity));
 
         return results.get(0);
+    }
+
+    @Override
+    public boolean updateRepoTemplates(String repoUrl, Long workspaceId, RepoTemplates repoTemplates) {
+        List<Entity> roots = getRepositoryRoots(repoUrl, workspaceId);
+        if(roots.isEmpty()){
+            return false;
+        }
+        Entity repo = roots.get(0);
+        Entity entity = DTOFactory.getInstance().newDTO(Entity.class);
+        entity.setField(EntityConstants.ScmRepositoryRoot.ID_FIELD, repo.getId());
+
+        boolean needUpdate = false;
+        if (SdkStringUtils.isNotEmpty(repoTemplates.getBranchFileTemplate()) &&
+                SdkStringUtils.isEmpty(repo.getStringValue(EntityConstants.ScmRepositoryRoot.BRANCH_TEMPLATE))) {
+            entity.setField(EntityConstants.ScmRepositoryRoot.BRANCH_TEMPLATE, repoTemplates.getBranchFileTemplate());
+            needUpdate = true;
+        }
+        if (SdkStringUtils.isNotEmpty(repoTemplates.getDiffTemplate()) &&
+                SdkStringUtils.isEmpty(repo.getStringValue(EntityConstants.ScmRepositoryRoot.DIFF_TEMPLATE))) {
+            entity.setField(EntityConstants.ScmRepositoryRoot.DIFF_TEMPLATE, repoTemplates.getDiffTemplate());
+            needUpdate = true;
+        }
+        if (SdkStringUtils.isNotEmpty(repoTemplates.getSourceViewTemplate()) &&
+                SdkStringUtils.isEmpty(repo.getStringValue(EntityConstants.ScmRepositoryRoot.SOURCE_VIEW_TEMPLATE))) {
+            entity.setField(EntityConstants.ScmRepositoryRoot.SOURCE_VIEW_TEMPLATE, repoTemplates.getSourceViewTemplate());
+            needUpdate = true;
+        }
+
+        if (needUpdate) {
+            entitiesService.updateEntities(workspaceId, EntityConstants.ScmRepositoryRoot.COLLECTION_NAME, Arrays.asList(entity));
+        }
+        return needUpdate;
     }
 
     private String getOctaneBranchName(Entity octaneBranch) {
@@ -353,12 +395,15 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         return entity;
     }
 
-    private List<Entity> getRepositoryRoots(BranchFetchParameters parameters, Long workspaceId) {
-        String rootByUrlCondition = QueryHelper.condition(EntityConstants.ScmRepositoryRoot.URL_FIELD, parameters.getRepoUrl());
+    private List<Entity> getRepositoryRoots(String repoUrl, Long workspaceId) {
+        String rootByUrlCondition = QueryHelper.condition(EntityConstants.ScmRepositoryRoot.URL_FIELD, repoUrl);
         List<Entity> foundRoots = entitiesService.getEntities(workspaceId,
                 EntityConstants.ScmRepositoryRoot.COLLECTION_NAME,
                 Collections.singleton(rootByUrlCondition),
-                Collections.singletonList(EntityConstants.Base.ID_FIELD));
+                Arrays.asList(EntityConstants.Base.ID_FIELD,
+                        EntityConstants.ScmRepositoryRoot.BRANCH_TEMPLATE,
+                        EntityConstants.ScmRepositoryRoot.DIFF_TEMPLATE,
+                        EntityConstants.ScmRepositoryRoot.SOURCE_VIEW_TEMPLATE));
         return foundRoots;
     }
 
