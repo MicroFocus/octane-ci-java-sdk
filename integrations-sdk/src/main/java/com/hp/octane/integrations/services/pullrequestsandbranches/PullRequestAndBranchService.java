@@ -28,9 +28,9 @@ import java.util.function.Consumer;
 
 public interface PullRequestAndBranchService {
 
-    String  PULL_REQUEST_COLLECTION_SUPPORTED_VERSION = "15.0.48";
+    String  PULL_REQUEST_COLLECTION_SUPPORTED_VERSION = "15.0.40";
     String  BRANCH_COLLECTION_SUPPORTED_VERSION = "15.1.67";
-    String  BRANCH_TEMPLATE_SUPPORTED_VERSION = "15.1.48";
+    String  BRANCH_TEMPLATE_SUPPORTED_VERSION = "15.1.40";
 
     /**
      * Service instance producer - for internal usage only (protected by inaccessible configurer)
