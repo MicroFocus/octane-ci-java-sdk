@@ -192,14 +192,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             rootId = createdRoot.getId();
             logConsumer.accept("Repository root is created with id " + rootId);
         }
-        //update repo templates
-        try {
-            if (updateRepoTemplates(fp.getRepoUrl(), workspaceId, fetcherHandler.buildRepoTemplates(fp.getRepoUrl()))) {
-                logConsumer.accept("Repo template are updated successfully in ALM Octane");
-            }
-        } catch (Exception e) {
-            logConsumer.accept("Failed to update repo templates : " + e.getMessage());
-        }
+
         if (octaneBranches == null) {
             octaneBranches = Collections.emptyList();
         }
