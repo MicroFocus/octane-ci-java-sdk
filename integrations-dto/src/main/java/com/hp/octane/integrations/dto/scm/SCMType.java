@@ -27,7 +27,9 @@ public enum SCMType {
 	UNKNOWN("unknown", 0),
 	GIT("git", 2),
 	SVN("svn", 1),
-	STARTEAM("starteam", 3);
+	STARTEAM("starteam", 3),
+	ACCUREV("accurev", 4),
+	DIMENSIONS_CM("dimensions_cm", 5);
 
 	private String value;
 	private int octaneId;
