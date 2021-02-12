@@ -313,7 +313,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
     @Override
     public boolean updateRepoTemplates(String repoUrl, Long workspaceId, RepoTemplates repoTemplates) {
         List<Entity> roots = getRepositoryRoots(repoUrl, workspaceId);
-        if(roots.isEmpty()){
+        if (roots.isEmpty()) {
             return false;
         }
         Entity repo = roots.get(0);
@@ -369,6 +369,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         }
 
         entity.setField(EntityConstants.ScmRepository.IS_MERGED_FIELD, ciBranch.getIsMerged());
+        entity.setField(EntityConstants.ScmRepository.IS_DELETED_FIELD, false);
         entity.setField(EntityConstants.ScmRepository.LAST_COMMIT_SHA_FIELD, ciBranch.getLastCommitSHA());
         entity.setField(EntityConstants.ScmRepository.LAST_COMMIT_TIME_FIELD, FetchUtils.convertLongToISO8601DateString(ciBranch.getLastCommitTime()));
         entity.setField(EntityConstants.ScmRepository.SCM_USER_FIELD, idPicker.getUserIdForCommit(ciBranch.getLastCommiterEmail(), ciBranch.getLastCommiterName()));
@@ -402,10 +403,9 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
     private List<Entity> getRepositoryBranches(String repositoryRootId, Long workspaceId) {
         String byParentIdCondition = QueryHelper.conditionRef(EntityConstants.ScmRepository.PARENT_FIELD, Long.parseLong(repositoryRootId));
-        String notDeletedCondition = QueryHelper.condition(EntityConstants.ScmRepository.IS_DELETED_FIELD, false);
         List<Entity> foundBranches = entitiesService.getEntities(workspaceId,
                 EntityConstants.ScmRepository.COLLECTION_NAME,
-                Arrays.asList(byParentIdCondition, notDeletedCondition),
+                Arrays.asList(byParentIdCondition),
                 Arrays.asList(EntityConstants.ScmRepository.BRANCH_FIELD,
                         EntityConstants.ScmRepository.IS_MERGED_FIELD,
                         EntityConstants.ScmRepository.LAST_COMMIT_SHA_FIELD,

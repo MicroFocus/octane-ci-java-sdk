@@ -1,6 +1,9 @@
 package com.hp.octane.integrations.dto.entities;
 
 public class EntityConstants {
+    public static class Errors{
+        public static final String DUPLICATE_ERROR_CODE = "platform.duplicate_entity_error";
+    }
 
     public static class Base {
         public static final String ID_FIELD = "id";

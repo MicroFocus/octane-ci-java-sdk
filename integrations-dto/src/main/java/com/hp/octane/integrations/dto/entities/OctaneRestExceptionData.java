@@ -24,6 +24,8 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface OctaneRestExceptionData extends DTOBase {
 
+    Integer getIndex();
+
     String getErrorCode();
 
     String getCorrelationId();

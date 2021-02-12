@@ -38,7 +38,6 @@ public class UftTestDispatchUtils {
 
     private final static Logger logger = LogManager.getLogger(UftTestDispatchUtils.class);
 
-    private final static String DUPLICATE_ERROR_CODE = "platform.duplicate_entity_error";
     private final static int POST_BULK_SIZE = 100;
 
     private final static int QUERY_CONDITION_SIZE_THRESHOLD = 3000;
@@ -381,7 +380,7 @@ public class UftTestDispatchUtils {
         if (e.getResponseStatus() == HttpStatus.SC_CONFLICT) {
             isRealException = false;
             for (OctaneRestExceptionData exceptionData : e.getData().getErrors()) {
-                if (!exceptionData.getErrorCode().equals(DUPLICATE_ERROR_CODE)) {
+                if (!exceptionData.getErrorCode().equals(EntityConstants.Errors.DUPLICATE_ERROR_CODE)) {
                     isRealException = true;
                 }
             }
