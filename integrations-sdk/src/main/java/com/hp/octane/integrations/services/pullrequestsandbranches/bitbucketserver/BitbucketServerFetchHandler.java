@@ -129,7 +129,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
                 .filter(br -> FetchUtils.isBranchMatch(searchPatterns, br.getDisplayId()))
                 .map((br -> convertToDTOBranch(br)))
                 .collect(Collectors.toList());
-        logConsumer.accept(String.format("Found %d branches, while %d are matching filter", branches.size(), filteredBranches.size()));
+        logConsumer.accept(String.format("Found %d branches in Bitbucket, while %d are matching filter", branches.size(), filteredBranches.size()));
 
         if (!filteredBranches.isEmpty()) {
             logConsumer.accept("Fetching branches is done");

@@ -30,6 +30,7 @@ import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.dto.scm.SCMType;
+import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
@@ -184,7 +185,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         String SHORT_NAME_FIELD = "SHORT_NAME_FIELD";
         if (roots != null && !roots.isEmpty()) {
             rootId = roots.get(0).getId();
-            octaneBranches = getRepositoryBranches(rootId, workspaceId);
+            octaneBranches = getRepositoryBranches(rootId, workspaceId, false);
             octaneBranches.forEach(br -> br.setField(SHORT_NAME_FIELD, getOctaneBranchName(br)));
             logConsumer.accept("Found repository root with id " + rootId);
         } else {
@@ -250,8 +251,43 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         }
         if (!result.getCreated().isEmpty()) {
             List<Entity> toCreate = result.getCreated().stream().map(b -> buildOctaneBranchForCreate(finalRootId, b, repoShortName, idPicker)).collect(Collectors.toList());
-            entitiesService.postEntities(workspaceId, EntityConstants.ScmRepository.COLLECTION_NAME, toCreate);
-            logConsumer.accept("New branches : " + toCreate.size());
+            try {
+                entitiesService.postEntities(workspaceId, EntityConstants.ScmRepository.COLLECTION_NAME, toCreate);
+                logConsumer.accept("New branches : " + toCreate.size());
+            } catch (OctaneBulkException bulkException) {
+                logConsumer.accept(String.format("New branches created: %s, failed to create %s branches",
+                        (toCreate.size() - bulkException.getData().getErrors().size()), bulkException.getData().getErrors().size()));
+
+                //handling previously deleted branches. (new branches were created with the name that already exist in Octane but set as deleted)
+                boolean hasDuplicatedException = bulkException.getData().getErrors().stream()
+                        .filter(ex -> EntityConstants.Errors.DUPLICATE_ERROR_CODE.equals(ex.getErrorCode())).findAny().isPresent();
+                Map<String, Entity> deletedBranchesInOctane = !hasDuplicatedException ? Collections.emptyMap() :
+                        getRepositoryBranches(rootId, workspaceId, true).stream()
+                                .collect(Collectors.toMap(e -> e.getStringValue(EntityConstants.ScmRepository.BRANCH_FIELD), Function.identity()));
+
+                //try to update duplicates
+                List<Entity> deletedBranchesToUpdate = new ArrayList<>();
+                bulkException.getData().getErrors().forEach(ex -> {
+                    int index = ex.getIndex();
+                    Branch branch = result.getCreated().get(index);
+                    if (EntityConstants.Errors.DUPLICATE_ERROR_CODE.equals(ex.getErrorCode())) {
+                        Entity octaneEntity = deletedBranchesInOctane.get(branch.getName());
+                        if (octaneEntity != null) {
+                            branch.setOctaneId(octaneEntity.getId());
+                            deletedBranchesToUpdate.add(buildOctaneBranchForUpdate(branch, idPicker).setField(EntityConstants.ScmRepository.IS_DELETED_FIELD, false));
+                        } else {
+                            logConsumer.accept("Failed to create/update branch : " + branch.getName());
+                        }
+                    } else {
+                        logConsumer.accept(String.format("Failed to create branch %s : %s ", branch.getName(), ex.getDescriptionTranslated()));
+                    }
+                });
+
+                if (!deletedBranchesToUpdate.isEmpty()) {
+                    entitiesService.updateEntities(workspaceId, EntityConstants.ScmRepository.COLLECTION_NAME, deletedBranchesToUpdate);
+                    logConsumer.accept("New branches that appear as deleted in ALM OCtane : " + deletedBranchesToUpdate.size());
+                }
+            }
         }
         if (result.getDeleted().isEmpty() && result.getUpdated().isEmpty() && result.getCreated().isEmpty()) {
             logConsumer.accept("No changes are found.");
@@ -369,7 +405,6 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         }
 
         entity.setField(EntityConstants.ScmRepository.IS_MERGED_FIELD, ciBranch.getIsMerged());
-        entity.setField(EntityConstants.ScmRepository.IS_DELETED_FIELD, false);
         entity.setField(EntityConstants.ScmRepository.LAST_COMMIT_SHA_FIELD, ciBranch.getLastCommitSHA());
         entity.setField(EntityConstants.ScmRepository.LAST_COMMIT_TIME_FIELD, FetchUtils.convertLongToISO8601DateString(ciBranch.getLastCommitTime()));
         entity.setField(EntityConstants.ScmRepository.SCM_USER_FIELD, idPicker.getUserIdForCommit(ciBranch.getLastCommiterEmail(), ciBranch.getLastCommiterName()));
@@ -401,11 +436,12 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         return foundRoots;
     }
 
-    private List<Entity> getRepositoryBranches(String repositoryRootId, Long workspaceId) {
+    private List<Entity> getRepositoryBranches(String repositoryRootId, Long workspaceId, boolean deleted) {
         String byParentIdCondition = QueryHelper.conditionRef(EntityConstants.ScmRepository.PARENT_FIELD, Long.parseLong(repositoryRootId));
+        String notDeletedCondition = QueryHelper.condition(EntityConstants.ScmRepository.IS_DELETED_FIELD, deleted);
         List<Entity> foundBranches = entitiesService.getEntities(workspaceId,
                 EntityConstants.ScmRepository.COLLECTION_NAME,
-                Arrays.asList(byParentIdCondition),
+                Arrays.asList(byParentIdCondition, notDeletedCondition),
                 Arrays.asList(EntityConstants.ScmRepository.BRANCH_FIELD,
                         EntityConstants.ScmRepository.IS_MERGED_FIELD,
                         EntityConstants.ScmRepository.LAST_COMMIT_SHA_FIELD,

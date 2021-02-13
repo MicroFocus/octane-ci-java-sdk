@@ -52,7 +52,7 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
                 .filter(br -> FetchUtils.isBranchMatch(filterPatterns, br.getName()))
                 .map((br -> convertToDTOBranch(br)))
                 .collect(Collectors.toList());
-        logConsumer.accept(String.format("Found %d branches, while %d are matching filters", branches.size(), filteredBranches.size()));
+        logConsumer.accept(String.format("Found %d branches in Github, while %d are matching filters", branches.size(), filteredBranches.size()));
 
         //find repo to know default branch
         Repo repo = getEntity(baseUrl, Repo.class);
