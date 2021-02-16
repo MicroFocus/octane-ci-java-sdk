@@ -92,7 +92,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final CloseableHttpClient httpClient;
 
-	private final ExecutorService requestMonitorExecutors = Executors.newFixedThreadPool(5, new RequestMonitorExecutorsFactory());
+	private final ExecutorService requestMonitorExecutors = Executors.newSingleThreadExecutor(new RequestMonitorExecutorsFactory());
 	private long requestMonitorExecutorsAbortedCount = 0;
 	private long lastRequestMonitorWorkerTime = 0;
 	private final Map<HttpUriRequest, Long> ongoingRequests2Started = new HashMap();
@@ -527,7 +527,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private static final class RequestMonitorExecutorsFactory implements ThreadFactory {
 		public Thread newThread(Runnable runnable) {
 			Thread result = new Thread(runnable);
-			result.setName("OctaneRestClientRequestWorker-" + result.getId());
+			result.setName("RequestMonitorWorker-" + result.getId());
 			result.setDaemon(true);
 			return result;
 		}

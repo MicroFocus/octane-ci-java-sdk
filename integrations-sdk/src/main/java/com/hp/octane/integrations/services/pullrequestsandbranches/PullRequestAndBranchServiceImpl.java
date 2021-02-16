@@ -268,7 +268,8 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                 //try to update duplicates
                 List<Entity> deletedBranchesToUpdate = new ArrayList<>();
                 bulkException.getData().getErrors().forEach(ex -> {
-                    int index = ex.getIndex();
+                    //if post was done with only one entity - index will be null
+                    int index = ex.getIndex() == null ? 0 : ex.getIndex();
                     Branch branch = result.getCreated().get(index);
                     if (EntityConstants.Errors.DUPLICATE_ERROR_CODE.equals(ex.getErrorCode())) {
                         Entity octaneEntity = deletedBranchesInOctane.get(branch.getName());
