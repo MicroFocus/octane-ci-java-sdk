@@ -43,6 +43,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -315,6 +316,9 @@ public class SonarServiceImpl implements SonarService {
 		String sonarURL = queueItem.sonarURL;
 		String projectKey = queueItem.projectKey;
 		String token = queueItem.sonarToken;
+		StringBuilder errorMessage = new StringBuilder()
+				.append("failed to get data from sonar for project key: ")
+				.append(projectKey);
 		try {
 
 			URIBuilder uriBuilder = new URIBuilder(sonarURL + COMPONENT_TREE_URI);
@@ -329,14 +333,19 @@ public class SonarServiceImpl implements SonarService {
 			setTokenInHttpRequest(request, token);
 
 			HttpResponse httpResponse = httpClient.execute(request);
-			return httpResponse.getEntity().getContent();
-
+			int statusCode = httpResponse.getStatusLine().getStatusCode();
+			if (statusCode >= HttpStatus.SC_BAD_REQUEST) {
+				errorMessage.append(" with status code: ").append(statusCode)
+						.append(" and response body: ").append(EntityUtils.toString(httpResponse.getEntity(), "UTF-8"));
+				throw new PermanentException(errorMessage.toString());
+			} else {
+				return httpResponse.getEntity().getContent();
+			}
+		} catch (PermanentException e) {
+			throw e;
 		} catch (Exception e) {
-			String errorMessage = ""
-					.concat("failed to get coverage data from sonar for project: ")
-					.concat(projectKey);
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + errorMessage, e);
-			throw new PermanentException(errorMessage, e);
+			logger.error(configurer.octaneConfiguration.geLocationForLog() + errorMessage.toString(), e);
+			throw new PermanentException(errorMessage.toString(), e);
 		}
 	}
 
