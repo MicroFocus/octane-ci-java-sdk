@@ -334,7 +334,7 @@ public class SonarServiceImpl implements SonarService {
 
 			HttpResponse httpResponse = httpClient.execute(request);
 			int statusCode = httpResponse.getStatusLine().getStatusCode();
-			if (statusCode >= HttpStatus.SC_BAD_REQUEST) {
+			if (statusCode != HttpStatus.SC_OK) {
 				errorMessage.append(" with status code: ").append(statusCode)
 						.append(" and response body: ").append(EntityUtils.toString(httpResponse.getEntity(), "UTF-8"));
 				throw new PermanentException(errorMessage.toString());
