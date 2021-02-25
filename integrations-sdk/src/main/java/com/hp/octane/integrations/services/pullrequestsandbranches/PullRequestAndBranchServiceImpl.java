@@ -31,6 +31,7 @@ import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.scm.PullRequest;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
+import com.hp.octane.integrations.exceptions.ResourceNotFoundException;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
@@ -136,7 +137,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             OctaneResponse octaneResponse = restService.obtainOctaneRestClient().execute(octaneRequest);
             if (octaneResponse.getStatus() != HttpStatus.SC_OK) {
                 if (octaneResponse.getStatus() == HttpStatus.SC_NOT_FOUND) {
-                    throw new RuntimeException("Failed to sendPullRequests : received 404 status. Validate that you have ALM Octane version that is greater than 15.0.48");
+                    throw new ResourceNotFoundException("Failed to sendPullRequests : received 404 status. Validate that you use correct workspace id and ALM Octane version is greater than " + PullRequestAndBranchService.BRANCH_COLLECTION_SUPPORTED_VERSION);
                 } else {
                     throw new RuntimeException("Failed to sendPullRequests : (" + octaneResponse.getStatus() + ")" + octaneResponse.getBody());
                 }
