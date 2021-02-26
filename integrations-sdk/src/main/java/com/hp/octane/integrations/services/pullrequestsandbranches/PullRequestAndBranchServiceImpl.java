@@ -37,6 +37,7 @@ import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.GithubV3FetchHandler;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.http.HttpStatus;
@@ -352,7 +353,12 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
     public boolean updateRepoTemplates(String repoUrl, Long workspaceId, RepoTemplates repoTemplates) {
         List<Entity> roots = getRepositoryRoots(repoUrl, workspaceId);
         if (roots.isEmpty()) {
-            return false;
+            //pull request repo generate async way by CTP task, so might be delay in creation
+            CIPluginSDKUtils.doWait(10000);
+            roots = getRepositoryRoots(repoUrl, workspaceId);
+            if (roots.isEmpty()) {
+                return false;
+            }
         }
         Entity repo = roots.get(0);
         Entity entity = DTOFactory.getInstance().newDTO(Entity.class);
