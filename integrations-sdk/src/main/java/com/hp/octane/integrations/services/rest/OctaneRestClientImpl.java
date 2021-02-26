@@ -460,11 +460,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			} catch (Exception e) {
 				logger.error(configurer.octaneConfiguration.geLocationForLog() + "requestMonitorWorker error : " + e.getMessage(), e);
 			}
-			try {
-				Thread.sleep(10000);
-			} catch (InterruptedException e) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "requestMonitorWorker sleep interrupted : " + e.getMessage());
-			}
+			CIPluginSDKUtils.doWait(10000);
 		}
 	}
 

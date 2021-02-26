@@ -86,11 +86,7 @@ public class SSCIntegrationTest {
                     "1",ToolType.SSC, System.currentTimeMillis(), 1,null, null);
 
             if(expectedOutput.expectNoPsuh) {
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                CIPluginSDKUtils.doWait(2000);
             }else{
                 GeneralTestUtils.waitAtMostFor(12000, () -> {
                     if (pushVulnerabilitiesCollectors.get(spIdA) != null && pushVulnerabilitiesCollectors.get(spIdA).size() == 1) {

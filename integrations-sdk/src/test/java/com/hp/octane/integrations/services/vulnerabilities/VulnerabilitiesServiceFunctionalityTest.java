@@ -172,16 +172,6 @@ public class VulnerabilitiesServiceFunctionalityTest {
 
             Assert.assertEquals(clientAInstanceId + "|jobSSC1|1", preflightRequestCollectors.get(spIdA).get(0));
 
-//			try {
-//				Thread.sleep(1000*60*10);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-
-            //
-            //  III
-            //  remove one client and verify it is shut indeed and the second continue to work okay
-            //
             OctaneSDK.removeClient(clientA);
 
         } finally {
