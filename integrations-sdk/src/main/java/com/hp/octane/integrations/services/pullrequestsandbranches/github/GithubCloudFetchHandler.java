@@ -16,15 +16,10 @@
 package com.hp.octane.integrations.services.pullrequestsandbranches.github;
 
 
-import com.hp.octane.integrations.dto.scm.PullRequest;
-import com.hp.octane.integrations.services.pullrequestsandbranches.factory.BranchFetchParameters;
-import com.hp.octane.integrations.services.pullrequestsandbranches.factory.CommitUserIdPicker;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 
 public class GithubCloudFetchHandler extends GithubV3FetchHandler {
 
@@ -39,7 +34,7 @@ public class GithubCloudFetchHandler extends GithubV3FetchHandler {
 
         //"  https://github.com/jenkinsci/hpe-application-automation-tools-plugin.git";
         // =>https://api.github.com/repos/jenkinsci/hpe-application-automation-tools-plugin
-        if(!repoHttpCloneUrl.toLowerCase().startsWith(CLOUD_SERVICE_PREFIX)){
+        if (!repoHttpCloneUrl.toLowerCase().startsWith(CLOUD_SERVICE_PREFIX)) {
             throw new IllegalArgumentException("Unexpected github cloud repository URL : " + repoHttpCloneUrl + ". Git Cloud URL must start with : https://github.com/. ");
         }
         List<String> parts = Arrays.asList(repoHttpCloneUrl.trim().substring(CLOUD_SERVICE_PREFIX.length()).split("/"));
@@ -54,7 +49,7 @@ public class GithubCloudFetchHandler extends GithubV3FetchHandler {
     }
 
     @Override
-    protected String getApiPath(String repoHttpCloneUrl) {
+    public String getApiPath(String repoHttpCloneUrl) {
         return "https://api.github.com";
     }
 }

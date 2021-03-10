@@ -34,6 +34,10 @@ public class JsonConverter {
         return objectMapper.readValue(str, type);
     }
 
+    public static <T extends Entity> T convert(String str, Class<T> entityType) throws JsonProcessingException {
+        return objectMapper.readValue(str, entityType);
+    }
+
     public static String getErrorMessage(String jsonString) {
         try {
             RequestErrors requestErrors = objectMapper.readValue(jsonString, RequestErrors.class);

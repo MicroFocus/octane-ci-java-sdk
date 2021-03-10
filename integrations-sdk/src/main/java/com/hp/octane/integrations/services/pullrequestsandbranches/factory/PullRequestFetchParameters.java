@@ -19,12 +19,14 @@ import java.io.Serializable;
 
 public class PullRequestFetchParameters implements Serializable {
     private String repoUrl;
+    private String repoUrlSsh;
     private String sourceBranchFilter;
     private String targetBranchFilter;
     private Integer pageSize;
     private Integer maxPRsToFetch;
     private Integer maxCommitsToFetch;
     private Long minUpdateTime;
+    private boolean useSSHFormat;
 
     public static final int DEFAULT_PAGE_SIZE = 30;
     public static final int DEFAULT_MAX_PRS = 100;
@@ -105,6 +107,23 @@ public class PullRequestFetchParameters implements Serializable {
         sb.append("Max PRs to fetch     : ").append(getMaxPRsToFetch()).append("\n");
         sb.append("Max commits to fetch : ").append(getMaxCommitsToFetch()).append("\n");
         sb.append("Page size            : ").append(getPageSize()).append("\n");
+
         return sb.toString();
+    }
+
+    public String getRepoUrlSsh() {
+        return repoUrlSsh;
+    }
+
+    public void setRepoUrlSsh(String repoUrlSsh) {
+        this.repoUrlSsh = repoUrlSsh;
+    }
+
+    public boolean isUseSSHFormat() {
+        return useSSHFormat;
+    }
+
+    public void setUseSSHFormat(boolean useSSHFormat) {
+        this.useSSHFormat = useSSHFormat;
     }
 }

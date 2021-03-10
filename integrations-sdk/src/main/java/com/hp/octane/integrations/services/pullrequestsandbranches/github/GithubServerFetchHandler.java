@@ -40,7 +40,7 @@ public class GithubServerFetchHandler extends GithubV3FetchHandler {
     }
 
     @Override
-    protected String getApiPath(String repoHttpCloneUrl) {
+    public String getApiPath(String repoHttpCloneUrl) {
         //   https://github.houston.softwaregrp.net:443/MQM/mqm.git;
         // =>https://github.houston.softwaregrp.net/api/v3
         int repoSlashIndex = repoHttpCloneUrl.lastIndexOf("/");

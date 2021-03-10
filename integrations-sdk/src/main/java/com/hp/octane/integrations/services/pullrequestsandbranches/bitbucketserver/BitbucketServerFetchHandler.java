@@ -14,11 +14,13 @@
  */
 package com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMRepositoryLinks;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
@@ -127,7 +129,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
 
         List<com.hp.octane.integrations.dto.scm.Branch> filteredBranches = branches.stream()
                 .filter(br -> FetchUtils.isBranchMatch(searchPatterns, br.getDisplayId()))
-                .map((br -> convertToDTOBranch(br)))
+                .map((this::convertToDTOBranch))
                 .collect(Collectors.toList());
         logConsumer.accept(String.format("Found %d branches in Bitbucket, while %d are matching filter", branches.size(), filteredBranches.size()));
 
@@ -154,7 +156,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
     }
 
     private SCMRepository buildScmRepository(Ref ref) {
-        Optional<Link> optLink = ref.getRepository().getLinks().getClone().stream().filter(l -> !l.getName().toLowerCase().equals("ssh")).findFirst();
+        Optional<Link> optLink = ref.getRepository().getLinks().getClone().stream().filter(l -> !l.getName().equalsIgnoreCase("ssh")).findFirst();
         String url = optLink.isPresent() ? optLink.get().getHref() : ref.getRepository().getLinks().getClone().get(0).getHref();
         return dtoFactory.newDTO(SCMRepository.class)
                 .setUrl(url)
@@ -285,6 +287,21 @@ public class BitbucketServerFetchHandler extends FetchHandler {
     @Override
     protected String parseRequestError(OctaneResponse response) {
         return JsonConverter.getErrorMessage(response.getBody());
+    }
+
+    @Override
+    public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException {
+        Repository repo =  JsonConverter.convert(responseBody, Repository.class);
+
+        SCMRepositoryLinks links = dtoFactory.newDTO(SCMRepositoryLinks.class);
+        repo.getLinks().getClone().forEach(l->{
+            if("ssh".equalsIgnoreCase(l.getName())){
+                links.setSshUrl(l.getHref());
+            }else{
+                links.setHttpUrl(l.getHref());
+            }
+        });
+        return links;
     }
 
     @Override

@@ -1,13 +1,16 @@
 
 package com.hp.octane.integrations.services.pullrequestsandbranches.github;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
+import com.hp.octane.integrations.dto.scm.SCMRepositoryLinks;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.exceptions.ResourceNotFoundException;
+import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.Repository;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.pojo.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
@@ -111,7 +114,7 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
                 .setPartial(true);
     }
 
-    protected abstract String getApiPath(String repoHttpCloneUrl);
+    public abstract String getApiPath(String repoHttpCloneUrl);
 
     @Override
     public List<com.hp.octane.integrations.dto.scm.PullRequest> fetchPullRequests(PullRequestFetchParameters parameters, CommitUserIdPicker commitUserIdPicker, Consumer<String> logConsumer) throws IOException {
@@ -361,5 +364,12 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
         repoTemplates.setSourceViewTemplate(selfUrl + "/blob/{revision}/{filePath}");
         repoTemplates.setBranchFileTemplate(selfUrl + "/tree/{branchName}/{filePath}");
         return repoTemplates;
+    }
+
+    @Override
+    public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException {
+        Repo repo =  com.hp.octane.integrations.services.pullrequestsandbranches.github.JsonConverter.convert(responseBody, Repo.class);
+        SCMRepositoryLinks links = dtoFactory.newDTO(SCMRepositoryLinks.class).setHttpUrl(repo.getClone_url()).setSshUrl(repo.getSsh_url());
+        return links;
     }
 }

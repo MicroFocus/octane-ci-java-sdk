@@ -15,12 +15,14 @@
 
 package com.hp.octane.integrations.services.pullrequestsandbranches.factory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.scm.PullRequest;
+import com.hp.octane.integrations.dto.scm.SCMRepositoryLinks;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.GeneralRestClient;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
 import org.apache.http.HttpStatus;
@@ -48,13 +50,13 @@ public abstract class FetchHandler {
 
     protected abstract String parseRequestError(OctaneResponse response);
 
-    public boolean pingRepository(String repoApiBaseUrl, Consumer<String> logConsumer) throws IOException {
+    public SCMRepositoryLinks pingRepository(String repoApiBaseUrl, Consumer<String> logConsumer) throws IOException {
         OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class).setUrl(repoApiBaseUrl).setMethod(HttpMethod.GET);
         try {
             OctaneResponse response = restClient.executeRequest(request);
             if (response.getStatus() == HttpStatus.SC_OK) {
                 logConsumer.accept("Ping repository : Ok");
-                return true;
+                return parseSCMRepositoryLinks(response.getBody());
             }
             logConsumer.accept("Ping repository : " + response.getStatus() + "; " + parseRequestError(response));
             if (response.getStatus() == HttpStatus.SC_NOT_FOUND) {
@@ -70,6 +72,8 @@ public abstract class FetchHandler {
             throw new IOException("Repository is not available. Please validate that URL and proxy settings are set correctly.");
         }
     }
+
+    public abstract SCMRepositoryLinks  parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException;
 
     protected void validateHttpCloneUrl(String clonePath) {
         if (clonePath == null || clonePath.isEmpty()) {
