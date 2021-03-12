@@ -29,6 +29,7 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.scm.PullRequest;
+import com.hp.octane.integrations.dto.scm.SCMRepositoryLinks;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.exceptions.ResourceNotFoundException;
@@ -163,7 +164,16 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
     @Override
     public BranchSyncResult syncBranchesToOctane(FetchHandler fetcherHandler, BranchFetchParameters fp, Long workspaceId, CommitUserIdPicker idPicker, Consumer<String> logConsumer) throws IOException {
 
+        //update ssh url
+        String baseUrl = fetcherHandler.getRepoApiPath(fp.getRepoUrl());
+        logConsumer.accept(fetcherHandler.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
+        SCMRepositoryLinks links = fetcherHandler.pingRepository(baseUrl, logConsumer);
+        fp.setRepoUrlSsh(links.getSshUrl());
+        if(fp.isUseSSHFormat()){
+            logConsumer.accept("Repo ssh format url : " + fp.getRepoUrlSsh());
+        }
         String repoUrlForOctane =  fp.isUseSSHFormat() ? fp.getRepoUrlSsh() : fp.getRepoUrl();
+
 
         //LOAD FROM CACHE
         boolean supportCaching = fetcherHandler instanceof GithubV3FetchHandler;

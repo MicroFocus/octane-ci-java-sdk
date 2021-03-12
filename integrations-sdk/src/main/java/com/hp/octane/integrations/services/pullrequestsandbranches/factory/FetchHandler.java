@@ -46,7 +46,7 @@ public abstract class FetchHandler {
 
     public abstract List<Branch> fetchBranches(BranchFetchParameters parameters, Map<String, Long> sha2DateMapCache, Consumer<String> logger) throws IOException;
 
-    protected abstract String getRepoApiPath(String clonePath);
+    public abstract String getRepoApiPath(String clonePath);
 
     protected abstract String parseRequestError(OctaneResponse response);
 

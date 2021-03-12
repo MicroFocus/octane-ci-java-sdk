@@ -122,12 +122,6 @@ public class BitbucketServerFetchHandler extends FetchHandler {
     @Override
     public List<com.hp.octane.integrations.dto.scm.Branch> fetchBranches(BranchFetchParameters parameters, Map<String, Long> sha2DateMapCache, Consumer<String> logConsumer) throws IOException {
         String baseUrl = getRepoApiPath(parameters.getRepoUrl());
-        logConsumer.accept("BitbucketServerRestHandler, Base url : " + baseUrl);
-        SCMRepositoryLinks links = pingRepository(baseUrl, logConsumer);
-        parameters.setRepoUrlSsh(links.getSshUrl());
-        if(parameters.isUseSSHFormat()){
-            logConsumer.accept("Repo ssh format url : " + parameters.getRepoUrlSsh());
-        }
 
         String branchesUrl = baseUrl + "/branches?&details=true&&orderBy=MODIFICATION";
         logConsumer.accept("Branches url : " + branchesUrl);

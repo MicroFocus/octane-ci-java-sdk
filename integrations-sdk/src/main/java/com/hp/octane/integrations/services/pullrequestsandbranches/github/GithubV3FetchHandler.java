@@ -42,12 +42,6 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
     public List<com.hp.octane.integrations.dto.scm.Branch> fetchBranches(BranchFetchParameters fp, Map<String, Long> sha2DateMapCache, Consumer<String> logConsumer) throws IOException {
         String baseUrl = getRepoApiPath(fp.getRepoUrl());
         String apiUrl = getApiPath(fp.getRepoUrl());
-        logConsumer.accept(this.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
-        SCMRepositoryLinks links = pingRepository(baseUrl, logConsumer);
-        fp.setRepoUrlSsh(links.getSshUrl());
-        if(fp.isUseSSHFormat()){
-            logConsumer.accept("Repo ssh format url : " + fp.getRepoUrlSsh());
-        }
 
         RateLimitationInfo rateLimitationInfo = getRateLimitationInfo(apiUrl, logConsumer);
 
