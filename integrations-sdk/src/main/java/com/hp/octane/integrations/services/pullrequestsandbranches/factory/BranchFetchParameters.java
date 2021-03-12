@@ -19,10 +19,12 @@ import java.io.Serializable;
 
 public class BranchFetchParameters implements Serializable {
     private String repoUrl;
+    private String repoUrlSsh;
     private String filter;
     private Integer pageSize;
     private Integer activeBranchDays;
     private Integer maxBranchesToFill;
+    private boolean useSSHFormat;
 
     public static final int DEFAULT_PAGE_SIZE = 1000;
     public static final int DEFAULT_MAX_BRANCHES_TO_FILL = 1000;
@@ -82,5 +84,23 @@ public class BranchFetchParameters implements Serializable {
         sb.append("Filter       : ").append(getFilter()).append("\n");
         sb.append("Page size    : ").append(getPageSize()).append("\n");
         return sb.toString();
+    }
+
+    public String getRepoUrlSsh() {
+        return repoUrlSsh;
+    }
+
+    public BranchFetchParameters setRepoUrlSsh(String repoUrlSsh) {
+        this.repoUrlSsh = repoUrlSsh;
+        return this;
+    }
+
+    public boolean isUseSSHFormat() {
+        return useSSHFormat;
+    }
+
+    public BranchFetchParameters setUseSSHFormat(boolean useSSHFormat) {
+        this.useSSHFormat = useSSHFormat;
+        return this;
     }
 }

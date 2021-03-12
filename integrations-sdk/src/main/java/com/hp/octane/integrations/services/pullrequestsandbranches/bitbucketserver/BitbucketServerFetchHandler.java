@@ -32,6 +32,7 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class BitbucketServerFetchHandler extends FetchHandler {
 
@@ -45,7 +46,11 @@ public class BitbucketServerFetchHandler extends FetchHandler {
         List<com.hp.octane.integrations.dto.scm.PullRequest> result = new ArrayList<>();
         String baseUrl = getRepoApiPath(parameters.getRepoUrl());
         logConsumer.accept("BitbucketServerRestHandler, Base url : " + baseUrl);
-        pingRepository(baseUrl, logConsumer);
+        SCMRepositoryLinks links = pingRepository(baseUrl, logConsumer);
+        parameters.setRepoUrlSsh(links.getSshUrl());
+        if(parameters.isUseSSHFormat()){
+            logConsumer.accept("Repo ssh format url : " + parameters.getRepoUrlSsh());
+        }
 
         String pullRequestsUrl = baseUrl + "/pull-requests?state=ALL";
         logConsumer.accept("Pull requests url : " + pullRequestsUrl);
@@ -78,8 +83,8 @@ public class BitbucketServerFetchHandler extends FetchHandler {
                     dtoCommits.add(dtoCommit);
                 }
 
-                SCMRepository sourceRepository = buildScmRepository(pr.getFromRef());
-                SCMRepository targetRepository = buildScmRepository(pr.getToRef());
+                SCMRepository sourceRepository = buildScmRepository(parameters.isUseSSHFormat(), pr.getFromRef());
+                SCMRepository targetRepository = buildScmRepository(parameters.isUseSSHFormat(), pr.getToRef());
 
                 boolean isMerged = PullRequest.MERGED_STATE.equals(pr.getState());
                 String userId = getUserName(commitUserIdPicker, pr.getAuthor().getUser().getEmailAddress(), pr.getAuthor().getUser().getName());
@@ -116,10 +121,13 @@ public class BitbucketServerFetchHandler extends FetchHandler {
 
     @Override
     public List<com.hp.octane.integrations.dto.scm.Branch> fetchBranches(BranchFetchParameters parameters, Map<String, Long> sha2DateMapCache, Consumer<String> logConsumer) throws IOException {
-        // List<com.hp.octane.integrations.dto.scm.> result = new ArrayList<>();
         String baseUrl = getRepoApiPath(parameters.getRepoUrl());
         logConsumer.accept("BitbucketServerRestHandler, Base url : " + baseUrl);
-        pingRepository(baseUrl, logConsumer);
+        SCMRepositoryLinks links = pingRepository(baseUrl, logConsumer);
+        parameters.setRepoUrlSsh(links.getSshUrl());
+        if(parameters.isUseSSHFormat()){
+            logConsumer.accept("Repo ssh format url : " + parameters.getRepoUrlSsh());
+        }
 
         String branchesUrl = baseUrl + "/branches?&details=true&&orderBy=MODIFICATION";
         logConsumer.accept("Branches url : " + branchesUrl);
@@ -155,8 +163,10 @@ public class BitbucketServerFetchHandler extends FetchHandler {
         return branchDTO;
     }
 
-    private SCMRepository buildScmRepository(Ref ref) {
-        Optional<Link> optLink = ref.getRepository().getLinks().getClone().stream().filter(l -> !l.getName().equalsIgnoreCase("ssh")).findFirst();
+    private SCMRepository buildScmRepository(boolean useSSHFormat, Ref ref) {
+        Stream<Link> links = ref.getRepository().getLinks().getClone().stream();
+        Optional<Link> optLink = useSSHFormat ? links.filter(l -> l.getName().equalsIgnoreCase("ssh")).findFirst() :
+                links.filter(l -> !l.getName().equalsIgnoreCase("ssh")).findFirst();
         String url = optLink.isPresent() ? optLink.get().getHref() : ref.getRepository().getLinks().getClone().get(0).getHref();
         return dtoFactory.newDTO(SCMRepository.class)
                 .setUrl(url)
@@ -291,13 +301,13 @@ public class BitbucketServerFetchHandler extends FetchHandler {
 
     @Override
     public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException {
-        Repository repo =  JsonConverter.convert(responseBody, Repository.class);
+        Repository repo = JsonConverter.convert(responseBody, Repository.class);
 
         SCMRepositoryLinks links = dtoFactory.newDTO(SCMRepositoryLinks.class);
-        repo.getLinks().getClone().forEach(l->{
-            if("ssh".equalsIgnoreCase(l.getName())){
+        repo.getLinks().getClone().forEach(l -> {
+            if ("ssh".equalsIgnoreCase(l.getName())) {
                 links.setSshUrl(l.getHref());
-            }else{
+            } else {
                 links.setHttpUrl(l.getHref());
             }
         });

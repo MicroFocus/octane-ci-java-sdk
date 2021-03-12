@@ -10,7 +10,6 @@ import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMRepositoryLinks;
 import com.hp.octane.integrations.dto.scm.SCMType;
 import com.hp.octane.integrations.exceptions.ResourceNotFoundException;
-import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.Repository;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.pojo.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
@@ -44,7 +43,12 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
         String baseUrl = getRepoApiPath(fp.getRepoUrl());
         String apiUrl = getApiPath(fp.getRepoUrl());
         logConsumer.accept(this.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
-        pingRepository(baseUrl, logConsumer);
+        SCMRepositoryLinks links = pingRepository(baseUrl, logConsumer);
+        fp.setRepoUrlSsh(links.getSshUrl());
+        if(fp.isUseSSHFormat()){
+            logConsumer.accept("Repo ssh format url : " + fp.getRepoUrlSsh());
+        }
+
         RateLimitationInfo rateLimitationInfo = getRateLimitationInfo(apiUrl, logConsumer);
 
         String branchesUrl = baseUrl + "/branches";
@@ -123,7 +127,12 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
         String baseUrl = getRepoApiPath(parameters.getRepoUrl());
         String apiUrl = getApiPath(parameters.getRepoUrl());
         logConsumer.accept(this.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
-        pingRepository(baseUrl, logConsumer);
+        SCMRepositoryLinks links = pingRepository(baseUrl, logConsumer);
+        parameters.setRepoUrlSsh(links.getSshUrl());
+        if(parameters.isUseSSHFormat()){
+            logConsumer.accept("Repo ssh format url : " + parameters.getRepoUrlSsh());
+        }
+
         getRateLimitationInfo(apiUrl, logConsumer);
 
         String pullRequestsUrl = baseUrl + "/pulls?state=all";
@@ -178,8 +187,8 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
                     dtoCommits.add(dtoCommit);
                 }
 
-                SCMRepository sourceRepository = buildScmRepository(pr.getHead());
-                SCMRepository targetRepository = buildScmRepository(pr.getBase());
+                SCMRepository sourceRepository = buildScmRepository(parameters.isUseSSHFormat(), pr.getHead());
+                SCMRepository targetRepository = buildScmRepository(parameters.isUseSSHFormat(), pr.getBase());
 
                 User prAuthor = login2User.get(pr.getUser().getLogin());
                 String userId = getUserName(commitUserIdPicker, prAuthor.getEmail(), prAuthor.getLogin());
@@ -216,9 +225,17 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
     }
 
 
-    private SCMRepository buildScmRepository(PullRequestRepo ref) {
+    private SCMRepository buildScmRepository(boolean useSSHFormat, PullRequestRepo ref) {
+        String url = "unknown repository";
+        if (ref.getRepo() != null) {
+            if (useSSHFormat && ref.getRepo().getSsh_url() != null) {
+                url = ref.getRepo().getSsh_url();
+            } else {
+                url = ref.getRepo().getClone_url();
+            }
+        }
         return dtoFactory.newDTO(SCMRepository.class)
-                .setUrl(ref.getRepo() != null ? ref.getRepo().getClone_url() : "unknown repository")
+                .setUrl(url)
                 .setBranch(ref.getRef())
                 .setType(SCMType.GIT);
     }
@@ -368,7 +385,7 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
 
     @Override
     public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException {
-        Repo repo =  com.hp.octane.integrations.services.pullrequestsandbranches.github.JsonConverter.convert(responseBody, Repo.class);
+        Repo repo = com.hp.octane.integrations.services.pullrequestsandbranches.github.JsonConverter.convert(responseBody, Repo.class);
         SCMRepositoryLinks links = dtoFactory.newDTO(SCMRepositoryLinks.class).setHttpUrl(repo.getClone_url()).setSshUrl(repo.getSsh_url());
         return links;
     }

@@ -101,12 +101,13 @@ public class PullRequestFetchParameters implements Serializable {
         StringBuilder sb = new StringBuilder();
         sb.append("\n");
         sb.append("\n");
-        sb.append("Min update date   : ").append(getMinUpdateTime()).append("\n");
+        sb.append("Min update date      : ").append(getMinUpdateTime()).append("\n");
         sb.append("Source branch filter : ").append(getSourceBranchFilter()).append("\n");
         sb.append("Target branch filter : ").append(getTargetBranchFilter()).append("\n");
         sb.append("Max PRs to fetch     : ").append(getMaxPRsToFetch()).append("\n");
         sb.append("Max commits to fetch : ").append(getMaxCommitsToFetch()).append("\n");
         sb.append("Page size            : ").append(getPageSize()).append("\n");
+        sb.append("Use SSH Format       : ").append(isUseSSHFormat()).append("\n");
 
         return sb.toString();
     }
@@ -115,15 +116,17 @@ public class PullRequestFetchParameters implements Serializable {
         return repoUrlSsh;
     }
 
-    public void setRepoUrlSsh(String repoUrlSsh) {
+    public PullRequestFetchParameters setRepoUrlSsh(String repoUrlSsh) {
         this.repoUrlSsh = repoUrlSsh;
+        return this;
     }
 
     public boolean isUseSSHFormat() {
         return useSSHFormat;
     }
 
-    public void setUseSSHFormat(boolean useSSHFormat) {
+    public PullRequestFetchParameters setUseSSHFormat(boolean useSSHFormat) {
         this.useSSHFormat = useSSHFormat;
+        return this;
     }
 }

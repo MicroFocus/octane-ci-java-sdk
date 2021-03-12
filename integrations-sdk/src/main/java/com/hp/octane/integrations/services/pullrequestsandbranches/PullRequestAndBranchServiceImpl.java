@@ -163,11 +163,13 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
     @Override
     public BranchSyncResult syncBranchesToOctane(FetchHandler fetcherHandler, BranchFetchParameters fp, Long workspaceId, CommitUserIdPicker idPicker, Consumer<String> logConsumer) throws IOException {
 
+        String repoUrlForOctane =  fp.isUseSSHFormat() ? fp.getRepoUrlSsh() : fp.getRepoUrl();
+
         //LOAD FROM CACHE
         boolean supportCaching = fetcherHandler instanceof GithubV3FetchHandler;
         Map<String, Long> sha2DateMapCache = null;
         if (supportCaching) {
-            sha2DateMapCache = loadBranchCommitsFromCache(fp, logConsumer);
+            sha2DateMapCache = loadBranchCommitsFromCache(repoUrlForOctane ,logConsumer);
         }
 
         //FETCH FROM CI SERVER
@@ -176,12 +178,12 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         //SAVE TO  CACHE
         if (supportCaching) {
-            saveBranchCommitsToCache(fp, logConsumer, sha2DateMapCache, ciServerBranches);
+            saveBranchCommitsToCache(repoUrlForOctane, logConsumer, sha2DateMapCache, ciServerBranches);
         }
 
         //GET BRANCHES FROM OCTANE
         String repoShortName = FetchUtils.getRepoShortName(fp.getRepoUrl());
-        List<Entity> roots = getRepositoryRoots(fp.getRepoUrl(), workspaceId);
+        List<Entity> roots = getRepositoryRoots(repoUrlForOctane, workspaceId);
         List<Entity> octaneBranches = null;
         String rootId;
         String SHORT_NAME_FIELD = "SHORT_NAME_FIELD";
@@ -191,7 +193,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             octaneBranches.forEach(br -> br.setField(SHORT_NAME_FIELD, getOctaneBranchName(br)));
             logConsumer.accept("Found repository root with id " + rootId);
         } else {
-            Entity createdRoot = createRepositoryRoot(fp, repoShortName, workspaceId);
+            Entity createdRoot = createRepositoryRoot(repoUrlForOctane, repoShortName, workspaceId);
             rootId = createdRoot.getId();
             logConsumer.accept("Repository root is created with id " + rootId);
         }
@@ -299,11 +301,11 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         return result;
     }
 
-    private void saveBranchCommitsToCache(BranchFetchParameters fp, Consumer<String> logConsumer, Map<String, Long> sha2DateMapCache, List<Branch> ciServerBranches) {
+    private void saveBranchCommitsToCache(String repoUrlForOctane, Consumer<String> logConsumer, Map<String, Long> sha2DateMapCache, List<Branch> ciServerBranches) {
         HashMap<String, Long> newSha2DateMapCache = new HashMap<>();
         newSha2DateMapCache.putAll(sha2DateMapCache);
         ciServerBranches.stream().filter(b -> b.getLastCommitTime() != null).forEach(b -> newSha2DateMapCache.put(b.getLastCommitSHA(), b.getLastCommitTime()));
-        File cacheFile = getFileForBranchCaching(fp.getRepoUrl());
+        File cacheFile = getFileForBranchCaching(repoUrlForOctane);
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(cacheFile, newSha2DateMapCache);
             logConsumer.accept(String.format("Cache of commits is saved with %s items ", newSha2DateMapCache.size()));
@@ -312,12 +314,12 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         }
     }
 
-    private Map<String, Long> loadBranchCommitsFromCache(BranchFetchParameters fp, Consumer<String> logConsumer) {
+    private Map<String, Long> loadBranchCommitsFromCache(String repoUrl, Consumer<String> logConsumer) {
         Map<String, Long> sha2DateMapCache = Collections.emptyMap();
 
         TypeReference<HashMap<String, Long>> typeRef = new TypeReference<HashMap<String, Long>>() {
         };
-        File cacheFile = getFileForBranchCaching(fp.getRepoUrl());
+        File cacheFile = getFileForBranchCaching(repoUrl);
         if (cacheFile.exists()) {
             try {
                 sha2DateMapCache = objectMapper.readValue(cacheFile, typeRef);
@@ -338,10 +340,10 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         return new File(path);
     }
 
-    private Entity createRepositoryRoot(BranchFetchParameters fp, String repoShortName, Long workspaceId) {
+    private Entity createRepositoryRoot(String repoUrlForOctane, String repoShortName, Long workspaceId) {
         Entity entity = DTOFactory.getInstance().newDTO(Entity.class);
         entity.setType(EntityConstants.ScmRepositoryRoot.ENTITY_NAME);
-        entity.setField(EntityConstants.ScmRepositoryRoot.URL_FIELD, fp.getRepoUrl());
+        entity.setField(EntityConstants.ScmRepositoryRoot.URL_FIELD, repoUrlForOctane);
         entity.setField(EntityConstants.ScmRepositoryRoot.NAME_FIELD, repoShortName);
         entity.setField(EntityConstants.ScmRepositoryRoot.SCM_TYPE_FIELD, SCMType.GIT.getOctaneId());
         List<Entity> results = entitiesService.postEntities(workspaceId, EntityConstants.ScmRepositoryRoot.COLLECTION_NAME, Arrays.asList(entity));
