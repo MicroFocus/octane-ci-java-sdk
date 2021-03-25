@@ -169,17 +169,17 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         logConsumer.accept(fetcherHandler.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
         SCMRepositoryLinks links = fetcherHandler.pingRepository(baseUrl, logConsumer);
         fp.setRepoUrlSsh(links.getSshUrl());
-        if(fp.isUseSSHFormat()){
+        if (fp.isUseSSHFormat()) {
             logConsumer.accept("Repo ssh format url : " + fp.getRepoUrlSsh());
         }
-        String repoUrlForOctane =  fp.isUseSSHFormat() ? fp.getRepoUrlSsh() : fp.getRepoUrl();
+        String repoUrlForOctane = fp.isUseSSHFormat() ? fp.getRepoUrlSsh() : fp.getRepoUrl();
 
 
         //LOAD FROM CACHE
         boolean supportCaching = fetcherHandler instanceof GithubV3FetchHandler;
         Map<String, Long> sha2DateMapCache = null;
         if (supportCaching) {
-            sha2DateMapCache = loadBranchCommitsFromCache(repoUrlForOctane ,logConsumer);
+            sha2DateMapCache = loadBranchCommitsFromCache(repoUrlForOctane, logConsumer);
         }
 
         //FETCH FROM CI SERVER
@@ -196,11 +196,9 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         List<Entity> roots = getRepositoryRoots(repoUrlForOctane, workspaceId);
         List<Entity> octaneBranches = null;
         String rootId;
-        String SHORT_NAME_FIELD = "SHORT_NAME_FIELD";
         if (roots != null && !roots.isEmpty()) {
             rootId = roots.get(0).getId();
             octaneBranches = getRepositoryBranches(rootId, workspaceId, false);
-            octaneBranches.forEach(br -> br.setField(SHORT_NAME_FIELD, getOctaneBranchName(br)));
             logConsumer.accept("Found repository root with id " + rootId);
         } else {
             Entity createdRoot = createRepositoryRoot(repoUrlForOctane, repoShortName, workspaceId);
@@ -214,8 +212,8 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         List<Pattern> filterPatterns = FetchUtils.buildPatterns(fp.getFilter());
         Map<String, List<Entity>> octaneBranchMap = octaneBranches.stream()
-                .filter(br -> FetchUtils.isBranchMatch(filterPatterns, (String) br.getField(SHORT_NAME_FIELD)))
-                .collect(groupingBy(b -> (String) b.getField(SHORT_NAME_FIELD)));
+                .filter(br -> FetchUtils.isBranchMatch(filterPatterns, br.getName()))
+                .collect(groupingBy(b -> b.getName()));
         logConsumer.accept("Found " + octaneBranches.size() + " branches in ALM Octane related to defined filter.");
 
         //GENERATE UPDATES
@@ -225,7 +223,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         //DELETED
         octaneBranchMap.entrySet().stream().filter(entry -> !ciServerBranchMap.containsKey(entry.getKey()))
                 .map(e -> e.getValue()).flatMap(Collection::stream)
-                .map(e -> dtoFactory.newDTO(Branch.class).setOctaneId(e.getId()).setName((String) e.getField(EntityConstants.ScmRepository.BRANCH_FIELD)))
+                .map(e -> dtoFactory.newDTO(Branch.class).setOctaneId(e.getId()).setName(e.getName()))
                 .forEach(b -> result.getDeleted().add(b));
 
         //NEW AND UPDATES
@@ -264,7 +262,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             logConsumer.accept("Updated branches : " + toUpdate.size());
         }
         if (!result.getCreated().isEmpty()) {
-            List<Entity> toCreate = result.getCreated().stream().map(b -> buildOctaneBranchForCreate(finalRootId, b, repoShortName, idPicker)).collect(Collectors.toList());
+            List<Entity> toCreate = result.getCreated().stream().map(b -> buildOctaneBranchForCreate(finalRootId, b, idPicker)).collect(Collectors.toList());
             try {
                 entitiesService.postEntities(workspaceId, EntityConstants.ScmRepository.COLLECTION_NAME, toCreate);
                 logConsumer.accept("New branches : " + toCreate.size());
@@ -277,7 +275,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                         .filter(ex -> EntityConstants.Errors.DUPLICATE_ERROR_CODE.equals(ex.getErrorCode())).findAny().isPresent();
                 Map<String, Entity> deletedBranchesInOctane = !hasDuplicatedException ? Collections.emptyMap() :
                         getRepositoryBranches(rootId, workspaceId, true).stream()
-                                .collect(Collectors.toMap(e -> e.getStringValue(EntityConstants.ScmRepository.BRANCH_FIELD), Function.identity()));
+                                .collect(Collectors.toMap(e -> e.getStringValue(EntityConstants.ScmRepository.NAME_FIELD), Function.identity()));
 
                 //try to update duplicates
                 List<Entity> deletedBranchesToUpdate = new ArrayList<>();
@@ -399,16 +397,6 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         return needUpdate;
     }
 
-    private String getOctaneBranchName(Entity octaneBranch) {
-        //branch name might be with prefix for example, "refs/remotes/origin/master", add new field that contains branch name with prefixes
-        //remove everything after "origin/"
-        String branchName = (String) octaneBranch.getField(EntityConstants.ScmRepository.BRANCH_FIELD);
-        int prefixIndex = branchName.toLowerCase().indexOf(REMOVE_PREFIX);
-
-        String shortBranchName = (prefixIndex > 0) ? branchName.substring(prefixIndex + REMOVE_PREFIX.length()) : branchName;
-        return shortBranchName;
-    }
-
     private Entity buildOctaneBranchForUpdateAsDeleted(Branch branch) {
         Entity entity = DTOFactory.getInstance().newDTO(Entity.class);
         entity.setType(EntityConstants.ScmRepository.ENTITY_NAME);
@@ -432,15 +420,14 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         return entity;
     }
 
-    private Entity buildOctaneBranchForCreate(String rootId, Branch ciBranch, String repoShortName, CommitUserIdPicker idPicker) {
+    private Entity buildOctaneBranchForCreate(String rootId, Branch ciBranch, CommitUserIdPicker idPicker) {
         Entity parent = DTOFactory.getInstance().newDTO(Entity.class);
         parent.setType(EntityConstants.ScmRepositoryRoot.ENTITY_NAME);
         parent.setId(rootId);
 
         Entity entity = buildOctaneBranchForUpdate(ciBranch, idPicker);
-        entity.setField(EntityConstants.ScmRepository.BRANCH_FIELD, ciBranch.getName());
         entity.setField(EntityConstants.ScmRepository.PARENT_FIELD, parent);
-        entity.setField(EntityConstants.ScmRepository.NAME_FIELD, repoShortName + ":" + ciBranch.getName());
+        entity.setField(EntityConstants.ScmRepository.NAME_FIELD, ciBranch.getName());
         return entity;
     }
 
@@ -462,7 +449,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         List<Entity> foundBranches = entitiesService.getEntities(workspaceId,
                 EntityConstants.ScmRepository.COLLECTION_NAME,
                 Arrays.asList(byParentIdCondition, notDeletedCondition),
-                Arrays.asList(EntityConstants.ScmRepository.BRANCH_FIELD,
+                Arrays.asList(EntityConstants.ScmRepository.NAME_FIELD,
                         EntityConstants.ScmRepository.IS_MERGED_FIELD,
                         EntityConstants.ScmRepository.LAST_COMMIT_SHA_FIELD,
                         EntityConstants.ScmRepository.LAST_COMMIT_TIME_FIELD));

@@ -37,6 +37,8 @@ public class EntityConstants {
     public static class ScmRepository extends Base {
         public static final String COLLECTION_NAME = "scm_repositories";
         public static final String ENTITY_NAME = "scm_repository";
+
+        @Deprecated
         public static final String BRANCH_FIELD = "branch";
         public static final String PARENT_FIELD = "repository";
 
