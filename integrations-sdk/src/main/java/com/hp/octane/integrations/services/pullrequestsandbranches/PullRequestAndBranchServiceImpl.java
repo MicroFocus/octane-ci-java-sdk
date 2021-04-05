@@ -362,14 +362,18 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
     @Override
     public boolean updateRepoTemplates(String repoUrl, Long workspaceId, RepoTemplates repoTemplates) {
         List<Entity> roots = getRepositoryRoots(repoUrl, workspaceId);
-        if (roots.isEmpty()) {
+        int trialCounter = 0;
+        while (roots.isEmpty() && trialCounter++ < 6) {
+            logger.info(String.format("Wait to updateRepoTemplates - repo %s - %s", repoUrl, trialCounter));
             //pull request repo generate async way by CTP task, so might be delay in creation
-            CIPluginSDKUtils.doWait(10000);
+            CIPluginSDKUtils.doWait(5000);
             roots = getRepositoryRoots(repoUrl, workspaceId);
-            if (roots.isEmpty()) {
-                return false;
-            }
         }
+        if (roots.isEmpty()) {
+            logger.info(String.format("UpdateRepoTemplates  - repo %s is not found in ALM Octane", repoUrl));
+            return false;
+        }
+
         Entity repo = roots.get(0);
         Entity entity = DTOFactory.getInstance().newDTO(Entity.class);
         entity.setField(EntityConstants.ScmRepositoryRoot.ID_FIELD, repo.getId());
