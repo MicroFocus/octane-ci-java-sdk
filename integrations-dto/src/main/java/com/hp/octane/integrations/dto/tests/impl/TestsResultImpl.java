@@ -16,35 +16,36 @@
 
 package com.hp.octane.integrations.dto.tests.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.octane.integrations.dto.tests.BuildContext;
 import com.hp.octane.integrations.dto.tests.TestField;
-import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.dto.tests.TestRun;
+import com.hp.octane.integrations.dto.tests.TestsResult;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlElementWrapper;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
 
 /**
  * TestResult DTO implementation
  */
 
-@XmlRootElement(name = "test_result")
-@XmlAccessorType(XmlAccessType.NONE)
+@JacksonXmlRootElement(localName = "test_result")
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({"buildContext", "testFields", "testRuns"})
 class TestsResultImpl implements TestsResult {
 
-    @XmlAnyElement(lax = true)
+    @JacksonXmlProperty(localName = "build")
     private BuildContext buildContext;
 
-    @XmlElementWrapper(name = "test_fields")
-    @XmlAnyElement(lax = true)
+    @JacksonXmlElementWrapper(localName = "test_fields")
+    @JacksonXmlProperty(localName = "test_field")
     private List<TestField> testFields;
 
-    @XmlElementWrapper(name = "test_runs")
-    @XmlAnyElement(lax = true)
+    @JacksonXmlElementWrapper(localName = "test_runs")
+    @JacksonXmlProperty(localName = "test_run")
     private List<TestRun> testRuns;
 
     public BuildContext getBuildContext() {

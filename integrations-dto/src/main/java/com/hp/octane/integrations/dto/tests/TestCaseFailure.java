@@ -22,24 +22,12 @@ import com.hp.octane.integrations.dto.DTOBase;
  * TestCase DTO
  */
 
-public interface TestCase extends DTOBase {
-    String getName();
+public interface TestCaseFailure extends DTOBase {
+	String getType();
 
-    TestCase setName(String name);
+	TestCaseFailure setType(String type);
 
-    String getTime();
+	String getStackTrace();
 
-    TestCase setTime(String time);
-
-    String getTestStatus();
-
-    TestCase setTestStatus(String status);
-
-    String getClassName();
-
-    TestCase setClassName(String className);
-
-    TestCaseFailure getFailure();
-
-    TestCase setFailure(TestCaseFailure failure);
+	TestCaseFailure setStackTrace(String stackTrace);
 }

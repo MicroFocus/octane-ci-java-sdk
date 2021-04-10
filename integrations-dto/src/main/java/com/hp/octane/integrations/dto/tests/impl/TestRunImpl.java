@@ -15,180 +15,202 @@
 
 package com.hp.octane.integrations.dto.tests.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.octane.integrations.dto.tests.TestRun;
 import com.hp.octane.integrations.dto.tests.TestRunError;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
-
-import javax.xml.bind.annotation.*;
 
 /**
  * TestRun DTO implementation.
  */
 
-@XmlRootElement(name = "test_run")
-@XmlAccessorType(XmlAccessType.NONE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JacksonXmlRootElement(localName = "test_run")
+@JsonPropertyOrder({"moduleName", "packageName", "className", "testName", "result", "duration", "started",
+        "externalTestId", "externalRunId", "externalReportUrl",
+        "error", "description"})
 class TestRunImpl implements TestRun {
 
-	@XmlAttribute(name = "module")
-	private String moduleName;
+    @JacksonXmlProperty(isAttribute = true, localName = "module")
+    private String moduleName;
 
-	@XmlAttribute(name = "package")
-	private String packageName;
+    //@JsonProperty("package")
+    @JacksonXmlProperty(isAttribute = true, localName = "package")
+    private String packageName;
 
-	@XmlAttribute(name = "class")
-	private String className;
+    @JacksonXmlProperty(isAttribute = true, localName = "class")
+    private String className;
 
-	@XmlAttribute(name = "name")
-	private String testName;
+    @JacksonXmlProperty(isAttribute = true, localName = "name")
+    private String testName;
 
-	@XmlAttribute(name = "status")
-	private TestRunResult result;
+    @JacksonXmlProperty(isAttribute = true, localName = "status")
+    private TestRunResult result;
 
-	@XmlAttribute(name = "duration")
-	private long duration;
+    @JacksonXmlProperty(isAttribute = true, localName = "duration")
+    private long duration;
 
-	@XmlAttribute(name = "started")
-	private long started;
+    @JacksonXmlProperty(isAttribute = true, localName = "started")
+    private long started;
 
-	@XmlAnyElement(lax = true)
-	private TestRunError error;
+    @JsonProperty("error")
+    //@XmlAnyElement(lax = true)
+    private TestRunError error;
 
-	@XmlAttribute(name = "external_report_url")
-	private String externalReportUrl;
+    @JsonProperty("description")
+    private String description;
 
-	@XmlAttribute(name = "external_test_id")
-	private String externalTestId;
+    @JacksonXmlProperty(isAttribute = true, localName = "external_report_url")
+    private String externalReportUrl;
 
-	@XmlAttribute(name = "external_run_id")
-	private String externalRunId;
+    @JacksonXmlProperty(isAttribute = true, localName = "external_test_id")
+    private String externalTestId;
 
-	@Override
-	public String getModuleName() {
-		return moduleName;
-	}
+    @JacksonXmlProperty(isAttribute = true, localName = "external_run_id")
+    private String externalRunId;
 
-	@Override
-	public TestRun setModuleName(String moduleName) {
-		this.moduleName = moduleName;
-		return this;
-	}
+    @Override
+    public String getModuleName() {
+        return moduleName;
+    }
 
-	@Override
-	public String getPackageName() {
-		return packageName;
-	}
+    @Override
+    public TestRun setModuleName(String moduleName) {
+        this.moduleName = moduleName;
+        return this;
+    }
 
-	@Override
-	public TestRun setPackageName(String packageName) {
-		this.packageName = packageName;
-		return this;
-	}
+    @Override
+    public String getPackageName() {
+        return packageName;
+    }
 
-	@Override
-	public String getClassName() {
-		return className;
-	}
+    @Override
+    public TestRun setPackageName(String packageName) {
+        this.packageName = packageName;
+        return this;
+    }
 
-	@Override
-	public TestRun setClassName(String className) {
-		this.className = className;
-		return this;
-	}
+    @Override
+    public String getClassName() {
+        return className;
+    }
 
-	@Override
-	public String getTestName() {
-		return testName;
-	}
+    @Override
+    public TestRun setClassName(String className) {
+        this.className = className;
+        return this;
+    }
 
-	@Override
-	public TestRun setTestName(String testName) {
-		if (testName == null || testName.length() == 0) {
-			throw new IllegalArgumentException("TestName cannot be empty");
-		}
-		this.testName = testName;
-		return this;
-	}
+    @Override
+    public String getTestName() {
+        return testName;
+    }
 
-	@Override
-	public TestRunResult getResult() {
-		return result;
-	}
+    @Override
+    public TestRun setTestName(String testName) {
+        if (testName == null || testName.length() == 0) {
+            throw new IllegalArgumentException("TestName cannot be empty");
+        }
+        this.testName = testName;
+        return this;
+    }
 
-	@Override
-	public TestRun setResult(TestRunResult result) {
-		this.result = result;
-		return this;
-	}
+    @Override
+    public TestRunResult getResult() {
+        return result;
+    }
 
-	@Override
-	public long getDuration() {
-		return duration;
-	}
+    @Override
+    public TestRun setResult(TestRunResult result) {
+        this.result = result;
+        return this;
+    }
 
-	@Override
-	public TestRun setDuration(long duration) {
-		if (started < 0) {
-			throw new IllegalArgumentException("Duration must be a positive number");
-		}
-		this.duration = duration;
-		return this;
-	}
+    @Override
+    public long getDuration() {
+        return duration;
+    }
 
-	@Override
-	public long getStarted() {
-		return started;
-	}
+    @Override
+    public TestRun setDuration(long duration) {
+        if (started < 0) {
+            throw new IllegalArgumentException("Duration must be a positive number");
+        }
+        this.duration = duration;
+        return this;
+    }
 
-	@Override
-	public TestRun setStarted(long started) {
-		if (started < 0) {
-			throw new IllegalArgumentException("Started must be a positive number");
-		}
-		this.started = started;
-		return this;
-	}
+    @Override
+    public long getStarted() {
+        return started;
+    }
 
-	@Override
-	public TestRunError getError() {
-		return error;
-	}
+    @Override
+    public TestRun setStarted(long started) {
+        if (started < 0) {
+            throw new IllegalArgumentException("Started must be a positive number");
+        }
+        this.started = started;
+        return this;
+    }
 
-	@Override
-	public TestRun setError(TestRunError testError) {
-		this.error = testError;
-		return this;
-	}
+    @Override
+    public TestRunError getError() {
+        return error;
+    }
 
-	@Override
-	public String getExternalReportUrl() {
-		return externalReportUrl;
-	}
+    @Override
+    public TestRun setError(TestRunError testError) {
+        this.error = testError;
+        return this;
+    }
 
-	@Override
-	public TestRun setExternalReportUrl(String externalReportUrl) {
-		this.externalReportUrl = externalReportUrl;
-		return this;
-	}
+    @Override
+    public String getExternalReportUrl() {
+        return externalReportUrl;
+    }
 
-	@Override
-	public String getExternalRunId() {
-		return externalRunId;
-	}
+    @Override
+    public TestRun setExternalReportUrl(String externalReportUrl) {
+        this.externalReportUrl = externalReportUrl;
+        return this;
+    }
 
-	@Override
-	public TestRun setExternalRunId(String externalRunId) {
-		this.externalRunId = externalRunId;
-		return this;
-	}
+    @Override
+    public String getExternalRunId() {
+        return externalRunId;
+    }
 
-	@Override
-	public String getExternalTestId() {
-		return externalTestId;
-	}
+    @Override
+    public TestRun setExternalRunId(String externalRunId) {
+        this.externalRunId = externalRunId;
+        return this;
+    }
 
-	@Override
-	public TestRun setExternalTestId(String externalTestId) {
-		this.externalTestId = externalTestId;
-		return this;
-	}
+    @Override
+    public String getExternalTestId() {
+        return externalTestId;
+    }
+
+    @Override
+    public TestRun setExternalTestId(String externalTestId) {
+        this.externalTestId = externalTestId;
+        return this;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public TestRun setDescription(String description) {
+        this.description = description;
+        return this;
+    }
 }

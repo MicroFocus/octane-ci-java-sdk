@@ -15,16 +15,11 @@
 
 package com.hp.octane.integrations.uft.items;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
 /**
  * This file represents scm resource for sending to Octane
  */
-@XmlRootElement(name = "dataTable")
-@XmlAccessorType(XmlAccessType.FIELD)
 public class ScmResourceFile implements SupportsMoveDetection, SupportsOctaneStatus, Serializable {
 
     private String id;

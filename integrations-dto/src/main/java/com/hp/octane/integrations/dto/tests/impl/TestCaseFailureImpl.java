@@ -20,47 +20,40 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
-import com.hp.octane.integrations.dto.tests.TestRunError;
+import com.hp.octane.integrations.dto.tests.TestCaseFailure;
 
 /**
- * TestRunError DTO implementation.
+ * Created by lev on 31/05/2016.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JacksonXmlRootElement(localName = "error")
-public class TestRunErrorImpl implements TestRunError {
+@JacksonXmlRootElement(localName = "failure")
+public class TestCaseFailureImpl implements TestCaseFailure {
 
     @JacksonXmlProperty(isAttribute = true, localName = "type")
-    private String errorType;
-
-    @JacksonXmlProperty(isAttribute = true, localName = "message")
-    private String errorMessage;
+    private String type;
 
     @JacksonXmlText
     private String stackTrace;
 
-    public String getErrorType() {
-        return errorType;
+
+    @Override
+    public String getType() {
+        return type;
     }
 
-    public TestRunError setErrorType(String errorType) {
-        this.errorType = errorType;
+    @Override
+    public TestCaseFailure setType(String type) {
+        this.type = type;
         return this;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public TestRunError setErrorMessage(String errorMessage) {
-        this.errorMessage = errorMessage;
-        return this;
-    }
-
+    @Override
     public String getStackTrace() {
         return stackTrace;
     }
 
-    public TestRunError setStackTrace(String stackTrace) {
+    @Override
+    public TestCaseFailure setStackTrace(String stackTrace) {
         this.stackTrace = stackTrace;
         return this;
     }

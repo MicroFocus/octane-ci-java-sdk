@@ -15,20 +15,7 @@
 
 package com.hp.octane.integrations.dto;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,7 +24,6 @@ import java.util.Map;
 
 public abstract class DTOInternalProviderBase {
 	protected final Map<Class<? extends DTOBase>, Class> dtoPairs = new LinkedHashMap<>();
-	protected final List<Class<? extends DTOBase>> xmlAbles = new LinkedList<>();
 
 	protected DTOInternalProviderBase(DTOFactory.DTOConfiguration configuration) {
 		if (configuration == null) {
@@ -47,39 +33,7 @@ public abstract class DTOInternalProviderBase {
 
 	protected abstract <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException;
 
-	<T extends DTOBase> String toXml(T dto) throws JAXBException, UnsupportedEncodingException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(this.getXMLAbles());
-		Marshaller marshaller = jaxbContext.createMarshaller();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		marshaller.marshal(dto, baos);
-		return baos.toString(Charset.defaultCharset().name());
-	}
-
-	<T extends DTOBase> InputStream toXmlStream(T dto) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(this.getXMLAbles());
-		Marshaller marshaller = jaxbContext.createMarshaller();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		marshaller.marshal(dto, baos);
-		return new ByteArrayInputStream(baos.toByteArray());
-	}
-
-	<T extends DTOBase> T fromXml(String xml) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(getXMLAbles());
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-		return (T) unmarshaller.unmarshal(new StringReader(xml));
-	}
-
-	<T extends DTOBase> T fromXmlFile(File xml) throws JAXBException {
-		JAXBContext jaxbContext = JAXBContext.newInstance(getXMLAbles());
-		Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
-		return (T) unmarshaller.unmarshal(xml);
-	}
-
 	Map<Class<? extends DTOBase>, Class> getDTOPairs() {
 		return dtoPairs;
-	}
-
-	private Class[] getXMLAbles() {
-		return xmlAbles.toArray(new Class[0]);
 	}
 }

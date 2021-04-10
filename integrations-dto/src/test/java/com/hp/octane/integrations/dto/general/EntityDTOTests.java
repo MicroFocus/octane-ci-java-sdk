@@ -102,7 +102,7 @@ public class EntityDTOTests {
 
     @Test
     public void testParseOctaneException() {
-        String json = "{\"error_code\":\"platform.web_application\",\"correlation_id\":\"o5jp1yvjo54lxbjmo7dxz12v6\",\"description\":\"HTTP 404 Not Found\",\"description_translated\":\"HTTP 404 Not Found\",\"properties\":null,\"stack_trace\":\"javax.ws.rs.NotFoundException: HTTP 404\",\"business_error\":false}\n";
+        String json = "{\"error_code\":\"platform.web_application\",\"correlation_id\":\"o5jp1yvjo54lxbjmo7dxz12v6\",\"description\":\"HTTP 404 Not Found\",\"description_translated\":\"HTTP 404 Not Found\",\"properties\":null,\"stack_trace\":\"java.ws.rs.NotFoundException: HTTP 404\",\"business_error\":false}\n";
         OctaneRestExceptionData octaneRestExceptionData = dtoFactory.dtoFromJson(json, OctaneRestExceptionData.class);
         Assert.assertEquals("platform.web_application", octaneRestExceptionData.getErrorCode());
     }

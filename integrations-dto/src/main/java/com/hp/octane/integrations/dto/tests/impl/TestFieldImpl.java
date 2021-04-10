@@ -16,23 +16,26 @@
 
 package com.hp.octane.integrations.dto.tests.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.octane.integrations.dto.tests.TestField;
-
-import javax.xml.bind.annotation.*;
 
 /**
  * TestRun DTO implementation.
  */
 
-@XmlRootElement(name = "test_field")
-@XmlAccessorType(XmlAccessType.NONE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JacksonXmlRootElement(localName = "test_field")
+@JsonPropertyOrder({"type", "value"})
 class TestFieldImpl implements TestField {
 
-    @XmlAttribute(name = "value")
-    private String fieldValue;
-
-    @XmlAttribute(name = "type")
+    @JacksonXmlProperty(isAttribute = true, localName = "type")
     private String fieldType;
+
+    @JacksonXmlProperty(isAttribute = true, localName = "value")
+    private String fieldValue;
 
     @Override
     public String getType() {

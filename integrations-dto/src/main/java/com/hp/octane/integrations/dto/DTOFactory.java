@@ -17,9 +17,11 @@
 package com.hp.octane.integrations.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.hp.octane.integrations.dto.causes.impl.DTOCausesProvider;
 import com.hp.octane.integrations.dto.configuration.impl.DTOConfigsProvider;
 import com.hp.octane.integrations.dto.connectivity.impl.DTOConnectivityProvider;
@@ -35,12 +37,10 @@ import com.hp.octane.integrations.dto.scm.impl.DTOSCMProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOJUnitTestsProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOTestsProvider;
 
-import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,24 +82,41 @@ public final class DTOFactory {
 	}
 
 	public <T extends DTOBase> InputStream dtoToJsonStream(T dto) {
+		return dtoToStream(dto,configuration.objectMapper);
+	}
+
+	public <T extends DTOBase> InputStream dtoToXmlStream(T dto) {
+		return dtoToStream(dto,configuration.xmlMapper);
+	}
+
+	private <T extends DTOBase> InputStream dtoToStream(T dto, ObjectMapper objectMapper) {
 		if (dto == null) {
 			throw new IllegalArgumentException("dto MUST NOT be null");
 		}
 
 		try {
-			return new ByteArrayInputStream(configuration.objectMapper.writeValueAsBytes(dto));
+			return new ByteArrayInputStream(objectMapper.writeValueAsBytes(dto));
 		} catch (JsonProcessingException jpe) {
 			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
 
+
 	public <T extends DTOBase> String dtoToJson(T dto) {
+		return dtoToString(dto,configuration.objectMapper);
+	}
+
+	public <T extends DTOBase> String dtoToXml(T dto) {
+		return dtoToString(dto, configuration.xmlMapper);
+	}
+
+	private <T extends DTOBase> String dtoToString(T dto , ObjectMapper objectMapper) {
 		if (dto == null) {
 			throw new IllegalArgumentException("dto MUST NOT be null");
 		}
 
 		try {
-			return configuration.objectMapper.writeValueAsString(dto);
+			return objectMapper.writeValueAsString(dto);
 		} catch (JsonProcessingException jpe) {
 			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
@@ -130,6 +147,14 @@ public final class DTOFactory {
 	}
 
 	public <T extends DTOBase> T dtoFromJson(String json, Class<T> targetType) {
+		return dtoFromString(json,targetType,configuration.objectMapper);
+	}
+
+	public <T extends DTOBase> T dtoFromXml(String json, Class<T> targetType) {
+		return dtoFromString(json,targetType,configuration.xmlMapper);
+	}
+
+	private  <T extends DTOBase> T dtoFromString(String string, Class<T> targetType, ObjectMapper objectMapper) {
 		if (targetType == null) {
 			throw new IllegalArgumentException("target type MUST NOT be null");
 		}
@@ -138,9 +163,9 @@ public final class DTOFactory {
 		}
 
 		try {
-			return configuration.objectMapper.readValue(json, targetType);
+			return objectMapper.readValue(string, targetType);
 		} catch (IOException ioe) {
-			throw new RuntimeException("failed to deserialize " + json + " into " + targetType, ioe);
+			throw new RuntimeException("failed to deserialize " + string + " into " + targetType, ioe);
 		}
 	}
 
@@ -159,78 +184,6 @@ public final class DTOFactory {
 		}
 	}
 
-	public <T extends DTOBase> String dtoToXml(T dto) {
-		if (dto == null) {
-			throw new IllegalArgumentException("dto MUST NOT be null");
-		}
-
-		DTOInternalProviderBase internalFactory = null;
-		try {
-			for (Class<? extends DTOBase> supported : configuration.registry.keySet()) {
-				if (supported.isAssignableFrom(dto.getClass())) {
-					internalFactory = configuration.registry.get(supported);
-					break;
-				}
-			}
-			if (internalFactory != null) {
-				return internalFactory.toXml(dto);
-			} else {
-				throw new RuntimeException(dto.getClass() + " is not supported in this flow");
-			}
-		} catch (JAXBException | UnsupportedEncodingException e) {
-			throw new RuntimeException("failed to serialize " + dto + " to XML", e);
-		}
-	}
-
-	public <T extends DTOBase> InputStream dtoToXmlStream(T dto) {
-		if (dto == null) {
-			throw new IllegalArgumentException("dto MUST NOT be null");
-		}
-
-		DTOInternalProviderBase internalFactory = null;
-		try {
-			for (Class<? extends DTOBase> supported : configuration.registry.keySet()) {
-				if (supported.isAssignableFrom(dto.getClass())) {
-					internalFactory = configuration.registry.get(supported);
-					break;
-				}
-			}
-			if (internalFactory != null) {
-				return internalFactory.toXmlStream(dto);
-			} else {
-				throw new RuntimeException(dto.getClass() + " is not supported in this flow");
-			}
-		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to serialize " + dto + " to XML", jaxbe);
-		}
-	}
-
-	public <T extends DTOBase> T dtoFromXml(String xml, Class<T> targetType) {
-		if (targetType == null) {
-			throw new IllegalArgumentException("target type MUST NOT be null");
-		}
-		if (!targetType.isInterface()) {
-			throw new IllegalArgumentException("target type MUST be an Interface");
-		}
-
-		DTOInternalProviderBase internalFactory = null;
-		try {
-			for (Class<? extends DTOBase> supported : configuration.registry.keySet()) {
-				if (supported.equals(targetType)) {
-					internalFactory = configuration.registry.get(supported);
-					break;
-				}
-			}
-			if (internalFactory != null) {
-				return internalFactory.fromXml(xml);
-			} else {
-				throw new RuntimeException(targetType + " is not supported in this flow");
-			}
-		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to deserialize " + xml + " into " + targetType, jaxbe);
-		}
-	}
-
 	public <T extends DTOBase> T dtoFromXmlFile(File xml, Class<T> targetType) {
 		if (targetType == null) {
 			throw new IllegalArgumentException("target type MUST NOT be null");
@@ -239,21 +192,10 @@ public final class DTOFactory {
 			throw new IllegalArgumentException("target type MUST be an Interface");
 		}
 
-		DTOInternalProviderBase internalFactory = null;
 		try {
-			for (Class<? extends DTOBase> supported : configuration.registry.keySet()) {
-				if (supported.equals(targetType)) {
-					internalFactory = configuration.registry.get(supported);
-					break;
-				}
-			}
-			if (internalFactory != null) {
-				return internalFactory.fromXmlFile(xml);
-			} else {
-				throw new RuntimeException(targetType + " is not supported in this flow");
-			}
-		} catch (JAXBException jaxbe) {
-			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType, jaxbe);
+			return configuration.xmlMapper.readValue(xml, targetType);
+		} catch (IOException ioe) {
+			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType, ioe);
 		}
 	}
 
@@ -264,6 +206,7 @@ public final class DTOFactory {
 	public static class DTOConfiguration {
 		private final Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry = new HashMap<>();
 		private final ObjectMapper objectMapper = new ObjectMapper();
+		private final XmlMapper xmlMapper = new XmlMapper();
 		private final List<DTOInternalProviderBase> providers = new LinkedList<>();
 
 		private DTOConfiguration() {
@@ -295,6 +238,9 @@ public final class DTOFactory {
 			SimpleModule module = new SimpleModule();
 			module.setAbstractTypes(resolver);
 			objectMapper.registerModule(module);
+
+			xmlMapper.registerModule(module);
+			xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 		}
 	}
 }
