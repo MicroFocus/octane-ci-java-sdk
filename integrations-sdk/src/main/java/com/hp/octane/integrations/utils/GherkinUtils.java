@@ -26,7 +26,7 @@ public class GherkinUtils {
         writeXmlFile(mqmFilePath, jobId, buildId, result);
     }
 
-    private static List<GherkinTestResult> parseFiles(Collection<File> gherkinFiles) throws ParserConfigurationException, SAXException, IOException {
+    public static List<GherkinTestResult> parseFiles(Collection<File> gherkinFiles) throws ParserConfigurationException, SAXException, IOException {
         List<GherkinTestResult> result = new ArrayList<>();
         for (File file : gherkinFiles) {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
