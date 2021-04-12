@@ -1,6 +1,7 @@
-package com.hp.octane.integrations.utils;
+package com.hp.octane.integrations.testresults;
 
 import com.hp.octane.integrations.dto.tests.TestRunResult;
+import com.hp.octane.integrations.utils.SdkConstants;
 import org.apache.poi.util.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -22,12 +23,12 @@ import java.util.*;
 public class GherkinUtils {
 
     public static void aggregateGherkinFilesToMqmResultFile(Collection<File> gherkinFiles, String mqmFilePath, String jobId, String buildId) throws Exception {
-        List<GherkinTestResult> result = parseFiles(gherkinFiles);
+        List<TestResult> result = parseFiles(gherkinFiles);
         writeXmlFile(mqmFilePath, jobId, buildId, result);
     }
 
-    public static List<GherkinTestResult> parseFiles(Collection<File> gherkinFiles) throws ParserConfigurationException, SAXException, IOException {
-        List<GherkinTestResult> result = new ArrayList<>();
+    public static List<TestResult> parseFiles(Collection<File> gherkinFiles) throws ParserConfigurationException, SAXException, IOException {
+        List<TestResult> result = new ArrayList<>();
         for (File file : gherkinFiles) {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
@@ -201,7 +202,7 @@ public class GherkinUtils {
         }
     }
 
-    private static class GherkinTestResult {
+    public static class GherkinTestResult implements TestResult {
         private Map<String, String> attributes;
         private Element contentElement;
 
@@ -212,15 +213,6 @@ public class GherkinUtils {
             this.attributes.put("status", status.value());
             this.contentElement = xmlElement;
         }
-
-        public Map<String, String> getAttributes() {
-            return attributes;
-        }
-
-        public Element getXmlElement() {
-            return contentElement;
-        }
-
 
         public void writeXmlElement(XMLStreamWriter writer) throws XMLStreamException {
             writer.writeStartElement("gherkin_test_run");
@@ -254,7 +246,7 @@ public class GherkinUtils {
         }
     }
 
-    private static void writeXmlFile(String mqmFilePath, String planName, String buildNumber, List<GherkinTestResult> gherkinTestResults) throws IOException, XMLStreamException {
+    private static void writeXmlFile(String mqmFilePath, String planName, String buildNumber, List<TestResult> gherkinTestResults) throws IOException, XMLStreamException {
         FileOutputStream outputStream = new FileOutputStream(mqmFilePath);
         try {
             XMLStreamWriter writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream, "UTF-8");
@@ -269,7 +261,7 @@ public class GherkinUtils {
                 //  writeFields(resultFields);
                 writer.writeStartElement("test_runs");
 
-                for (GherkinTestResult g : gherkinTestResults) {
+                for (TestResult g : gherkinTestResults) {
                     g.writeXmlElement(writer);
                 }
                 writer.writeEndElement(); // test_runs
