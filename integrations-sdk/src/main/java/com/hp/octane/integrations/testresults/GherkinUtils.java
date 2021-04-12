@@ -5,7 +5,6 @@ import com.hp.octane.integrations.utils.SdkConstants;
 import org.apache.poi.util.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -59,7 +58,7 @@ public class GherkinUtils {
                 throw new IllegalArgumentException("\n********************************************************\n" +
                         "Incompatible xml version received from the Octane formatter.\n" +
                         "expected version = " + XML_VERSION + " actual version = " + versionAttr + ".\n" +
-                        "You may need to update the octane formatter version to the correct version in order to work with this jenkins plugin\n" +
+                        "You may need to update the octane formatter version to the correct version in order to work with this plugin\n" +
                         "********************************************************");
             }
         } else {
@@ -198,50 +197,6 @@ public class GherkinUtils {
                     }
                 }
                 return scenarioName;
-            }
-        }
-    }
-
-    public static class GherkinXmlWritableTestResult implements XmlWritableTestResult {
-        private Map<String, String> attributes;
-        private Element contentElement;
-
-        public GherkinXmlWritableTestResult(String name, Element xmlElement, long duration, TestRunResult status) {
-            this.attributes = new HashMap<>();
-            this.attributes.put("name", name);
-            this.attributes.put("duration", String.valueOf(duration));
-            this.attributes.put("status", status.value());
-            this.contentElement = xmlElement;
-        }
-
-        public void writeXmlElement(XMLStreamWriter writer) throws XMLStreamException {
-            writer.writeStartElement("gherkin_test_run");
-            if (attributes != null) {
-                for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                    writer.writeAttribute(entry.getKey(), entry.getValue());
-                }
-            }
-            writeXmlElement(writer, contentElement);
-            writer.writeEndElement();
-        }
-
-        private void writeXmlElement(XMLStreamWriter writer, Element rootElement) throws XMLStreamException {
-            if (rootElement != null) {
-                writer.writeStartElement(rootElement.getTagName());
-                for (int a = 0; a < rootElement.getAttributes().getLength(); a++) {
-                    String attrName = rootElement.getAttributes().item(a).getNodeName();
-                    writer.writeAttribute(attrName, rootElement.getAttribute(attrName));
-                }
-                NodeList childNodes = rootElement.getChildNodes();
-                for (int c = 0; c < childNodes.getLength(); c++) {
-                    Node child = childNodes.item(c);
-                    if (child instanceof Element) {
-                        writeXmlElement(writer, (Element) child);
-                    } else if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
-                        writer.writeCharacters(child.getNodeValue());
-                    }
-                }
-                writer.writeEndElement();
             }
         }
     }
