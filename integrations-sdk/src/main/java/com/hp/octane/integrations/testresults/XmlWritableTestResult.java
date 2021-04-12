@@ -31,7 +31,7 @@ package com.hp.octane.integrations.testresults;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-public interface TestResult {
+public interface XmlWritableTestResult {
 
   /**
    * Writes an XML element from the test result
