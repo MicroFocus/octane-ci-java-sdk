@@ -25,5 +25,8 @@ public class SdkConstants {
 
     public static class General{
         public static final String JOB_PARENT_DELIMITER = ";";
+
+        public static final String INSTANCE_ID_TO_BE_SET_IN_SDK = "to-be-filled-in-SDK";
+        public static final String MQM_TESTS_FILE_NAME = "mqmTests.xml";
     }
 }

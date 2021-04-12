@@ -45,7 +45,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URISyntaxException;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -107,7 +110,6 @@ final class TestsServiceImpl implements TestsService {
 		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
 	}
 
-	@Override
 	public boolean isTestsResultRelevant(String jobId, String rootJobId) {
 		String serverCiId = configurer.octaneConfiguration.getInstanceId();
 		if (jobId == null || jobId.isEmpty()) {
@@ -158,7 +160,6 @@ final class TestsServiceImpl implements TestsService {
 		return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
 	}
 
-	@Override
 	public OctaneResponse pushTestsResult(TestsResult testsResult, String jobId, String buildId) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
@@ -175,7 +176,6 @@ final class TestsServiceImpl implements TestsService {
 		return pushTestsResult(testsResultAsStream, jobId, buildId);
 	}
 
-	@Override
 	public OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
@@ -304,16 +304,21 @@ final class TestsServiceImpl implements TestsService {
 				return;
 			}
 
-			//  [YG] TODO: TEMPORARY SOLUTION - ci server ID, job ID and build ID should move to become a query parameters
-			try {
-				String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResultA);
-				testResultXML = testResultXML.replaceAll("<build.*?>",
-						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>")
-				.replace("</build>","");//remove closing build element if exist
+			if (!this.configurationService.isOctaneVersionGreaterOrEqual("15.1.60")) {
+				try {
+					//for 15.1.60 - instance id is passed by query param
+					//for earlier version - instance id is part of test result body
+					String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResultA);
+					testResultXML = testResultXML.replaceAll("<build.*?>",
+							"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>")
+							.replace("</build>", "");//remove closing build element if exist
 
-				testsResultB = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
-			} catch (Exception e) {
-				throw new PermanentException("failed to update ci server instance ID in the test results XML");
+					testsResultB = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
+				} catch (Exception e) {
+					throw new PermanentException("failed to update ci server instance ID in the test results XML");
+				}
+			} else {
+				testsResultB = testsResultA;
 			}
 
 			//  push
