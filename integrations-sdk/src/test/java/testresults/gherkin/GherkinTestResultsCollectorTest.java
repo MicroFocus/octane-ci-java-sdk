@@ -30,7 +30,6 @@ package testresults.gherkin;
 
 import com.hp.octane.integrations.testresults.GherkinUtils;
 import com.hp.octane.integrations.testresults.GherkinXmlWritableTestResult;
-import com.hp.octane.integrations.testresults.TestResultStatus;
 import com.hp.octane.integrations.testresults.XmlWritableTestResult;
 import org.junit.Assert;
 import org.junit.Test;
@@ -76,9 +75,9 @@ public class GherkinTestResultsCollectorTest {
     public void testGetResults() throws ParserConfigurationException, IOException, SAXException {
         List<XmlWritableTestResult> gherkinTestsResults = GherkinUtils.parseFiles(getFilesFromFolder("f1"));
         Assert.assertEquals(3, gherkinTestsResults.size());
-        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(0), "test Feature1", 21, TestResultStatus.FAILED);
-        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(1), "test Feature10", 21, TestResultStatus.FAILED);
-        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(2), "test Feature2", 21, TestResultStatus.PASSED);
+        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(0), "test Feature1", 21, "Failed");
+        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(1), "test Feature10", 21, "Failed");
+        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(2), "test Feature2", 21, "Passed");
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -91,15 +90,15 @@ public class GherkinTestResultsCollectorTest {
         GherkinUtils.parseFiles(Arrays.asList(new File(getRootResource("f3", file1))));
     }
 
-    private void validateGherkinTestResult(GherkinXmlWritableTestResult gherkinTestResult, String name, long duration, TestResultStatus status) {
+    private void validateGherkinTestResult(GherkinXmlWritableTestResult gherkinTestResult, String name, long duration, String status) {
         validateAttributes(gherkinTestResult, name, duration, status);
         Assert.assertNotNull(gherkinTestResult.getXmlElement());
     }
 
-    private void validateAttributes(GherkinXmlWritableTestResult gherkinTestResult, String name, long duration, TestResultStatus status) {
+    private void validateAttributes(GherkinXmlWritableTestResult gherkinTestResult, String name, long duration, String status) {
         Map<String, String> attributes = gherkinTestResult.getAttributes();
         Assert.assertEquals(name, attributes.get("name"));
         Assert.assertEquals(String.valueOf(duration), attributes.get("duration"));
-        Assert.assertEquals(status.toPrettyName(), attributes.get("status"));
+        Assert.assertEquals(status, attributes.get("status"));
     }
 }
