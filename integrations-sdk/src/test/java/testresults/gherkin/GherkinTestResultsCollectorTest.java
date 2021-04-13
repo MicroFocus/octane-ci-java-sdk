@@ -61,9 +61,9 @@ public class GherkinTestResultsCollectorTest {
         return path;
     }
 
-    private List<File> getFilesFromFolder(String folder){
-        return Arrays.asList(new File(getRootResource(folder,file0)),
-                new File(getRootResource(folder,file1)));
+    private List<File> getFilesFromFolder(String folder) {
+        return Arrays.asList(new File(getRootResource(folder, file0)),
+                new File(getRootResource(folder, file1)));
     }
 
     @Test
@@ -88,6 +88,14 @@ public class GherkinTestResultsCollectorTest {
     @Test(expected = IllegalArgumentException.class)
     public void testXmlHasHigherVersion() throws ParserConfigurationException, IOException, SAXException {
         GherkinUtils.parseFiles(Arrays.asList(new File(getRootResource("f3", file1))));
+    }
+
+    @Test
+    public void testTemplateWithCounter() {
+        String folder = new File(getRootResource("f3", file0)).getParent();
+        List<File> files = GherkinUtils.findGherkinFilesByTemplateWithCounter(folder, "OctaneGherkinResults%s.xml", 0);
+        Assert.assertEquals(file0, files.get(0).getName());
+        Assert.assertEquals(file1, files.get(1).getName());
     }
 
     private void validateGherkinTestResult(GherkinXmlWritableTestResult gherkinTestResult, String name, long duration, String status) {

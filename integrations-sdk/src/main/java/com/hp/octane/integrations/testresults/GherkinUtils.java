@@ -17,7 +17,9 @@ import javax.xml.stream.XMLStreamWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class GherkinUtils {
 
@@ -48,6 +50,30 @@ public class GherkinUtils {
         }
         return result;
     }
+
+    /**
+     * Find all files according to template
+     * @param folder folder to search
+     * @param fileTemplate for example GherkinResults_%s
+     * @param counterStart     initial file index
+     * @return
+     */
+
+    public static List<File> findGherkinFilesByTemplateWithCounter(String folder, String fileTemplate, int counterStart) {
+        List<File> result = new ArrayList<>();
+        int i = counterStart;
+        while (true) {
+            File file = new File(folder, String.format(fileTemplate, i++));
+            if (file.exists()) {
+                result.add(file);
+            } else {
+                break;
+            }
+        }
+
+        return result;
+    }
+
 
     private static void validateXMLVersion(Document doc) {
         String XML_VERSION = "1";
