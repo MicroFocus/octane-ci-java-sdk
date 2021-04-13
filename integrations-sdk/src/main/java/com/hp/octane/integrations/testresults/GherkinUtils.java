@@ -23,9 +23,9 @@ import java.util.List;
 
 public class GherkinUtils {
 
-    public static void aggregateGherkinFilesToMqmResultFile(Collection<File> gherkinFiles, String mqmFilePath, String jobId, String buildId) throws Exception {
+    public static void aggregateGherkinFilesToMqmResultFile(Collection<File> gherkinFiles, File mqmFile, String jobId, String buildId) throws Exception {
         List<XmlWritableTestResult> result = parseFiles(gherkinFiles);
-        writeXmlFile(mqmFilePath, jobId, buildId, result);
+        writeXmlFile(mqmFile, jobId, buildId, result);
     }
 
     public static List<XmlWritableTestResult> parseFiles(Collection<File> gherkinFiles) throws ParserConfigurationException, SAXException, IOException {
@@ -227,8 +227,8 @@ public class GherkinUtils {
         }
     }
 
-    private static void writeXmlFile(String mqmFilePath, String planName, String buildNumber, List<XmlWritableTestResult> gherkinXmlWritableTestResults) throws IOException, XMLStreamException {
-        FileOutputStream outputStream = new FileOutputStream(mqmFilePath);
+    private static void writeXmlFile(File mqmFile, String planName, String buildNumber, List<XmlWritableTestResult> gherkinXmlWritableTestResults) throws IOException, XMLStreamException {
+        FileOutputStream outputStream = new FileOutputStream(mqmFile);
         try {
             XMLStreamWriter writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream, "UTF-8");
             if (!gherkinXmlWritableTestResults.isEmpty()) {
