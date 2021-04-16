@@ -31,12 +31,14 @@ import com.hp.octane.integrations.dto.events.impl.DTOEventsProvider;
 import com.hp.octane.integrations.dto.executor.impl.DTOExecutorsProvider;
 import com.hp.octane.integrations.dto.general.impl.DTOGeneralProvider;
 import com.hp.octane.integrations.dto.parameters.impl.DTOParametersProvider;
-import com.hp.octane.integrations.dto.securityscans.impl.DTOSecurityContextProvider;
 import com.hp.octane.integrations.dto.pipelines.impl.DTOPipelinesProvider;
 import com.hp.octane.integrations.dto.scm.impl.DTOSCMProvider;
+import com.hp.octane.integrations.dto.securityscans.impl.DTOSecurityContextProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOJUnitTestsProvider;
 import com.hp.octane.integrations.dto.tests.impl.DTOTestsProvider;
 
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -86,7 +88,7 @@ public final class DTOFactory {
 	}
 
 	public <T extends DTOBase> InputStream dtoToXmlStream(T dto) {
-		return dtoToStream(dto,configuration.xmlMapper);
+		return dtoToStream(dto, configuration.getXmlMapper());
 	}
 
 	private <T extends DTOBase> InputStream dtoToStream(T dto, ObjectMapper objectMapper) {
@@ -107,7 +109,7 @@ public final class DTOFactory {
 	}
 
 	public <T extends DTOBase> String dtoToXml(T dto) {
-		return dtoToString(dto, configuration.xmlMapper);
+		return dtoToString(dto, configuration.getXmlMapper());
 	}
 
 	private <T extends DTOBase> String dtoToString(T dto , ObjectMapper objectMapper) {
@@ -151,7 +153,7 @@ public final class DTOFactory {
 	}
 
 	public <T extends DTOBase> T dtoFromXml(String json, Class<T> targetType) {
-		return dtoFromString(json,targetType,configuration.xmlMapper);
+		return dtoFromString(json,targetType, configuration.getXmlMapper());
 	}
 
 	private  <T extends DTOBase> T dtoFromString(String string, Class<T> targetType, ObjectMapper objectMapper) {
@@ -193,7 +195,7 @@ public final class DTOFactory {
 		}
 
 		try {
-			return configuration.xmlMapper.readValue(xml, targetType);
+			return configuration.getXmlMapper().readValue(xml, targetType);
 		} catch (IOException ioe) {
 			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType, ioe);
 		}
@@ -203,11 +205,25 @@ public final class DTOFactory {
 		private static final DTOFactory instance = new DTOFactory();
 	}
 
+	/***
+	 * For bamboo plugin, input and output factories are created in another classloader
+	 * @param xmlInputFactory
+	 * @param xmlOutputFactory
+	 */
+	public void initXmlMapper(XMLInputFactory xmlInputFactory, XMLOutputFactory xmlOutputFactory){
+		configuration.initXmlMapper(xmlInputFactory, xmlOutputFactory);
+	}
+
+	public  XMLOutputFactory getXMLOutputFactory(){
+		return configuration.getXmlMapper().getFactory().getXMLOutputFactory();
+	}
+
 	public static class DTOConfiguration {
 		private final Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry = new HashMap<>();
 		private final ObjectMapper objectMapper = new ObjectMapper();
-		private final XmlMapper xmlMapper = new XmlMapper();
+		private XmlMapper xmlMapper = null;
 		private final List<DTOInternalProviderBase> providers = new LinkedList<>();
+		private SimpleModule module;
 
 		private DTOConfiguration() {
 			//  collect all known providers
@@ -235,12 +251,27 @@ public final class DTOFactory {
 					resolver.addMapping(dtoPair.getKey(), dtoPair.getValue());
 				}
 			}
-			SimpleModule module = new SimpleModule();
+			module = new SimpleModule();
 			module.setAbstractTypes(resolver);
 			objectMapper.registerModule(module);
 
+		}
+
+		private void initXmlMapper(XmlMapper mapper) {
+			xmlMapper = mapper;
 			xmlMapper.registerModule(module);
 			xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		}
+
+		public void initXmlMapper(XMLInputFactory xmlInputFactory, XMLOutputFactory xmlOutputFactory) {
+			initXmlMapper(new XmlMapper(xmlInputFactory, xmlOutputFactory));
+		}
+
+		public XmlMapper getXmlMapper() {
+			if (xmlMapper == null) {
+				initXmlMapper(new XmlMapper());
+			}
+			return xmlMapper;
 		}
 	}
 }

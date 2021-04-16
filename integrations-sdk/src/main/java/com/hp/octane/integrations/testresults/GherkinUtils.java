@@ -1,5 +1,6 @@
 package com.hp.octane.integrations.testresults;
 
+import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 import com.hp.octane.integrations.utils.SdkConstants;
 import org.apache.poi.util.IOUtils;
@@ -11,7 +12,6 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import java.io.File;
@@ -230,7 +230,7 @@ public class GherkinUtils {
     private static void writeXmlFile(File mqmFile, String planName, String buildNumber, List<XmlWritableTestResult> gherkinXmlWritableTestResults) throws IOException, XMLStreamException {
         FileOutputStream outputStream = new FileOutputStream(mqmFile);
         try {
-            XMLStreamWriter writer = XMLOutputFactory.newInstance().createXMLStreamWriter(outputStream, "UTF-8");
+            XMLStreamWriter writer = DTOFactory.getInstance().getXMLOutputFactory().createXMLStreamWriter(outputStream, "UTF-8");
             if (!gherkinXmlWritableTestResults.isEmpty()) {
                 writer.writeStartDocument("UTF-8", "1.0");
                 writer.writeStartElement("test_result");
