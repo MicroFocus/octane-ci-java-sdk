@@ -261,6 +261,7 @@ public final class DTOFactory {
 			xmlMapper = mapper;
 			xmlMapper.registerModule(module);
 			xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+			//xmlMapper.getFactory().getXMLOutputFactory().setProperty("javax.xml.stream.isRepairingNamespaces", false);
 		}
 
 		public void initXmlMapper(XMLInputFactory xmlInputFactory, XMLOutputFactory xmlOutputFactory) {

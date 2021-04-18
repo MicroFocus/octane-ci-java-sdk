@@ -31,19 +31,19 @@ import java.net.URL;
 
 final class LoggingServiceImpl implements LoggingService {
     private static final Logger logger = LogManager.getLogger(LoggingServiceImpl.class);
-    private static final String OCTANE_ALLOWED_STORAGE_LOCATION = "octaneAllowedStorage";
-    private final Object INIT_LOCKER = new Object();
+
+
     private final OctaneSDK.SDKServicesConfigurer configurer;
     private boolean isShutdown;
 
-    private static LoggerContext commonLoggerContext;
+    private final LoggerContext commonLoggerContext;
 
     LoggingServiceImpl(OctaneSDK.SDKServicesConfigurer configurer) {
         if (configurer == null) {
             throw new IllegalArgumentException("invalid configurer");
         }
         this.configurer = configurer;
-        configureLogger();
+        commonLoggerContext = CommonLoggerContextUtil.configureLogger(configurer.pluginServices.getAllowedOctaneStorage());
         logger.info(configurer.octaneConfiguration.geLocationForLog() + "logger is configured");
     }
 
@@ -61,36 +61,5 @@ final class LoggingServiceImpl implements LoggingService {
         return isShutdown;
     }
 
-    private void configureLogger() {
-        File file = configurer.pluginServices.getAllowedOctaneStorage();
-        if (file != null && (file.isDirectory() || !file.exists())) {
-            synchronized (INIT_LOCKER) {
-                if (commonLoggerContext == null) {
-                    commonLoggerContext = LoggerContext.getContext(false);
-                }
 
-                if (!commonLoggerContext.isStarted()) {
-                    commonLoggerContext.start();
-                }
-                System.setProperty(OCTANE_ALLOWED_STORAGE_LOCATION, file.getAbsolutePath() + File.separator);
-
-                commonLoggerContext.reconfigure();
-
-                //case for team city, that cannot find log4j
-                if (commonLoggerContext.getConfiguration() == null ||
-                        !(commonLoggerContext.getConfiguration() instanceof XmlConfiguration)) {
-
-                    URL path = this.getClass().getClassLoader().getResource("log4j2.xml");
-                    if (path != null) {
-                        try {
-                            commonLoggerContext.setConfigLocation(path.toURI());
-                            //reconfigure is called inside
-                        } catch (URISyntaxException e) {
-                            //failed to convert to URI
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
