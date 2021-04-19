@@ -94,7 +94,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 			throw new IllegalArgumentException("task 'URL' expected to contain '" + NGA_API + "'; wrong handler call?");
 		}
 		long startTime = System.currentTimeMillis();
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "processing task '" + task.getId() + "': " + task.getMethod() + " " + task.getUrl());
 
 		OctaneResultAbridged result = DTOFactory.getInstance().newDTO(OctaneResultAbridged.class);
 		result.setId(task.getId());
@@ -167,23 +167,23 @@ final class TasksProcessorImpl implements TasksProcessor {
 				result.setStatus(HttpStatus.SC_NOT_FOUND);
 			}
 		} catch (ErrorCodeBasedException pe) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "task execution failed; error: " + pe.getErrorCode() +", message : " + pe.getMessage());
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "task execution failed; error: " + pe.getErrorCode() +", message : " + pe.getMessage());
 			result.setStatus(pe.getErrorCode());
 			result.setBody(String.valueOf(pe.getErrorCode()));
 		} catch (SPIMethodNotImplementedException spimnie) {
 			result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
 		} catch (Throwable e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "task execution failed", e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + "task execution failed", e);
 			result.setStatus(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
 			TaskProcessingErrorBody errorBody = dtoFactory.newDTO(TaskProcessingErrorBody.class)
 					.setErrorMessage("Task " + task.getUrl() + " is failed. Server error message: " + e.getMessage());
 			result.setBody(dtoFactory.dtoToJson(errorBody));
 			result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "OctaneResultAbridged.execute failed : " + e.getMessage());
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "OctaneResultAbridged.execute failed : " + e.getMessage());
 		}
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "result for task '" + task.getId() + "' available with status " + result.getStatus() +", processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + task.getId() + "' available with status " + result.getStatus() +", processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
 		return result;
 	}
 
@@ -191,26 +191,26 @@ final class TasksProcessorImpl implements TasksProcessor {
 	public Future<Boolean> resetJobListCache() {
 		if (ConfigurationParameterFactory.jobListCacheAllowed(configurer.octaneConfiguration) && !configurer.octaneConfiguration.isDisabled()) {
 			return jobListCacheExecutor.submit(() -> {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache submitted");
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "resetJobListCache submitted");
 				try {
 					long startTime = System.currentTimeMillis();
 					CIJobsList content = configurer.pluginServices.getJobsList(true, null);
 					if (content != null) {
 						jobListCacheItem = CacheItem.create(content);
-						logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: cache is reset, found " + content.getJobs().length + " jobs, processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+						logger.info(configurer.octaneConfiguration.getLocationForLog() + "resetJobListCache: cache is reset, found " + content.getJobs().length + " jobs, processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
 						return true;
 					} else {
-						logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache: failed to update cache. Content is empty.");
+						logger.info(configurer.octaneConfiguration.getLocationForLog() + "resetJobListCache: failed to update cache. Content is empty.");
 						return false;
 					}
 				} catch (Exception e) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "Failed to resetJobListCache : " + e.getMessage());
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "Failed to resetJobListCache : " + e.getMessage());
 					return false;
 				}
 			});
 		} else {
 			if (jobListCacheItem != null) {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetJobListCache : cache is cleared");
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "resetJobListCache : cache is cleared");
 			}
 			jobListCacheItem = null;
 			return CompletableFuture.completedFuture(false);
@@ -281,7 +281,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 				}
 				CIJobsList content = myJobListCacheItem.value;
 				result.setBody(dtoFactory.dtoToJson(content));
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: cache is used, found " +
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "executeJobsListRequest: cache is used, found " +
 						content.getJobs().length + " jobs, body size is " + result.getBody().length());
 				cacheIsUsed = true;
 			}
@@ -296,7 +296,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 				if (cacheAllowed) {
 					jobListCacheItem = CacheItem.create(content);
 				}
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "executeJobsListRequest: found " +
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "executeJobsListRequest: found " +
 						content.getJobs().length + " jobs, body size is " + result.getBody().length());
 			} else {
 				TaskProcessingErrorBody errorMessage = dtoFactory.newDTO(TaskProcessingErrorBody.class)
@@ -324,7 +324,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executePipelineRunExecuteRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "RunExecute job " + jobId);
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "RunExecute job " + jobId);
 		configurationService.addToOctaneRootsCache(jobId);//test runner started from here, so it will be added to cache
 		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
 		configurer.pluginServices.runPipeline(jobId, ciParameters);
@@ -332,7 +332,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	}
 
 	private void executePipelineRunStopRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "RunStop job " + jobId);
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "RunStop job " + jobId);
 		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
 		configurer.pluginServices.stopPipelineRun(jobId, ciParameters);
 		result.setStatus(HttpStatus.SC_OK);

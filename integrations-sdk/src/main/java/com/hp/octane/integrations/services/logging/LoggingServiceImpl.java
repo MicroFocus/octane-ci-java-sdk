@@ -19,11 +19,6 @@ import com.hp.octane.integrations.OctaneSDK;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
-import org.apache.logging.log4j.core.config.xml.XmlConfiguration;
-
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 /**
  * Service for management logging capabilities of the plugin (SDK); currently meant for the internal usage only
@@ -44,13 +39,13 @@ final class LoggingServiceImpl implements LoggingService {
         }
         this.configurer = configurer;
         commonLoggerContext = CommonLoggerContextUtil.configureLogger(configurer.pluginServices.getAllowedOctaneStorage());
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "logger is configured");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "logger is configured");
     }
 
     @Override
     public void shutdown() {
         if (OctaneSDK.getClients().isEmpty() && commonLoggerContext != null) {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "last client is closing; general logger context is STOPPING");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "last client is closing; general logger context is STOPPING");
             commonLoggerContext.stop();
             isShutdown = true;
         }

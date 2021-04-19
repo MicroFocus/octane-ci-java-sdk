@@ -92,9 +92,9 @@ class CoverageServiceImpl implements CoverageService {
 			coveragePushQueue = queueingService.initMemoQueue();
 		}
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		coveragePushExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + coveragePushQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY (backed by " + coveragePushQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
@@ -108,16 +108,16 @@ class CoverageServiceImpl implements CoverageService {
 			try {
 				coverageQueueItem = coveragePushQueue.peek();
 				pushCoverageWithPreflight(coverageQueueItem);
-				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully processed " + coverageQueueItem);
+				logger.debug(configurer.octaneConfiguration.getLocationForLog() + "successfully processed " + coverageQueueItem);
 				coveragePushQueue.remove();
 			} catch (TemporaryException te) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + coverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "temporary error on " + coverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pe) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + coverageQueueItem + ", passing over", pe);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "permanent error on " + coverageQueueItem + ", passing over", pe);
 				coveragePushQueue.remove();
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build coverage item '" + coverageQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected error on build coverage item '" + coverageQueueItem + "', passing over", t);
 				coveragePushQueue.remove();
 			}
 		}
@@ -161,10 +161,10 @@ class CoverageServiceImpl implements CoverageService {
 			try {
 				String[] wss = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
 				if (wss.length > 0) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "coverage of " + jobId + " found " + wss.length + " interested workspace/s in Octane, dispatching the coverage");
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "coverage of " + jobId + " found " + wss.length + " interested workspace/s in Octane, dispatching the coverage");
 					result = true;
 				} else {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "coverage of " + jobId + ", found no interested workspace in Octane");
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "coverage of " + jobId + ", found no interested workspace in Octane");
 				}
 			} catch (IOException ioe) {
 				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
@@ -268,14 +268,14 @@ class CoverageServiceImpl implements CoverageService {
 		//  get coverage report content
 		InputStream coverageReport = configurer.pluginServices.getCoverageReport(queueItem.jobId, queueItem.buildId, queueItem.reportFileName);
 		if (coverageReport == null) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "no log for " + queueItem + " found, abandoning");
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "no log for " + queueItem + " found, abandoning");
 			return;
 		}
 
 		//  push coverage
 		OctaneResponse response = pushCoverage(queueItem.jobId, queueItem.buildId, queueItem.reportType, coverageReport);
 		if (response.getStatus() == HttpStatus.SC_OK) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed coverage of " + queueItem + ", CorrelationId - " + response.getCorrelationId());
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "successfully pushed coverage of " + queueItem + ", CorrelationId - " + response.getCorrelationId());
 		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("temporary failed to push coverage of " + queueItem + ", status: " + HttpStatus.SC_SERVICE_UNAVAILABLE);
 		} else {

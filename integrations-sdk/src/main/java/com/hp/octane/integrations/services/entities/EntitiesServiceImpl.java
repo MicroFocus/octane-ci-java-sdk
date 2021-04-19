@@ -70,7 +70,7 @@ final class EntitiesServiceImpl implements EntitiesService {
         }
         this.configurer = configurer;
         this.restService = restService;
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY");
     }
 
     @Override

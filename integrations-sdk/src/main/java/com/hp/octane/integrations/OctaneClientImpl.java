@@ -97,12 +97,12 @@ final class OctaneClientImpl implements OctaneClient {
         configurationService = ConfigurationService.newInstance(configurer, restService);
 
         if (configurer.octaneConfiguration.isSuspended()) {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "Client is SUSPENDED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         refreshSdkSupported();
         if (!configurer.octaneConfiguration.isSdkSupported()) {
-            logger.error(configurer.octaneConfiguration.geLocationForLog() + "Client is DISABLED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
+            logger.error(configurer.octaneConfiguration.getLocationForLog() + "Client is DISABLED: " + OctaneConnectivityException.UNSUPPORTED_SDK_VERSION_MESSAGE);
         }
 
         //  independent services init
@@ -136,28 +136,28 @@ final class OctaneClientImpl implements OctaneClient {
         //  register shutdown hook to allow graceful shutdown of services/resources
         shutdownHook = new Thread(() -> {
             String instanceId = configurer.octaneConfiguration.getInstanceId();
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "closing OctaneClient " + instanceId + " as per Runtime shutdown request...");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
             try {
                 this.isShutdownHookActivated = true;
                 this.shutdownHookActivatedTime = System.currentTimeMillis();
                 this.close();
             } catch (Throwable throwable) {
-                logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed during shutdown of OctaneClient " + instanceId, throwable);
+                logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed during shutdown of OctaneClient " + instanceId, throwable);
             } finally {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "...OctaneClient " + instanceId + " CLOSED");
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "...OctaneClient " + instanceId + " CLOSED");
             }
         });
         Runtime.getRuntime().addShutdownHook(shutdownHook);
 
         configurer.octaneConfiguration.getParameterNames().forEach(paramName -> {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + String.format("System parameter %s:%s", paramName,
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + String.format("System parameter %s:%s", paramName,
                     configurer.octaneConfiguration.getParameter(paramName).getRawValue()));
         });
 
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId());
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "OctaneClient initialized with instance ID: " + configurer.octaneConfiguration.getInstanceId());
     }
 
     @Override
@@ -165,9 +165,9 @@ final class OctaneClientImpl implements OctaneClient {
         OctaneConnectivityStatus octaneConnectivityStatus = configurationService.getOctaneConnectivityStatus();
         if (octaneConnectivityStatus != null) {
             configurer.octaneConfiguration.setSdkSupported(CIPluginSDKUtils.isSdkSupported(octaneConnectivityStatus));
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "sdkSupported = " + configurer.octaneConfiguration.isSdkSupported());
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "sdkSupported = " + configurer.octaneConfiguration.isSdkSupported());
         } else {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "refreshSdkSupported : octaneConnectivityStatus==null");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "refreshSdkSupported : octaneConnectivityStatus==null");
         }
     }
 
@@ -290,23 +290,23 @@ final class OctaneClientImpl implements OctaneClient {
      * use-cases: OctaneClient configuration being removed from consumer's application
      */
     void remove() {
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "Removing client");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "Removing client");
         //  shut down services
         close();
 
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "Removing client - services closed");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "Removing client - services closed");
 
         //  clean storage
         if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
             String instanceId = configurer.octaneConfiguration.getInstanceId();
             File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
             if (deleteFolder(instanceOrientedStorage)) {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "cleaned dedicated storage");
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "cleaned dedicated storage");
             } else {
-                logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to clean dedicated storage");
+                logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to clean dedicated storage");
             }
         }
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "Removing client done");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "Removing client done");
     }
 
     private void ensureStorageIfAny() {
@@ -314,11 +314,11 @@ final class OctaneClientImpl implements OctaneClient {
             String instanceId = configurer.octaneConfiguration.getInstanceId();
             File instanceOrientedStorage = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + instanceId);
             if (instanceOrientedStorage.exists()) {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "dedicated storage is exist for instance " + configurer.octaneConfiguration.getInstanceId());
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "dedicated storage is exist for instance " + configurer.octaneConfiguration.getInstanceId());
             } else if (instanceOrientedStorage.mkdirs()) {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "dedicated storage is created for instance " + configurer.octaneConfiguration.getInstanceId());
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "dedicated storage is created for instance " + configurer.octaneConfiguration.getInstanceId());
             } else {
-                logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to create dedicated storage : " + instanceOrientedStorage.getAbsolutePath());
+                logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to create dedicated storage : " + instanceOrientedStorage.getAbsolutePath());
             }
         }
     }
@@ -340,7 +340,7 @@ final class OctaneClientImpl implements OctaneClient {
     @Override
     public Map<String, Object> getMetrics() {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put("location", configurer.octaneConfiguration.geLocationForLog());
+        map.put("location", configurer.octaneConfiguration.getLocationForLog());
         map.put("instanceId", configurer.octaneConfiguration.getInstanceId());
         map.put("sdkSupported", configurer.octaneConfiguration.isSdkSupported());
         map.put("isDisabled", configurer.octaneConfiguration.isDisabled());

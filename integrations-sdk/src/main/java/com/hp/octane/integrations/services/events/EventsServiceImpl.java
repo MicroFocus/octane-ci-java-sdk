@@ -94,9 +94,9 @@ final class EventsServiceImpl implements EventsService {
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 		workerPreflight.setWaitAfterConnection(false);
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		eventsPushExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
 	@Override
@@ -116,7 +116,7 @@ final class EventsServiceImpl implements EventsService {
 			if (!configurationService.isRelevantForOctane(parents)) {
 				if (CIEventType.STARTED.equals(event.getEventType())) {
 					String eventStr = event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", parents : " + parents;
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "Event is ignored : " + eventStr);
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "Event is ignored : " + eventStr);
 				}
 				return;
 			}
@@ -125,7 +125,7 @@ final class EventsServiceImpl implements EventsService {
 		events.add(event);
 		int eventsSize = events.size();
 		if (eventsSize > MAX_EVENTS_TO_KEEP) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
 			while (events.size() > MAX_EVENTS_TO_KEEP) {        //  in this case we need to read the real-time size of the list
 				events.remove(0);
 			}
@@ -178,7 +178,7 @@ final class EventsServiceImpl implements EventsService {
 						.setServer(serverInfo)
 						.setEvents(eventsChunk);
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() +"failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
+				logger.error(configurer.octaneConfiguration.getLocationForLog() +"failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
 				removeEvents(eventsChunk);
 				continue;
 			}
@@ -190,21 +190,21 @@ final class EventsServiceImpl implements EventsService {
 				sendEventsData(eventsSnapshot, correlationId);
 				removeEvents(eventsChunk);
 				if (events.size() > 0) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "left to send " + events.size() + " events");
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "left to send " + events.size() + " events");
 				}
 			} catch (RequestTimeoutException rte){
 				requestTimeoutCount++;
 				lastRequestTimeoutTime = System.currentTimeMillis();
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + rte.getMessage());
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + rte.getMessage());
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
 			} catch (TemporaryException tqie) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
 			} catch (PermanentException pqie) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with permanent error, dropping this chunk and continue", pqie);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to send events with permanent error, dropping this chunk and continue", pqie);
 				removeEvents(eventsChunk);
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with unexpected error, dropping this chunk and continue", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to send events with unexpected error, dropping this chunk and continue", t);
 				removeEvents(eventsChunk);
 			}
 		}
@@ -243,17 +243,17 @@ final class EventsServiceImpl implements EventsService {
 				eventsStringified.add(str);
 
 			}
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s. Correlation ID - " + correlationId);
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s. Correlation ID - " + correlationId);
 
 			if (ConfigurationParameterFactory.isLogEvents(configurer.octaneConfiguration)) {
 				for (CIEvent event : eventsList.getEvents()) {
-					String str = String.format("%s%s:%s:%s %s", configurer.octaneConfiguration.geLocationForLog(), event.getProject(), event.getBuildCiId(),
+					String str = String.format("%s%s:%s:%s %s", configurer.octaneConfiguration.getLocationForLog(), event.getProject(), event.getBuildCiId(),
 							event.getEventType(), dtoFactory.dtoToJson(event));
 					logger.info(eventsMarker, str);
 				}
 			}
 		} catch (Exception e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to log events to be sent", e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to log events to be sent", e);
 		}
 	}
 

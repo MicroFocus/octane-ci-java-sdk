@@ -75,7 +75,7 @@ public final class OctaneSDK {
 
 		//  validate instance ID uniqueness
 		String instanceId = octaneConfiguration.getInstanceId();
-		logger.info(octaneConfiguration.geLocationForLog() + "Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
+		logger.info(octaneConfiguration.getLocationForLog() + "Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
 
 		if (!isInstanceIdUnique(instanceId)) {
 			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
@@ -106,7 +106,7 @@ public final class OctaneSDK {
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
 		long initTime = ((System.currentTimeMillis() - startTime) / 1000);
-		logger.info(octaneConfiguration.geLocationForLog() + "OctaneClient is initialized SUCCESSFULLY in " + initTime + " sec.");
+		logger.info(octaneConfiguration.getLocationForLog() + "OctaneClient is initialized SUCCESSFULLY in " + initTime + " sec.");
 		return newInstance;
 	}
 
@@ -228,7 +228,7 @@ public final class OctaneSDK {
 			List<Entity> workspaces = entitiesService.getEntities(null/*no workspace*/, EntityConstants.Workspaces.COLLECTION_NAME, null/*no conditions*/, Arrays.asList(EntityConstants.Base.NAME_FIELD));
 			return workspaces;
 		} catch (Exception e) {
-			logger.error(configuration.geLocationForLog() + "Failed to fetch workspaces in testOctaneConfigurationAndFetchAvailableWorkspaces : " + e.getMessage());
+			logger.error(configuration.getLocationForLog() + "Failed to fetch workspaces in testOctaneConfigurationAndFetchAvailableWorkspaces : " + e.getMessage());
 			return null;
 		}
 	}

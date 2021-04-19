@@ -115,9 +115,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			vulnerabilitiesQueue = queueingService.initMemoQueue();
 		}
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		vulnerabilitiesProcessingExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY (backed by " + vulnerabilitiesQueue.getClass().getSimpleName() + ")");
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		vulnerabilitiesQueueItem.setToolType(toolType);
 		vulnerabilitiesQueueItem.setAdditionalProperties(additionalProperties);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + vulnerabilitiesQueueItem.getJobId() + ":" + vulnerabilitiesQueueItem.getBuildId() + " was added to vulnerabilities queue");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + vulnerabilitiesQueueItem.getJobId() + ":" + vulnerabilitiesQueueItem.getBuildId() + " was added to vulnerabilities queue");
 
 		workerPreflight.itemAddedToQueue();
 	}
@@ -176,17 +176,17 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 					reEnqueueItem(queueItem);
 				}
 			} catch (TemporaryException tque) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + queueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "temporary error on " + queueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				if (queueItem != null) {
 					reEnqueueItem(queueItem);
 				}
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + queueItem + ", passing over", pqie);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "permanent error on " + queueItem + ", passing over", pqie);
 				vulnerabilitiesQueueItemCleanUp(queueItem);
 				vulnerabilitiesQueue.remove();
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + queueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected error on build log item '" + queueItem + "', passing over", t);
 				vulnerabilitiesQueueItemCleanUp(queueItem);
 				vulnerabilitiesQueue.remove();
 			}
@@ -203,7 +203,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 				Date relevant =  vulnerabilitiesPreflightRequest(queueItem.getJobId(), queueItem.getBuildId());
 				if (relevant != null) {
-					logger.debug(configurer.octaneConfiguration.geLocationForLog() + queueItem.toString() + " , Relevant:" + relevant);
+					logger.debug(configurer.octaneConfiguration.getLocationForLog() + queueItem.toString() + " , Relevant:" + relevant);
 					//  set queue item value relevancy to true and continue
 					queueItem.setRelevant(true);
 					//for backward compatibility with Octane - if baselineDate is 2000-01-01 it means that we didn't get it from octane and we need to discard it
@@ -223,11 +223,11 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 			}
 			else if (queueItem.getToolType().equals(ToolType.SSC)){
-				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "SSC flow as expected");
+				logger.debug(configurer.octaneConfiguration.getLocationForLog() + "SSC flow as expected");
 				vulnerabilitiesStream = sscService.getVulnerabilitiesScanResultStream(queueItem);
 			}
 			else if (queueItem.getToolType().equals(ToolType.FOD)){
-				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "Handling FOD queueItem");
+				logger.debug(configurer.octaneConfiguration.getLocationForLog() + "Handling FOD queueItem");
 				vulnerabilitiesStream = fodService.getVulnerabilitiesScanResultStream(queueItem);
 			}
 
@@ -269,9 +269,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				.setBody(vulnerabilities);
 
 		OctaneResponse response = octaneRestClient.execute(request);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities push SUCCEED for " + jobId + " #" + buildId);
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "vulnerabilities push SUCCEED for " + jobId + " #" + buildId);
 		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("vulnerabilities push FAILED, service unavailable");
 		} else {
@@ -285,10 +285,10 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 		if (response.getStatus() == HttpStatus.SC_OK) {
 			if (response.getBody()==null || "".equals(response.getBody())) {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "vulnerabilities data of " + jobId + " #" + buildId + " is not relevant to Octane");
 				return null;
 			}else{
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "vulnerabilities data of " + jobId + " #" + buildId + " found to be relevant to Octane");
 				boolean forTest = false;
 				//backward compatibility with Octane
 				if("true".equals(response.getBody()) || forTest){
@@ -311,7 +311,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		if (timePass < vulnerabilitiesQueueItem.getTimeout()) {
 			vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
 		} else {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was removed from queue after timeout in queue is over");
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + vulnerabilitiesQueueItem.getBuildId() + "/" + vulnerabilitiesQueueItem.getJobId() + " was removed from queue after timeout in queue is over");
 		}
 		CIPluginSDKUtils.doWait(SKIP_QUEUE_ITEM_INTERVAL);
 	}

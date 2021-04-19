@@ -94,9 +94,9 @@ final class BridgeServiceImpl implements BridgeService {
         this.restService = restService;
         this.tasksProcessor = tasksProcessor;
 
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
         connectivityExecutors.execute(this::worker);
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY");
     }
 
     @Override
@@ -119,7 +119,7 @@ final class BridgeServiceImpl implements BridgeService {
 
     @Override
     public void shutdown() {
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "shutdown");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "shutdown");
         connectivityExecutors.shutdown();
         taskProcessingExecutors.shutdown();
         changeServiceState(ServiceState.Closed);
@@ -146,7 +146,7 @@ final class BridgeServiceImpl implements BridgeService {
                 } else if (!configurer.octaneConfiguration.isSdkSupported()) {
                     status = "deactivated (sdk is not supported)";
                 }
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "task polling is " + status);
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "task polling is " + status);
                 lastLogTime = System.currentTimeMillis();
             }
 
@@ -168,7 +168,7 @@ final class BridgeServiceImpl implements BridgeService {
                 connectivityExecutors.execute(this::worker);
             } else {
                 changeServiceState(ServiceState.StopTaskPolling);
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "Shutdown flag is up - stop task processing");
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "Shutdown flag is up - stop task processing");
             }
 
             //  now can process the received tasks - if any
@@ -182,10 +182,10 @@ final class BridgeServiceImpl implements BridgeService {
                     connectivityExecutors.execute(this::worker);
                 } else {
                     changeServiceState(ServiceState.StopTaskPolling);
-                    logger.info(configurer.octaneConfiguration.geLocationForLog() + "Shutdown flag is up - stop task processing");
+                    logger.info(configurer.octaneConfiguration.getLocationForLog() + "Shutdown flag is up - stop task processing");
                 }
             } catch (Throwable t2) {
-                logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected exception in BridgeServiceImpl.worker", t2);
+                logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected exception in BridgeServiceImpl.worker", t2);
             }
         }
     }
@@ -234,10 +234,10 @@ final class BridgeServiceImpl implements BridgeService {
                 }
             } else {
                 if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
-                    logger.debug(configurer.octaneConfiguration.geLocationForLog() + "no tasks found on server");
+                    logger.debug(configurer.octaneConfiguration.getLocationForLog() + "no tasks found on server");
                     setConnectionSuccessful();
                 } else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
-                    logger.debug(configurer.octaneConfiguration.geLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
+                    logger.debug(configurer.octaneConfiguration.getLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
                     setConnectionSuccessful();
                 } else if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
                     breathingOnException("Octane service is unavailable.", 30, null);
@@ -272,7 +272,7 @@ final class BridgeServiceImpl implements BridgeService {
     private void setConnectionSuccessful() {
         ((ConfigurationServiceImpl)configurationService).setConnected(true);
         if (continuousExceptionsCounter > 4) {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "force getOctaneConnectivityStatus after " + continuousExceptionsCounter + " failed trials");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "force getOctaneConnectivityStatus after " + continuousExceptionsCounter + " failed trials");
             ((ConfigurationServiceImpl)configurationService).getOctaneConnectivityStatus(true);
             forcedGetOctaneConnectivityStatusCalls++;
         }
@@ -283,16 +283,16 @@ final class BridgeServiceImpl implements BridgeService {
         ((ConfigurationServiceImpl)configurationService).setConnected(false);
         continuousExceptionsCounter ++;
         String error = (t == null) ? "" : " : " + t.getClass().getCanonicalName() + " - " + t.getMessage();
-        logger.error(configurer.octaneConfiguration.geLocationForLog() + msg + error + ". Breathing " + secs + " secs.");
+        logger.error(configurer.octaneConfiguration.getLocationForLog() + msg + error + ". Breathing " + secs + " secs.");
         changeServiceState(ServiceState.PostponingOnException);
         CIPluginSDKUtils.doWait(secs * 1000);
     }
 
     private void handleTasks(String tasksJSON) {
         try {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "parsing tasks...");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "parsing tasks...");
             OctaneTaskAbridged[] tasks = dtoFactory.dtoCollectionFromJson(tasksJSON, OctaneTaskAbridged[].class);
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "parsed " + tasks.length + " tasks, processing...");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "parsed " + tasks.length + " tasks, processing...");
             for (final OctaneTaskAbridged task : tasks) {
                 if (taskProcessingExecutors.isShutdown()) {
                     break;
@@ -303,11 +303,11 @@ final class BridgeServiceImpl implements BridgeService {
                             configurer.octaneConfiguration.getInstanceId(),
                             result.getId(),
                             dtoFactory.dtoToJsonStream(result));
-                    logger.info(configurer.octaneConfiguration.geLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
+                    logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
                 });
             }
         } catch (Exception e) {
-            logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to process tasks", e);
+            logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to process tasks", e);
         }
     }
 
@@ -326,7 +326,7 @@ final class BridgeServiceImpl implements BridgeService {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
         } catch (IOException ioe) {
-            logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to submit abridged task's result", ioe);
+            logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to submit abridged task's result", ioe);
             return 0;
         }
     }

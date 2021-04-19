@@ -118,7 +118,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			sslContext = SSLContext.getInstance("SSL");
 			sslContext.init(null, getTrustManagers(), new java.security.SecureRandom());
 		} catch (Exception e) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "Failed to create sslContext with customTrustManagers. Using systemDefault sslContext. Error : " + e.getMessage());
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "Failed to create sslContext with customTrustManagers. Using systemDefault sslContext. Error : " + e.getMessage());
 			sslContext = SSLContexts.createSystemDefault();
 		}
 
@@ -151,12 +151,12 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	@Override
 	public void shutdown() {
 		shutdownActivated = true;
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting REST client shutdown sequence...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting REST client shutdown sequence...");
 		abortAllRequests();
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "closing the client...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "closing the client...");
 		HttpClientUtils.closeQuietly(httpClient);
 		requestMonitorExecutors.shutdown();
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "REST client shutdown done");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "REST client shutdown done");
 	}
 
 	void notifyConfigurationChange() {
@@ -167,10 +167,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	}
 
 	private void abortAllRequests() {
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "aborting " + ongoingRequests2Started.size() + " request/s...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "aborting " + ongoingRequests2Started.size() + " request/s...");
 		synchronized (REQUESTS_LIST_LOCK) {
 			for (HttpUriRequest request : ongoingRequests2Started.keySet()) {
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + "\taborting " + request);
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "\taborting " + request);
 				request.abort();
 			}
 			LWSSO_TOKEN = null;
@@ -184,10 +184,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		HttpResponse httpResponse = null;
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "initial login");
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "initial login");
 			loginResponse = login(configuration);
 			if (loginResponse.getStatus() != 200) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed on initial login, status " + loginResponse.getStatus());
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed on initial login, status " + loginResponse.getStatus());
 				return loginResponse;
 			}
 		}
@@ -206,15 +206,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				}
 
 				if (AUTHENTICATION_ERROR_CODES.contains(httpResponse.getStatusLine().getStatusCode())) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "doing RE-LOGIN due to status " + httpResponse.getStatusLine().getStatusCode() + " received while calling " + request.getUrl());
 					EntityUtils.consumeQuietly(httpResponse.getEntity());
 					HttpClientUtils.closeQuietly(httpResponse);
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
-						logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
+						logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
 						return loginResponse;
 					} else {
-						logger.info(configurer.octaneConfiguration.geLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
+						logger.info(configurer.octaneConfiguration.getLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
 					}
 				} else {
 					refreshSecurityToken(context, false);
@@ -224,7 +224,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 			result = createNGAResponse(request, httpResponse);
 		} catch (IOException ioe) {
-			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed executing " + request, ioe);
+			logger.debug(configurer.octaneConfiguration.getLocationForLog() + "failed executing " + request, ioe);
 			throw ioe;
 		} finally {
 			if (uriRequest != null && ongoingRequests2Started.containsKey(uriRequest)) {
@@ -298,7 +298,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		//  configure proxy if needed
 		CIProxyConfiguration proxyConfiguration = CIPluginSDKUtils.getProxyConfiguration(requestUrl, configurer);
 		if (proxyConfiguration != null) {
-			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "proxy will be used with the following setup: " + proxyConfiguration);
+			logger.debug(configurer.octaneConfiguration.getLocationForLog() + "proxy will be used with the following setup: " + proxyConfiguration);
 			HttpHost proxyHost = new HttpHost(proxyConfiguration.getHost(), proxyConfiguration.getPort());
 
 			if (proxyConfiguration.getUsername() != null && !proxyConfiguration.getUsername().isEmpty()) {
@@ -331,10 +331,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 				synchronized (RESET_LWSSO_TOKEN_LOCK) {
 					if (!isLogin && loginRequiredForRefreshLwssoTokenUntil > System.currentTimeMillis()) {
-						logger.info(configurer.octaneConfiguration.geLocationForLog() + "refreshSecurityToken is cancelled");
+						logger.info(configurer.octaneConfiguration.getLocationForLog() + "refreshSecurityToken is cancelled");
 					} else {
 						LWSSO_TOKEN = cookie;
-						logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully refreshed security token.isLogin=" + isLogin);
+						logger.debug(configurer.octaneConfiguration.getLocationForLog() + "successfully refreshed security token.isLogin=" + isLogin);
 					}
 				}
 
@@ -374,11 +374,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
 				refreshSecurityToken(context, true);
 			} else {
-				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
+				logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(null, response);
 		} catch (IOException ioe) {
-			logger.debug(configurer.octaneConfiguration.geLocationForLog() + "failed to login", ioe);
+			logger.debug(configurer.octaneConfiguration.getLocationForLog() + "failed to login", ioe);
 			throw ioe;
 		} finally {
 			if (response != null) {
@@ -436,7 +436,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 			return new TrustManager[]{myTM};
 		} else {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "Using only default trust managers. Received " + tmArr.length + " trust managers."
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "Using only default trust managers. Received " + tmArr.length + " trust managers."
 					+ ((tmArr.length > 0) ? "First one is :" + tmArr[0].getClass().getCanonicalName() : ""));
 			return tmArr;
 		}
@@ -451,14 +451,14 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 						long expectedEnd = entry.getValue() + REQUEST_ABORT_TIMEOUT_MS;
 						long diff = System.currentTimeMillis() - expectedEnd;
 						if (diff > 0 && !entry.getKey().isAborted()) {
-							logger.info(configurer.octaneConfiguration.geLocationForLog() + " Aborting " + entry.getKey() + " as expected timeout is over ");
+							logger.info(configurer.octaneConfiguration.getLocationForLog() + " Aborting " + entry.getKey() + " as expected timeout is over ");
 							entry.getKey().abort();
 							requestMonitorExecutorsAbortedCount++;
 						}
 					});
 				}
 			} catch (Exception e) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "requestMonitorWorker error : " + e.getMessage(), e);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "requestMonitorWorker error : " + e.getMessage(), e);
 			}
 			CIPluginSDKUtils.doWait(10000);
 		}

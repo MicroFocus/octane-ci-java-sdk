@@ -124,7 +124,7 @@ public class OctaneConfiguration {
                 ", client: " + client + " }";
     }
 
-    public String geLocationForLog() {
+    public String getLocationForLog() {
         return "[" + getUrl() + "?p=" + getSharedSpace() + "] ";
     }
 

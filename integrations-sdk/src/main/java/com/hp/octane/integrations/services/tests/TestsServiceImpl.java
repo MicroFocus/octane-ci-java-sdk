@@ -105,9 +105,9 @@ final class TestsServiceImpl implements TestsService {
 		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		testsPushExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
 	}
 
 	public boolean isTestsResultRelevant(String jobId, String rootJobId) {
@@ -272,16 +272,16 @@ final class TestsServiceImpl implements TestsService {
 			} catch (RequestTimeoutException rte){
 				requestTimeoutCount++;
 				lastRequestTimeoutTime = System.currentTimeMillis();
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + rte.getMessage());
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + rte.getMessage());
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (TemporaryException tque) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + testsResultQueueItem + ", passing over", pqie);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "permanent error on " + testsResultQueueItem + ", passing over", pqie);
 				testResultsQueue.remove();
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + testsResultQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected error on build log item '" + testsResultQueueItem + "', passing over", t);
 				testResultsQueue.remove();
 			}
 		}
@@ -292,14 +292,14 @@ final class TestsServiceImpl implements TestsService {
 		//  validate test result - first to be done as it is the cheapest to 'fail fast'
 		InputStream testsResultA = configurer.pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
 		if (testsResultA == null) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "test result of " + queueItem + " resolved to be NULL, skipping");
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "test result of " + queueItem + " resolved to be NULL, skipping");
 			return;
 		}
 		try {
 			//  preflight
 			InputStream testsResultB;
 			boolean isRelevant = isTestsResultRelevant(queueItem.jobId, queueItem.rootJobId);
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "test results preflight " + queueItem + " = " + isRelevant);
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "test results preflight " + queueItem + " = " + isRelevant);
 			if (!isRelevant) {
 				return;
 			}
@@ -325,7 +325,7 @@ final class TestsServiceImpl implements TestsService {
 			try {
 				OctaneResponse response = pushTestsResult(testsResultB, queueItem.jobId, queueItem.buildId);
 				if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() +
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() +
 							", response: " + response.getBody() + ", CorrelationId - " + response.getCorrelationId());
 				} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 					throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
@@ -338,14 +338,14 @@ final class TestsServiceImpl implements TestsService {
 				try {
 					testsResultB.close();
 				} catch (IOException e) {
-					logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to close test result file after push test for " + queueItem);
+					logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to close test result file after push test for " + queueItem);
 				}
 			}
 		} finally {
 			try {
 				testsResultA.close();
 			} catch (IOException e) {
-				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to close test result file after push test for " + queueItem);
+				logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to close test result file after push test for " + queueItem);
 			}
 		}
 	}

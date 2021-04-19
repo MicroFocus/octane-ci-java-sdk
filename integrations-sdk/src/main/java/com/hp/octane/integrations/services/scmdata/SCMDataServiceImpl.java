@@ -80,9 +80,9 @@ public class SCMDataServiceImpl implements SCMDataService {
             scmDataQueue = queueingService.initMemoQueue();
         }
 
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
         scmProcessingExecutor.execute(this::worker);
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + scmDataQueue.getClass().getSimpleName() + ")");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY (backed by " + scmDataQueue.getClass().getSimpleName() + ")");
     }
 
     @Override
@@ -112,7 +112,7 @@ public class SCMDataServiceImpl implements SCMDataService {
         if (isSCMRestAPI() && configurationService.isOctaneVersionGreaterOrEqual(SCM_REST_API_SUPPORTED_VERSION)) {
             SCMDataQueueItem scmDataQueueItem = new SCMDataQueueItem(jobId, buildId);
             scmDataQueue.add(scmDataQueueItem);
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + scmDataQueueItem.getJobId() + " #" + scmDataQueueItem.getBuildId() + " was added to queue");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + scmDataQueueItem.getJobId() + " #" + scmDataQueueItem.getBuildId() + " was added to queue");
 
             workerPreflight.itemAddedToQueue();
         } else {
@@ -175,12 +175,12 @@ public class SCMDataServiceImpl implements SCMDataService {
                 processPushSCMDataQueueItem(queueItem);
                 scmDataQueue.remove();
             } catch (TemporaryException tque) {
-                logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + queueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+                logger.error(configurer.octaneConfiguration.getLocationForLog() + "temporary error on " + queueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
             } catch (PermanentException pqie) {
-                logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + queueItem + ", passing over", pqie);
+                logger.error(configurer.octaneConfiguration.getLocationForLog() + "permanent error on " + queueItem + ", passing over", pqie);
                 scmDataQueue.remove();
             } catch (Throwable t) {
-                logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + queueItem + "', passing over", t);
+                logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected error on build log item '" + queueItem + "', passing over", t);
                 scmDataQueue.remove();
             }
         }
@@ -235,7 +235,7 @@ public class SCMDataServiceImpl implements SCMDataService {
 
         OctaneResponse response = octaneRestClient.execute(request);
         if (response.getStatus() == HttpStatus.SC_OK) {
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "scmData for " + jobId + " #" + buildId + ", push SUCCEED : " + response.getBody());
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "scmData for " + jobId + " #" + buildId + ", push SUCCEED : " + response.getBody());
         } else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
             throw new TemporaryException("scmData push FAILED, service unavailable");
         } else {

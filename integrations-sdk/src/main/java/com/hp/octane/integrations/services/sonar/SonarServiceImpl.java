@@ -50,7 +50,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -103,9 +102,9 @@ public class SonarServiceImpl implements SonarService {
 			sonarIntegrationQueue = queueingService.initMemoQueue();
 		}
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		sonarIntegrationExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + sonarIntegrationQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY (backed by " + sonarIntegrationQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
@@ -119,16 +118,16 @@ public class SonarServiceImpl implements SonarService {
 			try {
 				sonarBuildCoverageQueueItem = sonarIntegrationQueue.peek();
 				retrieveAndPushSonarDataToOctane(sonarBuildCoverageQueueItem);
-				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully processed " + sonarBuildCoverageQueueItem);
+				logger.debug(configurer.octaneConfiguration.getLocationForLog() + "successfully processed " + sonarBuildCoverageQueueItem);
 				sonarIntegrationQueue.remove();
 			} catch (TemporaryException te) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + sonarBuildCoverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "temporary error on " + sonarBuildCoverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pe) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + sonarBuildCoverageQueueItem + ", passing over", pe);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "permanent error on " + sonarBuildCoverageQueueItem + ", passing over", pe);
 				sonarIntegrationQueue.remove();
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build coverage item '" + sonarBuildCoverageQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected error on build coverage item '" + sonarBuildCoverageQueueItem + "', passing over", t);
 				sonarIntegrationQueue.remove();
 			}
 		}
@@ -163,11 +162,11 @@ public class SonarServiceImpl implements SonarService {
 			}
 
 		} catch (SonarIntegrationException e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + e.getMessage(), e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + e.getMessage(), e);
 			throw e;
 		} catch (Exception e) {
 			String errorMessage = "exception during webhook registration for ciNotificationUrl: " + ciCallbackUrl;
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + errorMessage, e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + errorMessage, e);
 			throw new SonarIntegrationException(errorMessage, e);
 		}
 	}
@@ -260,7 +259,7 @@ public class SonarServiceImpl implements SonarService {
 				throw new PermanentException(errorMessage.toString());
 			}
 		} catch (Throwable throwable) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + errorMessage.toString(), throwable);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + errorMessage.toString(), throwable);
 			throw new PermanentException(throwable);
 		}
 	}
@@ -302,12 +301,12 @@ public class SonarServiceImpl implements SonarService {
 			}
 			return null;
 		} catch (SonarIntegrationException e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + e.getMessage(), e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + e.getMessage(), e);
 			throw e;
 		} catch (Exception e) {
 			String errorMessage = ""
 					.concat("failed to get webhook key from sonarqube with notification URL: ").concat(ciNotificationUrl);
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + errorMessage, e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + errorMessage, e);
 			throw new SonarIntegrationException(errorMessage, e);
 		}
 	}
@@ -344,7 +343,7 @@ public class SonarServiceImpl implements SonarService {
 		} catch (PermanentException e) {
 			throw e;
 		} catch (Exception e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + errorMessage.toString(), e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + errorMessage.toString(), e);
 			throw new PermanentException(errorMessage.toString(), e);
 		}
 	}

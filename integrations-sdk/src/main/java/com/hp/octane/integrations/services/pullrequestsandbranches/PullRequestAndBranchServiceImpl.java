@@ -89,15 +89,15 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         this.restService = restService;
         this.entitiesService = entitiesService;
 
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY");
 
         if (configurer.pluginServices.getAllowedOctaneStorage() != null) {
             File storageDirectory = new File(configurer.pluginServices.getAllowedOctaneStorage(), "nga" + File.separator + configurer.octaneConfiguration.getInstanceId());
             if (!storageDirectory.mkdirs()) {
-                logger.debug(configurer.octaneConfiguration.geLocationForLog() + "instance folder considered as exist");
+                logger.debug(configurer.octaneConfiguration.getLocationForLog() + "instance folder considered as exist");
             }
             persistenceFile = new File(storageDirectory, "pr-fetchers.json");
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "hosting plugin PROVIDE available storage, PR persistence enabled");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "hosting plugin PROVIDE available storage, PR persistence enabled");
 
             if (persistenceFile.exists()) {
                 try {
@@ -105,7 +105,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                     List<PRItem> list = objectMapper.readValue(persistenceFile, type);
                     prItems = list.stream().collect(Collectors.toMap(PRItem::getKey, Function.identity()));
                 } catch (IOException e) {
-                    logger.info(configurer.octaneConfiguration.geLocationForLog() + "failed to read PR persisted file");
+                    logger.info(configurer.octaneConfiguration.getLocationForLog() + "failed to read PR persisted file");
                 }
             } else {
                 prItems = new HashMap<>();
@@ -113,7 +113,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         } else {
             persistenceFile = null;
             prItems = new HashMap<>();
-            logger.info(configurer.octaneConfiguration.geLocationForLog() + "hosting plugin DO NOT PROVIDE available storage, PR persistence disabled");
+            logger.info(configurer.octaneConfiguration.getLocationForLog() + "hosting plugin DO NOT PROVIDE available storage, PR persistence disabled");
         }
     }
 
@@ -468,7 +468,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             try {
                 objectMapper.writeValue(persistenceFile, prItems.values());
             } catch (IOException e) {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "failed to save PR persisted file");
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "failed to save PR persisted file");
             }
         }
     }

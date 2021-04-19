@@ -71,7 +71,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 
         this.configurer = configurer;
         this.restService = restService;
-        logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
+        logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY");
     }
 
     @Override
@@ -89,12 +89,12 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
         try {
             if (forceFetch || octaneConnectivityStatus == null) {
                 octaneConnectivityStatus = validateConfigurationAndGetConnectivityStatus();
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "octaneConnectivityStatus : " + octaneConnectivityStatus);
                 isConnected = true;
                 resetOctaneRootsCache();
             }
         } catch (Exception e) {
-            logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to getOctaneConnectivityStatus : " + e.getMessage());
+            logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to getOctaneConnectivityStatus : " + e.getMessage());
         }
 
         return octaneConnectivityStatus;
@@ -148,7 +148,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
     public Future<Boolean> resetOctaneRootsCache() {
         if (isOctaneRootsCacheActivated() && isOctaneVersionGreaterOrEqual(OCTANE_ROOTS_VERSION) && !configurer.octaneConfiguration.isDisabled()) {
             return octaneRootsCacheExecutor.submit(() -> {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetOctaneRootCache started");
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "resetOctaneRootCache started");
                 try {
                     long startTime = System.currentTimeMillis();
                     String url = configurer.octaneConfiguration.getUrl() + RestService.SHARED_SPACE_INTERNAL_API_PATH_PART +
@@ -157,17 +157,17 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
 
                     OctaneResponse response = restService.obtainOctaneRestClient().execute(request, configurer.octaneConfiguration);
                     octaneRoots = mapper.readValue(response.getBody(), mapper.getTypeFactory().constructCollectionType(Set.class, String.class));
-                    logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetOctaneRootCache: successfully update octane roots, found " +
+                    logger.info(configurer.octaneConfiguration.getLocationForLog() + "resetOctaneRootCache: successfully update octane roots, found " +
                             octaneRoots.size() + " roots, processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
                     return true;
                 } catch (Exception e) {
-                    logger.info(configurer.octaneConfiguration.geLocationForLog() + "Failed to resetOctaneRootCache : " + e.getMessage());
+                    logger.info(configurer.octaneConfiguration.getLocationForLog() + "Failed to resetOctaneRootCache : " + e.getMessage());
                     return false;
                 }
             });
         } else {
             if (octaneRoots != null) {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "resetOctaneRootsCache : cache is cleared");
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "resetOctaneRootsCache : cache is cleared");
             }
             octaneRoots = null;
             return CompletableFuture.completedFuture(false);
@@ -178,7 +178,7 @@ public final class ConfigurationServiceImpl implements ConfigurationService {
     public void addToOctaneRootsCache(String rootJob) {
         if (octaneRoots != null && SdkStringUtils.isNotEmpty(rootJob)) {
             if (octaneRoots.add(rootJob)) {
-                logger.info(configurer.octaneConfiguration.geLocationForLog() + "addToOctaneRootsCache: new root is added [" + rootJob + "]");
+                logger.info(configurer.octaneConfiguration.getLocationForLog() + "addToOctaneRootsCache: new root is added [" + rootJob + "]");
             }
         }
     }
