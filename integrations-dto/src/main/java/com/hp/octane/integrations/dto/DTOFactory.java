@@ -214,8 +214,8 @@ public final class DTOFactory {
 		configuration.initXmlMapper(xmlInputFactory, xmlOutputFactory);
 	}
 
-	public  XMLOutputFactory getXMLOutputFactory(){
-		return configuration.getXmlMapper().getFactory().getXMLOutputFactory();
+	public  XmlMapper getXMLMapper(){
+		return configuration.getXmlMapper();
 	}
 
 	public static class DTOConfiguration {
