@@ -53,14 +53,14 @@ import java.util.Map;
  */
 
 public final class DTOFactory {
-	private final DTOConfiguration configuration;
+	private static final DTOFactory instance = new DTOFactory();
+	private final DTOConfiguration configuration = new DTOConfiguration();
 
 	private DTOFactory() {
-		configuration = new DTOConfiguration();
 	}
 
 	public static DTOFactory getInstance() {
-		return INSTANCE_HOLDER.instance;
+		return instance;
 	}
 
 	public <T extends DTOBase> T newDTO(Class<T> targetType) {
@@ -105,7 +105,7 @@ public final class DTOFactory {
 
 
 	public <T extends DTOBase> String dtoToJson(T dto) {
-		return dtoToString(dto,configuration.objectMapper);
+		return dtoToString(dto, configuration.objectMapper);
 	}
 
 	public <T extends DTOBase> String dtoToXml(T dto) {
@@ -201,10 +201,6 @@ public final class DTOFactory {
 		}
 	}
 
-	private static final class INSTANCE_HOLDER {
-		private static final DTOFactory instance = new DTOFactory();
-	}
-
 	/***
 	 * For bamboo plugin, input and output factories are created in another classloader
 	 * @param xmlInputFactory
@@ -222,10 +218,10 @@ public final class DTOFactory {
 		private final Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry = new HashMap<>();
 		private final ObjectMapper objectMapper = new ObjectMapper();
 		private XmlMapper xmlMapper = null;
-		private final List<DTOInternalProviderBase> providers = new LinkedList<>();
 		private SimpleModule module;
 
 		private DTOConfiguration() {
+			List<DTOInternalProviderBase> providers = new LinkedList<>();
 			//  collect all known providers
 			providers.add(new DTOCausesProvider(this));
 			providers.add(new DTOConfigsProvider(this));
