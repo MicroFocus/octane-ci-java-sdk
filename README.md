@@ -186,10 +186,7 @@ The preferred flow is somewhat asynchronous and it is crucial to understand it, 
 4. SDK will further perform the actual push to the ALM Octane
 
 
-Another, less preferred way to push tests results to ALM Octane is a synchronous push, which may be done by calling the below API somewhere within punkt 1 above:
-```java
-octaneClient.getTestsService().pushTestsResult(pushTestsResult);
-```
+
 >_Pay attention, that usually executing time consuming actions within the CI event call effectively means holding the main CI system execution thread, since most of the CI system's events are executing on the main thread.
 Don't do that._
 
