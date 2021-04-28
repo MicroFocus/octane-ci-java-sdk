@@ -189,7 +189,7 @@ public class UftTestDiscoveryUtils {
      * @param testType
      * @return test description
      */
-    private static String getTestDescription(File dirPath, UftTestType testType) {
+    public static String getTestDescription(File dirPath, UftTestType testType) {
         if (!dirPath.exists() || testType.isNone()) {
             return null;
         }
