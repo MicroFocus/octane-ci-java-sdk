@@ -64,7 +64,7 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
         int rateLimited = 0;
         int outdated = 0;
         int counter = 0;
-        int notificationNumber = Math.max(40, filteredBranches.size() * 5 / 100);//every x branches - we will print message to console, x max of (5% of branches , 40 brances)
+        int notificationNumber = Math.max(20, filteredBranches.size() * 2 / 100);//every x branches - we will print message to console, x max of (2% of branches , 20 branches)
         for (com.hp.octane.integrations.dto.scm.Branch branch : filteredBranches) {
             counter++;
 
@@ -80,8 +80,15 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
                 String urlCompareBranchUrl = String.format("%s/compare/%s...%s", baseUrl, repo.getDefault_branch(), branch.getLastCommitSHA());
                 Compare compare = getEntity(urlCompareBranchUrl, Compare.class);
                 Commit lastCommit = getEntity(branch.getLastCommitUrl(), Commit.class, rateLimitationInfo);
+                String lastCommitTime = null;
+                try {
+                    lastCommitTime = lastCommit.getCommit().getCommitter().getDate();
+                } catch (Exception e) {
+                    logConsumer.accept("branch doesn't have last commit  data information : " + branch.getName());
+
+                }
                 branch
-                        .setLastCommitTime(FetchUtils.convertISO8601DateStringToLong(lastCommit.getCommit().getCommitter().getDate()))
+                        .setLastCommitTime(FetchUtils.convertISO8601DateStringToLong(lastCommitTime))
                         .setLastCommiterName(lastCommit.getCommit().getAuthor().getName())
                         .setLastCommiterEmail(lastCommit.getCommit().getAuthor().getEmail())
                         .setIsMerged(compare.getAhead_by() == 0)
@@ -123,7 +130,7 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
         logConsumer.accept(this.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
         SCMRepositoryLinks links = pingRepository(baseUrl, logConsumer);
         parameters.setRepoUrlSsh(links.getSshUrl());
-        if(parameters.isUseSSHFormat()){
+        if (parameters.isUseSSHFormat()) {
             logConsumer.accept("Repo ssh format url : " + parameters.getRepoUrlSsh());
         }
 
