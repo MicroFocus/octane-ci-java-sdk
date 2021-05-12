@@ -13,6 +13,8 @@ public class ConfigurationParameterFactory {
 				return EncodeCiJobBase64Parameter.create(paramValue);
 			case UftTestRunnerFolderParameter.KEY:
 				return UftTestRunnerFolderParameter.create(paramValue);
+			case UftTestConnectionDisabledParameter.KEY:
+				return UftTestConnectionDisabledParameter.create(paramValue);
 			case SCMRestAPIParameter.KEY:
 				return SCMRestAPIParameter.create(paramValue);
 			case FortifySSCTokenParameter.KEY:
@@ -71,6 +73,14 @@ public class ConfigurationParameterFactory {
 			return param.isLogEvents();
 		}
 		return LogEventsParameter.DEFAULT;
+	}
+
+	public static boolean isUftTestConnectionDisabled(OctaneConfiguration configuration) {
+		UftTestConnectionDisabledParameter param = (UftTestConnectionDisabledParameter) configuration.getParameter(LogEventsParameter.KEY);
+		if (param != null) {
+			return param.isDisabled();
+		}
+		return UftTestConnectionDisabledParameter.DEFAULT;
 	}
 
 	public static boolean jobListCacheAllowed(OctaneConfiguration configuration) {
