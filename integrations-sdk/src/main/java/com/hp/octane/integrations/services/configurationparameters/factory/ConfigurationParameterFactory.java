@@ -76,7 +76,7 @@ public class ConfigurationParameterFactory {
 	}
 
 	public static boolean isUftTestConnectionDisabled(OctaneConfiguration configuration) {
-		UftTestConnectionDisabledParameter param = (UftTestConnectionDisabledParameter) configuration.getParameter(LogEventsParameter.KEY);
+		UftTestConnectionDisabledParameter param = (UftTestConnectionDisabledParameter) configuration.getParameter(UftTestConnectionDisabledParameter.KEY);
 		if (param != null) {
 			return param.isDisabled();
 		}
