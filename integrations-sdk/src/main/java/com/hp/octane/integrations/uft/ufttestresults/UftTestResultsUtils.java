@@ -41,10 +41,7 @@ public class UftTestResultsUtils {
                 String error = /*parentStr + ":" +*/ (isNotEmpty(node.getData().getErrorText()) ? node.getData().getErrorText() : node.getData().getDescription());
                 error = error.replace("Verify that this object's properties match an object currently displayed in your application.", "")
                         .replace("\n", "").trim();
-
-                if (!errors.contains(error)) {
-                    errors.add(new UftErrorData(parents, node.getType(), node.getData().getResult(), error));
-                }
+                errors.add(new UftErrorData(parents, node.getType(), node.getData().getResult(), error));
             }
             if (node.getNodes() != null) {
                 node.getNodes().forEach(n -> iterate(n, new ArrayList<>(parents), errors));
