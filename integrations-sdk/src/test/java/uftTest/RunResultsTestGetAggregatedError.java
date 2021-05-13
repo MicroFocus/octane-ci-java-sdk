@@ -42,6 +42,14 @@ public class RunResultsTestGetAggregatedError {
         Assert.assertEquals(expected, err);
     }
 
+    @Test
+    public void testResultForComputerLocked() {
+        String err = getAggregatedError("run_results_computer_locked.xml");
+        String expected = "The Micro Focus Unified Functional Testing computer is locked or logged off.";
+        Assert.assertEquals(expected, err);
+    }
+
+
     private String getAggregatedError(String fileName) {
         URL url = getClass().getResource(fileName);
         File path = new File(url.getPath());
