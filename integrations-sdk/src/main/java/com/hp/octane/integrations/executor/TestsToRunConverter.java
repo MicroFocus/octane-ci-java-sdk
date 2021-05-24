@@ -46,7 +46,12 @@ public abstract class TestsToRunConverter {
         List<TestToRunData> data = parse(rawTests);
         String converted = convert(data, executionDirectory);
         TestsToRunConverterResult result = new TestsToRunConverterResult(rawTests, data, converted, executionDirectory, testsToRunConvertedParameterName);
+        afterConvert(result);
         return result;
+    }
+
+    protected void afterConvert(TestsToRunConverterResult result){
+
     }
 
     protected abstract String convert(List<TestToRunData> data, String executionDirectory);

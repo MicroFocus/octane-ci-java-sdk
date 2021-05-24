@@ -18,6 +18,7 @@ package com.hp.octane.integrations.executor.converters;
 
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
+import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -35,7 +36,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
-import java.util.List;
+import java.util.*;
 
 /*
  * Converter to uft format (MTBX)
@@ -45,16 +46,32 @@ public class MfUftConverter extends TestsToRunConverter {
     private static final Logger logger = LogManager.getLogger(MfUftConverter.class);
     public static final String DATA_TABLE_PARAMETER = "dataTable";
     public static final String ITERATIONS_PARAMETER = "iterations";
+    public static final String MBT_DATA = "mbtData";
+    public static final String MBT_PARENT_SUB_DIR = "\\___mbt";
+    List<MbtTest> mbtTests;
 
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
 
 
     @Override
     public String convert(List<TestToRunData> data, String executionDirectory) {
-        return convertToMtbxContent(data, executionDirectory);
+
+        List<TestToRunData> myTests = data;
+        String myWorkingDir = executionDirectory;
+        if (isMBT(data)) {
+            myWorkingDir = myWorkingDir + MBT_PARENT_SUB_DIR;
+            handleMBTModel(data, executionDirectory, myWorkingDir);
+
+        }
+        return convertToMtbxContent(myTests, myWorkingDir);
     }
 
-    public static String convertToMtbxContent(List<TestToRunData> tests, String workingDir) {
+    @Override
+    protected void afterConvert(TestsToRunConverterResult result) {
+        result.setMbtTests(mbtTests);
+    }
+
+    public String convertToMtbxContent(List<TestToRunData> tests, String workingDir) {
         /*<Mtbx>
             <Test name="test1" path=workingDir + "\APITest1">
             <Parameter type="string" name="myName" value="myValue"/> //type is optional, possible values = float,string,any,boolean,bool,int,integer,number,password,datetime,date,long,double,decimal
@@ -90,7 +107,8 @@ public class MfUftConverter extends TestsToRunConverter {
 
                 //add parameters
                 test.getParameters().forEach((paramKey, paramValue) -> {
-                    if (DATA_TABLE_PARAMETER.equals(paramKey) || ITERATIONS_PARAMETER.equals(paramKey) || INNER_RUN_ID_PARAMETER.equals(paramKey)) {
+                    if (DATA_TABLE_PARAMETER.equals(paramKey) || ITERATIONS_PARAMETER.equals(paramKey) ||
+                            INNER_RUN_ID_PARAMETER.equals(paramKey) || MBT_DATA.equals(paramKey)) {
                         //skip, will be handled later
                     } else {
                         Element parameterElement = doc.createElement("Parameter");
@@ -157,6 +175,32 @@ public class MfUftConverter extends TestsToRunConverter {
             String msg = "Failed to build MTBX content : " + e.getMessage();
             logger.error(msg);
             throw new RuntimeException(msg);
+        }
+    }
+
+    private static boolean isMBT(List<TestToRunData> tests) {
+        return tests.get(0).getParameter(MBT_DATA) != null;
+    }
+
+    private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder, String tempTestFolder) {
+
+        mbtTests = new ArrayList<>();
+        //StringBuilder str = new StringBuilder();
+        for (TestToRunData data : tests) {
+
+            String mbtData = data.getParameter(MBT_DATA);
+
+            /*try {
+                String model = new String(Base64.getDecoder().decode(mbtData), StandardCharsets.UTF_8);
+                str.append(model);
+            } catch (Exception e) {
+                logger.error("Failed to decode test " + data.getTestName() + " : " + e.getMessage());
+            }*/
+
+            String script ="LoadAndRunAction \"c:\\Temp\\GUITest1\\\",\"Action1\"\r\nLoadAndRunAction \"c:\\Temp\\GUITest2\\\",\"Action1\"" ;
+            List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
+            MbtTest test = new MbtTest(data.getTestName(), script, underlyingTests);
+            mbtTests.add(test);
         }
     }
 }
