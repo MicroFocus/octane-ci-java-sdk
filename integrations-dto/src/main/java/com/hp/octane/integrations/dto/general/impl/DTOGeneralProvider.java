@@ -36,6 +36,8 @@ public final class DTOGeneralProvider extends DTOInternalProviderBase {
 		dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
 		dtoPairs.put(Taxonomy.class, TaxonomyImpl.class);
 		dtoPairs.put(ListItem.class, ListItemImpl.class);
+		dtoPairs.put(MbtAction.class,MbtActionImpl.class);
+		dtoPairs.put(MbtActions.class,MbtActionsImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

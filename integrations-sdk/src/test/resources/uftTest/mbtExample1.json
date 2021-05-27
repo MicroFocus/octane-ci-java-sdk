@@ -1,0 +1,13 @@
+{
+  "actions": [{
+    "pathInScm": "GUITests/f1/GUITest01:Action1",
+    "unitId": 1004,
+    "order": 1
+  }, {
+    "pathInScm": "GUITests/f1/GUITest02:Action1",
+    "unitId": 1005,
+    "order": 2
+  }
+  ],
+  "parameters": []
+}

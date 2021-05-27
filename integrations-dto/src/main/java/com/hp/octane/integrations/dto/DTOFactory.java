@@ -186,6 +186,21 @@ public final class DTOFactory {
 		}
 	}
 
+	public <T extends DTOBase> T dtoFromJsonFile(File jsonFile, Class<T> targetType) {
+		if (targetType == null) {
+			throw new IllegalArgumentException("target type MUST NOT be null");
+		}
+		if (!targetType.isInterface()) {
+			throw new IllegalArgumentException("target type MUST be an Interface");
+		}
+
+		try {
+			return configuration.objectMapper.readValue(jsonFile, targetType);
+		} catch (IOException ioe) {
+			throw new RuntimeException("failed to deserialize " + jsonFile.getName() + " into " + targetType, ioe);
+		}
+	}
+
 	public <T extends DTOBase> T dtoFromXmlFile(File xml, Class<T> targetType) {
 		if (targetType == null) {
 			throw new IllegalArgumentException("target type MUST NOT be null");

@@ -10,10 +10,13 @@ public class MbtTest {
 
     private List<String> underlyingTests;
 
-    public MbtTest(String name, String script, List<String> underlyingTests) {
+    private List<Long> unitIds;
+
+    public MbtTest(String name, String script, List<String> underlyingTests, List<Long> unitIds) {
         this.name = name;
         this.script = script;
         this.underlyingTests = underlyingTests;
+        this.unitIds = unitIds;
     }
 
     public String getName() {
@@ -26,5 +29,9 @@ public class MbtTest {
 
     public List<String> getUnderlyingTests() {
         return underlyingTests;
+    }
+
+    public List<Long> getUnitIds() {
+        return unitIds;
     }
 }

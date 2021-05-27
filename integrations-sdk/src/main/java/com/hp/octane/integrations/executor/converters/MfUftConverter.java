@@ -16,6 +16,9 @@
 
 package com.hp.octane.integrations.executor.converters;
 
+import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.general.MbtAction;
+import com.hp.octane.integrations.dto.general.MbtActions;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
@@ -36,7 +39,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 
 /*
  * Converter to uft format (MTBX)
@@ -47,7 +53,7 @@ public class MfUftConverter extends TestsToRunConverter {
     public static final String DATA_TABLE_PARAMETER = "dataTable";
     public static final String ITERATIONS_PARAMETER = "iterations";
     public static final String MBT_DATA = "mbtData";
-    public static final String MBT_PARENT_SUB_DIR = "\\___mbt";
+    public static final String MBT_PARENT_SUB_DIR = "___mbt";
     List<MbtTest> mbtTests;
 
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
@@ -59,7 +65,7 @@ public class MfUftConverter extends TestsToRunConverter {
         List<TestToRunData> myTests = data;
         String myWorkingDir = executionDirectory;
         if (isMBT(data)) {
-            myWorkingDir = myWorkingDir + MBT_PARENT_SUB_DIR;
+            myWorkingDir = myWorkingDir + "\\" + MBT_PARENT_SUB_DIR;
             handleMBTModel(data, executionDirectory, myWorkingDir);
 
         }
@@ -189,17 +195,46 @@ public class MfUftConverter extends TestsToRunConverter {
         for (TestToRunData data : tests) {
 
             String mbtData = data.getParameter(MBT_DATA);
-
-            /*try {
-                String model = new String(Base64.getDecoder().decode(mbtData), StandardCharsets.UTF_8);
-                str.append(model);
+            MbtActions actions;
+            try {
+                String raw = new String(Base64.getDecoder().decode(mbtData), StandardCharsets.UTF_8);
+                actions = DTOFactory.getInstance().dtoFromJson(raw, MbtActions.class);
             } catch (Exception e) {
-                logger.error("Failed to decode test " + data.getTestName() + " : " + e.getMessage());
-            }*/
+                logger.error("Failed to decode test action data " + data.getTestName() + " : " + e.getMessage());
+                throw e;
+            }
 
-            String script ="LoadAndRunAction \"c:\\Temp\\GUITest1\\\",\"Action1\"\r\nLoadAndRunAction \"c:\\Temp\\GUITest2\\\",\"Action1\"" ;
-            List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
-            MbtTest test = new MbtTest(data.getTestName(), script, underlyingTests);
+            List<String> scriptLinesList = new ArrayList<>();
+            List<String> underlyingTestsList = new ArrayList<>();
+            List<Long> unitIds = new ArrayList<>();
+
+            try {
+                for (MbtAction mbtAction : actions.getActions()) {
+                    String scmPath = mbtAction.getPathInScm();
+                    if (scmPath == null || !scmPath.contains(":")) {
+                        logger.error(String.format("UnitId %s has invalid scmPath, skipping", mbtAction.getUnitId()));
+                        continue;
+                    }
+                    String[] parts = scmPath.split(":");//example : GUITests/f1/GUITest02:Action1
+                    String testPath = checkoutFolder + "\\" + parts[0];
+                    String actionName = parts[1];
+
+                    scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", testPath, actionName));
+                    underlyingTestsList.add(testPath);
+
+                    unitIds.add(mbtAction.getUnitId());
+                }
+            } catch (Exception e) {
+                logger.error("Failed to build script for test " + data.getTestName() + " : " + e.getMessage());
+                throw e;
+            }
+
+
+            //String script ="LoadAndRunAction \"c:\\Temp\\GUITest1\\\",\"Action1\"\r\nLoadAndRunAction \"c:\\Temp\\GUITest2\\\",\"Action1\"" ;
+            //List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
+            String script = String.join("\r\n", scriptLinesList);
+
+            MbtTest test = new MbtTest(data.getTestName(), script, underlyingTestsList, unitIds);
             mbtTests.add(test);
         }
     }
