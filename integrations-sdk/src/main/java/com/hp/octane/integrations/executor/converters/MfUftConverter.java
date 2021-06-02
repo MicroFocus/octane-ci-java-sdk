@@ -66,7 +66,7 @@ public class MfUftConverter extends TestsToRunConverter {
         String myWorkingDir = executionDirectory;
         if (isMBT(data)) {
             myWorkingDir = myWorkingDir + "\\" + MBT_PARENT_SUB_DIR;
-            handleMBTModel(data, executionDirectory, myWorkingDir);
+            handleMBTModel(data, executionDirectory);
 
         }
         return convertToMtbxContent(myTests, myWorkingDir);
@@ -188,12 +188,13 @@ public class MfUftConverter extends TestsToRunConverter {
         return tests.get(0).getParameter(MBT_DATA) != null;
     }
 
-    private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder, String tempTestFolder) {
+    private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder) {
 
         mbtTests = new ArrayList<>();
         //StringBuilder str = new StringBuilder();
+        int order = 1;
         for (TestToRunData data : tests) {
-
+            data.setPackageName("_" + order++);
             String mbtData = data.getParameter(MBT_DATA);
             MbtActions actions;
             try {
@@ -234,7 +235,7 @@ public class MfUftConverter extends TestsToRunConverter {
             //List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
             String script = String.join("\r\n", scriptLinesList);
 
-            MbtTest test = new MbtTest(data.getTestName(), script, underlyingTestsList, unitIds);
+            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds);
             mbtTests.add(test);
         }
     }

@@ -31,7 +31,7 @@ import com.hp.octane.integrations.dto.tests.TestRunResult;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "test_run")
 @JsonPropertyOrder({"moduleName", "packageName", "className", "testName", "result", "duration", "started",
-        "externalTestId", "externalRunId", "externalReportUrl",
+        "externalTestId", "externalRunId", "externalReportUrl","run_type",
         "error", "description"})
 class TestRunImpl implements TestRun {
 
@@ -56,6 +56,9 @@ class TestRunImpl implements TestRun {
 
     @JacksonXmlProperty(isAttribute = true, localName = "started")
     private long started;
+
+    @JacksonXmlProperty(isAttribute = true, localName = "run_type")
+    private String runType;
 
     @JsonProperty("error")
     //@XmlAnyElement(lax = true)
@@ -92,6 +95,17 @@ class TestRunImpl implements TestRun {
     @Override
     public TestRun setPackageName(String packageName) {
         this.packageName = packageName;
+        return this;
+    }
+
+    @Override
+    public String getRunType() {
+        return runType;
+    }
+
+    @Override
+    public TestRun setRunType(String runType) {
+        this.runType = runType;
         return this;
     }
 

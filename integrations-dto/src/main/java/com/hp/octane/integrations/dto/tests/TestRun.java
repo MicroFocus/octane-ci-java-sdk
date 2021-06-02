@@ -51,6 +51,10 @@ public interface TestRun extends DTOBase {
 
     TestRun setStarted(long started);
 
+    String getRunType();
+
+    TestRun setRunType(String runType);
+
     TestRunError getError();
 
     TestRun setError(TestRunError testError);
