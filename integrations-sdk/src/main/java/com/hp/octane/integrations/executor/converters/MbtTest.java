@@ -14,12 +14,15 @@ public class MbtTest {
 
     private List<Long> unitIds;
 
-    public MbtTest(String name, String packageName, String script, List<String> underlyingTests, List<Long> unitIds) {
+    private String encodedIterations;
+
+    public MbtTest(String name, String packageName, String script, List<String> underlyingTests, List<Long> unitIds, String encodedIterations) {
         this.name = name;
         this.packageName = packageName;
         this.script = script;
         this.underlyingTests = underlyingTests;
         this.unitIds = unitIds;
+        this.encodedIterations = encodedIterations;
     }
 
     public String getName() {
@@ -40,5 +43,9 @@ public class MbtTest {
 
     public List<Long> getUnitIds() {
         return unitIds;
+    }
+
+    public String getEncodedIterations() {
+        return encodedIterations;
     }
 }

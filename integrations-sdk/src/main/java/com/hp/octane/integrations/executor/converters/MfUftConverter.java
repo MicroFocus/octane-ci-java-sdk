@@ -18,14 +18,19 @@ package com.hp.octane.integrations.executor.converters;
 
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.MbtAction;
-import com.hp.octane.integrations.dto.general.MbtActions;
+import com.hp.octane.integrations.dto.general.MbtActionParameter;
+import com.hp.octane.integrations.dto.general.MbtData;
+import com.hp.octane.integrations.dto.general.MbtDataTable;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.util.StringBuilderWriter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -38,6 +43,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.IOException;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -195,11 +201,11 @@ public class MfUftConverter extends TestsToRunConverter {
         int order = 1;
         for (TestToRunData data : tests) {
             data.setPackageName("_" + order++);
-            String mbtData = data.getParameter(MBT_DATA);
-            MbtActions actions;
+            String mbtDataRaw = data.getParameter(MBT_DATA);
+            MbtData mbtData;
             try {
-                String raw = new String(Base64.getDecoder().decode(mbtData), StandardCharsets.UTF_8);
-                actions = DTOFactory.getInstance().dtoFromJson(raw, MbtActions.class);
+                String raw = new String(Base64.getDecoder().decode(mbtDataRaw), StandardCharsets.UTF_8);
+                mbtData = DTOFactory.getInstance().dtoFromJson(raw, MbtData.class);
             } catch (Exception e) {
                 logger.error("Failed to decode test action data " + data.getTestName() + " : " + e.getMessage());
                 throw e;
@@ -210,7 +216,7 @@ public class MfUftConverter extends TestsToRunConverter {
             List<Long> unitIds = new ArrayList<>();
 
             try {
-                for (MbtAction mbtAction : actions.getActions()) {
+                for (MbtAction mbtAction : mbtData.getActions()) {
                     String scmPath = mbtAction.getPathInScm();
                     if (scmPath == null || !scmPath.contains(":")) {
                         logger.error(String.format("UnitId %s has invalid scmPath, skipping", mbtAction.getUnitId()));
@@ -220,7 +226,26 @@ public class MfUftConverter extends TestsToRunConverter {
                     String testPath = checkoutFolder + "\\" + parts[0];
                     String actionName = parts[1];
 
-                    scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", testPath, actionName));
+                    List<MbtActionParameter> parameters = mbtAction.getParameters();
+                    if (parameters != null && !parameters.isEmpty()) {
+                        StringBuilder parameterString = new StringBuilder();
+                        parameters.forEach(mbtActionParameter -> {
+                            String parameterName = mbtActionParameter.getName();
+                            switch (mbtActionParameter.getType().toUpperCase()) {
+                                case "INPUT":
+                                    parameterString.append(SdkStringUtils.isEmpty(mbtActionParameter.getOutputParameter()) ?
+                                            ",DataTable(\"" + parameterName + "\")" : "," + mbtActionParameter.getOutputParameter());
+                                    break;
+                                case "OUTPUT":
+                                default:
+                                    parameterString.append(",").append(parameterName);
+                                    break;
+                            }
+                        });
+                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", testPath, actionName, parameterString));
+                    } else {
+                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", testPath, actionName));
+                    }
                     underlyingTestsList.add(testPath);
 
                     unitIds.add(mbtAction.getUnitId());
@@ -235,7 +260,27 @@ public class MfUftConverter extends TestsToRunConverter {
             //List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
             String script = String.join("\r\n", scriptLinesList);
 
-            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds);
+            String encodedIterationsAsString = "";
+            MbtDataTable dataTable = mbtData.getData();
+            if (dataTable != null && dataTable.getParameters() != null && !dataTable.getParameters().isEmpty()) {
+                StringBuilderWriter stringBuilderWriter = new StringBuilderWriter();
+                try (CSVPrinter csvPrinter = new CSVPrinter(stringBuilderWriter, CSVFormat.DEFAULT.withHeader(dataTable.getParameters().stream().toArray(String[]::new)))) {
+                    dataTable.getIterations().forEach(iteration -> {
+                        try {
+                            csvPrinter.printRecord(iteration);
+                        } catch (IOException e) {
+                            logger.error("Failed to build data table iterations record for mbt test " + data.getTestName(), e);
+                        }
+                    });
+                } catch (IOException e) {
+                    logger.error("Failed to build data table iterations for mbt test " + data.getTestName(), e);
+                }
+                String iterationsAsString = stringBuilderWriter.toString();
+                byte[] encodedIterations = Base64.getEncoder().encode(iterationsAsString.getBytes(StandardCharsets.UTF_8));
+                encodedIterationsAsString = new String(encodedIterations, StandardCharsets.UTF_8);
+            }
+
+            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString);
             mbtTests.add(test);
         }
     }

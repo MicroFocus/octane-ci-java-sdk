@@ -2,11 +2,17 @@ package com.hp.octane.integrations.dto.general;
 
 import com.hp.octane.integrations.dto.DTOBase;
 
+import java.util.List;
+
 public interface MbtAction extends DTOBase {
 
     String getPathInScm();
 
     MbtAction setPathInScm(String pathInScm);
+
+    String getName();
+
+    void setName(String name);
 
     long getUnitId();
 
@@ -15,4 +21,8 @@ public interface MbtAction extends DTOBase {
     int getOrder();
 
     MbtAction setOrder(int order);
+
+    List<MbtActionParameter> getParameters();
+
+    MbtAction setParameters(List<MbtActionParameter> parameters);
 }
