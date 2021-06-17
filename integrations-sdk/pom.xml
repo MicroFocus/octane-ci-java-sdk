@@ -65,6 +65,13 @@
 			<version>${poi.version}</version>
 		</dependency>
 
+		<!-- mbt csv file writing -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.8</version>
+		</dependency>
+
 		<!-- TESTING -->
 		<dependency>
 			<artifactId>junit</artifactId>

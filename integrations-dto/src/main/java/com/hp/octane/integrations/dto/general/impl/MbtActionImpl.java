@@ -2,13 +2,18 @@ package com.hp.octane.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.hp.octane.integrations.dto.general.MbtAction;
+import com.hp.octane.integrations.dto.general.MbtActionParameter;
+
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MbtActionImpl implements MbtAction {
 
     private String pathInScm;
+    private String name;
     private long unitId;
     private int order;
+    private List<MbtActionParameter> parameters;
 
     @Override
     public String getPathInScm() {
@@ -19,6 +24,16 @@ public class MbtActionImpl implements MbtAction {
     public MbtAction setPathInScm(String pathInScm) {
         this.pathInScm = pathInScm;
         return this;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -43,5 +58,14 @@ public class MbtActionImpl implements MbtAction {
         return this;
     }
 
+    @Override
+    public List<MbtActionParameter> getParameters() {
+        return parameters;
+    }
 
+    @Override
+    public MbtAction setParameters(List<MbtActionParameter> parameters) {
+        this.parameters = parameters;
+        return this;
+    }
 }
