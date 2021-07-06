@@ -36,6 +36,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -49,6 +50,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -257,11 +259,11 @@ public class MfUftConverter extends TestsToRunConverter {
                 throw e;
             }
 
-
             //String script ="LoadAndRunAction \"c:\\Temp\\GUITest1\\\",\"Action1\"\r\nLoadAndRunAction \"c:\\Temp\\GUITest2\\\",\"Action1\"" ;
             //List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
             String script = String.join("\r\n", scriptLinesList);
 
+            //ADD PARAMETERS
             String encodedIterationsAsString = "";
             MbtDataTable dataTable = mbtData.getData();
             if (dataTable != null && dataTable.getParameters() != null && !dataTable.getParameters().isEmpty()) {
@@ -282,8 +284,9 @@ public class MfUftConverter extends TestsToRunConverter {
                 encodedIterationsAsString = new String(encodedIterations, StandardCharsets.UTF_8);
             }
 
-            //Extract function libraries
+            //ADD function libraries and recovery scenarios
             List<String> functionLibraries = new ArrayList<>();
+            List<String> recoveryScenarions = new ArrayList<>();
 
             try {
                 for (String test : underlyingTestsList) {
@@ -294,16 +297,36 @@ public class MfUftConverter extends TestsToRunConverter {
                     DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
                     DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
                     Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
+
+                    //FL
                     NodeList funcLibNodes = document.getElementsByTagName("FuncLib");
                     for (int i = 0; i < funcLibNodes.getLength(); i++) {
                         String fl = document.getElementsByTagName("FuncLib").item(i).getTextContent();
                         functionLibraries.add(fl);
                     }
+
+                    //RC
+                    String[] recoveryScenarios = document.getElementsByTagName("RecoveryScenarios").item(0).getTextContent().split("\\*");
+                    for (int i = 0; i < recoveryScenarios.length; i++) {
+                        if (recoveryScenarios != null) {
+                            String[] rsAsArray = recoveryScenarios[i].split("\\|");
+                            if (rsAsArray.length > 1) {
+                                String rsPath = rsAsArray[0];
+                                String rsName = rsAsArray[1];
+                                String position = rsAsArray[2];
+
+                                List<String> parts = Arrays.asList(rsPath, rsName, position);
+                                String joined = String.join(",", parts);
+                                recoveryScenarions.add(joined);
+                            }
+                        }
+                    }
                 }
-            } catch (Exception e) {
-                logger.error("Failed to extract function libraries " + e.getMessage());
+            } catch (IOException | ParserConfigurationException | SAXException e) {
+                logger.error("Failed to parse function libraries/recovery scenarios for tests " + data.getTestName() + " : " + e);
             }
-            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString, functionLibraries);
+
+            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString, functionLibraries, recoveryScenarions);
             mbtTests.add(test);
         }
     }

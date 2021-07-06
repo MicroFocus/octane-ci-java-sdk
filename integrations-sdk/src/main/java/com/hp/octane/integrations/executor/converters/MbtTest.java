@@ -18,7 +18,10 @@ public class MbtTest {
 
     private List<String> functionLibraries;
 
-    public MbtTest(String name, String packageName, String script, List<String> underlyingTests, List<Long> unitIds, String encodedIterations,  List<String> functionLibraries) {
+    private List<String> recoveryScenarios;
+
+    public MbtTest(String name, String packageName, String script, List<String> underlyingTests, List<Long> unitIds, String encodedIterations, List<String> functionLibraries,
+                   List<String> recoveryScenarios) {
         this.name = name;
         this.packageName = packageName;
         this.script = script;
@@ -26,6 +29,7 @@ public class MbtTest {
         this.unitIds = unitIds;
         this.encodedIterations = encodedIterations;
         this.functionLibraries = functionLibraries;
+        this.recoveryScenarios = recoveryScenarios;
     }
 
     public String getName() {
@@ -56,4 +60,7 @@ public class MbtTest {
         return functionLibraries;
     }
 
+    public List<String> getRecoveryScenarios() {
+        return recoveryScenarios;
+    }
 }
