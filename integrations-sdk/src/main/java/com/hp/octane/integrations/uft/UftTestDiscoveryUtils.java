@@ -256,7 +256,7 @@ public class UftTestDiscoveryUtils {
     }
 
 
-    private static String extractXmlContentFromTspFile(InputStream stream) throws IOException {
+    public static String extractXmlContentFromTspFile(InputStream stream) throws IOException {
         POIFSFileSystem poiFS = new POIFSFileSystem(stream);
         DirectoryNode root = poiFS.getRoot();
         String xmlData = "";
