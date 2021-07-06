@@ -16,13 +16,16 @@ public class MbtTest {
 
     private String encodedIterations;
 
-    public MbtTest(String name, String packageName, String script, List<String> underlyingTests, List<Long> unitIds, String encodedIterations) {
+    private List<String> functionLibraries;
+
+    public MbtTest(String name, String packageName, String script, List<String> underlyingTests, List<Long> unitIds, String encodedIterations,  List<String> functionLibraries) {
         this.name = name;
         this.packageName = packageName;
         this.script = script;
         this.underlyingTests = underlyingTests;
         this.unitIds = unitIds;
         this.encodedIterations = encodedIterations;
+        this.functionLibraries = functionLibraries;
     }
 
     public String getName() {
@@ -48,4 +51,9 @@ public class MbtTest {
     public String getEncodedIterations() {
         return encodedIterations;
     }
+
+    public List<String> getFunctionLibraries() {
+        return functionLibraries;
+    }
+
 }

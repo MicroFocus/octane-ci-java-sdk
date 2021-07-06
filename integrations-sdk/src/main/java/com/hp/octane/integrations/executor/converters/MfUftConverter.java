@@ -24,6 +24,7 @@ import com.hp.octane.integrations.dto.general.MbtDataTable;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
+import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.csv.CSVFormat;
@@ -33,6 +34,8 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.StringBuilderWriter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,8 +46,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -280,7 +282,28 @@ public class MfUftConverter extends TestsToRunConverter {
                 encodedIterationsAsString = new String(encodedIterations, StandardCharsets.UTF_8);
             }
 
-            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString);
+            //Extract function libraries
+            List<String> functionLibraries = new ArrayList<>();
+
+            try {
+                for (String test : underlyingTestsList) {
+                    File tspFile = new File(test + "\\Test.tsp");
+                    InputStream is = new FileInputStream(tspFile);
+                    String xmlContent = UftTestDiscoveryUtils.extractXmlContentFromTspFile(is);
+
+                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+                    Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
+                    NodeList funcLibNodes = document.getElementsByTagName("FuncLib");
+                    for (int i = 0; i < funcLibNodes.getLength(); i++) {
+                        String fl = document.getElementsByTagName("FuncLib").item(i).getTextContent();
+                        functionLibraries.add(fl);
+                    }
+                }
+            } catch (Exception e) {
+                logger.error("Failed to extract function libraries " + e.getMessage());
+            }
+            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString, functionLibraries);
             mbtTests.add(test);
         }
     }
