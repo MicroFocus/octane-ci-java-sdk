@@ -69,8 +69,14 @@ public class BitbucketServerFetchHandler extends FetchHandler {
             int counter = 0;
             for (PullRequest pr : filteredPullRequests) {
                 String url = baseUrl + "/pull-requests/" + pr.getId() + "/commits";
-                List<Commit> commits = getPagedEntities(url, Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
-
+                List<Commit> commits = Collections.emptyList();
+                try {
+                    commits = getPagedEntities(url, Commit.class, parameters.getPageSize(), parameters.getMaxCommitsToFetch(), parameters.getMinUpdateTime());
+                } catch (Exception e) {
+                    //this issue was raised by customer : after merging PR with squash, branch was deleted and get commit of PR - returned with 404
+                    //Request to '.../pull-requests/259/commits?&limit=30&start=0' is ended with result 404 : Commit 'a44a0c2fc' does not exist in repository '...'.
+                    logConsumer.accept(String.format("Failed to fetch commits for PR %s : %s", pr.getId(), e.getMessage()));
+                }
                 List<com.hp.octane.integrations.dto.scm.SCMCommit> dtoCommits = new ArrayList<>();
                 for (Commit commit : commits) {
                     com.hp.octane.integrations.dto.scm.SCMCommit dtoCommit = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.SCMCommit.class)
@@ -81,7 +87,8 @@ public class BitbucketServerFetchHandler extends FetchHandler {
                             .setTime(commit.getCommitterTimestamp())
                             .setParentRevId(commit.getParents().get(0).getId());
                     dtoCommits.add(dtoCommit);
-                }
+                    }
+
 
                 SCMRepository sourceRepository = buildScmRepository(parameters.isUseSSHFormat(), pr.getFromRef());
                 SCMRepository targetRepository = buildScmRepository(parameters.isUseSSHFormat(), pr.getToRef());
