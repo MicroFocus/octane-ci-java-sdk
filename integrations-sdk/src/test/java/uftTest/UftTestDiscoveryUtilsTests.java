@@ -1,6 +1,7 @@
 package uftTest;
 
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
+import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
 import com.hp.octane.integrations.uft.items.UftTestType;
 import org.junit.Assert;
 import org.junit.Test;
@@ -20,6 +21,13 @@ import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.extractXmlCon
 public class UftTestDiscoveryUtilsTests {
 
 
+    //@Test
+    public void scanTest(){
+        File root = new File("c:\\dev\\plugins\\_uft\\UftTests\\");
+        UftTestDiscoveryResult result = UftTestDiscoveryUtils.doFullDiscovery(root, UftTestDiscoveryUtils.DiscoveryMode.MBT);
+        Assert.assertNotNull(result);
+    }
+
     @Test
     public void readDescriptionTest() {
         URL url = getClass().getResource("Test.tsp");
@@ -29,9 +37,9 @@ public class UftTestDiscoveryUtilsTests {
     }
 
 
-    //@Test
+    @Test
     public void readTSPFile() throws IOException, ParserConfigurationException, SAXException {
-        File tspFile = new File("c:\\dev\\plugins\\_uft\\UftTests\\ForIdan\\GUITest161\\Test.tsp");
+        File tspFile = new File("c:\\Temp\\GUITest6\\Test.tsp");
         InputStream is = new FileInputStream(tspFile);
         String xmlContent = extractXmlContentFromTspFile(is);
 

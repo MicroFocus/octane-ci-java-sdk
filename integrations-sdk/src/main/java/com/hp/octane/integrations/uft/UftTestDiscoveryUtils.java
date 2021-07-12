@@ -46,17 +46,18 @@ public class UftTestDiscoveryUtils {
     private static final String QTPFileExtention = ".tsp";//gui test
     private static final String XLSXExtention = ".xlsx";//excel file
     private static final String XLSExtention = ".xls";//excel file
+    public enum DiscoveryMode{UFT,MBT};
 
     private static final Set<String> SKIP_FOLDERS = Stream.of("_discovery_results").collect(Collectors.toSet());
 
-    public static UftTestDiscoveryResult doFullDiscovery(File root) {
+    public static UftTestDiscoveryResult doFullDiscovery(File root , DiscoveryMode mode) {
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();
-        scanFileSystemRecursively(root, root, result);
+        scanFileSystemRecursively(root, root, result, mode);
         result.setFullScan(true);
         return result;
     }
 
-    private static void scanFileSystemRecursively(File root, File dirPath, UftTestDiscoveryResult discoveryResult) {
+    private static void scanFileSystemRecursively(File root, File dirPath, UftTestDiscoveryResult discoveryResult, DiscoveryMode mode) {
         if (dirPath.isDirectory() && SKIP_FOLDERS.contains(dirPath.getName())) {
             return;
         }
@@ -66,12 +67,12 @@ public class UftTestDiscoveryUtils {
         //if it test folder - create new test, else drill down to subFolders
         UftTestType testType = paths != null ? isUftTestFolder(paths) : UftTestType.None;
         if (!testType.isNone()) {
-            AutomatedTest test = createAutomatedTest(root, dirPath, testType);
+            AutomatedTest test = createAutomatedTest(root, dirPath, testType, mode);
             discoveryResult.getAllTests().add(test);
         } else if (paths != null) {
             for (File path : paths) {
                 if (path.isDirectory()) {
-                    scanFileSystemRecursively(root, path, discoveryResult);
+                    scanFileSystemRecursively(root, path, discoveryResult, mode);
                 } else if (isUftDataTableFile(path.getName())) {
                     ScmResourceFile dataTable = createDataTable(root, path);
                     discoveryResult.getAllScmResourceFiles().add(dataTable);
@@ -134,7 +135,7 @@ public class UftTestDiscoveryUtils {
         return null;
     }
 
-    public static AutomatedTest createAutomatedTest(File root, File dirPath, UftTestType testType) {
+    public static AutomatedTest createAutomatedTest(File root, File dirPath, UftTestType testType, DiscoveryMode mode) {
         AutomatedTest test = new AutomatedTest();
         test.setName(dirPath.getName());
 
@@ -148,6 +149,7 @@ public class UftTestDiscoveryUtils {
         test.setDescription(description);
         test.setOctaneStatus(OctaneStatus.NEW);
 
+        //TODO - discover actions if mode == MBT
 
         return test;
     }
