@@ -112,10 +112,10 @@ public class CustomConverterTest {
 
     @Test
     public void bddTest() {
-        String data = "v1:||feature name 1021|runId=2011|featureFilePath=src\\test\\resources\\dan\\Dan_1021.feature;||feature name 1024 #1024  bbb|runId=2012|featureFilePath=src\\test\\resources\\elisheva\\ES_1024 a.feature";
+        String data = "v1:||feature name 1021|runId=2011|featureFilePath=src\\test\\resources\\dan\\Dan_1021.feature;||feature name '1024 #1024  bbb|runId=2012|featureFilePath=src\\test\\resources\\elisheva\\ES_1024 a.feature";
         BDDConverter gradleConverter = new BDDConverter();
         String actual = gradleConverter.convert(data, "").getConvertedTestsString();
-        String expected = "'src\\test\\resources\\dan\\Dan_1021.feature' 'src\\test\\resources\\elisheva\\ES_1024 a.feature' --name 'feature name 1021' --name 'feature name 1024 #1024  bbb'";
+        String expected = "'src\\test\\resources\\dan\\Dan_1021.feature' 'src\\test\\resources\\elisheva\\ES_1024 a.feature' --name 'feature name 1021' --name 'feature name .1024 #1024  bbb'";
         Assert.assertEquals(expected, actual);
     }
 }
