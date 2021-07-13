@@ -286,7 +286,7 @@ public class MfUftConverter extends TestsToRunConverter {
 
             //ADD function libraries and recovery scenarios
             List<String> functionLibraries = new ArrayList<>();
-            List<String> recoveryScenarions = new ArrayList<>();
+            List<String> recoveryScenarios = new ArrayList<>();
 
             try {
                 int testCounter = 0;
@@ -307,10 +307,10 @@ public class MfUftConverter extends TestsToRunConverter {
                     }
 
                     //RC
-                    String[] recoveryScenarios = document.getElementsByTagName("RecoveryScenarios").item(0).getTextContent().split("\\*");
-                    for (int i = 0; i < recoveryScenarios.length; i++) {
+                    String[] recoveryScenariosParts = document.getElementsByTagName("RecoveryScenarios").item(0).getTextContent().split("\\*");
+                    for (int i = 0; i < recoveryScenariosParts.length; i++) {
                         if (recoveryScenarios != null) {
-                            String[] rsAsArray = recoveryScenarios[i].split("\\|");
+                            String[] rsAsArray = recoveryScenariosParts[i].split("\\|");
                             if (rsAsArray.length > 1) {
                                 String rsPath = rsAsArray[0];
                                 String rsName = rsAsArray[1];
@@ -318,7 +318,7 @@ public class MfUftConverter extends TestsToRunConverter {
 
                                 List<String> parts = Arrays.asList(rsPath, rsName, position, Integer.toString(testCounter));
                                 String joined = String.join(",", parts);
-                                recoveryScenarions.add(joined);
+                                recoveryScenarios.add(joined);
                             }
                         }
                     }
@@ -328,7 +328,7 @@ public class MfUftConverter extends TestsToRunConverter {
                 logger.error("Failed to parse function libraries/recovery scenarios for tests " + data.getTestName() + " : " + e);
             }
 
-            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString, functionLibraries, recoveryScenarions);
+            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString, functionLibraries, recoveryScenarios);
             mbtTests.add(test);
         }
     }
