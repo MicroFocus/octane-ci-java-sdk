@@ -289,6 +289,7 @@ public class MfUftConverter extends TestsToRunConverter {
             List<String> recoveryScenarions = new ArrayList<>();
 
             try {
+                int testCounter = 0;
                 for (String test : underlyingTestsList) {
                     File tspFile = new File(test + "\\Test.tsp");
                     InputStream is = new FileInputStream(tspFile);
@@ -315,12 +316,13 @@ public class MfUftConverter extends TestsToRunConverter {
                                 String rsName = rsAsArray[1];
                                 String position = rsAsArray[2];
 
-                                List<String> parts = Arrays.asList(rsPath, rsName, position);
+                                List<String> parts = Arrays.asList(rsPath, rsName, position, Integer.toString(testCounter));
                                 String joined = String.join(",", parts);
                                 recoveryScenarions.add(joined);
                             }
                         }
                     }
+                    testCounter++;
                 }
             } catch (IOException | ParserConfigurationException | SAXException e) {
                 logger.error("Failed to parse function libraries/recovery scenarios for tests " + data.getTestName() + " : " + e);
