@@ -25,6 +25,7 @@ public enum TestsToRunFramework {
     JUnit4("mvnSurefire", "JUnit/TestNG over Maven Surefire/Failsafe", ""),
     MF_UFT("uft", "Micro Focus UFT", ""),
     CUCUMBER_JVM("cucumber_jvm", "Cucumber-JVM over Maven", ""),
+    BDD_SCENARIO("bdd_scenario", "BDD Scenario (beta)", ""),
     JBehave("jbehave", "JBehave over Maven", JBehaveConverter.FORMAT),
     Protractor("protractor", "Protractor", ProtractorConverter.FORMAT),
     Gradle("gradle", "Gradle", GradleConverter.FORMAT),
