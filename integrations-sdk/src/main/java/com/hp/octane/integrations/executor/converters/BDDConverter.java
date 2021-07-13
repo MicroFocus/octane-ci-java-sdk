@@ -19,7 +19,7 @@ public class BDDConverter extends TestsToRunConverter {
                 .collect(Collectors.joining(" "));
         String testsStr = data.stream()
                 .map(d -> d.getTestName().replace("'","."))
-                .map(n -> "--name '" + n + "'").collect(Collectors.joining(" "));
+                .map(n -> "--name '^" + n + "$'").collect(Collectors.joining(" "));
         return featuresStr + " " + testsStr;
     }
 
