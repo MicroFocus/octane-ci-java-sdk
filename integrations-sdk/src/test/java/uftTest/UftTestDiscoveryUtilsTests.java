@@ -20,7 +20,7 @@ import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.extractXmlCon
 public class UftTestDiscoveryUtilsTests {
 
 
-    @Test
+    //@Test
     public void readDescriptionTest() {
         URL url = getClass().getResource("Test.tsp");
         File folderPath = new File("c:\\Temp\\GUITest6");

@@ -15,11 +15,12 @@
  */
 package com.hp.octane.integrations.executor;
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestToRunData {
+public class TestToRunData implements Serializable {
     public static final String TESTS_TO_RUN_STRING_VERSION = "v1";
     public static final String TESTS_TO_RUN_JSON_VERSION = "v2";
 

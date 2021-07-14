@@ -17,9 +17,10 @@ package com.hp.octane.integrations.executor;
 
 import com.hp.octane.integrations.executor.converters.MbtTest;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class TestsToRunConverterResult {
+public class TestsToRunConverterResult implements Serializable {
     private String rawTestsString;
     private List<TestToRunData> testsData;
     private String convertedTestsString;
