@@ -226,9 +226,9 @@ public class MfUftConverter extends TestsToRunConverter {
                         logger.error(String.format("UnitId %s has invalid scmPath, skipping", mbtAction.getUnitId()));
                         continue;
                     }
-                    String[] parts = scmPath.split(":");//example : GUITests/f1/GUITest02:Action1
-                    String testPath = checkoutFolder + "\\" + parts[0];
-                    String actionName = parts[1];
+                    String[] testAndActionParts = scmPath.split(":");//example : GUITests/f1/GUITest02:Action1
+                    String testPath = checkoutFolder + "\\" + testAndActionParts[0];
+                    String actionName = testAndActionParts[1];
 
                     List<MbtActionParameter> parameters = mbtAction.getParameters();
                     if (parameters != null && !parameters.isEmpty()) {
@@ -303,7 +303,7 @@ public class MfUftConverter extends TestsToRunConverter {
                     NodeList funcLibNodes = document.getElementsByTagName("FuncLib");
                     for (int i = 0; i < funcLibNodes.getLength(); i++) {
                         String fl = document.getElementsByTagName("FuncLib").item(i).getTextContent();
-                        functionLibraries.add(fl);
+                        functionLibraries.add(computeResourcePath(fl, test));
                     }
 
                     //RC
@@ -312,7 +312,7 @@ public class MfUftConverter extends TestsToRunConverter {
                         if (recoveryScenarios != null) {
                             String[] rsAsArray = recoveryScenariosParts[i].split("\\|");
                             if (rsAsArray.length > 1) {
-                                String rsPath = rsAsArray[0];
+                                String rsPath = computeResourcePath(rsAsArray[0], test);
                                 String rsName = rsAsArray[1];
                                 String position = rsAsArray[2];
 
@@ -331,5 +331,27 @@ public class MfUftConverter extends TestsToRunConverter {
             MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString, functionLibraries, recoveryScenarios);
             mbtTests.add(test);
         }
+    }
+
+    /**
+     * if path to resource is relative to test, compute absolute path to resource
+     *
+     * @param testPath
+     * @param resourcePath
+     * @return
+     */
+    public static String computeResourcePath(String resourcePath, String testPath) {
+        if (resourcePath.startsWith("..")) {
+            File file = new File(testPath, resourcePath);
+            try {
+                return file.getCanonicalPath();
+            } catch (IOException e) {
+                String msg = String.format("Failed to computeResourcePath for resource %s , test %s", resourcePath, testPath);
+                logger.error(msg);
+                return resourcePath;
+            }
+        }
+        return resourcePath;
+
     }
 }
