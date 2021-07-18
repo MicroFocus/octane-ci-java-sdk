@@ -164,7 +164,7 @@ public class CustomConverter extends TestsToRunConverter {
     }
 
     @Override
-    public String convert(List<TestToRunData> data, String executionDirectory) {
+    public String convert(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
         Set<String> existingKeys = new HashSet<>();
         addToSetIfPatterContains(existingKeys, $_PACKAGE);
         addToSetIfPatterContains(existingKeys, $_CLASS);

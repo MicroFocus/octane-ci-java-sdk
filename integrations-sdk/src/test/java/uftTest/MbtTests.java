@@ -3,12 +3,14 @@ package uftTest;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.MbtActionParameter;
 import com.hp.octane.integrations.dto.general.MbtData;
+import com.hp.octane.integrations.executor.converters.MfUftConverter;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
 import java.util.Collections;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,5 +27,11 @@ public class MbtTests {
                 Optional.ofNullable(mbtAction.getParameters()).orElse(Collections.emptyList()).stream().map(MbtActionParameter::getParameterId).collect(Collectors.joining(", "))));
         mbtData.getData().getParameters().forEach(System.out::println);
         mbtData.getData().getIterations().forEach(strings -> strings.forEach(System.out::println));
+    }
+
+    @Test
+    public void testComputeResourcePath(){
+        String path = MfUftConverter.computeResourcePath("..\\ss","c:\\aa\\bb");
+        Assert.assertEquals("c:\\aa\\ss", path.toLowerCase(Locale.ROOT));
     }
 }

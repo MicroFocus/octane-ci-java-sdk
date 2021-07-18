@@ -43,7 +43,7 @@ public class TestsToRunConverterTest {
 
     private String converterTest(TestsToRunFramework framework, String rawData) {
         TestsToRunConverter converter = TestsToRunConvertersFactory.createConverter(framework);
-        String result = converter.convert(rawData, "").getConvertedTestsString();
+        String result = converter.convert(rawData, "", null).getConvertedTestsString();
 
         return result;
     }

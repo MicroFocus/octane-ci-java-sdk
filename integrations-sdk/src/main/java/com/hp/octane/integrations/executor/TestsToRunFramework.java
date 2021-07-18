@@ -20,7 +20,9 @@ import com.hp.octane.integrations.executor.converters.JBehaveConverter;
 import com.hp.octane.integrations.executor.converters.ProtractorConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
-public enum TestsToRunFramework {
+import java.io.Serializable;
+
+public enum TestsToRunFramework implements Serializable {
 
     JUnit4("mvnSurefire", "JUnit/TestNG over Maven Surefire/Failsafe", ""),
     MF_UFT("uft", "Micro Focus UFT", ""),

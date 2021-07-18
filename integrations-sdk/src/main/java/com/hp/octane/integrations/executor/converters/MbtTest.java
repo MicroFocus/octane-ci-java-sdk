@@ -1,8 +1,9 @@
 package com.hp.octane.integrations.executor.converters;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class MbtTest {
+public class MbtTest implements Serializable {
 
     private String name;
 
