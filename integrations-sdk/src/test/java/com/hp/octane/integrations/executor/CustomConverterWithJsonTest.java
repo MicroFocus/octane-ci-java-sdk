@@ -15,7 +15,6 @@
 
 package com.hp.octane.integrations.executor;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.hp.octane.integrations.executor.converters.CustomConverter;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,7 +44,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        TestsToRunConverterResult result = converter.convert(fullFormatRawData, "");
+        TestsToRunConverterResult result = converter.convert(fullFormatRawData, "", null);
 
         Assert.assertEquals("converted", result.getTestsToRunConvertedParameterName());
         Assert.assertEquals("[MF.simple.tests.AppTest#myTest||MF.simple.tests.AppTestB#test\\040Send]", result.getConvertedTestsString());
@@ -78,7 +77,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.bubus.AppTestA#myTestA+MFA.simpleA.bubus.AppTestB#bubu Send", actual);
     }
@@ -94,7 +93,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.tests=apptesta#MYTESTA+MFA.simpleA.tests=apptestb#TEST SEND", actual);
     }
@@ -108,7 +107,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;prefix|MFA.simpleA.tests|suffix;", actual);
     }
@@ -123,7 +122,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;", actual);
     }
@@ -157,7 +156,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.bubus.AppbubuA#mybubuA+MFA.simpleA.bubus.AppbubuB#bubu Send", actual);
     }
@@ -173,7 +172,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(singleRawDataWithExternalTest, "").getConvertedTestsString();
+        String actual = converter.convert(singleRawDataWithExternalTest, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MF.simple.tests.AppTest#testAlways-BUBU", actual);
     }
@@ -190,7 +189,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(singleRawDataWithExternalTest, "").getConvertedTestsString();
+        String actual = converter.convert(singleRawDataWithExternalTest, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MF.simple.tests.AppTest#testAlways-BUBU+MF.simple.tests.AppTest#testNotAlways", actual);
     }

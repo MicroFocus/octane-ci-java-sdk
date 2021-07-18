@@ -23,6 +23,7 @@ import com.hp.octane.integrations.utils.SdkStringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.hp.octane.integrations.executor.TestToRunData.TESTS_TO_RUN_STRING_VERSION;
 
@@ -41,10 +42,10 @@ public abstract class TestsToRunConverter {
         return format;
     }
 
-    public TestsToRunConverterResult convert(String rawTests, String executionDirectory) {
+    public TestsToRunConverterResult convert(String rawTests, String executionDirectory, Map<String, String> globalParameters) {
 
         List<TestToRunData> data = parse(rawTests);
-        String converted = convert(data, executionDirectory);
+        String converted = convert(data, executionDirectory, globalParameters);
         TestsToRunConverterResult result = new TestsToRunConverterResult(rawTests, data, converted, executionDirectory, testsToRunConvertedParameterName);
         afterConvert(result);
         return result;
@@ -54,7 +55,7 @@ public abstract class TestsToRunConverter {
 
     }
 
-    protected abstract String convert(List<TestToRunData> data, String executionDirectory);
+    protected abstract String convert(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters);
 
     protected void setTestsToRunConvertedParameterName(String value) {
         if (SdkStringUtils.isEmpty(value)) {
