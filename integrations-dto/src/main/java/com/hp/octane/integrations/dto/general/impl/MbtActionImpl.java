@@ -14,6 +14,8 @@ public class MbtActionImpl implements MbtAction {
     private long unitId;
     private int order;
     private List<MbtActionParameter> parameters;
+    private String testPath;
+    private String actionName;
 
     @Override
     public String getPathInScm() {
@@ -66,6 +68,28 @@ public class MbtActionImpl implements MbtAction {
     @Override
     public MbtAction setParameters(List<MbtActionParameter> parameters) {
         this.parameters = parameters;
+        return this;
+    }
+
+    @Override
+    public String getTestPath() {
+        return testPath;
+    }
+
+    @Override
+    public MbtAction setTestPath(String testPath) {
+        this.testPath = testPath;
+        return this;
+    }
+
+    @Override
+    public String getActionName() {
+        return actionName;
+    }
+
+    @Override
+    public MbtAction setActionName(String actionName) {
+        this.actionName = actionName;
         return this;
     }
 }

@@ -25,4 +25,12 @@ public interface MbtAction extends DTOBase {
     List<MbtActionParameter> getParameters();
 
     MbtAction setParameters(List<MbtActionParameter> parameters);
+
+    String getTestPath();
+
+    MbtAction setTestPath(String testPath);
+
+    String getActionName();
+
+    MbtAction setActionName(String actionName);
 }

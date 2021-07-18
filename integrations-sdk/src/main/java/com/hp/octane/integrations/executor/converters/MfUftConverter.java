@@ -223,57 +223,70 @@ public class MfUftConverter extends TestsToRunConverter {
                 logger.error("Failed to decode test action data " + data.getTestName() + " : " + e.getMessage());
                 throw e;
             }
+            //parse test and action names
+            for (int i = mbtData.getActions().size() - 1; i >= 0; i--) {
+                MbtAction mbtAction = mbtData.getActions().get(i);
+                String scmPath = mbtAction.getPathInScm();
+                if (scmPath == null || !scmPath.contains(":")) {
+                    logger.error(String.format("UnitId %s has invalid scmPath : %s, skipping", mbtAction.getUnitId(), mbtAction.getPathInScm()));
+                    mbtData.getActions().remove((i));
+                    continue;
+                }
+                String[] testAndActionParts = scmPath.split(":");//example : GUITests/f1/GUITest02:Action1
+                String testPath = checkoutFolder + "\\" + testAndActionParts[0];
+                String actionName = testAndActionParts[1];
+                mbtAction.setTestPath(testPath).setActionName(actionName);
+            }
 
+            //build script
             List<String> scriptLinesList = new ArrayList<>();
             List<String> underlyingTestsList = new ArrayList<>();
             List<Long> unitIds = new ArrayList<>();
 
-            String lineSplitter = "'***************************************************************************************************************************";
+            String lineSplitter = "'*************************************************************************************************************************************";
             List<String> recoveryScenariosList = new ArrayList<>();
             try {
                 int recoverScenarioIndex = 1;
-                for (MbtAction mbtAction : mbtData.getActions()) {
-                    String scmPath = mbtAction.getPathInScm();
-                    if (scmPath == null || !scmPath.contains(":")) {
-                        logger.error(String.format("UnitId %s has invalid scmPath, skipping", mbtAction.getUnitId()));
-                        continue;
-                    }
-                    String[] testAndActionParts = scmPath.split(":");//example : GUITests/f1/GUITest02:Action1
-                    String testPath = checkoutFolder + "\\" + testAndActionParts[0];
-                    String actionName = testAndActionParts[1];
+                for (int i = 0; i < mbtData.getActions().size(); i++) {
+                    MbtAction mbtAction = mbtData.getActions().get(i);
 
                     String actionParameters = extractActionParameterNames(mbtAction);
-                    TestResources testResources = extractTestResources(testPath);
+                    TestResources testResources = extractTestResources(mbtAction.getTestPath());
+                    boolean theSameTestAsPrev = i > 0 ? mbtData.getActions().get(i - 1).getTestPath().equals(mbtAction.getTestPath()) : false;
+                    boolean theSameTestAsNext = i < mbtData.getActions().size() - 1 ? mbtData.getActions().get(i + 1).getTestPath().equals(mbtAction.getTestPath()) : false;
 
+                    if (theSameTestAsPrev) {
+                        scriptLinesList.add("'Action belongs to test from previous action. Skip reloading function libraries and recovery scenarios");
+                    } else {
 
-                    if (!testResources.functionLibraries.isEmpty()) {
-                        scriptLinesList.add("'Add function libraries");
-                        scriptLinesList.add("RestartFLEngine");
-                        for (String fl : testResources.functionLibraries) {
-                            scriptLinesList.add(String.format("LoadFunctionLibrary \"%s\"", fl));
+                        if (!testResources.functionLibraries.isEmpty()) {
+                            scriptLinesList.add("'Add function libraries");
+                            scriptLinesList.add("RestartFLEngine");
+                            for (String fl : testResources.functionLibraries) {
+                                scriptLinesList.add(String.format("LoadFunctionLibrary \"%s\"", fl));
+                            }
                         }
-                    }
-                    if (!testResources.recoveryScenarios.isEmpty()) {
-                        //scriptLinesList.add("msgbox Recovery.Count,, \"Number of Recovery Scenarios\"");
-                        //scriptLinesList.add("Add recovery");
-                        scriptLinesList.add("");
-                        scriptLinesList.add("'Activate recovery scenarios");
-                        for (RecoveryScenario rs : testResources.recoveryScenarios) {
-                            scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, True", recoverScenarioIndex++));
-                            recoveryScenariosList.add(rs.asScriptLine());
 
+                        if (!testResources.recoveryScenarios.isEmpty()) {
+                            scriptLinesList.add("");
+                            scriptLinesList.add("'Activate recovery scenarios");
+                            for (RecoveryScenario rs : testResources.recoveryScenarios) {
+                                scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, True 'path=%s", recoverScenarioIndex++, rs.path));
+                                recoveryScenariosList.add(rs.asScriptLine());
+                            }
                         }
                     }
 
                     scriptLinesList.add("");
                     scriptLinesList.add("'Run action");
                     if (actionParameters != null) {
-                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", testPath, actionName, actionParameters));
+                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", mbtAction.getTestPath(), mbtAction.getActionName(), actionParameters));
                     } else {
-                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", testPath, actionName));
+                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", mbtAction.getTestPath(), mbtAction.getActionName()));
                     }
 
-                    if (!testResources.recoveryScenarios.isEmpty()) {
+                    //disable recover scenarios
+                    if (!theSameTestAsNext && !testResources.recoveryScenarios.isEmpty()) {
                         int myIndex = recoverScenarioIndex;
                         scriptLinesList.add("");
                         scriptLinesList.add("'De-active recovery scenarios");
@@ -288,10 +301,11 @@ public class MfUftConverter extends TestsToRunConverter {
 
                     //END SCRIPT
 
-                    underlyingTestsList.add(testPath);
+                    underlyingTestsList.add(mbtAction.getTestPath());
                     unitIds.add(mbtAction.getUnitId());
                 }
 
+                //if there are recovery scenario - put "Init recovery scenarios" in the beginning
                 if (recoverScenarioIndex > 1) {//add it only if any action has recovery scenarios
                     List<String> recoveryInitList = new ArrayList<>();
                     recoveryInitList.add("'Init recovery scenarios");
@@ -304,7 +318,6 @@ public class MfUftConverter extends TestsToRunConverter {
                     recoveryInitList.add("");
 
                     scriptLinesList.addAll(0, recoveryInitList);
-
                 }
             } catch (Exception e) {
                 logger.error("Failed to build script for test " + data.getTestName() + " : " + e.getMessage());
