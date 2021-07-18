@@ -228,7 +228,10 @@ public class MfUftConverter extends TestsToRunConverter {
             List<String> underlyingTestsList = new ArrayList<>();
             List<Long> unitIds = new ArrayList<>();
 
+            String lineSplitter = "'***************************************************************************************************************************";
+            List<String> recoveryScenariosList = new ArrayList<>();
             try {
+                int recoverScenarioIndex = 1;
                 for (MbtAction mbtAction : mbtData.getActions()) {
                     String scmPath = mbtAction.getPathInScm();
                     if (scmPath == null || !scmPath.contains(":")) {
@@ -239,29 +242,69 @@ public class MfUftConverter extends TestsToRunConverter {
                     String testPath = checkoutFolder + "\\" + testAndActionParts[0];
                     String actionName = testAndActionParts[1];
 
-                    List<MbtActionParameter> parameters = mbtAction.getParameters();
-                    if (parameters != null && !parameters.isEmpty()) {
-                        StringBuilder parameterString = new StringBuilder();
-                        parameters.forEach(mbtActionParameter -> {
-                            String parameterName = mbtActionParameter.getName();
-                            switch (mbtActionParameter.getType().toUpperCase()) {
-                                case "INPUT":
-                                    parameterString.append(SdkStringUtils.isEmpty(mbtActionParameter.getOutputParameter()) ?
-                                            ",DataTable(\"" + parameterName + "\")" : "," + mbtActionParameter.getOutputParameter());
-                                    break;
-                                case "OUTPUT":
-                                default:
-                                    parameterString.append(",").append(parameterName);
-                                    break;
-                            }
-                        });
-                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", testPath, actionName, parameterString));
+                    String actionParameters = extractActionParameterNames(mbtAction);
+                    TestResources testResources = extractTestResources(testPath);
+
+
+                    if (!testResources.functionLibraries.isEmpty()) {
+                        scriptLinesList.add("'Add function libraries");
+                        scriptLinesList.add("RestartFLEngine");
+                        for (String fl : testResources.functionLibraries) {
+                            scriptLinesList.add(String.format("LoadFunctionLibrary \"%s\"", fl));
+                        }
+                    }
+                    if (!testResources.recoveryScenarios.isEmpty()) {
+                        //scriptLinesList.add("msgbox Recovery.Count,, \"Number of Recovery Scenarios\"");
+                        //scriptLinesList.add("Add recovery");
+                        scriptLinesList.add("");
+                        scriptLinesList.add("'Activate recovery scenarios");
+                        for (RecoveryScenario rs : testResources.recoveryScenarios) {
+                            scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, True", recoverScenarioIndex++));
+                            recoveryScenariosList.add(rs.asScriptLine());
+
+                        }
+                    }
+
+                    scriptLinesList.add("");
+                    scriptLinesList.add("'Run action");
+                    if (actionParameters != null) {
+                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", testPath, actionName, actionParameters));
                     } else {
                         scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", testPath, actionName));
                     }
-                    underlyingTestsList.add(testPath);
 
+                    if (!testResources.recoveryScenarios.isEmpty()) {
+                        int myIndex = recoverScenarioIndex;
+                        scriptLinesList.add("");
+                        scriptLinesList.add("'De-active recovery scenarios");
+                        for (RecoveryScenario rs : testResources.recoveryScenarios) {
+                            scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, False", --myIndex));
+                        }
+                    }
+
+                    scriptLinesList.add("");
+                    scriptLinesList.add(lineSplitter);
+                    scriptLinesList.add("");
+
+                    //END SCRIPT
+
+                    underlyingTestsList.add(testPath);
                     unitIds.add(mbtAction.getUnitId());
+                }
+
+                if (recoverScenarioIndex > 1) {//add it only if any action has recovery scenarios
+                    List<String> recoveryInitList = new ArrayList<>();
+                    recoveryInitList.add("'Init recovery scenarios");
+                    recoveryInitList.add("Recovery.Activate");
+                    recoveryInitList.add("for Iter = 1 to Recovery.Count");
+                    recoveryInitList.add("    Recovery.SetScenarioStatus Iter, False");
+                    recoveryInitList.add("Next");
+                    recoveryInitList.add("");
+                    recoveryInitList.add(lineSplitter);
+                    recoveryInitList.add("");
+
+                    scriptLinesList.addAll(0, recoveryInitList);
+
                 }
             } catch (Exception e) {
                 logger.error("Failed to build script for test " + data.getTestName() + " : " + e.getMessage());
@@ -272,72 +315,118 @@ public class MfUftConverter extends TestsToRunConverter {
             //List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
             String script = String.join("\r\n", scriptLinesList);
 
-            //ADD PARAMETERS
-            String encodedIterationsAsString = "";
-            MbtDataTable dataTable = mbtData.getData();
-            if (dataTable != null && dataTable.getParameters() != null && !dataTable.getParameters().isEmpty()) {
-                StringBuilderWriter stringBuilderWriter = new StringBuilderWriter();
-                try (CSVPrinter csvPrinter = new CSVPrinter(stringBuilderWriter, CSVFormat.DEFAULT.withHeader(dataTable.getParameters().stream().toArray(String[]::new)))) {
-                    dataTable.getIterations().forEach(iteration -> {
-                        try {
-                            csvPrinter.printRecord(iteration);
-                        } catch (IOException e) {
-                            logger.error("Failed to build data table iterations record for mbt test " + data.getTestName(), e);
-                        }
-                    });
-                } catch (IOException e) {
-                    logger.error("Failed to build data table iterations for mbt test " + data.getTestName(), e);
-                }
-                String iterationsAsString = stringBuilderWriter.toString();
-                byte[] encodedIterations = Base64.getEncoder().encode(iterationsAsString.getBytes(StandardCharsets.UTF_8));
-                encodedIterationsAsString = new String(encodedIterations, StandardCharsets.UTF_8);
-            }
+            //ADD PARAMETERS to data table
+            String encodedIterationsAsString = extractDataTableIterations(mbtData, data);
 
-            //ADD function libraries and recovery scenarios
-            List<String> functionLibraries = new ArrayList<>();
-            List<String> recoveryScenarios = new ArrayList<>();
-
-            try {
-                int testCounter = 0;
-                for (String test : underlyingTestsList) {
-                    File tspFile = new File(test + "\\Test.tsp");
-                    InputStream is = new FileInputStream(tspFile);
-                    String xmlContent = UftTestDiscoveryUtils.extractXmlContentFromTspFile(is);
-
-                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-                    Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
-
-                    //FL
-                    NodeList funcLibNodes = document.getElementsByTagName("FuncLib");
-                    for (int i = 0; i < funcLibNodes.getLength(); i++) {
-                        String fl = document.getElementsByTagName("FuncLib").item(i).getTextContent();
-                        functionLibraries.add(computeResourcePath(fl, test));
-                    }
-
-                    //RC
-                    String[] recoveryScenariosParts = document.getElementsByTagName("RecoveryScenarios").item(0).getTextContent().split("\\*");
-                    for (String recoveryScenariosPart : recoveryScenariosParts) {
-                        String[] rsAsArray = recoveryScenariosPart.split("\\|");
-                        if (rsAsArray.length > 1) {
-                            String rsPath = computeResourcePath(rsAsArray[0], test);
-                            String rsName = rsAsArray[1];
-                            String position = rsAsArray[2];
-
-                            List<String> parts = Arrays.asList(rsPath, rsName, position, Integer.toString(testCounter));
-                            String joined = String.join(",", parts);
-                            recoveryScenarios.add(joined);
-                        }
-                    }
-                    testCounter++;
-                }
-            } catch (IOException | ParserConfigurationException | SAXException e) {
-                logger.error("Failed to parse function libraries/recovery scenarios for tests " + data.getTestName() + " : " + e);
-            }
-
-            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString, functionLibraries, recoveryScenarios);
+            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString,
+                    Collections.emptyList(), recoveryScenariosList);
             mbtTests.add(test);
         }
+    }
+
+    private static String extractDataTableIterations(MbtData mbtData, TestToRunData testToRunData) {
+        String encodedIterationsAsString = "";
+        MbtDataTable dataTable = mbtData.getData();
+        if (dataTable != null && dataTable.getParameters() != null && !dataTable.getParameters().isEmpty()) {
+            StringBuilderWriter stringBuilderWriter = new StringBuilderWriter();
+            try (CSVPrinter csvPrinter = new CSVPrinter(stringBuilderWriter, CSVFormat.DEFAULT.withHeader(dataTable.getParameters().stream().toArray(String[]::new)))) {
+                dataTable.getIterations().forEach(iteration -> {
+                    try {
+                        csvPrinter.printRecord(iteration);
+                    } catch (IOException e) {
+                        logger.error("Failed to build data table iterations record for mbt test " + testToRunData.getTestName(), e);
+                    }
+                });
+            } catch (IOException e) {
+                logger.error("Failed to build data table iterations for mbt test " + testToRunData.getTestName(), e);
+            }
+            String iterationsAsString = stringBuilderWriter.toString();
+            byte[] encodedIterations = Base64.getEncoder().encode(iterationsAsString.getBytes(StandardCharsets.UTF_8));
+            encodedIterationsAsString = new String(encodedIterations, StandardCharsets.UTF_8);
+        }
+        return encodedIterationsAsString;
+    }
+
+    private static String extractActionParameterNames(MbtAction mbtAction) {
+        List<MbtActionParameter> parameters = mbtAction.getParameters();
+        if (parameters != null && !parameters.isEmpty()) {
+            StringBuilder parameterString = new StringBuilder();
+            parameters.forEach(mbtActionParameter -> {
+                String parameterName = mbtActionParameter.getName();
+                switch (mbtActionParameter.getType().toUpperCase()) {
+                    case "INPUT":
+                        parameterString.append(SdkStringUtils.isEmpty(mbtActionParameter.getOutputParameter()) ?
+                                ",DataTable(\"" + parameterName + "\")" : "," + mbtActionParameter.getOutputParameter());
+                        break;
+                    case "OUTPUT":
+                    default:
+                        parameterString.append(",").append(parameterName);
+                        break;
+                }
+            });
+            return parameterString.toString();
+        } else {
+            return null;
+        }
+    }
+
+    private static class TestResources {
+        List<String> functionLibraries = new ArrayList<>();
+        List<RecoveryScenario> recoveryScenarios = new ArrayList<>();
+    }
+
+    private static class RecoveryScenario {
+        String path;
+        String name;
+        String position;
+
+        public static RecoveryScenario create(String path, String name, String position) {
+            RecoveryScenario rc = new RecoveryScenario();
+            rc.path = path;
+            rc.name = name;
+            rc.position = position;
+            return rc;
+        }
+
+        public String asScriptLine() {
+            return String.join(",", path, name, position);
+        }
+    }
+
+    private TestResources extractTestResources(String testPath) {
+        TestResources content = new TestResources();
+        //ADD function libraries and recovery scenarios
+        try {
+            File tspFile = new File(testPath + "\\Test.tsp");
+            InputStream is = new FileInputStream(tspFile);
+            String xmlContent = UftTestDiscoveryUtils.extractXmlContentFromTspFile(is);
+
+            DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+            Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
+
+            //FL
+            NodeList funcLibNodes = document.getElementsByTagName("FuncLib");
+            for (int i = 0; i < funcLibNodes.getLength(); i++) {
+                String fl = document.getElementsByTagName("FuncLib").item(i).getTextContent();
+                content.functionLibraries.add(computeResourcePath(fl, testPath));
+            }
+
+            //RC
+            String[] recoveryScenariosParts = document.getElementsByTagName("RecoveryScenarios").item(0).getTextContent().split("\\*");
+            for (String recoveryScenariosPart : recoveryScenariosParts) {
+                String[] rsAsArray = recoveryScenariosPart.split("\\|");
+                if (rsAsArray.length > 1) {
+                    String rsPath = computeResourcePath(rsAsArray[0], testPath);
+                    String rsName = rsAsArray[1];
+                    String position = rsAsArray[2];
+                    content.recoveryScenarios.add(RecoveryScenario.create(rsPath, rsName, position));
+                }
+            }
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            logger.error("Failed to parse function libraries/recovery scenarios for tests " + testPath + " : " + e);
+        }
+        return content;
     }
 
     /**
