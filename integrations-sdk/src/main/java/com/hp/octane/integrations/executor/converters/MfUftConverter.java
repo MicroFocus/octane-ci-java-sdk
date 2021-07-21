@@ -258,7 +258,7 @@ public class MfUftConverter extends TestsToRunConverter {
                     boolean theSameTestAsPrev = i > 0 ? mbtData.getActions().get(i - 1).getTestPath().equals(mbtAction.getTestPath()) : false;
 
                     if (theSameTestAsPrev) {
-                        scriptLinesList.add("'Action belongs to a test of the previous action. Skip reloading function libraries and recovery scenarios.");
+                        scriptLinesList.add("'The action belongs to the test of the previous action. Skip reloading function libraries and recovery scenarios.");
                     } else {
 
                         if (!testResources.functionLibraries.isEmpty()) {
