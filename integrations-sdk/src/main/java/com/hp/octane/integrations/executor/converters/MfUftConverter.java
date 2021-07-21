@@ -252,6 +252,9 @@ public class MfUftConverter extends TestsToRunConverter {
             try {
                 for (int i = 0; i < mbtData.getActions().size(); i++) {
                     MbtAction mbtAction = mbtData.getActions().get(i);
+                    if (!new File(mbtAction.getTestPath()).exists()) {
+                        throw new IllegalArgumentException(String.format("Test path %s is not found. UnitId = %s.", mbtAction.getTestPath(), mbtAction.getUnitId()));
+                    }
 
                     String actionParameters = extractActionParameterNames(mbtAction);
                     TestResources testResources = extractTestResources(mbtAction.getTestPath());
@@ -274,9 +277,9 @@ public class MfUftConverter extends TestsToRunConverter {
                             scriptLinesList.add("");
                             scriptLinesList.add("'Add recovery scenarios");
                             scriptLinesList.add("CleanRSManager");
-                            for (RecoveryScenario rs : testResources.recoveryScenarios) {
-                                scriptLinesList.add(String.format("LoadRecoveryScenario \"%s|%s|1|1*\"", rs.path, rs.name));
-                            }
+                            String scenarios = "LoadRecoveryScenario " + testResources.recoveryScenarios.stream().
+                                    map(rs -> String.format("\"%s|%s|1|1*\"", rs.path, rs.name)).collect(Collectors.joining(","));
+                            scriptLinesList.add(scenarios);
                         }
                     }
 
