@@ -244,12 +244,11 @@ public class MfUftConverter extends TestsToRunConverter {
             List<String> underlyingTestsList = new ArrayList<>();
             List<Long> unitIds = new ArrayList<>();
 
-            String testLineSplitter = "'*************************************************************************************************************************************";
+            String testLineSplitter = "'********************************************************************************************************************************************";
             scriptLinesList.add("");
             scriptLinesList.add(testLineSplitter);
             scriptLinesList.add("");
 
-            Map<String, RecoveryScenario> recoveryScenariosMap = new LinkedHashMap<>();
             try {
                 for (int i = 0; i < mbtData.getActions().size(); i++) {
                     MbtAction mbtAction = mbtData.getActions().get(i);
@@ -257,13 +256,13 @@ public class MfUftConverter extends TestsToRunConverter {
                     String actionParameters = extractActionParameterNames(mbtAction);
                     TestResources testResources = extractTestResources(mbtAction.getTestPath());
                     boolean theSameTestAsPrev = i > 0 ? mbtData.getActions().get(i - 1).getTestPath().equals(mbtAction.getTestPath()) : false;
-                    boolean theSameTestAsNext = i < mbtData.getActions().size() - 1 ? mbtData.getActions().get(i + 1).getTestPath().equals(mbtAction.getTestPath()) : false;
 
                     if (theSameTestAsPrev) {
-                        scriptLinesList.add("'Action belongs to test from previous action. Skip reloading function libraries and recovery scenarios");
+                        scriptLinesList.add("'Action belongs to a test of the previous action. Skip reloading function libraries and recovery scenarios.");
                     } else {
 
                         if (!testResources.functionLibraries.isEmpty()) {
+                            scriptLinesList.add("");
                             scriptLinesList.add("'Add function libraries");
                             scriptLinesList.add("RestartFLEngine");
                             for (String fl : testResources.functionLibraries) {
@@ -273,15 +272,10 @@ public class MfUftConverter extends TestsToRunConverter {
 
                         if (!testResources.recoveryScenarios.isEmpty()) {
                             scriptLinesList.add("");
-                            scriptLinesList.add("'Activate recovery scenarios");
+                            scriptLinesList.add("'Add recovery scenarios");
+                            scriptLinesList.add("CleanRSManager");
                             for (RecoveryScenario rs : testResources.recoveryScenarios) {
-                                if (!recoveryScenariosMap.containsKey(rs.getKey())) {
-                                    recoveryScenariosMap.put(rs.getKey(), rs);
-                                    rs.position = recoveryScenariosMap.size();
-                                }
-                                RecoveryScenario myRS = recoveryScenariosMap.get(rs.getKey());
-
-                                scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, True 'path=%s", myRS.getPosition(), myRS.path));
+                                scriptLinesList.add(String.format("LoadRecoveryScenario \"%s|%s|1|1*\"", rs.path, rs.name));
                             }
                         }
                     }
@@ -292,16 +286,6 @@ public class MfUftConverter extends TestsToRunConverter {
                         scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", mbtAction.getTestPath(), mbtAction.getActionName(), actionParameters));
                     } else {
                         scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", mbtAction.getTestPath(), mbtAction.getActionName()));
-                    }
-
-                    //disable recover scenarios
-                    if (!theSameTestAsNext && !testResources.recoveryScenarios.isEmpty()) {
-                        scriptLinesList.add("");
-                        scriptLinesList.add("'De-active recovery scenarios");
-                        for (RecoveryScenario rs : testResources.recoveryScenarios) {
-                            RecoveryScenario myRS = recoveryScenariosMap.get(rs.getKey());
-                            scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, False   'path=%s", myRS.getPosition(), myRS.path));
-                        }
                     }
 
                     scriptLinesList.add("");
@@ -319,17 +303,14 @@ public class MfUftConverter extends TestsToRunConverter {
                 throw e;
             }
 
-            //String script ="LoadAndRunAction \"c:\\Temp\\GUITest1\\\",\"Action1\"\r\nLoadAndRunAction \"c:\\Temp\\GUITest2\\\",\"Action1\"" ;
-            //List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
+
             String script = String.join("\r\n", scriptLinesList);
 
             //ADD PARAMETERS to data table
             String encodedIterationsAsString = extractDataTableIterations(mbtData, data);
 
-            List<String> recoveryScenarioList = recoveryScenariosMap.values().stream().sorted(Comparator.comparing(RecoveryScenario::getPosition))
-                    .map(rs -> rs.asScriptLine()).collect(Collectors.toList());
             MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString,
-                    Collections.emptyList(), recoveryScenarioList);
+                    Collections.emptyList(), Collections.emptyList());
             mbtTests.add(test);
         }
     }
@@ -388,25 +369,12 @@ public class MfUftConverter extends TestsToRunConverter {
     private static class RecoveryScenario {
         String path;
         String name;
-        int position;
 
         public static RecoveryScenario create(String path, String name) {
             RecoveryScenario rc = new RecoveryScenario();
             rc.path = path;
             rc.name = name;
             return rc;
-        }
-
-        public String asScriptLine() {
-            return String.join(",", path, name, Integer.toString(getPosition()));
-        }
-
-        public String getKey() {
-            return path + "_" + name;
-        }
-
-        public int getPosition() {
-            return position;
         }
     }
 
