@@ -46,9 +46,6 @@ public class MbtTests {
         UftResultData data1 = resultData.get(0);
         String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's physical description:<br>wpftypename = window<br>regexpwndtitle = Micro Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample Application<br> (Warning). ";
         validateAction(23, "Warning", errorMessage,"Action1 [Two test_same function 2]", data1);
-        //String file = "c:\\_mbt_results\\Report1-several successful actions\\run_results.xml";
-        //String file = "c:\\_mbt_results\\Report1-with error\\run_results.xml";
-        //String file = "c:\\_mbt_results\\idan_00001[1]-many exceptions\\run_results.xml";
     }
 
     @Test
@@ -65,9 +62,6 @@ public class MbtTests {
         validateAction(8, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(5));
         validateAction(7, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(6));
         validateAction(0, "Done", "", "Close App [FlightGUIBU2]", resultData.get(7));
-
-        //String file = "c:\\_mbt_results\\Report1-with error\\run_results.xml";
-        //String file = "c:\\_mbt_results\\idan_00001[1]-many exceptions\\run_results.xml";
     }
 
     @Test
@@ -78,9 +72,6 @@ public class MbtTests {
 
         validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData.get(0));
         validateAction(9 , "Done", "", "Action1 [FUNCTION-TEST1]", resultData.get(1));
-
-        //String file = "c:\\_mbt_results\\Report1-with error\\run_results.xml";
-        //String file = "c:\\_mbt_results\\idan_00001[1]-many exceptions\\run_results.xml";
     }
 
     private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultData data) {
