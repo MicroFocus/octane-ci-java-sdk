@@ -43,6 +43,11 @@ public class UftTestResultsUtils {
                         .replace("\n", "")
                         .replace("&nbsp;", " ")
                         .trim();
+
+                //last parent name might be as error message - in this case - don't show last parent
+                if(!parents.isEmpty() && error.startsWith(parents.get(parents.size()-1))){
+                    parents.remove(parents.size()-1);
+                }
                 errors.add(new UftErrorData(parents, node.getType(), node.getData().getResult(), error));
             }
             if (node.getNodes() != null) {
