@@ -40,7 +40,9 @@ public class UftTestResultsUtils {
                 //String parentStr = String.join("/", parents.subList(1, parents.size()));
                 String error = /*parentStr + ":" +*/ (isNotEmpty(node.getData().getErrorText()) ? node.getData().getErrorText() : node.getData().getDescription());
                 error = error.replace("Verify that this object's properties match an object currently displayed in your application.", "")
-                        .replace("\n", "").trim();
+                        .replace("\n", "")
+                        .replace("&nbsp;", " ")
+                        .trim();
                 errors.add(new UftErrorData(parents, node.getType(), node.getData().getResult(), error));
             }
             if (node.getNodes() != null) {
