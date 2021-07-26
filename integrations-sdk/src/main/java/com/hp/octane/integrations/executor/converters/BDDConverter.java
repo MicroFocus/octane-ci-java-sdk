@@ -15,12 +15,15 @@ public class BDDConverter extends TestsToRunConverter {
     @Override
     protected String convert(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
         String featuresStr = data.stream()
-                .map(d -> getFeatureFilePath(d)).filter(d -> d != null && !d.isEmpty()).distinct()
+                .map(d -> getFeatureFilePath(d)).filter(d -> d != null && !d.isEmpty())
+                .distinct()
                 .map(n -> "'" + n + "'")
                 .collect(Collectors.joining(" "));
         String testsStr = data.stream()
                 .map(d -> d.getTestName().replace("'","."))
-                .map(n -> "--name '^" + n + "$'").collect(Collectors.joining(" "));
+                .map(n -> "--name '^" + n + "$'")
+                .distinct()
+                .collect(Collectors.joining(" "));
         return featuresStr + " " + testsStr;
     }
 
