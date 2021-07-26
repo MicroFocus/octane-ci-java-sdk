@@ -50,6 +50,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /*
  * Converter to uft format (MTBX)
@@ -243,23 +244,28 @@ public class MfUftConverter extends TestsToRunConverter {
             List<String> underlyingTestsList = new ArrayList<>();
             List<Long> unitIds = new ArrayList<>();
 
-            String lineSplitter = "'*************************************************************************************************************************************";
-            List<String> recoveryScenariosList = new ArrayList<>();
+            String testLineSplitter = "'********************************************************************************************************************************************";
+            scriptLinesList.add("");
+            scriptLinesList.add(testLineSplitter);
+            scriptLinesList.add("");
+
             try {
-                int recoverScenarioIndex = 1;
                 for (int i = 0; i < mbtData.getActions().size(); i++) {
                     MbtAction mbtAction = mbtData.getActions().get(i);
+                    if (!new File(mbtAction.getTestPath()).exists()) {
+                        throw new IllegalArgumentException(String.format("Test path %s is not found. UnitId = %s.", mbtAction.getTestPath(), mbtAction.getUnitId()));
+                    }
 
                     String actionParameters = extractActionParameterNames(mbtAction);
                     TestResources testResources = extractTestResources(mbtAction.getTestPath());
                     boolean theSameTestAsPrev = i > 0 ? mbtData.getActions().get(i - 1).getTestPath().equals(mbtAction.getTestPath()) : false;
-                    boolean theSameTestAsNext = i < mbtData.getActions().size() - 1 ? mbtData.getActions().get(i + 1).getTestPath().equals(mbtAction.getTestPath()) : false;
 
                     if (theSameTestAsPrev) {
-                        scriptLinesList.add("'Action belongs to test from previous action. Skip reloading function libraries and recovery scenarios");
+                        scriptLinesList.add("'The action belongs to the test of the previous action. Skip reloading function libraries and recovery scenarios.");
                     } else {
 
                         if (!testResources.functionLibraries.isEmpty()) {
+                            scriptLinesList.add("");
                             scriptLinesList.add("'Add function libraries");
                             scriptLinesList.add("RestartFLEngine");
                             for (String fl : testResources.functionLibraries) {
@@ -269,11 +275,11 @@ public class MfUftConverter extends TestsToRunConverter {
 
                         if (!testResources.recoveryScenarios.isEmpty()) {
                             scriptLinesList.add("");
-                            scriptLinesList.add("'Activate recovery scenarios");
-                            for (RecoveryScenario rs : testResources.recoveryScenarios) {
-                                scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, True 'path=%s", recoverScenarioIndex++, rs.path));
-                                recoveryScenariosList.add(rs.asScriptLine());
-                            }
+                            scriptLinesList.add("'Add recovery scenarios");
+                            scriptLinesList.add("CleanRSManager");
+                            String scenarios = "LoadRecoveryScenario " + testResources.recoveryScenarios.stream().
+                                    map(rs -> String.format("\"%s|%s|1|1*\"", rs.path, rs.name)).collect(Collectors.joining(","));
+                            scriptLinesList.add(scenarios);
                         }
                     }
 
@@ -285,18 +291,8 @@ public class MfUftConverter extends TestsToRunConverter {
                         scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", mbtAction.getTestPath(), mbtAction.getActionName()));
                     }
 
-                    //disable recover scenarios
-                    if (!theSameTestAsNext && !testResources.recoveryScenarios.isEmpty()) {
-                        int myIndex = recoverScenarioIndex;
-                        scriptLinesList.add("");
-                        scriptLinesList.add("'De-active recovery scenarios");
-                        for (RecoveryScenario rs : testResources.recoveryScenarios) {
-                            scriptLinesList.add(String.format("Recovery.SetScenarioStatus %s, False", --myIndex));
-                        }
-                    }
-
                     scriptLinesList.add("");
-                    scriptLinesList.add(lineSplitter);
+                    scriptLinesList.add(testLineSplitter);
                     scriptLinesList.add("");
 
                     //END SCRIPT
@@ -305,34 +301,19 @@ public class MfUftConverter extends TestsToRunConverter {
                     unitIds.add(mbtAction.getUnitId());
                 }
 
-                //if there are recovery scenario - put "Init recovery scenarios" in the beginning
-                if (recoverScenarioIndex > 1) {//add it only if any action has recovery scenarios
-                    List<String> recoveryInitList = new ArrayList<>();
-                    recoveryInitList.add("'Init recovery scenarios");
-                    recoveryInitList.add("Recovery.Activate");
-                    recoveryInitList.add("for Iter = 1 to Recovery.Count");
-                    recoveryInitList.add("    Recovery.SetScenarioStatus Iter, False");
-                    recoveryInitList.add("Next");
-                    recoveryInitList.add("");
-                    recoveryInitList.add(lineSplitter);
-                    recoveryInitList.add("");
-
-                    scriptLinesList.addAll(0, recoveryInitList);
-                }
             } catch (Exception e) {
                 logger.error("Failed to build script for test " + data.getTestName() + " : " + e.getMessage());
                 throw e;
             }
 
-            //String script ="LoadAndRunAction \"c:\\Temp\\GUITest1\\\",\"Action1\"\r\nLoadAndRunAction \"c:\\Temp\\GUITest2\\\",\"Action1\"" ;
-            //List<String> underlyingTests = Arrays.asList( "c:\\Temp\\GUITest6","c:\\Temp\\GUITest5");
+
             String script = String.join("\r\n", scriptLinesList);
 
             //ADD PARAMETERS to data table
             String encodedIterationsAsString = extractDataTableIterations(mbtData, data);
 
             MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString,
-                    Collections.emptyList(), recoveryScenariosList);
+                    Collections.emptyList(), Collections.emptyList());
             mbtTests.add(test);
         }
     }
@@ -391,18 +372,12 @@ public class MfUftConverter extends TestsToRunConverter {
     private static class RecoveryScenario {
         String path;
         String name;
-        String position;
 
-        public static RecoveryScenario create(String path, String name, String position) {
+        public static RecoveryScenario create(String path, String name) {
             RecoveryScenario rc = new RecoveryScenario();
             rc.path = path;
             rc.name = name;
-            rc.position = position;
             return rc;
-        }
-
-        public String asScriptLine() {
-            return String.join(",", path, name, position);
         }
     }
 
@@ -432,8 +407,8 @@ public class MfUftConverter extends TestsToRunConverter {
                 if (rsAsArray.length > 1) {
                     String rsPath = computeResourcePath(rsAsArray[0], testPath);
                     String rsName = rsAsArray[1];
-                    String position = rsAsArray[2];
-                    content.recoveryScenarios.add(RecoveryScenario.create(rsPath, rsName, position));
+                    //String position = rsAsArray[2];
+                    content.recoveryScenarios.add(RecoveryScenario.create(rsPath, rsName));
                 }
             }
         } catch (IOException | ParserConfigurationException | SAXException e) {

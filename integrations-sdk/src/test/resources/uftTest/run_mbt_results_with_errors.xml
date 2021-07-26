@@ -1,0 +1,295 @@
+<?xml version="1.0"?>
+<Results version="1.0">
+<ReportNode type="testrun">
+<ReportNode type="Iteration">
+<ReportNode type="Action">
+<ReportNode type="Step">
+<Data>
+    <Name>LoadFunctionLibrary</Name>
+    <Description>LoadFunctionLibrary function passed</Description>
+    <StartTime>2021-07-20 18:01:52</StartTime>
+    <Result>Passed</Result>
+    <Extension>
+      <IconKey>b77d2f98cf724b4682e1ab3a16a8712e</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Action">
+<ReportNode type="Step">
+<Data>
+    <Name>SystemUtil.Run "C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe",1</Name>
+    <StartTime>2021-07-20 18:01:52</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>41453f379ec14db5af2bfc2d374b3da8</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>SystemUtil.Run "C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe",1</Name>
+    <StartTime>2021-07-20 18:01:53</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>41453f379ec14db5af2bfc2d374b3da8</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Context">
+<ReportNode type="Step">
+<Data>
+    <Name>agentName.Set</Name>
+    <Description>"muli"</Description>
+    <StartTime>2021-07-20 18:01:54</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <TestObject>
+        <Repository>Local</Repository>
+        <Path>
+          <Object>
+            <Type>WpfWindow</Type>
+            <Name><![CDATA[Micro Focus MyFlight Sample]]></Name>
+          </Object>
+          <Object>
+            <Type>WpfEdit</Type>
+            <Name><![CDATA[agentName]]></Name>
+          </Object>
+        </Path>
+        <Operation>Set</Operation>
+        <OperationData><![CDATA["muli"]]></OperationData>
+        <Properties>
+          <Property>
+            <Name><![CDATA[devname]]></Name>
+            <Value><![CDATA[agentName]]></Value>
+          </Property>
+        </Properties>
+      </TestObject>
+      <IconKey>db72f81391224b08b77a1d97778a4650</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<ReportNode type="Step">
+<ReportNode type="Step">
+<Data>
+    <Name>FlightsGUI.exe</Name>
+    <Description>&lt;SPAN class=text&gt;&lt;div align=left&gt;&lt;dl&gt;&lt;b&gt;&lt;u&gt;Close the following processes&lt;/u&gt;:&lt;/b&gt; FlightsGUI.exe&lt;br&gt;FlightsGUI.exe (PID: 12636) ClosedFlightsGUI.exe (PID: 9520) Closed&lt;/dl&gt;&lt;/div&gt;&lt;/SPAN&gt;</Description>
+    <StartTime>2021-07-20 18:02:15</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>c7ecd870b64246dda1298441db368777</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Close process operation</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Stop</Name>
+    <Description>Stop the test run.</Description>
+    <StartTime>2021-07-20 18:02:15</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>941b940da1fe48d09b1bffa8610c35a7</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Test</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Stop test run</Name>
+    <Description>&lt;SPAN class=text&gt;&lt;div align=left&gt;&lt;dl&gt;&lt;b&gt;&lt;u&gt;Scenario&lt;/u&gt;: &lt;/b&gt;Stop test run&lt;br&gt;&lt;b&gt;&lt;u&gt;Defined in&lt;/u&gt;: &lt;/b&gt;C:\jenkins\workspace\Idan\For Idan 1\Recovery file\Stop test run.qrs&lt;br&gt;&lt;b&gt;&lt;u&gt;Description&lt;/u&gt;: &lt;/b&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;Post-recovery operation&lt;/u&gt;: &lt;/b&gt;Stop the test run.&lt;br&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;Activated by trigger&lt;/u&gt;:&lt;/b&gt;&lt;dd&gt;&lt;u&gt;Type&lt;/u&gt;: Test run error&lt;br&gt;&lt;u&gt;The error string&lt;/u&gt;: Any error&lt;/dd&gt;&lt;dt&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;The current test step details&lt;/u&gt;:&lt;/b&gt;&lt;dd&gt;&lt;u&gt;Object&lt;/u&gt;: WpfEdit("password")&lt;br&gt;&lt;u&gt;Method&lt;/u&gt;: SetSecure&lt;br&gt;&lt;u&gt;Arguments&lt;/u&gt;: 60f6cd78617679709039&lt;br&gt;&lt;u&gt;Result&lt;/u&gt;: Cannot identify the object&lt;/dd&gt;&lt;/dt&gt;&lt;/dl&gt;&lt;/div&gt;&lt;/SPAN&gt;</Description>
+    <StartTime>2021-07-20 18:02:15</StartTime>
+    <Duration>0</Duration>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>e27171bce6384bfca1bd9b9c294c7ec2</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Error</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>password</Name>
+    <Description>Cannot&amp;nbsp;find&amp;nbsp;the&amp;nbsp;"password"&amp;nbsp;object's&amp;nbsp;parent&amp;nbsp;"Micro&amp;nbsp;Focus&amp;nbsp;MyFlight&amp;nbsp;Sample"&amp;nbsp;(class&amp;nbsp;WpfWindow).&lt;br/&gt;Verify&amp;nbsp;that&amp;nbsp;parent&amp;nbsp;properties&amp;nbsp;match&amp;nbsp;an&amp;nbsp;object&amp;nbsp;currently&amp;nbsp;displayed&amp;nbsp;in&amp;nbsp;your&amp;nbsp;application.&lt;br/&gt;&lt;br/&gt;Object's physical description:&lt;br&gt;wpftypename = window&lt;br&gt;regexpwndtitle = Micro Focus MyFlight Sample Application&lt;br&gt;devname = Micro Focus MyFlight Sample Application&lt;br&gt;</Description>
+    <StartTime>2021-07-20 18:02:15</StartTime>
+    <Duration>0</Duration>
+    <Result>Warning</Result>
+    <Extension>
+      <TestObject>
+        <Repository>Local</Repository>
+        <Path>
+          <Object>
+            <Type>WpfWindow</Type>
+            <Name><![CDATA[Micro Focus MyFlight Sample]]></Name>
+          </Object>
+          <Object>
+            <Type>WpfEdit</Type>
+            <Name><![CDATA[password]]></Name>
+          </Object>
+        </Path>
+        <OperationData><![CDATA[Cannot&nbsp;find&nbsp;the&nbsp;"password"&nbsp;object's&nbsp;parent&nbsp;"Micro&nbsp;Focus&nbsp;MyFlight&nbsp;Sample"&nbsp;(class&nbsp;WpfWindow).<br/>Verify&nbsp;that&nbsp;parent&nbsp;properties&nbsp;match&nbsp;an&nbsp;object&nbsp;currently&nbsp;displayed&nbsp;in&nbsp;your&nbsp;application.]]></OperationData>
+        <Properties>
+          <Property>
+            <Name><![CDATA[devname]]></Name>
+            <Value><![CDATA[password]]></Value>
+          </Property>
+        </Properties>
+      </TestObject>
+      <IconKey>db72f81391224b08b77a1d97778a4650</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Run Error</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Stop Run</Name>
+    <Description>Run stopped by user.</Description>
+    <StartTime>2021-07-20 18:02:15</StartTime>
+    <Result>Information</Result>
+    <Extension>
+      <IconKey>4ae4d9805256400297832b5a85625f2c</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Micro Focus MyFlight Sample</Name>
+    <Description>WpfWindow</Description>
+    <StartTime>2021-07-20 18:01:54</StartTime>
+    <Duration>21</Duration>
+    <Result>Warning</Result>
+    <Extension>
+      <TestObject>
+        <Repository>Local</Repository>
+        <Path>
+          <Object>
+            <Type>WpfWindow</Type>
+            <Name><![CDATA[Micro Focus MyFlight Sample]]></Name>
+          </Object>
+        </Path>
+        <OperationData><![CDATA[WpfWindow]]></OperationData>
+        <Properties>
+          <Property>
+            <Name><![CDATA[wpftypename]]></Name>
+            <Value><![CDATA[window]]></Value>
+          </Property>
+          <Property>
+            <Name><![CDATA[regexpwndtitle]]></Name>
+            <Value><![CDATA[Micro Focus MyFlight Sample Application]]></Value>
+          </Property>
+          <Property>
+            <Name><![CDATA[devname]]></Name>
+            <Value><![CDATA[Micro Focus MyFlight Sample Application]]></Value>
+          </Property>
+        </Properties>
+      </TestObject>
+      <IconKey>60e5344e02314d198bae8468102fae52</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Action1 [Two test_same function 2]</Name>
+    <Description />
+    <StartTime>2021-07-20 18:01:52</StartTime>
+    <Duration>23</Duration>
+    <Result>Warning</Result>
+    <InputParameters />
+    <Extension>
+      <IconKey>e509435557ca476891c2fad103335e60</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Stop Run</Name>
+    <Description>Run stopped by user.</Description>
+    <StartTime>2021-07-20 18:02:15</StartTime>
+    <Result>Information</Result>
+    <Extension>
+      <IconKey>4ae4d9805256400297832b5a85625f2c</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Action1</Name>
+    <Description />
+    <StartTime>2021-07-20 18:01:52</StartTime>
+    <Duration>23</Duration>
+    <Result>Warning</Result>
+    <InputParameters />
+    <Extension>
+      <IconKey>98ef1e6b42cb447cbef454590ef5089f</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Action0</Name>
+    <Description />
+    <StartTime>2021-07-20 18:01:52</StartTime>
+    <Duration>23</Duration>
+    <Result>Warning</Result>
+    <Extension>
+      <IconKey>4376398ac316425cbd11a3eb1ed26cc3</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <Index>1</Index>
+    <TestedApplications />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>model_00002</Name>
+    <ToolName>Micro Focus UFT One</ToolName>
+    <ToolVersion>0</ToolVersion>
+    <ToolVersionStringLiteral>16.0.0</ToolVersionStringLiteral>
+    <Description />
+    <StartTime>2021-07-20 18:01:51</StartTime>
+    <Duration>24</Duration>
+    <Result>Warning</Result>
+    <InputParameters />
+    <Extension>
+      <IconKey>897e6442e0334c1bbf44cbb66ee92cf8</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <Environment>
+      <Timezone>+03:00:00</Timezone>
+      <Locale>English (United States)</Locale>
+      <User>swinfra\_alm_uft_auto</User>
+      <CpuInfo>Intel(R) Xeon(R) CPU E5-2670 0 @ 2.60GHz</CpuInfo>
+      <NumberOfCores>2</NumberOfCores>
+      <TotalMemory>4096</TotalMemory>
+      <HostName>swinfra.net\MYD-HVM02655</HostName>
+      <OSInfo>Windows 10</OSInfo>
+    </Environment>
+    <TestedApplications />
+    <Links>
+      <Link type="DataTable" reference="Default.xlsx" displayname="Default Data Table" />
+    </Links>
+  </Data>
+</ReportNode>
+<GeneralInfo>
+    <ResultName>model_00002</ResultName>
+    <RunStartTime>2021-07-20 18:01:51</RunStartTime>
+    <Timezone>+03:00:00</Timezone>
+    <OrchestrationToolName>Micro Focus UFT One</OrchestrationToolName>
+    <OrchestrationToolVersion>0</OrchestrationToolVersion>
+    <OrchestrationToolVersionStringLiteral>16.0.0</OrchestrationToolVersionStringLiteral>
+  </GeneralInfo>
+</Results>

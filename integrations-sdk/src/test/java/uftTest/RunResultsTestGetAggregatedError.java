@@ -1,7 +1,7 @@
 package uftTest;
 
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
-import com.hp.octane.integrations.uft.ufttestresults.schema.UftErrorData;
+import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultData;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -53,7 +53,7 @@ public class RunResultsTestGetAggregatedError {
     private String getAggregatedError(String fileName) {
         URL url = getClass().getResource(fileName);
         File path = new File(url.getPath());
-        List<UftErrorData> errorData = UftTestResultsUtils.getErrorData(path);
+        List<UftResultData> errorData = UftTestResultsUtils.getErrorData(path);
         return UftTestResultsUtils.getAggregatedErrorMessage(errorData);
     }
 }
