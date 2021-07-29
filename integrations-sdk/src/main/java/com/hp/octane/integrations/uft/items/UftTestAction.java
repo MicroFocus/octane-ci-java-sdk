@@ -18,12 +18,22 @@ package com.hp.octane.integrations.uft.items;
 import java.io.Serializable;
 
 /**
- * This file represents automated test for sending to Octane
+ * This file represents automated test action for sending to Octane
  */
 
-public class UftTestAction implements Serializable {
+public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
     private String name;
+
+    private String logicalName;
+
+    private String repositoryPath;
+
+    private OctaneStatus octaneStatus;
+
+    public UftTestAction() {
+        this.octaneStatus = OctaneStatus.NEW;
+    }
 
     public String getName() {
         return name;
@@ -32,4 +42,30 @@ public class UftTestAction implements Serializable {
     public void setName(String name) {
         this.name = name;
     }
+
+    public String getLogicalName() {
+        return logicalName;
+    }
+
+    public void setLogicalName(String logicalName) {
+        this.logicalName = logicalName;
+    }
+
+    public String getRepositoryPath() {
+        return repositoryPath;
+    }
+
+    public void setRepositoryPath(String repositoryPath) {
+        this.repositoryPath = repositoryPath;
+    }
+
+    @Override
+    public OctaneStatus getOctaneStatus() {
+        return octaneStatus;
+    }
+
+    public void setOctaneStatus(OctaneStatus octaneStatus) {
+        this.octaneStatus = octaneStatus;
+    }
+
 }
