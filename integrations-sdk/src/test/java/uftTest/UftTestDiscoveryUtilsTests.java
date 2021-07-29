@@ -1,5 +1,6 @@
 package uftTest;
 
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
 import com.hp.octane.integrations.uft.items.UftTestType;
@@ -14,9 +15,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.net.URL;
 
 import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.extractXmlContentFromTspFile;
+import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getDocument;
 
 public class UftTestDiscoveryUtilsTests {
 
@@ -24,20 +25,20 @@ public class UftTestDiscoveryUtilsTests {
     //@Test
     public void scanTest(){
         File root = new File("c:\\dev\\plugins\\_uft\\UftTests\\");
-        UftTestDiscoveryResult result = UftTestDiscoveryUtils.doFullDiscovery(root, UftTestDiscoveryUtils.DiscoveryMode.MBT);
+        UftTestDiscoveryResult result = UftTestDiscoveryUtils.doFullDiscovery(root, TestingToolType.MBT);
         Assert.assertNotNull(result);
     }
 
     @Test
     public void readDescriptionTest() {
-        URL url = getClass().getResource("Test.tsp");
         File folderPath = new File("c:\\Temp\\GUITest6");
-        String description = com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getTestDescription(folderPath, UftTestType.GUI);
+        Document document = getDocument(folderPath, UftTestType.GUI);
+        String description = com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getTestDescription(document, UftTestType.GUI);
         Assert.assertEquals("My description for test - 111222", description);
     }
 
 
-    @Test
+    //@Test
     public void readTSPFile() throws IOException, ParserConfigurationException, SAXException {
         File tspFile = new File("c:\\Temp\\GUITest6\\Test.tsp");
         InputStream is = new FileInputStream(tspFile);
