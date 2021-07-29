@@ -21,7 +21,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum TestingToolType {
 	UNKNOWN("unknown"),
-	UFT("uft");
+	UFT("uft"),
+	MBT("mbt");
 
 	private String value;
 
