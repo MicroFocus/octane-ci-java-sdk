@@ -26,6 +26,26 @@ public class EntityConstants {
         public static final String EXECUTABLE_FIELD = "executable";
     }
 
+    public static class MbtUnit extends Base {
+        public static final String COLLECTION_NAME = "model_items";
+        public static final String ENTITY_NAME = "model_item";
+        public static final String ENTITY_SUBTYPE = "unit";
+
+        public static final String SUBTYPE_FIELD = "subtype";
+        public static final String PARENT = "parent";
+        public static final String AUTOMATION_STATUS_FIELD = "automation_status";
+        public static final String REPOSITORY_PATH_FIELD = "repository_path";
+        public static final String TESTING_TOOL_TYPE_FIELD = "testing_tool_type";
+    }
+
+    public static class ModelFolder extends Base {
+        public static final String COLLECTION_NAME = "model_items";
+        public static final String ENTITY_NAME = "model_item";
+        public static final String ENTITY_SUBTYPE = "model_folder";
+
+        public static final String LOGICAL_NAME = "logical_name";
+    }
+
     public static class ScmResourceFile extends Base {
         public static final String COLLECTION_NAME = "scm_resource_files";
         public static final String ENTITY_NAME = "scm_resource_file";
