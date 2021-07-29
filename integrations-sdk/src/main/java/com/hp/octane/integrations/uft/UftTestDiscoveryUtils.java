@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations.uft;
 
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
@@ -33,31 +34,55 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class UftTestDiscoveryUtils {
+
     private static final Logger logger = LogManager.getLogger(UftTestDiscoveryUtils.class);
 
     private static final String STFileExtention = ".st";//api test
-    private static final String API_ACTIONS_FILE = "actions.xml";//api test
 
     private static final String QTPFileExtention = ".tsp";//gui test
+
     private static final String XLSXExtention = ".xlsx";//excel file
+
     private static final String XLSExtention = ".xls";//excel file
-    public enum DiscoveryMode{UFT,MBT};
+
+    private static final String GUI_TEST_FILE = "test" + QTPFileExtention;//gui test
+
+    private static final String API_ACTIONS_FILE = "actions.xml";//api test
 
     private static final Set<String> SKIP_FOLDERS = Stream.of("_discovery_results").collect(Collectors.toSet());
 
-    public static UftTestDiscoveryResult doFullDiscovery(File root , DiscoveryMode mode) {
+    public static final String UFT_COMPONENT_NODE_NAME = "Component";
+
+    public static final String UFT_DEPENDENCY_NODE_NAME = "Dependency";
+
+    public static final String UFT_ACTION_LOGICAL_ATTR = "Logical";
+
+    public static final String UFT_ACTION_KIND_ATTR = "Kind";
+
+    public static final String UFT_ACTION_TYPE_ATTR = "Type";
+
+    public static final String UFT_ACTION_KIND_VALUE = "16";
+
+    public static final String UFT_ACTION_TYPE_VALUE = "1";
+
+    public static UftTestDiscoveryResult doFullDiscovery(File root) {
+        return doFullDiscovery(root, TestingToolType.UFT);
+    }
+
+    public static UftTestDiscoveryResult doFullDiscovery(File root, TestingToolType testingToolType) {
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();
-        scanFileSystemRecursively(root, root, result, mode);
+        scanFileSystemRecursively(root, root, result, testingToolType);
         result.setFullScan(true);
+        result.setTestingToolType(testingToolType);
         return result;
     }
 
-    private static void scanFileSystemRecursively(File root, File dirPath, UftTestDiscoveryResult discoveryResult, DiscoveryMode mode) {
+    private static void scanFileSystemRecursively(File root, File dirPath, UftTestDiscoveryResult discoveryResult, TestingToolType testingToolType) {
         if (dirPath.isDirectory() && SKIP_FOLDERS.contains(dirPath.getName())) {
             return;
         }
@@ -67,12 +92,15 @@ public class UftTestDiscoveryUtils {
         //if it test folder - create new test, else drill down to subFolders
         UftTestType testType = paths != null ? isUftTestFolder(paths) : UftTestType.None;
         if (!testType.isNone()) {
-            AutomatedTest test = createAutomatedTest(root, dirPath, testType, mode);
-            discoveryResult.getAllTests().add(test);
+            // if UFT mode or (MBT mode and test type GUI)- API tests are currently not supported in MBT mode
+            if (!(TestingToolType.MBT.equals(testingToolType) && (UftTestType.API.equals(testType)))) {
+                AutomatedTest test = createAutomatedTest(root, dirPath, testType, testingToolType);
+                discoveryResult.getAllTests().add(test);
+            }
         } else if (paths != null) {
             for (File path : paths) {
                 if (path.isDirectory()) {
-                    scanFileSystemRecursively(root, path, discoveryResult, mode);
+                    scanFileSystemRecursively(root, path, discoveryResult, testingToolType);
                 } else if (isUftDataTableFile(path.getName())) {
                     ScmResourceFile dataTable = createDataTable(root, path);
                     discoveryResult.getAllScmResourceFiles().add(dataTable);
@@ -135,7 +163,7 @@ public class UftTestDiscoveryUtils {
         return null;
     }
 
-    public static AutomatedTest createAutomatedTest(File root, File dirPath, UftTestType testType, DiscoveryMode mode) {
+    public static AutomatedTest createAutomatedTest(File root, File dirPath, UftTestType testType, TestingToolType testingToolType) {
         AutomatedTest test = new AutomatedTest();
         test.setName(dirPath.getName());
 
@@ -144,12 +172,20 @@ public class UftTestDiscoveryUtils {
         test.setPackage(packageName);
         test.setExecutable(true);
         test.setUftTestType(testType);
-        String description = getTestDescription(dirPath, testType);
+
+        Document testDocument = getDocument(dirPath, testType);
+
+        String description = getTestDescription(testDocument, testType);
         description = convertToHtmlFormatIfRequired(description);
         test.setDescription(description);
         test.setOctaneStatus(OctaneStatus.NEW);
 
-        //TODO - discover actions if mode == MBT
+        // discover actions only for mbt testingToolType and gui tests
+        if (TestingToolType.MBT.equals(testingToolType) && UftTestType.GUI.equals(testType)) {
+            String actionPathPrefix = (SdkStringUtils.isEmpty(test.getPackage()) ? "" : test.getPackage() + "\\") +
+                    test.getName() + ":";
+            test.setActions(parseActions(testDocument, actionPathPrefix, test.getName()));
+        }
 
         return test;
     }
@@ -187,48 +223,35 @@ public class UftTestDiscoveryUtils {
      * Extract test description from UFT GUI test.
      * Note : UFT API test doesn't contain description
      *
-     * @param dirPath  path of UFT test
-     * @param testType GUI or API
+     * @param testDocument document created from the test path
+     * @param testType     GUI or API
      * @return test description
      */
-    public static String getTestDescription(File dirPath, UftTestType testType) {
-        if (!dirPath.exists() || testType.isNone()) {
+    public static String getTestDescription(Document testDocument, UftTestType testType) {
+        if (Objects.isNull(testDocument) || testType.isNone()) {
             return null;
         }
 
-        try {
-            String description;
-            if (UftTestType.GUI.equals(testType)) {
-                description = getTestDescriptionFromGuiTest(dirPath);
-            } else {
-                description = getTestDescriptionFromAPITest(dirPath);
-            }
-            if (description != null) {
-                description = description.trim();
-            }
-            return description;
-        } catch (IOException | ParserConfigurationException | SAXException e) {
-            return null;
+        String description;
+        if (UftTestType.GUI.equals(testType)) {
+            description = getTestDescriptionFromGuiTest(testDocument);
+        } else {
+            description = getTestDescriptionFromAPITest(testDocument);
         }
+        if (description != null) {
+            description = description.trim();
+        }
+        return description;
     }
 
-    private static String getTestDescriptionFromAPITest(File dirPath) throws ParserConfigurationException, IOException, SAXException {
+    private static String getTestDescriptionFromAPITest(Document document) {
 
         //Actions.xml
         //<Actions>
         //<Action internalName="MainAction" userDefinedName="APITest1" description="radi end test description" />
         //</Actions>
 
-        File actionsFile = new File(dirPath, "Actions.xml");
-        if (!actionsFile.exists()) {
-            return null;
-        }
-
-        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-        Document doc = dBuilder.parse(actionsFile);
-
-        NodeList actions = doc.getElementsByTagName("Action");
+        NodeList actions = document.getElementsByTagName("Action");
         for (int temp = 0; temp < actions.getLength(); temp++) {
             Node nNode = actions.item(temp);
             NamedNodeMap attributes = nNode.getAttributes();
@@ -240,23 +263,9 @@ public class UftTestDiscoveryUtils {
         return null;
     }
 
-    private static String getTestDescriptionFromGuiTest(File dirPath) throws IOException, ParserConfigurationException, SAXException {
-
-        File tspTestFile = new File(dirPath, "Test.tsp");
-        if (!tspTestFile.exists()) {
-            return null;
-        }
-
-        InputStream is = new FileInputStream(tspTestFile);
-        String xmlContent = extractXmlContentFromTspFile(is);
-
-        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-        Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
-        String desc = document.getElementsByTagName("Description").item(0).getTextContent();
-        return desc;
+    private static String getTestDescriptionFromGuiTest(Document document) {
+        return document.getElementsByTagName("Description").item(0).getTextContent();
     }
-
 
     public static String extractXmlContentFromTspFile(InputStream stream) throws IOException {
         POIFSFileSystem poiFS = new POIFSFileSystem(stream);
@@ -282,4 +291,111 @@ public class UftTestDiscoveryUtils {
         }
         return xmlData;
     }
+
+    public static Document getDocument(File dirPath, UftTestType testType) {
+        if (Objects.isNull(dirPath) || !dirPath.exists()) {
+            logger.error("test path is expected to be non null or exist");
+
+            return null;
+        }
+
+        try {
+            if (UftTestType.GUI.equals(testType)) {
+                return getGuiDocument(dirPath);
+            } else {
+                return getApiDocument(dirPath);
+            }
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            logger.error("Failed to create document for path: {}, test type: {}", dirPath.getPath(), testType.name(), e);
+            return null;
+        }
+    }
+
+    private static Document getGuiDocument(File dirPath) throws IOException, ParserConfigurationException, SAXException {
+        File tspTestFile = new File(dirPath, GUI_TEST_FILE);
+        if (!tspTestFile.exists()) {
+            return null;
+        }
+
+        InputStream is = new FileInputStream(tspTestFile);
+        String xmlContent = extractXmlContentFromTspFile(is);
+
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+
+        return documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
+    }
+
+    private static Document getApiDocument(File dirPath) throws ParserConfigurationException, IOException, SAXException {
+        File actionsFile = new File(dirPath, API_ACTIONS_FILE);
+        if (!actionsFile.exists()) {
+            return null;
+        }
+
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+        return dBuilder.parse(actionsFile);
+    }
+
+    private static List<UftTestAction> parseActions(Document document, String actionPathPrefix, String testName) {
+        List<UftTestAction> actions = new ArrayList<>();
+
+        if (Objects.isNull(document)) {
+            logger.warn("received null gui test document, actions will not be parsed");
+        } else {
+            Map<String, UftTestAction> actionMap = parseActionComponents(document, testName);
+            fillActionsLogicalName(document, actionMap, actionPathPrefix);
+            actions.addAll(actionMap.values());
+        }
+
+        return actions;
+    }
+
+    private static Map<String, UftTestAction> parseActionComponents(Document document, String testName) {
+        Map<String, UftTestAction> actionMap = new HashMap<>();
+
+        NodeList componentNodes = document.getElementsByTagName(UFT_COMPONENT_NODE_NAME);
+        Node componentNode;
+        for (int i = 0; i < componentNodes.getLength(); i++) {
+            componentNode = componentNodes.item(i);
+            String actionName = componentNode.getTextContent();
+            if (!actionName.equalsIgnoreCase("action0")) { // filter action0
+                UftTestAction action = new UftTestAction();
+                action.setName(testName + ":" + actionName);
+                actionMap.put(actionName, action);
+            }
+        }
+
+        return actionMap;
+    }
+
+    private static void fillActionsLogicalName(Document document, Map<String, UftTestAction> actionMap, String actionPathPrefix) {
+        NodeList dependencyNodes = document.getElementsByTagName(UFT_DEPENDENCY_NODE_NAME);
+        Node dependencyNode;
+        NamedNodeMap attributes;
+        for (int i = 0; i < dependencyNodes.getLength(); i++) {
+            dependencyNode = dependencyNodes.item(i);
+            attributes = dependencyNode.getAttributes();
+            String type = attributes.getNamedItem(UFT_ACTION_TYPE_ATTR).getNodeValue();
+            String kind = attributes.getNamedItem(UFT_ACTION_KIND_ATTR).getNodeValue();
+            String logicalName = attributes.getNamedItem(UFT_ACTION_LOGICAL_ATTR).getNodeValue();
+
+            if (type.equals(UFT_ACTION_TYPE_VALUE) && kind.equals(UFT_ACTION_KIND_VALUE) && SdkStringUtils.isNotEmpty(logicalName)) {
+                String dependencyStr = dependencyNode.getTextContent();
+                String actionName = dependencyStr.substring(0, dependencyStr.indexOf("\\"));
+                if (!actionName.equalsIgnoreCase("action0")) { // action0 is not relevant
+                    UftTestAction action = actionMap.get(actionName);
+                    action.setLogicalName(logicalName);
+                    setActionPath(action, actionPathPrefix);
+                }
+            }
+        }
+    }
+
+    private static void setActionPath(UftTestAction action, String actionPathPrefix) {
+        String actionName = SdkStringUtils.isEmpty(action.getLogicalName()) ? action.getName() : action.getLogicalName();
+        action.setRepositoryPath(actionPathPrefix + actionName);
+    }
+
 }
