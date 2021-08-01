@@ -31,7 +31,7 @@ public class UftTestDiscoveryUtilsTests {
 
     @Test
     public void readDescriptionTest() {
-        File folderPath = new File("c:\\Temp\\GUITest6");
+        File folderPath = new File("c:\\dev\\plugins\\_uft\\UftTests\\ForIdan\\GUITest161\\Test.tsp");
         Document document = getDocument(folderPath, UftTestType.GUI);
         String description = com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getTestDescription(document, UftTestType.GUI);
         Assert.assertEquals("My description for test - 111222", description);
