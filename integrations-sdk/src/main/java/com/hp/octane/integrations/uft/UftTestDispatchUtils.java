@@ -22,17 +22,22 @@ import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.entities.EntityConstants;
 import com.hp.octane.integrations.dto.entities.EntityList;
 import com.hp.octane.integrations.dto.entities.OctaneRestExceptionData;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.exceptions.OctaneBulkException;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class UftTestDispatchUtils {
 
@@ -45,13 +50,59 @@ public class UftTestDispatchUtils {
 
 
     public static void prepareDispatchingForFullSync(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+        if(TestingToolType.UFT.equals(discoveryResult.getTestingToolType())) {
+            prepareDispatchingUftMode(entitiesService, discoveryResult);
+        } else {
+            prepareDispatchingMbtMode(entitiesService, discoveryResult);
+        }
+    }
+
+    private static void prepareDispatchingUftMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
         matchDiscoveryTestResultsWithOctaneForFullSync(entitiesService, discoveryResult);
         matchDiscoveryDataTablesResultsWithOctaneForFullSync(entitiesService, discoveryResult);
         removeItemsWithStatusNone(discoveryResult.getAllTests());
         removeItemsWithStatusNone(discoveryResult.getAllScmResourceFiles());
     }
 
+    private static void prepareDispatchingMbtMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+        // currently supports only full sync. so, either a unit exists or not, without modifications
+        Map<String, Entity> octaneUnitsMap = getUnitsFromServer(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()));
+
+        removeExistingUnits(discoveryResult, octaneUnitsMap);
+    }
+
+    private static void removeExistingUnits(UftTestDiscoveryResult discoveryResult, Map<String, Entity> octaneUnitsMap) {
+        discoveryResult.getAllTests().forEach(automatedTest -> {
+            automatedTest.getActions().forEach(action -> {
+                if(Objects.nonNull(octaneUnitsMap.get(action.getRepositoryPath().toLowerCase()))) {
+                    action.setOctaneStatus(OctaneStatus.NONE);
+                }
+            });
+            removeItemsWithStatusNone(automatedTest.getActions());
+        });
+
+    }
+
     public static void dispatchDiscoveryResult(EntitiesService entitiesService, UftTestDiscoveryResult result, JobRunContext jobRunContext, CustomLogger customLogger) {
+        if (TestingToolType.MBT.equals(result.getTestingToolType())) {
+            handleMbtDiscoveryDispatch(entitiesService, result, jobRunContext, customLogger);
+        } else {
+            handleUftDiscoveryDispatch(entitiesService, result, jobRunContext, customLogger);
+        }
+    }
+
+    private static void handleMbtDiscoveryDispatch(EntitiesService entitiesService, UftTestDiscoveryResult result, JobRunContext jobRunContext, CustomLogger customLogger) {
+        List<UftTestAction> actionsToAdd = result.getAllTests().stream()
+                .map(AutomatedTest::getActions)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+
+        if(CollectionUtils.isNotEmpty(actionsToAdd)) {
+            postUnits(entitiesService, actionsToAdd, result.getWorkspaceId());
+        }
+    }
+
+    private static void handleUftDiscoveryDispatch(EntitiesService entitiesService, UftTestDiscoveryResult result, JobRunContext jobRunContext, CustomLogger customLogger) {
         if (SdkStringUtils.isNotEmpty(result.getTestRunnerId()) && !checkExecutorExistInOctane(entitiesService, result)) {
             String msg = "Persistence [" + jobRunContext.getProjectName() + "#" + jobRunContext.getBuildNumber() + "] : executor " + result.getTestRunnerId() + " is not exist. Tests are not sent.";
             logMessage(Level.WARN, customLogger, msg);
@@ -259,6 +310,17 @@ public class UftTestDispatchUtils {
         return octaneTestsMapByKey;
     }
 
+    public static Map<String, Entity> getUnitsFromServer(EntitiesService entitiesService, long workspaceId) {
+        List<String> conditions = new ArrayList<>();
+        conditions.add(QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)));
+
+        List<String> fields = new ArrayList<>(Arrays.asList(EntityConstants.MbtUnit.ID_FIELD, EntityConstants.MbtUnit.NAME_FIELD, EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
+
+        List<Entity> octaneUnits = entitiesService.getEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, conditions, fields);
+
+        return octaneUnits.stream().collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(), Function.identity()));
+    }
+
     public static Map<String, Entity> getDataTablesFromServer(EntitiesService entitiesService, long workspaceId, long scmRepositoryId, Set<String> allNames) {
         List<String> conditions = new ArrayList<>();
         if (allNames != null && !allNames.isEmpty()) {
@@ -366,6 +428,47 @@ public class UftTestDispatchUtils {
         }
         return true;
     }
+
+    private static boolean postUnits(EntitiesService entitiesService, List<UftTestAction> actions, String workspaceIdStr) {
+        if (!actions.isEmpty()) {
+            Entity testingToolType = createListNodeEntity("list_node.bu_testing_tool_type.uft");
+            Entity automationStatus = createListNodeEntity("list_node.automation_status.automated");
+            long workspaceId = Long.parseLong(workspaceIdStr);
+
+            Entity parentFolder = retrieveParentFolder(entitiesService, workspaceId);
+
+            List<Entity> unitsForPost = actions.stream().map(action -> createUnitEntity(action, automationStatus, testingToolType, parentFolder)).collect(Collectors.toList());
+
+            List<List<Entity>> entityPartitions = ListUtils.partition(unitsForPost, POST_BULK_SIZE);
+            try {
+                entityPartitions.forEach(partition -> entitiesService.postEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, partition));
+            } catch (OctaneBulkException e) {
+                return checkIfExceptionCanBeIgnoredInPOST(e, "Failed to post actions");
+            }
+        }
+        return true;
+    }
+
+    private static Entity retrieveParentFolder(EntitiesService entitiesService, long workspaceId) {
+        String condition = QueryHelper.condition(EntityConstants.ModelFolder.LOGICAL_NAME, "mbt.discovery.unit.default_folder_name");
+
+        List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Collections.singletonList(condition), Collections.emptyList());
+        return entities.get(0);
+    }
+
+    private static Entity createUnitEntity(UftTestAction action, Object automationStatus, Object testingToolType, Entity parentFolder) {
+        String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getName() : action.getLogicalName();
+
+        return dtoFactory.newDTO(Entity.class)
+                .setType(EntityConstants.MbtUnit.ENTITY_NAME)
+                .setField(EntityConstants.MbtUnit.SUBTYPE_FIELD, EntityConstants.MbtUnit.ENTITY_SUBTYPE)
+                .setField(EntityConstants.MbtUnit.NAME_FIELD, unitName)
+                .setField(EntityConstants.MbtUnit.PARENT, parentFolder)
+                .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, automationStatus)
+                .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath())
+                .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, testingToolType);
+    }
+
 
     /**
      * Entities might be posted while they already exist in Octane, such POST request will fail with general error code will be 409.

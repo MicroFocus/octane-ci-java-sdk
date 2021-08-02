@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.uft.items;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * This file represents automated test for sending to Octane
@@ -50,6 +51,8 @@ public class AutomatedTest implements SupportsMoveDetection, SupportsOctaneStatu
     private Boolean executable;
 
     private String description;
+
+    private List<UftTestAction> actions;
 
     public String getName() {
         return name;
@@ -171,5 +174,13 @@ public class AutomatedTest implements SupportsMoveDetection, SupportsOctaneStatu
 
     public void setMissingTestRunner(boolean missingTestRunner) {
         this.missingTestRunner = missingTestRunner;
+    }
+
+    public List<UftTestAction> getActions() {
+        return actions;
+    }
+
+    public void setActions(List<UftTestAction> actions) {
+        this.actions = actions;
     }
 }

@@ -24,6 +24,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import org.apache.commons.codec.Charsets;
 
 import java.io.*;
@@ -50,6 +51,8 @@ public class UftTestDiscoveryResult implements Serializable {
     private String workspaceId;
 
     private String configurationId;
+
+    private TestingToolType testingToolType;
 
     private boolean fullScan;
 
@@ -233,4 +236,13 @@ public class UftTestDiscoveryResult implements Serializable {
     public void setConfigurationId(String configurationId) {
         this.configurationId = configurationId;
     }
+
+    public TestingToolType getTestingToolType() {
+        return testingToolType;
+    }
+
+    public void setTestingToolType(TestingToolType testingToolType) {
+        this.testingToolType = testingToolType;
+    }
+
 }
