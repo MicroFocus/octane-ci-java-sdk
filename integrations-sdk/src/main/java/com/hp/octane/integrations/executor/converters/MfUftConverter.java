@@ -85,7 +85,9 @@ public class MfUftConverter extends TestsToRunConverter {
 
     public String convertToMtbxContent(List<TestToRunData> tests, String workingDir, Map<String, String> globalParameters) {
 
-        boolean addGlobalParameters = globalParameters != null;
+        boolean addGlobalParameters = globalParameters != null &&
+                globalParameters.containsKey(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM) &&
+                "true".equalsIgnoreCase(globalParameters.getOrDefault(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM,"false"));
         /*<Mtbx>
             <Test name="test1" path=workingDir + "\APITest1">
             <Parameter type="string" name="myName" value="myValue"/> //type is optional, possible values = float,string,any,boolean,bool,int,integer,number,password,datetime,date,long,double,decimal
@@ -134,7 +136,8 @@ public class MfUftConverter extends TestsToRunConverter {
                     }
                 });
                 if (addGlobalParameters) {
-                    globalParameters.entrySet().forEach(entry -> addParameterToTestElement(doc, testElement, entry.getKey(), entry.getValue()));
+                    globalParameters.entrySet().stream().filter(p->!p.getKey().equals(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM))
+                            .forEach(entry -> addParameterToTestElement(doc, testElement, entry.getKey(), entry.getValue()));
                 }
 
                 //add data table
