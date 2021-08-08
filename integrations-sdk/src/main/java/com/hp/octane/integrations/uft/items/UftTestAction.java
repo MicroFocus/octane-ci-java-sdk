@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.uft.items;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * This file represents automated test action for sending to Octane
@@ -30,6 +31,8 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
     private String repositoryPath;
 
     private OctaneStatus octaneStatus;
+
+    private List<UftTestParameter> parameters;
 
     public UftTestAction() {
         this.octaneStatus = OctaneStatus.NEW;
@@ -66,6 +69,14 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
     public void setOctaneStatus(OctaneStatus octaneStatus) {
         this.octaneStatus = octaneStatus;
+    }
+
+    public List<UftTestParameter> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<UftTestParameter> parameters) {
+        this.parameters = parameters;
     }
 
 }

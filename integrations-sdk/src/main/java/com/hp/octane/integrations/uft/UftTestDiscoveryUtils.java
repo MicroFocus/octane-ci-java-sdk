@@ -23,10 +23,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.poifs.filesystem.*;
 import org.apache.poi.util.StringUtil;
-import org.w3c.dom.Document;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -54,7 +51,17 @@ public class UftTestDiscoveryUtils {
 
     private static final String API_ACTIONS_FILE = "actions.xml";//api test
 
+    private static final String RESOURCE_MTR_FILE = "resource.mtr";//parameters file
+
     private static final Set<String> SKIP_FOLDERS = Stream.of("_discovery_results").collect(Collectors.toSet());
+
+    public static final String ACTION_0 = "action0";
+
+    public static final String UFT_PARAM_ARG_DEFAULT_VALUE_NODE_NAME = "ArgDefaultValue";
+
+    public static final String UFT_PARAM_ARG_NAME_NODE_NAME = "ArgName";
+
+    public static final String UFT_PARAM_ARGUMENTS_COLLECTION_NODE_NAME = "ArgumentsCollection";
 
     public static final String UFT_COMPONENT_NODE_NAME = "Component";
 
@@ -184,7 +191,7 @@ public class UftTestDiscoveryUtils {
         if (TestingToolType.MBT.equals(testingToolType) && UftTestType.GUI.equals(testType)) {
             String actionPathPrefix = (SdkStringUtils.isEmpty(test.getPackage()) ? "" : test.getPackage() + "\\") +
                     test.getName() + ":";
-            test.setActions(parseActions(testDocument, actionPathPrefix, test.getName()));
+            test.setActions(parseActionsAndParameters(testDocument, actionPathPrefix, test.getName(), dirPath));
         }
 
         return test;
@@ -301,9 +308,9 @@ public class UftTestDiscoveryUtils {
 
         try {
             if (UftTestType.GUI.equals(testType)) {
-                return getGuiDocument(dirPath);
+                return getGuiTestDocument(dirPath);
             } else {
-                return getApiDocument(dirPath);
+                return getApiTestDocument(dirPath);
             }
         } catch (IOException | ParserConfigurationException | SAXException e) {
             logger.error("Failed to create document for path: {}, test type: {}", dirPath.getPath(), testType.name(), e);
@@ -311,7 +318,7 @@ public class UftTestDiscoveryUtils {
         }
     }
 
-    private static Document getGuiDocument(File dirPath) throws IOException, ParserConfigurationException, SAXException {
+    private static Document getGuiTestDocument(File dirPath) throws IOException, ParserConfigurationException, SAXException {
         File tspTestFile = new File(dirPath, GUI_TEST_FILE);
         if (!tspTestFile.exists()) {
             return null;
@@ -326,7 +333,7 @@ public class UftTestDiscoveryUtils {
         return documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
     }
 
-    private static Document getApiDocument(File dirPath) throws ParserConfigurationException, IOException, SAXException {
+    private static Document getApiTestDocument(File dirPath) throws ParserConfigurationException, IOException, SAXException {
         File actionsFile = new File(dirPath, API_ACTIONS_FILE);
         if (!actionsFile.exists()) {
             return null;
@@ -338,7 +345,7 @@ public class UftTestDiscoveryUtils {
         return dBuilder.parse(actionsFile);
     }
 
-    private static List<UftTestAction> parseActions(Document document, String actionPathPrefix, String testName) {
+    private static List<UftTestAction> parseActionsAndParameters(Document document, String actionPathPrefix, String testName, File dirPath) {
         List<UftTestAction> actions = new ArrayList<>();
 
         if (Objects.isNull(document)) {
@@ -347,6 +354,11 @@ public class UftTestDiscoveryUtils {
             Map<String, UftTestAction> actionMap = parseActionComponents(document, testName);
             fillActionsLogicalName(document, actionMap, actionPathPrefix);
             actions.addAll(actionMap.values());
+            try {
+                readParameters(dirPath, actionMap);
+            } catch (IOException | ParserConfigurationException | SAXException e) {
+                logger.error("failed to parse action's parameters", e);
+            }
         }
 
         return actions;
@@ -360,7 +372,7 @@ public class UftTestDiscoveryUtils {
         for (int i = 0; i < componentNodes.getLength(); i++) {
             componentNode = componentNodes.item(i);
             String actionName = componentNode.getTextContent();
-            if (!actionName.equalsIgnoreCase("action0")) { // filter action0
+            if (!actionName.equalsIgnoreCase(ACTION_0)) { // filter action0
                 UftTestAction action = new UftTestAction();
                 action.setName(testName + ":" + actionName);
                 actionMap.put(actionName, action);
@@ -384,7 +396,7 @@ public class UftTestDiscoveryUtils {
             if (type.equals(UFT_ACTION_TYPE_VALUE) && kind.equals(UFT_ACTION_KIND_VALUE) && SdkStringUtils.isNotEmpty(logicalName)) {
                 String dependencyStr = dependencyNode.getTextContent();
                 String actionName = dependencyStr.substring(0, dependencyStr.indexOf("\\"));
-                if (!actionName.equalsIgnoreCase("action0")) { // action0 is not relevant
+                if (!actionName.equalsIgnoreCase(ACTION_0)) { // action0 is not relevant
                     UftTestAction action = actionMap.get(actionName);
                     action.setLogicalName(logicalName);
                     setActionPath(action, actionPathPrefix);
@@ -396,6 +408,47 @@ public class UftTestDiscoveryUtils {
     private static void setActionPath(UftTestAction action, String actionPathPrefix) {
         String actionName = SdkStringUtils.isEmpty(action.getLogicalName()) ? action.getName() : action.getLogicalName();
         action.setRepositoryPath(actionPathPrefix + actionName);
+    }
+
+    private static void readParameters(File testDirPath, Map<String, UftTestAction> actionMap) throws IOException, ParserConfigurationException, SAXException {
+        DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+
+        for (Map.Entry<String, UftTestAction> entry : actionMap.entrySet()) {
+            String actionName = entry.getKey();
+            File actionFolder = new File(testDirPath, actionName);
+            if (actionFolder.exists()) {
+                File resourceMtrFile = new File(actionFolder, RESOURCE_MTR_FILE);
+                if (resourceMtrFile.exists()) {
+                    entry.getValue().setParameters(parseParameterFile(resourceMtrFile, documentBuilder));
+                }
+            }
+        }
+    }
+
+    private static List<UftTestParameter> parseParameterFile(File resourceMtrFile, DocumentBuilder documentBuilder) throws IOException, SAXException {
+        List<UftTestParameter> parameters = new ArrayList<>();
+        InputStream is = new FileInputStream(resourceMtrFile);
+        String xmlContent = extractXmlContentFromTspFile(is);
+        Document document = documentBuilder.parse(new InputSource(new StringReader(xmlContent)));
+        NodeList argumentsCollectionElement = document.getElementsByTagName(UFT_PARAM_ARGUMENTS_COLLECTION_NODE_NAME);
+        if (argumentsCollectionElement.getLength() > 0) {
+            Node argumentsCollectionItem = argumentsCollectionElement.item(0);
+            NodeList childArgumentElements = argumentsCollectionItem.getChildNodes();
+            for (int i = 0; i < childArgumentElements.getLength(); i++) {
+                Element argumentElement = (Element) childArgumentElements.item(i);
+                UftTestParameter parameter = new UftTestParameter();
+                parameter.setName(argumentElement.getElementsByTagName(UFT_PARAM_ARG_NAME_NODE_NAME).item(0).getTextContent());
+                parameter.setDirection(UftParameterDirection.get(Integer.parseInt(argumentElement.getElementsByTagName("ArgDirection").item(0).getTextContent())));
+                Node defaultValueNode = argumentElement.getElementsByTagName(UFT_PARAM_ARG_DEFAULT_VALUE_NODE_NAME).item(0);
+                if (null != defaultValueNode) {
+                    parameter.setDefaultValue(defaultValueNode.getTextContent());
+                }
+                parameters.add(parameter);
+            }
+        }
+
+        return parameters;
     }
 
 }

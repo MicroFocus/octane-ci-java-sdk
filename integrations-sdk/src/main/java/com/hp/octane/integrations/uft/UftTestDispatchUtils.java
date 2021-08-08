@@ -29,7 +29,6 @@ import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -46,8 +45,16 @@ public class UftTestDispatchUtils {
     private final static int POST_BULK_SIZE = 100;
 
     private final static int QUERY_CONDITION_SIZE_THRESHOLD = 3000;
+
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
+    private static final Entity TESTING_TOOL_TYPE = createListNodeEntity("list_node.bu_testing_tool_type.uft");
+
+    private static final Entity AUTOMATION_STATUS = createListNodeEntity("list_node.automation_status.automated");
+
+    private static final Entity INPUT_PARAMETER_TYPE = createListNodeEntity("list_node.entity_parameter_type.input");
+
+    private static final Entity OUTPUT_PARAMETER_TYPE = createListNodeEntity("list_node.entity_parameter_type.output");
 
     public static void prepareDispatchingForFullSync(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
         if(TestingToolType.UFT.equals(discoveryResult.getTestingToolType())) {
@@ -431,20 +438,23 @@ public class UftTestDispatchUtils {
 
     private static boolean postUnits(EntitiesService entitiesService, List<UftTestAction> actions, String workspaceIdStr) {
         if (!actions.isEmpty()) {
-            Entity testingToolType = createListNodeEntity("list_node.bu_testing_tool_type.uft");
-            Entity automationStatus = createListNodeEntity("list_node.automation_status.automated");
             long workspaceId = Long.parseLong(workspaceIdStr);
-
             Entity parentFolder = retrieveParentFolder(entitiesService, workspaceId);
 
-            List<Entity> unitsForPost = actions.stream().map(action -> createUnitEntity(action, automationStatus, testingToolType, parentFolder)).collect(Collectors.toList());
+            List<Entity> parameterToAdd = new ArrayList<>(); // add external parameter entities list to be filled by each action creation
+            // add units
+            List<Entity> unitsToAdd = actions.stream().map(action -> createUnitEntity(action, parentFolder, parameterToAdd)).collect(Collectors.toList());
+            Map<String, Entity> unitEntities = entitiesService.postEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToAdd, Arrays.asList(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)).stream()
+                    .collect(Collectors.toMap(entity -> entity.getField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toString(), Function.identity()));
 
-            List<List<Entity>> entityPartitions = ListUtils.partition(unitsForPost, POST_BULK_SIZE);
-            try {
-                entityPartitions.forEach(partition -> entitiesService.postEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, partition));
-            } catch (OctaneBulkException e) {
-                return checkIfExceptionCanBeIgnoredInPOST(e, "Failed to post actions");
-            }
+            // replace parent unit entities for parameters in order to save their relations
+            parameterToAdd.forEach(parameter -> {
+                Entity parentUnit = (Entity) parameter.getField(EntityConstants.MbtUnitParameter.MODEL_ITEM);
+                Entity newParentUnit = unitEntities.get(parentUnit.getField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toString());
+                parameter.setField(EntityConstants.MbtUnitParameter.MODEL_ITEM, newParentUnit);
+            });
+            // add parameters
+            entitiesService.postEntities(workspaceId, EntityConstants.MbtUnitParameter.COLLECTION_NAME, parameterToAdd);
         }
         return true;
     }
@@ -456,19 +466,42 @@ public class UftTestDispatchUtils {
         return entities.get(0);
     }
 
-    private static Entity createUnitEntity(UftTestAction action, Object automationStatus, Object testingToolType, Entity parentFolder) {
+    private static Entity createUnitEntity(UftTestAction action, Entity parentFolder, List<Entity> parameterEntities) {
         String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getName() : action.getLogicalName();
 
-        return dtoFactory.newDTO(Entity.class)
+        Entity unitEntity = dtoFactory.newDTO(Entity.class)
                 .setType(EntityConstants.MbtUnit.ENTITY_NAME)
                 .setField(EntityConstants.MbtUnit.SUBTYPE_FIELD, EntityConstants.MbtUnit.ENTITY_SUBTYPE)
                 .setField(EntityConstants.MbtUnit.NAME_FIELD, unitName)
                 .setField(EntityConstants.MbtUnit.PARENT, parentFolder)
-                .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, automationStatus)
+                .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, AUTOMATION_STATUS)
                 .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath())
-                .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, testingToolType);
+                .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, TESTING_TOOL_TYPE);
+
+        if(CollectionUtils.isNotEmpty(action.getParameters())) {
+            List<Entity> parameters = action.getParameters().stream().map(parameter -> createUnitParameterEntity(parameter, unitEntity)).collect(Collectors.toList());
+            parameterEntities.addAll(parameters);
+        }
+
+        return unitEntity;
     }
 
+    private static Entity createUnitParameterEntity(UftTestParameter parameter, Entity parentUnit) {
+        Entity parameterType = null;
+        if (UftParameterDirection.INPUT.equals(parameter.getDirection())) {
+            parameterType = INPUT_PARAMETER_TYPE;
+        } else if (UftParameterDirection.OUTPUT.equals(parameter.getDirection())) {
+            parameterType = OUTPUT_PARAMETER_TYPE;
+        }
+
+        return dtoFactory.newDTO(Entity.class)
+                .setType(EntityConstants.MbtUnitParameter.ENTITY_NAME)
+                .setField(EntityConstants.MbtUnitParameter.SUBTYPE_FIELD, EntityConstants.MbtUnitParameter.ENTITY_SUBTYPE)
+                .setField(EntityConstants.MbtUnitParameter.NAME_FIELD, parameter.getName())
+                .setField(EntityConstants.MbtUnitParameter.MODEL_ITEM, parentUnit)
+                .setField(EntityConstants.MbtUnitParameter.TYPE, parameterType)
+                .setField(EntityConstants.MbtUnitParameter.DEFAULT_VALUE, parameter.getDefaultValue());
+    }
 
     /**
      * Entities might be posted while they already exist in Octane, such POST request will fail with general error code will be 409.
