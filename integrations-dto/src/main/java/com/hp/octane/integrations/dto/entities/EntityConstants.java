@@ -38,6 +38,17 @@ public class EntityConstants {
         public static final String TESTING_TOOL_TYPE_FIELD = "testing_tool_type";
     }
 
+    public static class MbtUnitParameter extends Base {
+        public static final String COLLECTION_NAME = "entity_parameters";
+        public static final String ENTITY_NAME = "entity_parameter";
+        public static final String ENTITY_SUBTYPE = "unit_parameter";
+
+        public static final String SUBTYPE_FIELD = "subtype";
+        public static final String MODEL_ITEM = "model_item";
+        public static final String TYPE = "parameter_type";
+        public static final String DEFAULT_VALUE = "value";
+    }
+
     public static class ModelFolder extends Base {
         public static final String COLLECTION_NAME = "model_items";
         public static final String ENTITY_NAME = "model_item";
