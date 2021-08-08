@@ -136,12 +136,17 @@ final class EntitiesServiceImpl implements EntitiesService {
 
     @Override
     public List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities) {
+		return postEntities(workspaceId, entityCollectionName, entities, null);
+    }
+
+    @Override
+    public List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities, Collection<String> fields) {
 		List<Entity> results = new ArrayList<>();
     	ListUtils.partition(entities, MAX_UPDATE_LIMIT).forEach(list -> {
 			EntityList entitiesForUpdate = dtoFactory.newDTO(EntityList.class);
 			entitiesForUpdate.setData(list);
 			String jsonData = dtoFactory.dtoToJson(entitiesForUpdate);
-			List<Entity> temp = postEntities(workspaceId, entityCollectionName, jsonData);
+			List<Entity> temp = postEntities(workspaceId, entityCollectionName, jsonData, fields);
 			results.addAll(temp);
 		});
 		return results;
@@ -149,13 +154,18 @@ final class EntitiesServiceImpl implements EntitiesService {
 
     @Override
     public List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData) {
+        return postEntities(workspaceId, entityCollectionName, jsonData, null);
+    }
+
+    @Override
+    public List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData, Collection<String> fields) {
         OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
         Map<String, String> headers = new HashMap<>();
         headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
         headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
         headers.put(OctaneRestClient.CLIENT_TYPE_HEADER, OctaneRestClient.CLIENT_TYPE_VALUE);
 
-        String url = buildEntityUrl(workspaceId, entityCollectionName, null, null, null, null, null);
+        String url = buildEntityUrl(workspaceId, entityCollectionName, null, fields, null, null, null);
         OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
                 .setMethod(HttpMethod.POST)
                 .setUrl(url)

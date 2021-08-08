@@ -38,7 +38,11 @@ public interface EntitiesService {
 
 	List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities);
 
+	List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities, Collection<String> fields);
+
 	List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData);
+
+	List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData, Collection<String> fields);
 
 	ResponseEntityList getPagedEntities(String url);
 
