@@ -2,8 +2,7 @@ package uftTest;
 
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
-import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
-import com.hp.octane.integrations.uft.items.UftTestType;
+import com.hp.octane.integrations.uft.items.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;
@@ -15,6 +14,9 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.extractXmlContentFromTspFile;
 import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getDocument;
@@ -68,5 +70,28 @@ public class UftTestDiscoveryUtilsTests {
         }
         int t=5;
     }
+
+    @Test
+    public void readParameterFile() {
+        File mbtTestRootPath = new File(getClass().getClassLoader().getResource("mbt-tests").getFile());
+
+        UftTestDiscoveryResult result = UftTestDiscoveryUtils.doFullDiscovery(mbtTestRootPath, TestingToolType.MBT);
+        Assert.assertNotNull("null discovery result", result);
+
+        List<UftTestAction> actions = result.getAllTests().stream()
+                .map(AutomatedTest::getActions)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        Assert.assertFalse("no actions were found", actions.isEmpty());
+        Assert.assertEquals("wrong number of actions were found", 14, actions.size());
+
+        List<UftTestParameter> parameters = actions.stream()
+                .map(UftTestAction::getParameters)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
+        Assert.assertFalse("no parameters were found", parameters.isEmpty());
+        Assert.assertEquals("wrong number of parameters were found", 13, parameters.size());
+    }
+
 }
 
