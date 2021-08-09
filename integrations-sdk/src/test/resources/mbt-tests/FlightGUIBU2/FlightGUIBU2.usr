@@ -1,0 +1,111 @@
+[General]
+Type=Tulip
+RunType=ActiveScript
+DefaultCfg=default.cfg
+DefaultRunLogic=default.usp
+ParamRightBrace=>
+ParamLeftBrace=<
+NewFunctionHeader=1
+MinorVersion=0
+MajorVersion=6	
+DevelopTool=AQT
+
+[Actions]
+Action0=Action0\Script.mts
+Launch App=Action1\Script.mts
+Login=Action2\Script.mts
+Book Flight=Action3\Script.mts
+Select Flight=Action4\Script.mts
+Order Flight=Action5\Script.mts
+Delete Order=Action7\Script.mts
+Order By Ad=Action8\Script.mts
+New Search=Action9\Script.mts
+Update Order Details=Action6\Script.mts
+Select Order=Action13\Script.mts
+Search Order Tab=Action14\Script.mts
+Search Order By Name=Action10\Script.mts
+Search Order By Number=Action12\Script.mts
+Close App=Action16\Script.mts
+
+[VuserProfiles]
+Profiles=Default Profile
+
+[CfgFiles]
+Default Profile=default.cfg
+
+[RunLogicFiles]
+Default Profile=default.usp
+
+[Rendezvous]
+
+[Transactions]
+
+[ActiveScript]
+Lang=none
+
+[TulipInfo]
+ProductName=Micro Focus UFT One
+Version=16.0.0
+
+[TulipAddins]
+AI=
+Database=
+File Content=
+Insight=
+Mobile=
+Windows Applications=
+TEA=
+Web=
+WPF=
+XML=
+
+[ExtraFiles]
+Test.tsp=
+Default.xls=
+Default.xlsx=
+Parameters.mtr=
+Action0\Script.mts=
+Action0\Resource.mtr=
+Action0\ObjectRepository.bdb=
+Action1\Script.mts=
+Action1\Resource.mtr=
+Action1\ObjectRepository.bdb=
+Action2\Script.mts=
+Action2\Resource.mtr=
+Action2\ObjectRepository.bdb=
+Action3\Script.mts=
+Action3\Resource.mtr=
+Action3\ObjectRepository.bdb=
+Action4\Script.mts=
+Action4\Resource.mtr=
+Action4\ObjectRepository.bdb=
+Action5\Script.mts=
+Action5\Resource.mtr=
+Action5\ObjectRepository.bdb=
+Action7\Script.mts=
+Action7\Resource.mtr=
+Action7\ObjectRepository.bdb=
+Action8\Script.mts=
+Action8\Resource.mtr=
+Action8\ObjectRepository.bdb=
+Action9\Script.mts=
+Action9\Resource.mtr=
+Action9\ObjectRepository.bdb=
+Action6\Script.mts=
+Action6\Resource.mtr=
+Action6\ObjectRepository.bdb=
+Action13\Script.mts=
+Action13\Resource.mtr=
+Action13\ObjectRepository.bdb=
+Action14\Script.mts=
+Action14\Resource.mtr=
+Action14\ObjectRepository.bdb=
+Action10\Script.mts=
+Action10\Resource.mtr=
+Action10\ObjectRepository.bdb=
+Action12\Script.mts=
+Action12\Resource.mtr=
+Action12\ObjectRepository.bdb=
+Action16\Script.mts=
+Action16\Resource.mtr=
+Action16\ObjectRepository.bdb=
