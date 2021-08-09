@@ -37,6 +37,7 @@ class CIParametersImpl implements CIParameters {
         return parameters;
     }
 
+    @Override
     public CIParameters setParameters(List<CIParameter> parameters) {
         this.parameters = parameters;
         return this;

@@ -27,4 +27,6 @@ import java.util.List;
 public interface CIParameters extends DTOBase {
 
     List<CIParameter> getParameters();
+
+    CIParameters setParameters(List<CIParameter> parameters);
 }
