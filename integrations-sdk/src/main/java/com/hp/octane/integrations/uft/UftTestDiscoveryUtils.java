@@ -422,6 +422,9 @@ public class UftTestDiscoveryUtils {
                 if (resourceMtrFile.exists()) {
                     entry.getValue().setParameters(parseParameterFile(resourceMtrFile, documentBuilder));
                 }
+            } else {
+                entry.getValue().setParameters(Collections.emptyList());
+                logger.warn("folder for action {} does not exist", actionName);
             }
         }
     }
