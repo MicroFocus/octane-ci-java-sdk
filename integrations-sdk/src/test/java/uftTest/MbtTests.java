@@ -34,8 +34,11 @@ public class MbtTests {
 
     @Test
     public void testComputeResourcePath() {
-        String path = MfUftConverter.computeResourcePath("..\\ss", "c:\\aa\\bb");
-        Assert.assertEquals("c:\\aa\\ss", path.toLowerCase(Locale.ROOT));
+        String osName = System.getProperty("os.name");
+        if(osName.toLowerCase(Locale.ROOT).contains("windows")){
+            String path = MfUftConverter.computeResourcePath("..\\ss", "c:\\aa\\bb");
+            Assert.assertEquals("c:\\aa\\ss", path.toLowerCase(Locale.ROOT));
+        }
     }
 
     @Test
