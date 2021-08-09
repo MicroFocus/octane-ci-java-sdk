@@ -15,6 +15,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.util.Locale;
 
 import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.extractXmlContentFromTspFile;
 import static com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getDocument;
@@ -31,6 +32,10 @@ public class UftTestDiscoveryUtilsTests {
 
     @Test
     public void readDescriptionTest() {
+        String osName = System.getProperty("os.name");
+        if(!osName.toLowerCase(Locale.ROOT).contains("windows")){
+            return;
+        }
         File folderPath = new File(getClass().getResource("description").getFile());
         Document document = getDocument(folderPath, UftTestType.GUI);
         String description = com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getTestDescription(document, UftTestType.GUI);
