@@ -331,6 +331,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
 		if (ciParameters == null) {
 			ciParameters = dtoFactory.newDTO(CIParameters.class);
+			ciParameters.setParameters(new ArrayList<>());
 		}
 		CIParameter ciParameter = dtoFactory.newDTO(CIParameter.class);
 		ciParameter.setName(SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME)
