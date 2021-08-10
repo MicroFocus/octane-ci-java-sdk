@@ -16,19 +16,33 @@
 
 package com.hp.octane.integrations.executor.converters;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
+import com.hp.octane.integrations.dto.connectivity.HttpMethod;
+import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
+import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.general.MbtAction;
 import com.hp.octane.integrations.dto.general.MbtActionParameter;
 import com.hp.octane.integrations.dto.general.MbtData;
 import com.hp.octane.integrations.dto.general.MbtDataTable;
 import com.hp.octane.integrations.executor.TestToRunData;
+import com.hp.octane.integrations.executor.TestToRunDataCollection;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
+import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.util.StringBuilderWriter;
@@ -52,6 +66,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.hp.octane.integrations.services.rest.RestService.ACCEPT_HEADER;
+
 /*
  * Converter to uft format (MTBX)
  */
@@ -62,6 +78,9 @@ public class MfUftConverter extends TestsToRunConverter {
     public static final String ITERATIONS_PARAMETER = "iterations";
     public static final String MBT_DATA = "mbtData";
     public static final String MBT_PARENT_SUB_DIR = "___mbt";
+    public static final String OCTANE_CONFIG_ID = "octaneConfigId";
+    public static final String OCTANE_WORKSPACE_ID = "octaneWorkspaceId";
+    public static final String SUITE_RUN_ID = "suiteRunId";
     List<MbtTest> mbtTests;
 
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
@@ -72,7 +91,7 @@ public class MfUftConverter extends TestsToRunConverter {
         String myWorkingDir = executionDirectory;
         if (isMBT(data)) {
             myWorkingDir = myWorkingDir + "\\" + MBT_PARENT_SUB_DIR;
-            handleMBTModel(data, executionDirectory);
+            handleMBTModel(data, executionDirectory, globalParameters);
 
         }
         return convertToMtbxContent(data, myWorkingDir, globalParameters);
@@ -211,8 +230,44 @@ public class MfUftConverter extends TestsToRunConverter {
         return tests.get(0).getParameter(MBT_DATA) != null;
     }
 
-    private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder) {
+    private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder, Map<String, String> globalParameters) {
+        if (tests.get(0).getParameters().get(MBT_DATA).equals("mbtDataNotIncluded")){
+            OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(globalParameters.get(OCTANE_CONFIG_ID));
+            OctaneConfiguration octaneConfig = octaneClient.getConfigurationService().getConfiguration();
+            String url = octaneConfig.getUrl() + "/api" + "/shared_spaces/" + octaneConfig.getSharedSpace() +
+                        "/workspaces/" + globalParameters.get(OCTANE_WORKSPACE_ID) +
+                        "/suite_runs/" + globalParameters.get(SUITE_RUN_ID) + "/get_suite_data" ;
 
+            Map<String, String> headers = new HashMap<>();
+            headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+            headers.put(OctaneRestClient.CLIENT_TYPE_HEADER, OctaneRestClient.CLIENT_TYPE_VALUE);
+
+            OctaneRequest request = DTOFactory.getInstance()
+                    .newDTO(OctaneRequest.class)
+                    .setMethod(HttpMethod.GET)
+                    .setHeaders(headers)
+                    .setUrl(url);
+
+            try {
+                OctaneResponse octaneResponse = octaneClient.getRestService().obtainOctaneRestClient().execute(request);
+                if (octaneResponse != null && octaneResponse.getStatus() == HttpStatus.SC_OK) {
+                    Map<String, String> parsedResponse = parseSuiteRunDataJson(octaneResponse.getBody());
+                    if (parsedResponse != null) {
+                        for (TestToRunData test : tests) {
+                            String runID = test.getParameter("runId");
+                            test.addParameters("mbtData", parsedResponse.get(runID));
+                        }
+                    }
+                }
+                else{
+                    logger.error("Failed to get response "+ (octaneResponse != null ? octaneResponse.getStatus() : "(null)") );
+                    return;
+                }
+            } catch (IOException e) {
+                logger.error("Failed to get response ", e);
+                return;
+            }
+        }
         mbtTests = new ArrayList<>();
         //StringBuilder str = new StringBuilder();
         int order = 1;
@@ -318,6 +373,16 @@ public class MfUftConverter extends TestsToRunConverter {
             MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString,
                     Collections.emptyList(), Collections.emptyList());
             mbtTests.add(test);
+        }
+    }
+
+    private static Map<String, String> parseSuiteRunDataJson(String responseJson) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            Map<String, String> result = objectMapper.readValue(responseJson, Map.class);
+            return result;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid suite run data format: " + e.getMessage(), e);
         }
     }
 
