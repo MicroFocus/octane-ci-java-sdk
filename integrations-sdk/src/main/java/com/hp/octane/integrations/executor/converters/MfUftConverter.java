@@ -229,43 +229,8 @@ public class MfUftConverter extends TestsToRunConverter {
     }
 
     private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder, Map<String, String> globalParameters) {
-        if (shouldRetrieveMbtData(tests)){
-            OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(globalParameters.get(OCTANE_CONFIG_ID_PARAMETER_NAME));
-            OctaneConfiguration octaneConfig = octaneClient.getConfigurationService().getConfiguration();
-            String url = octaneConfig.getUrl() + "/api" + "/shared_spaces/" + octaneConfig.getSharedSpace() +
-                        "/workspaces/" + globalParameters.get(OCTANE_WORKSPACE_PARAMETER_NAME) +
-                        "/suite_runs/" + globalParameters.get(SUITE_RUN_ID_PARAMETER_NAME) + "/get_suite_data" ;
+        handleMbtDataRetrieval(tests, globalParameters);
 
-            Map<String, String> headers = new HashMap<>();
-            headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
-            headers.put(OctaneRestClient.CLIENT_TYPE_HEADER, OctaneRestClient.CLIENT_TYPE_VALUE);
-
-            OctaneRequest request = DTOFactory.getInstance()
-                    .newDTO(OctaneRequest.class)
-                    .setMethod(HttpMethod.GET)
-                    .setHeaders(headers)
-                    .setUrl(url);
-
-            try {
-                OctaneResponse octaneResponse = octaneClient.getRestService().obtainOctaneRestClient().execute(request);
-                if (octaneResponse != null && octaneResponse.getStatus() == HttpStatus.SC_OK) {
-                    Map<String, String> parsedResponse = parseSuiteRunDataJson(octaneResponse.getBody());
-                    if (parsedResponse != null) {
-                        for (TestToRunData test : tests) {
-                            String runID = test.getParameter(INNER_RUN_ID_PARAMETER);
-                            test.addParameters(MBT_DATA, parsedResponse.get(runID));
-                        }
-                    }
-                }
-                else{
-                    logger.error("Failed to get response "+ (octaneResponse != null ? octaneResponse.getStatus() : "(null)") );
-                    return;
-                }
-            } catch (IOException e) {
-                logger.error("Failed to get response ", e);
-                return;
-            }
-        }
         mbtTests = new ArrayList<>();
         //StringBuilder str = new StringBuilder();
         int order = 1;
@@ -371,6 +336,45 @@ public class MfUftConverter extends TestsToRunConverter {
             MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString,
                     Collections.emptyList(), Collections.emptyList());
             mbtTests.add(test);
+        }
+    }
+
+    private void handleMbtDataRetrieval(List<TestToRunData> tests, Map<String, String> globalParameters) {
+        if (shouldRetrieveMbtData(tests)) {
+            OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(globalParameters.get(OCTANE_CONFIG_ID_PARAMETER_NAME));
+            OctaneConfiguration octaneConfig = octaneClient.getConfigurationService().getConfiguration();
+            String url = octaneConfig.getUrl() + "/api" + "/shared_spaces/" + octaneConfig.getSharedSpace() +
+                    "/workspaces/" + globalParameters.get(OCTANE_WORKSPACE_PARAMETER_NAME) +
+                    "/suite_runs/" + globalParameters.get(SUITE_RUN_ID_PARAMETER_NAME) + "/get_suite_data";
+
+            Map<String, String> headers = new HashMap<>();
+            headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+            headers.put(OctaneRestClient.CLIENT_TYPE_HEADER, OctaneRestClient.CLIENT_TYPE_VALUE);
+
+            OctaneRequest request = DTOFactory.getInstance()
+                    .newDTO(OctaneRequest.class)
+                    .setMethod(HttpMethod.GET)
+                    .setHeaders(headers)
+                    .setUrl(url);
+
+            try {
+                OctaneResponse octaneResponse = octaneClient.getRestService().obtainOctaneRestClient().execute(request);
+                if (octaneResponse != null && octaneResponse.getStatus() == HttpStatus.SC_OK) {
+                    Map<String, String> parsedResponse = parseSuiteRunDataJson(octaneResponse.getBody());
+                    if (parsedResponse != null) {
+                        for (TestToRunData test : tests) {
+                            String runID = test.getParameter(INNER_RUN_ID_PARAMETER);
+                            test.addParameters(MBT_DATA, parsedResponse.get(runID));
+                        }
+                    }
+                } else {
+                    logger.error("Failed to get response " + (octaneResponse != null ? octaneResponse.getStatus() : "(null)"));
+                    return;
+                }
+            } catch (IOException e) {
+                logger.error("Failed to get response ", e);
+                return;
+            }
         }
     }
 
