@@ -18,7 +18,6 @@ package com.hp.octane.integrations.executor.converters;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
@@ -31,7 +30,6 @@ import com.hp.octane.integrations.dto.general.MbtActionParameter;
 import com.hp.octane.integrations.dto.general.MbtData;
 import com.hp.octane.integrations.dto.general.MbtDataTable;
 import com.hp.octane.integrations.executor.TestToRunData;
-import com.hp.octane.integrations.executor.TestToRunDataCollection;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -40,7 +38,6 @@ import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
@@ -67,6 +64,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.services.rest.RestService.ACCEPT_HEADER;
+import static com.hp.octane.integrations.utils.SdkConstants.JobParameters.*;
 
 /*
  * Converter to uft format (MTBX)
@@ -77,10 +75,10 @@ public class MfUftConverter extends TestsToRunConverter {
     public static final String DATA_TABLE_PARAMETER = "dataTable";
     public static final String ITERATIONS_PARAMETER = "iterations";
     public static final String MBT_DATA = "mbtData";
+    public static final String RUN_ID = "runId";
     public static final String MBT_PARENT_SUB_DIR = "___mbt";
-    public static final String OCTANE_CONFIG_ID = "octaneConfigId";
-    public static final String OCTANE_WORKSPACE_ID = "octaneWorkspaceId";
-    public static final String SUITE_RUN_ID = "suiteRunId";
+    public static final String MBT_DATA_NOT_INCLUDED = "mbtDataNotIncluded";
+
     List<MbtTest> mbtTests;
 
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
@@ -231,12 +229,12 @@ public class MfUftConverter extends TestsToRunConverter {
     }
 
     private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder, Map<String, String> globalParameters) {
-        if (tests.get(0).getParameters().get(MBT_DATA).equals("mbtDataNotIncluded")){
-            OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(globalParameters.get(OCTANE_CONFIG_ID));
+        if (shouldRetrieveMbtData(tests)){
+            OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(globalParameters.get(OCTANE_CONFIG_ID_PARAMETER_NAME));
             OctaneConfiguration octaneConfig = octaneClient.getConfigurationService().getConfiguration();
             String url = octaneConfig.getUrl() + "/api" + "/shared_spaces/" + octaneConfig.getSharedSpace() +
-                        "/workspaces/" + globalParameters.get(OCTANE_WORKSPACE_ID) +
-                        "/suite_runs/" + globalParameters.get(SUITE_RUN_ID) + "/get_suite_data" ;
+                        "/workspaces/" + globalParameters.get(OCTANE_WORKSPACE_PARAMETER_NAME) +
+                        "/suite_runs/" + globalParameters.get(SUITE_RUN_ID_PARAMETER_NAME) + "/get_suite_data" ;
 
             Map<String, String> headers = new HashMap<>();
             headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -254,8 +252,8 @@ public class MfUftConverter extends TestsToRunConverter {
                     Map<String, String> parsedResponse = parseSuiteRunDataJson(octaneResponse.getBody());
                     if (parsedResponse != null) {
                         for (TestToRunData test : tests) {
-                            String runID = test.getParameter("runId");
-                            test.addParameters("mbtData", parsedResponse.get(runID));
+                            String runID = test.getParameter(INNER_RUN_ID_PARAMETER);
+                            test.addParameters(MBT_DATA, parsedResponse.get(runID));
                         }
                     }
                 }
@@ -374,6 +372,10 @@ public class MfUftConverter extends TestsToRunConverter {
                     Collections.emptyList(), Collections.emptyList());
             mbtTests.add(test);
         }
+    }
+
+    private static boolean shouldRetrieveMbtData(List<TestToRunData> tests){
+        return tests.get(0).getParameters().get(MBT_DATA).equals(MBT_DATA_NOT_INCLUDED);
     }
 
     private static Map<String, String> parseSuiteRunDataJson(String responseJson) {
