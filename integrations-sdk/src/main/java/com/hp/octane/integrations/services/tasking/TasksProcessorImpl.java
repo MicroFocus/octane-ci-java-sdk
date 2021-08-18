@@ -21,10 +21,7 @@ import com.hp.octane.integrations.dto.connectivity.*;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIPluginSDKInfo;
-import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
+import com.hp.octane.integrations.dto.general.*;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
@@ -59,6 +56,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String JOBS = "jobs";
 	private static final String RUN = "run";
 	private static final String STOP = "stop";
+	private static final String BUILD_STATUS = "build_status";
 	private static final String BUILDS = "builds";
 	private static final String EXECUTOR = "executor";
 	private static final String INIT = "init";
@@ -128,6 +126,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 				} else if (path.length == 3 && RUN.equals(path[2])) {
 					executePipelineRunExecuteRequest(result, path[1], task.getBody());
 				} else if (path.length == 3 && STOP.equals(path[2])) {
+					executePipelineRunStopRequest(result, path[1], task.getBody());
+				} else if (path.length == 3 && BUILD_STATUS.equals(path[2])) {
 					executePipelineRunStopRequest(result, path[1], task.getBody());
 				} else {
 					result.setStatus(HttpStatus.SC_NOT_FOUND);
@@ -346,6 +346,14 @@ final class TasksProcessorImpl implements TasksProcessor {
 		logger.info(configurer.octaneConfiguration.getLocationForLog() + "RunStop job " + jobId);
 		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
 		configurer.pluginServices.stopPipelineRun(jobId, ciParameters);
+		result.setStatus(HttpStatus.SC_OK);
+	}
+
+	private void executeGetBuildStatusRequest(OctaneResultAbridged result, String jobId, String originalBody) {
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "BuildStatus job " + jobId);
+		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
+		CIBuildStatusInfo status = configurer.pluginServices.getJobBuildStatus(jobId, ciParameters);
+		result.setBody(dtoFactory.dtoToJson(status));
 		result.setStatus(HttpStatus.SC_OK);
 	}
 

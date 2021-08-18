@@ -40,6 +40,8 @@ public final class DTOGeneralProvider extends DTOInternalProviderBase {
         dtoPairs.put(MbtData.class, MbtDataImpl.class);
         dtoPairs.put(MbtActionParameter.class, MbtActionParameterImpl.class);
         dtoPairs.put(MbtDataTable.class, MbtDataTableImpl.class);
+
+        dtoPairs.put(CIBuildStatusInfo.class, CIBuildStatusInfoImpl.class);
     }
 
     protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

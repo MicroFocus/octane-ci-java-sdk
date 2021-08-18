@@ -20,10 +20,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIPluginInfo;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.dto.general.SonarInfo;
+import com.hp.octane.integrations.dto.general.*;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
@@ -158,6 +155,16 @@ public abstract class CIPluginServices {
 	 * @param ciParameters execution parameters
 	 */
 	public void stopPipelineRun(String jobId, CIParameters ciParameters) {
+		throw new SPIMethodNotImplementedException("stop API is not implemented");
+	}
+
+	/**
+	 * Check build status
+	 * @param jobId
+	 * @param ciParameters
+	 * @return
+	 */
+	public CIBuildStatusInfo getJobBuildStatus(String jobId, CIParameters ciParameters) {
 		throw new SPIMethodNotImplementedException("stop API is not implemented");
 	}
 
