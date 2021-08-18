@@ -37,6 +37,8 @@ public class SdkConstants {
         public static final String OCTANE_SPACE_PARAMETER_NAME = "octaneSpaceId";
         public static final String EXECUTION_ID_PARAMETER_NAME = "executionId";
         public static final String OCTANE_CONFIG_ID_PARAMETER_NAME = "octaneConfigId";
+        public static final String OCTANE_AUTO_ACTION_EXECUTION_ID_PARAMETER_NAME = "octane_auto_action_execution_id";
+
         public static final String ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM = "ADD_GLOBAL_PARAMETERS_TO_TESTS";
     }
 }

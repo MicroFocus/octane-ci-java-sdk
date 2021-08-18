@@ -27,7 +27,7 @@ import com.hp.octane.integrations.dto.general.CIBuildStatusInfo;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
-    private CIBuildStatus buildStatus;
+    private CIBuildStatus buildStatus = CIBuildStatus.UNAVAILABLE;
     private String buildCiId;
     private CIBuildResult result = CIBuildResult.UNAVAILABLE;
 
