@@ -451,7 +451,7 @@ public class UftTestDispatchUtils {
             parameterToAdd.forEach(parameter -> {
                 Entity parentUnit = (Entity) parameter.getField(EntityConstants.MbtUnitParameter.MODEL_ITEM);
                 Entity newParentUnit = unitEntities.get(parentUnit.getField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toString());
-                parameter.setField(EntityConstants.MbtUnitParameter.MODEL_ITEM, newParentUnit);
+                parameter.setField(EntityConstants.MbtUnitParameter.MODEL_ITEM, createModelItemEntity(newParentUnit));
             });
             // add parameters
             entitiesService.postEntities(workspaceId, EntityConstants.MbtUnitParameter.COLLECTION_NAME, parameterToAdd);
@@ -625,5 +625,9 @@ public class UftTestDispatchUtils {
 
     private static Entity createListNodeEntity(String id) {
         return dtoFactory.newDTO(Entity.class).setType("list_node").setId(id);
+    }
+
+    private static Entity createModelItemEntity(Entity modelItemEntity) {
+        return dtoFactory.newDTO(Entity.class).setField("data", Collections.singletonList(modelItemEntity));
     }
 }
