@@ -29,7 +29,7 @@ import com.hp.octane.integrations.dto.general.CIBuildStatusInfo;
 class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     private CIBuildStatus buildStatus = CIBuildStatus.UNAVAILABLE;
     private String buildCiId;
-    private CIBuildResult result = CIBuildResult.UNAVAILABLE;
+    private CIBuildResult buildResult = CIBuildResult.UNAVAILABLE;
 
 
     @Override
@@ -43,8 +43,8 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     }
 
     @Override
-    public CIBuildResult getResult() {
-        return result;
+    public CIBuildResult getBuildResult() {
+        return buildResult;
     }
 
     @Override
@@ -61,7 +61,7 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
 
     @Override
     public CIBuildStatusInfo setResult(CIBuildResult result) {
-        this.result = result;
+        this.buildResult = result;
         return this;
     }
 }

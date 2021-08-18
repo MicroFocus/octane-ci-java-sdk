@@ -13,7 +13,7 @@ public interface CIBuildStatusInfo extends DTOBase, Serializable {
 
     String getBuildCiId();
 
-    CIBuildResult getResult();
+    CIBuildResult getBuildResult();
 
     CIBuildStatusInfo setBuildStatus(CIBuildStatus status);
 
