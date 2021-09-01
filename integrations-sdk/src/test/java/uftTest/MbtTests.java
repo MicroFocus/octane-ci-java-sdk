@@ -3,6 +3,7 @@ package uftTest;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.MbtActionParameter;
 import com.hp.octane.integrations.dto.general.MbtData;
+import com.hp.octane.integrations.executor.converters.MfMBTConverter;
 import com.hp.octane.integrations.executor.converters.MfUftConverter;
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultData;
@@ -36,7 +37,7 @@ public class MbtTests {
     public void testComputeResourcePath() {
         String osName = System.getProperty("os.name");
         if(osName.toLowerCase(Locale.ROOT).contains("windows")){
-            String path = MfUftConverter.computeResourcePath("..\\ss", "c:\\aa\\bb");
+            String path = MfMBTConverter.computeResourcePath("..\\ss", "c:\\aa\\bb");
             Assert.assertEquals("c:\\aa\\ss", path.toLowerCase(Locale.ROOT));
         }
     }
