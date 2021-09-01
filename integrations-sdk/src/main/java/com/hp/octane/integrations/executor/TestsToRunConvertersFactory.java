@@ -28,7 +28,7 @@ public class TestsToRunConvertersFactory {
             case MF_UFT:
                 return new MfUftConverter();
             case MF_MBT:
-                return new MfUftConverter();
+                return new MfMBTConverter();
             case CUCUMBER_JVM:
                 return new CucumberJVMConverter();
             case BDD_SCENARIO:
