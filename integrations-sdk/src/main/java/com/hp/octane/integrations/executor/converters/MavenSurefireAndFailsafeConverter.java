@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class MavenSurefireAndFailsafeConverter extends TestsToRunConverter {
 
     @Override
-    public String convert(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
+    public String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
         StringBuilder sb = new StringBuilder();
         String classJoiner = "";
         Map<String, List<TestToRunData>> fullClassName2tests = data.stream().collect(Collectors.groupingBy(item -> getFullClassPath(item)));

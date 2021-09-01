@@ -26,12 +26,14 @@ public enum TestsToRunFramework implements Serializable {
 
     JUnit4("mvnSurefire", "JUnit/TestNG over Maven Surefire/Failsafe", ""),
     MF_UFT("uft", "Micro Focus UFT", ""),
+    MF_MBT("mbt", "Micro Focus MBT", ""),
     CUCUMBER_JVM("cucumber_jvm", "Cucumber-JVM over Maven", ""),
     BDD_SCENARIO("bdd_scenario", "BDD Scenario", ""),
     JBehave("jbehave", "JBehave over Maven", JBehaveConverter.FORMAT),
     Protractor("protractor", "Protractor", ProtractorConverter.FORMAT),
     Gradle("gradle", "Gradle", GradleConverter.FORMAT),
     Custom("custom", "Custom", "");
+
 
     private final String value;
     private final String desc;

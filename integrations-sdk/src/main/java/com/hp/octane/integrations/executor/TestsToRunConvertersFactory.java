@@ -27,6 +27,8 @@ public class TestsToRunConvertersFactory {
                 return new MavenSurefireAndFailsafeConverter();
             case MF_UFT:
                 return new MfUftConverter();
+            case MF_MBT:
+                return new MfUftConverter();
             case CUCUMBER_JVM:
                 return new CucumberJVMConverter();
             case BDD_SCENARIO:

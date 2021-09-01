@@ -84,7 +84,7 @@ public class MfUftConverter extends TestsToRunConverter {
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
 
     @Override
-    public String convert(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
+    public String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
 
         String myWorkingDir = executionDirectory;
         if (isMBT(data)) {
@@ -104,7 +104,7 @@ public class MfUftConverter extends TestsToRunConverter {
 
         boolean addGlobalParameters = globalParameters != null &&
                 globalParameters.containsKey(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM) &&
-                "true".equalsIgnoreCase(globalParameters.getOrDefault(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM,"false"));
+                "true".equalsIgnoreCase(globalParameters.getOrDefault(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM, "false"));
         /*<Mtbx>
             <Test name="test1" path=workingDir + "\APITest1">
             <Parameter type="string" name="myName" value="myValue"/> //type is optional, possible values = float,string,any,boolean,bool,int,integer,number,password,datetime,date,long,double,decimal
@@ -153,7 +153,7 @@ public class MfUftConverter extends TestsToRunConverter {
                     }
                 });
                 if (addGlobalParameters) {
-                    globalParameters.entrySet().stream().filter(p->!p.getKey().equals(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM))
+                    globalParameters.entrySet().stream().filter(p -> !p.getKey().equals(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM))
                             .forEach(entry -> addParameterToTestElement(doc, testElement, entry.getKey(), entry.getValue()));
                 }
 
@@ -224,12 +224,17 @@ public class MfUftConverter extends TestsToRunConverter {
         testElement.appendChild(parameterElement);
     }
 
+    public void enrichTestsData(List<TestToRunData> tests, Map<String, String> globalParameters) {
+        if (isMBT(tests)) {
+            handleMbtDataRetrieval(tests, globalParameters);
+        }
+    }
+
     private static boolean isMBT(List<TestToRunData> tests) {
         return tests.get(0).getParameter(MBT_DATA) != null;
     }
 
     private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder, Map<String, String> globalParameters) {
-        handleMbtDataRetrieval(tests, globalParameters);
 
         mbtTests = new ArrayList<>();
         //StringBuilder str = new StringBuilder();
@@ -238,12 +243,17 @@ public class MfUftConverter extends TestsToRunConverter {
             data.setPackageName("_" + order++);
             String mbtDataRaw = data.getParameter(MBT_DATA);
             MbtData mbtData;
+            if (MBT_DATA_NOT_INCLUDED.equals(mbtDataRaw)) {
+                throw new RuntimeException("Failed to fetch mbt data for test " + data.getTestName());
+            }
+
             try {
                 String raw = new String(Base64.getDecoder().decode(mbtDataRaw), StandardCharsets.UTF_8);
                 mbtData = DTOFactory.getInstance().dtoFromJson(raw, MbtData.class);
             } catch (Exception e) {
-                logger.error("Failed to decode test action data " + data.getTestName() + " : " + e.getMessage());
-                throw e;
+                String msg = "Failed to decode test action data " + data.getTestName() + " : " + e.getMessage();
+                logger.error(msg);
+                throw new RuntimeException(msg);
             }
             //parse test and action names
             for (int i = mbtData.getActions().size() - 1; i >= 0; i--) {
@@ -378,7 +388,7 @@ public class MfUftConverter extends TestsToRunConverter {
         }
     }
 
-    private static boolean shouldRetrieveMbtData(List<TestToRunData> tests){
+    private static boolean shouldRetrieveMbtData(List<TestToRunData> tests) {
         return tests.get(0).getParameters().get(MBT_DATA).equals(MBT_DATA_NOT_INCLUDED);
     }
 

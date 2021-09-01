@@ -13,7 +13,7 @@ public class BDDConverter extends TestsToRunConverter {
     private static final String FEATURE_FILE_PATH = "featureFilePath";
 
     @Override
-    protected String convert(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
+    protected String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
         String featuresStr = data.stream()
                 .map(d -> getFeatureFilePath(d)).filter(d -> d != null && !d.isEmpty())
                 .distinct()
