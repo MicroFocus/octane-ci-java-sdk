@@ -351,11 +351,16 @@ final class TasksProcessorImpl implements TasksProcessor {
 
 	private void executeGetBulkBuildStatusRequest(OctaneResultAbridged result, String originalBody) {
 		logger.info(configurer.octaneConfiguration.getLocationForLog() + "BulkBuildStatus ");
-		CIBuildStatusInfo[] statuses = originalBody != null ? DTOFactory.getInstance().dtoCollectionFromJson(originalBody, CIBuildStatusInfo[].class) : null;
+		CIBuildStatusInfo[] statuses = originalBody != null ? DTOFactory.getInstance().dtoCollectionFromJson(originalBody, CIBuildStatusInfo[].class) : new CIBuildStatusInfo[0];
 		List<CIBuildStatusInfo> output = new ArrayList<>();
-		for(CIBuildStatusInfo statusInfo : statuses){
-			CIBuildStatusInfo myStatus = configurer.pluginServices.getJobBuildStatus(statusInfo.getJobCiId(), statusInfo.getFieldName(),statusInfo.getFieldValue());
-			output.add(myStatus);
+		for (CIBuildStatusInfo statusInfo : statuses) {
+			try {
+				CIBuildStatusInfo myStatus = configurer.pluginServices.getJobBuildStatus(statusInfo.getJobCiId(), statusInfo.getParamName(), statusInfo.getParamValue());
+				output.add(myStatus);
+			} catch (Exception e) {
+				statusInfo.setExceptionMessage(e.getMessage());
+				output.add(statusInfo);
+			}
 		}
 
 		result.setBody(dtoFactory.dtoCollectionToJson(output));

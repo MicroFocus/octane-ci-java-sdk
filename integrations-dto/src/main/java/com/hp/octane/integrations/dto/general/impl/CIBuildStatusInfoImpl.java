@@ -30,8 +30,9 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     private CIBuildStatus buildStatus = CIBuildStatus.UNAVAILABLE;
     private String buildCiId;
     private String jobCiId;
-    private String fieldName;
-    private String fieldValue;
+    private String paramName;
+    private String paramValue;
+    private String exceptionMessage;
     private CIBuildResult buildResult = CIBuildResult.UNAVAILABLE;
 
 
@@ -80,24 +81,35 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     }
 
     @Override
-    public String getFieldName() {
-        return fieldName;
+    public String getParamName() {
+        return paramName;
     }
 
     @Override
-    public CIBuildStatusInfo setFieldName(String fieldName) {
-        this.fieldName = fieldName;
+    public CIBuildStatusInfo setParamName(String fieldName) {
+        this.paramName = fieldName;
         return this;
     }
 
     @Override
-    public String getFieldValue() {
-        return fieldValue;
+    public String getParamValue() {
+        return paramValue;
     }
 
     @Override
-    public CIBuildStatusInfo setFieldValue(String fieldValue) {
-        this.fieldValue = fieldValue;
+    public CIBuildStatusInfo setParamValue(String fieldValue) {
+        this.paramValue = fieldValue;
+        return this;
+    }
+
+    @Override
+    public String getExceptionMessage() {
+        return exceptionMessage;
+    }
+
+    @Override
+    public CIBuildStatusInfo setExceptionMessage(String exceptionMessage) {
+        this.exceptionMessage = exceptionMessage;
         return this;
     }
 }
