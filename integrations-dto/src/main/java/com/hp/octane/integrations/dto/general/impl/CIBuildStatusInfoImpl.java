@@ -22,13 +22,16 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.general.CIBuildStatusInfo;
 
 /**
- * SCMRepository DTO implementation.
+ * CIBuildStatusInfo DTO implementation.
  */
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     private CIBuildStatus buildStatus = CIBuildStatus.UNAVAILABLE;
     private String buildCiId;
+    private String jobCiId;
+    private String fieldName;
+    private String fieldValue;
     private CIBuildResult buildResult = CIBuildResult.UNAVAILABLE;
 
 
@@ -62,6 +65,39 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     @Override
     public CIBuildStatusInfo setResult(CIBuildResult result) {
         this.buildResult = result;
+        return this;
+    }
+
+    @Override
+    public String getJobCiId() {
+        return jobCiId;
+    }
+
+    @Override
+    public CIBuildStatusInfo setJobCiId(String jobCiId) {
+        this.jobCiId = jobCiId;
+        return this;
+    }
+
+    @Override
+    public String getFieldName() {
+        return fieldName;
+    }
+
+    @Override
+    public CIBuildStatusInfo setFieldName(String fieldName) {
+        this.fieldName = fieldName;
+        return this;
+    }
+
+    @Override
+    public String getFieldValue() {
+        return fieldValue;
+    }
+
+    @Override
+    public CIBuildStatusInfo setFieldValue(String fieldValue) {
+        this.fieldValue = fieldValue;
         return this;
     }
 }

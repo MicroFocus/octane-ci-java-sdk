@@ -127,11 +127,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 					executePipelineRunExecuteRequest(result, path[1], task.getBody());
 				} else if (path.length == 3 && STOP.equals(path[2])) {
 					executePipelineRunStopRequest(result, path[1], task.getBody());
-				} else if (path.length == 3 && BUILD_STATUS.equals(path[2])) {
-					executeGetBuildStatusRequest(result, path[1], task.getBody());
 				} else {
 					result.setStatus(HttpStatus.SC_NOT_FOUND);
 				}
+			} else if (BUILD_STATUS.equalsIgnoreCase(path[0])) {
+				executeGetBulkBuildStatusRequest(result, task.getBody());
 			} else if (EXECUTOR.equalsIgnoreCase(path[0])) {
 				if (HttpMethod.POST.equals(task.getMethod()) && path.length == 2) {
 					if (INIT.equalsIgnoreCase(path[1])) {
@@ -224,7 +224,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 		String[] path = Pattern.compile("^.*" + NGA_API + "/?").matcher(url).replaceFirst("").split("/");
 		params.put(0, path[0]);
 		for (int i = 1; i < path.length; i++) {
-			if ((path[i].equals(BUILDS) || path[i].equals(RUN) || path[i].equals(STOP) || path[i].equals(BUILD_STATUS)) && i == path.length - 1) { // last token
+			if ((path[i].equals(BUILDS) || path[i].equals(RUN) || path[i].equals(STOP)) && i == path.length - 1) { // last token
 				params.put(2, path[i]);
 			} else if (path[i].equals(BUILDS) && i == path.length - 2) {        // one before last token
 				params.put(2, path[i]);
@@ -349,11 +349,16 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.setStatus(HttpStatus.SC_OK);
 	}
 
-	private void executeGetBuildStatusRequest(OctaneResultAbridged result, String jobId, String originalBody) {
-		logger.info(configurer.octaneConfiguration.getLocationForLog() + "BuildStatus job " + jobId);
-		CIParameters ciParameters = originalBody != null ? DTOFactory.getInstance().dtoFromJson(originalBody, CIParameters.class) : null;
-		CIBuildStatusInfo status = configurer.pluginServices.getJobBuildStatus(jobId, ciParameters);
-		result.setBody(dtoFactory.dtoToJson(status));
+	private void executeGetBulkBuildStatusRequest(OctaneResultAbridged result, String originalBody) {
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "BulkBuildStatus ");
+		CIBuildStatusInfo[] statuses = originalBody != null ? DTOFactory.getInstance().dtoCollectionFromJson(originalBody, CIBuildStatusInfo[].class) : null;
+		List<CIBuildStatusInfo> output = new ArrayList<>();
+		for(CIBuildStatusInfo statusInfo : statuses){
+			CIBuildStatusInfo myStatus = configurer.pluginServices.getJobBuildStatus(statusInfo.getJobCiId(), statusInfo.getFieldName(),statusInfo.getFieldValue());
+			output.add(myStatus);
+		}
+
+		result.setBody(dtoFactory.dtoCollectionToJson(output));
 		result.setStatus(HttpStatus.SC_OK);
 	}
 

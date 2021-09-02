@@ -159,12 +159,13 @@ public abstract class CIPluginServices {
 	}
 
 	/**
-	 * Check build status
+	 * Get build status by some parameter
 	 * @param jobId
-	 * @param ciParameters
+	 * @param parameterName
+	 * @param parameterValue
 	 * @return
 	 */
-	public CIBuildStatusInfo getJobBuildStatus(String jobId, CIParameters ciParameters) {
+	public CIBuildStatusInfo getJobBuildStatus(String jobId, String parameterName, String parameterValue) {
 		throw new SPIMethodNotImplementedException("stop API is not implemented");
 	}
 

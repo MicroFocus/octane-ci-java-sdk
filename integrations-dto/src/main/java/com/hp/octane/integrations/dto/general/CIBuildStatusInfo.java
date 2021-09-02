@@ -20,4 +20,16 @@ public interface CIBuildStatusInfo extends DTOBase, Serializable {
     CIBuildStatusInfo setBuildCiId(String buildCiId);
 
     CIBuildStatusInfo setResult(CIBuildResult result);
+
+    String getJobCiId();
+
+    CIBuildStatusInfo setJobCiId(String jobCiId);
+
+    String getFieldName();
+
+    CIBuildStatusInfo setFieldName(String fieldName);
+
+    String getFieldValue();
+
+    CIBuildStatusInfo setFieldValue(String fieldValue);
 }
