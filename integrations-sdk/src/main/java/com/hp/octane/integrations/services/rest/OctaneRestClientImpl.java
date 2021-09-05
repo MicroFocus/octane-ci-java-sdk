@@ -259,11 +259,15 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
 			requestBuilder = RequestBuilder.post(octaneRequest.getUrl());
 			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
-			requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			if(octaneRequest.getBody()!=null){
+				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			}
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
 			requestBuilder = RequestBuilder.put(octaneRequest.getUrl());
 			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
-			requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			if(octaneRequest.getBody()!=null){
+				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			}
 		} else {
 			throw new RuntimeException("HTTP method " + octaneRequest.getMethod() + " not supported");
 		}

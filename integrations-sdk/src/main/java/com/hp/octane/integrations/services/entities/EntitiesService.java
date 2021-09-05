@@ -48,6 +48,9 @@ public interface EntitiesService {
 
 	List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, Collection<String> fields);
 
+	List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, String orderBy, Collection<String> fields);
+
+
 	List<Entity> getEntitiesByIds(Long workspaceId, String collectionName, Collection<?> ids);
 
 	List<Entity> deleteEntitiesByIds(Long workspaceId, String entityCollectionName, Collection<?> entitiesIds);

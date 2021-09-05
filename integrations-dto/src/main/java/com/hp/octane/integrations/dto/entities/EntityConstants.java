@@ -13,6 +13,11 @@ public class EntityConstants {
         public static final String TYPE_FIELD_NAME = "type";
     }
 
+    public static class Test extends Base {
+        public static final String COLLECTION_NAME = "tests";
+        public static final String ENTITY_NAME = "test";
+
+    }
     public static class AutomatedTest extends Base {
         public static final String COLLECTION_NAME = "automated_tests";
         public static final String ENTITY_NAME = "automated_test";
@@ -105,6 +110,16 @@ public class EntityConstants {
 
     public static class Release extends Base {
         public static final String COLLECTION_NAME = "releases";
+        public static final String ENTITY_NAME = "release";
+        public static final String IS_DEFAULT_FIELD = "is_default";
+    }
+
+    public static class Run extends Base {
+        public static final String COLLECTION_NAME = "runs";
+        public static final String RELEASE_FIELD = "release";
+        public static final String SUBTYPE_FIELD = "subtype";
+        public static final String TEST_FIELD = "test";
+        public static final String NATIVE_STATUS_FIELD = "native_status";
     }
 
     public static class Milestone extends Base {
@@ -114,6 +129,7 @@ public class EntityConstants {
 
     public static class Lists extends Base {
         public static final String COLLECTION_NAME = "list_nodes";
+        public static final String ENTITY_NAME = "list_node";
     }
 
     public static class Workspaces extends Base {

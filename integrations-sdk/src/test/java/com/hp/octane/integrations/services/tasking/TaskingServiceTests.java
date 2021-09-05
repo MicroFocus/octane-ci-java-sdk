@@ -104,36 +104,6 @@ public class TaskingServiceTests {
 	}
 
 	@Test
-	public void testStatusAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/status");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
-
-		CIProviderSummaryInfo status = dtoFactory.dtoFromJson(resultAbridged.getBody(), CIProviderSummaryInfo.class);
-		Assert.assertNotNull(status);
-
-		Assert.assertNotNull(status.getSdk());
-		Assert.assertNotNull(status.getSdk().getApiVersion());
-		Assert.assertEquals(1, (int) status.getSdk().getApiVersion());
-		Assert.assertEquals(OctaneSDK.SDK_VERSION, status.getSdk().getSdkVersion());
-
-		Assert.assertNotNull(status.getPlugin());
-		Assert.assertEquals(TEST_PLUGIN_VERSION, status.getPlugin().getVersion());
-
-		Assert.assertNotNull(status.getServer());
-		Assert.assertEquals(TEST_SERVER_URL, status.getServer().getUrl());
-		Assert.assertEquals(TEST_SERVER_TYPE, status.getServer().getType());
-		Assert.assertEquals(TEST_SERVER_VERSION, status.getServer().getVersion());
-		Assert.assertEquals(TEST_SENDING_TIME, status.getServer().getSendingTime());
-	}
-
-	@Test
 	public void testJobNoImplementedAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
 		Assert.assertNotNull(tasksProcessor);

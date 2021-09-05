@@ -178,12 +178,17 @@ final class EntitiesServiceImpl implements EntitiesService {
 
     @Override
     public List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, Collection<String> fields) {
+        return getEntities(workspaceId,entityCollectionName,conditions,null,fields);
+    }
+
+    @Override
+    public List<Entity> getEntities(Long workspaceId, String entityCollectionName, Collection<String> conditions, String orderBy, Collection<String> fields) {
 
         List<Entity> result = new ArrayList<>();
         int limit = MAX_GET_LIMIT;
         boolean fetchedAll = false;
         while (!fetchedAll) {
-            String url = buildEntityUrl(workspaceId, entityCollectionName, conditions, fields, result.size(), limit, null);
+            String url = buildEntityUrl(workspaceId, entityCollectionName, conditions, fields, result.size(), limit, orderBy);
             ResponseEntityList responseEntityList = getPagedEntities(url);
             result.addAll(responseEntityList.getData());
             fetchedAll = responseEntityList.getData().isEmpty() || responseEntityList.getTotalCount() == 0 || responseEntityList.getTotalCount() == result.size();

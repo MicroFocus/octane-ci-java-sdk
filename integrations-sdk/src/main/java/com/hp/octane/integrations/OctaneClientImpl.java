@@ -32,6 +32,7 @@ import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.scmdata.SCMDataService;
 import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
+import com.hp.octane.integrations.services.testexecution.TestExecutionService;
 import com.hp.octane.integrations.services.tests.TestsService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
@@ -75,6 +76,7 @@ final class OctaneClientImpl implements OctaneClient {
     private final TestsService testsService;
     private final VulnerabilitiesService vulnerabilitiesService;
     private final PullRequestAndBranchService pullRequestAndBranchService;
+    private final TestExecutionService testExecutionService;
     private final SCMDataService scmDataService;
     private final Thread shutdownHook;
     private boolean isShutdownHookActivated;
@@ -127,6 +129,7 @@ final class OctaneClientImpl implements OctaneClient {
         vulnerabilitiesService = VulnerabilitiesService.newInstance(queueingService, vulnerabilitiesToolServices, configurer, restService, configurationService);
 
         pullRequestAndBranchService = PullRequestAndBranchService.newInstance(configurer, restService, entitiesService);
+        testExecutionService = TestExecutionService.newInstance(configurer, restService, entitiesService);
 
         scmDataService = SCMDataService.newInstance(queueingService, configurer, restService, configurationService, eventsService);
 
@@ -234,6 +237,11 @@ final class OctaneClientImpl implements OctaneClient {
     @Override
     public PullRequestAndBranchService getPullRequestAndBranchService() {
         return pullRequestAndBranchService;
+    }
+
+    @Override
+    public TestExecutionService getTestExecutionService() {
+        return testExecutionService;
     }
 
 

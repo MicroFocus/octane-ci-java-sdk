@@ -28,6 +28,7 @@ import com.hp.octane.integrations.services.logs.LogsService;
 import com.hp.octane.integrations.services.pipelines.PipelineContextService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
+import com.hp.octane.integrations.services.testexecution.TestExecutionService;
 import com.hp.octane.integrations.services.tests.TestsService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 
@@ -134,6 +135,13 @@ public interface OctaneClient extends HasMetrics {
 	 * @return service, MUST NOT be null
 	 */
 	PullRequestAndBranchService getPullRequestAndBranchService();
+
+	/**
+	 * provides TestExecution service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	TestExecutionService getTestExecutionService();
 
 	/**
 	 * provides Vulnerabilities service
