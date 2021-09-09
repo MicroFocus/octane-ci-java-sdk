@@ -44,6 +44,10 @@ public class QueryHelper {
         return "!" + condition;
     }
 
+    public static String conditionStartWith(String name, String value) {
+        return name + "='" + escapeQueryValue(value) + "*'";
+    }
+
     public static String condition(String name, String value) {
         return name + "='" + escapeQueryValue(value) + "'";
     }
