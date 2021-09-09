@@ -24,9 +24,15 @@ import java.util.List;
 
 public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
+    private String id;
+
     private String name;
 
     private String logicalName;
+
+    private String testName;
+
+    private String description;
 
     private String repositoryPath;
 
@@ -36,6 +42,14 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
     public UftTestAction() {
         this.octaneStatus = OctaneStatus.NEW;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -52,6 +66,22 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
     public void setLogicalName(String logicalName) {
         this.logicalName = logicalName;
+    }
+
+    public String getTestName() {
+        return testName;
+    }
+
+    public void setTestName(String testName) {
+        this.testName = testName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getRepositoryPath() {
