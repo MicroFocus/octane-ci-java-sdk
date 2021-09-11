@@ -28,6 +28,7 @@ public class EntityConstants {
         public static final String TEST_TYPE_FIELD = "test_type";
         public static final String FRAMEWORK_FIELD = "framework";
         public static final String PACKAGE_FIELD = "package";
+        public static final String CLASS_NAME_FIELD = "class_name";
         public static final String EXECUTABLE_FIELD = "executable";
     }
 
@@ -103,6 +104,12 @@ public class EntityConstants {
         public static final String UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME = "uft_test_runner";
     }
 
+    public static class CIServer extends Base {
+        public static final String COLLECTION_NAME = "ci_servers";
+        public static final String ENTITY_NAME = "ci_server";
+        public static final String INSTANCE_ID_FIELD = "instance_id";
+    }
+
     public static class Taxonomy extends Base {
         public static final String COLLECTION_NAME = "taxonomy_nodes";
         public static final String CATEGORY_NAME = "category";
@@ -112,6 +119,17 @@ public class EntityConstants {
         public static final String COLLECTION_NAME = "releases";
         public static final String ENTITY_NAME = "release";
         public static final String IS_DEFAULT_FIELD = "is_default";
+    }
+
+    public static class TestSuiteLinkToTest extends Base {
+        public static final String COLLECTION_NAME = "test_suite_link_to_tests";
+        public static final String ENTITY_NAME = "test_suite_link_to_test";
+        public static final String INCLUDE_IN_NEXT_RUN_FIELD = "include_in_next_run";
+        public static final String TEST_SUITE_FIELD = "test_suite";
+        public static final String RUN_MODE_FIELD = "run_mode";
+        public static final String TEST_RUNNER_FIELD = "test_runner";
+        public static final String EXECUTION_PARAMETERS_FIELD = "execution_parameters";
+
     }
 
     public static class Run extends Base {

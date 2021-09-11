@@ -23,4 +23,8 @@ public class ConfigurationException extends ErrorCodeBasedException {
         super(errorCode);
     }
 
+    public ConfigurationException(String msg, int errorCode) {
+        super(msg, errorCode);
+    }
+
 }

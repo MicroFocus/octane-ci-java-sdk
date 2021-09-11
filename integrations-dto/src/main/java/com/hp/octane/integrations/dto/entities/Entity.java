@@ -46,6 +46,9 @@ public interface Entity extends DTOBase {
 
     Boolean getBooleanValue(String fieldName);
 
+    Entity getEntityValue(String fieldName);
+
     boolean containsField(String fieldName);
 
+    boolean containsFieldAndValue(String fieldName);
 }

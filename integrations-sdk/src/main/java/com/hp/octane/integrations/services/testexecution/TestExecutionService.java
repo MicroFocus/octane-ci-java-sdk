@@ -16,11 +16,14 @@
 package com.hp.octane.integrations.services.testexecution;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.entities.Entity;
+import com.hp.octane.integrations.services.SupportsConsoleLog;
 import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.rest.RestService;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 
 public interface TestExecutionService {
@@ -38,6 +41,7 @@ public interface TestExecutionService {
         return new TestExecutionServiceImpl(configurer, restService, entitiesService);
     }
 
-    void executeSuiteRuns(Long myWorkspaceIdAsLong, List<Long> suiteIds, Long optionalReleaseId, String optionalSuiteRunName) throws IOException;
+    void executeSuiteRuns(Long workspaceId, List<Long> suiteIds, Long optionalReleaseId, String optionalSuiteRunName, SupportsConsoleLog supportsConsoleLog) throws IOException;
 
+    List<TestExecutionContext> prepareTestExecutionForSuites(Long workspaceId, List<Long> suiteIds, final SupportsConsoleLog supportsConsoleLog);
 }

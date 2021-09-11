@@ -199,6 +199,11 @@ final class EntitiesServiceImpl implements EntitiesService {
 
     @Override
     public List<Entity> getEntitiesByIds(Long workspaceId, String collectionName, Collection<?> ids) {
+        return getEntitiesByIds(workspaceId,collectionName,ids,null);
+    }
+
+    @Override
+    public List<Entity> getEntitiesByIds(Long workspaceId, String collectionName, Collection<?> ids, Collection<String> fields) {
         if (ids == null || ids.size() == 0) {
             return new LinkedList<>();
         }
@@ -210,7 +215,7 @@ final class EntitiesServiceImpl implements EntitiesService {
         List<String> conditions = new LinkedList();
         conditions.add(QueryHelper.conditionIn(EntityConstants.Base.ID_FIELD, ids, true));
 
-        String url = buildEntityUrl(workspaceId, collectionName, conditions, null, 0, limit, null);
+        String url = buildEntityUrl(workspaceId, collectionName, conditions, fields, 0, limit, null);
         ResponseEntityList result = getPagedEntities(url);
         return result.getData();
     }

@@ -55,7 +55,7 @@ public enum ExecutionMode implements Serializable {
             }
         }
 
-        throw new IllegalStateException("Framework '" + value + "' is not supported");
+        throw new IllegalStateException("ExecutionMode '" + value + "' is not supported");
     }
 
 }
