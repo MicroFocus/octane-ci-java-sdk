@@ -15,6 +15,7 @@
 
 package com.hp.octane.integrations.services.testexecution;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
@@ -104,7 +105,9 @@ final class TestExecutionServiceImpl implements TestExecutionService {
 
             //test runners
             Map<String, Entity> id2testRunners = getTestRunners(workspaceId, testRunnerId2links.keySet()).stream().collect(Collectors.toMap(Entity::getId, Function.identity()));
-            List<Entity> testRunnersFromAnotherCiServer = id2testRunners.values().stream().filter(e -> !this.configurer.octaneConfiguration.getInstanceId().equals(e.getField(EntityConstants.CIServer.INSTANCE_ID_FIELD))).collect(Collectors.toList());
+
+            List<Entity> testRunnersFromAnotherCiServer = id2testRunners.values().stream().filter(e -> !this.configurer.octaneConfiguration.getInstanceId()
+                    .equals(e.getEntityValue("ci_server").getStringValue(EntityConstants.CIServer.INSTANCE_ID_FIELD))).collect(Collectors.toList());
             if (!testRunnersFromAnotherCiServer.isEmpty()) {
                 //if there are test runners from another ci server, need to remove such tests from execution
                 String runnerNames = testRunnersFromAnotherCiServer.stream().map(Entity::getName).collect(Collectors.joining(","));
@@ -227,8 +230,10 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.TestSuiteLinkToTest.COLLECTION_NAME, conditions, "order,id", fields);
 
         //filter our gherkin/Bdd manual tests
-        List<Entity> filteredEntities = entities.stream().filter(e -> e.containsFieldAndValue(EntityConstants.TestSuiteLinkToTest.RUN_MODE_FIELD)
-                && (!"list_node.run_mode.manually".equals(((Entity) e.getField("run_mode")).getId()))).collect(Collectors.toList());
+        List<Entity> filteredEntities = entities.stream()
+                .filter(e -> e.getField("run_mode") == null ||
+                        (!"list_node.run_mode.manually".equals(((Entity) e.getField("run_mode")).getId())))
+                .collect(Collectors.toList());
         return filteredEntities;
     }
 
@@ -267,6 +272,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         }
 
         final ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return objectMapper.writeValueAsString(collection);
 
     }
