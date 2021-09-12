@@ -1,7 +1,7 @@
 package com.hp.octane.integrations.services.testexecution;
 
 public enum TestExecutionIdentifierType {
-    SUITE("suite"), FAVORITE("favorite"), SUITE_RUN("suite run");
+    SUITE("suite"), SUITE_RUN("suite run");
 
     private String name;
 
@@ -9,7 +9,7 @@ public enum TestExecutionIdentifierType {
         this.name = name;
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 

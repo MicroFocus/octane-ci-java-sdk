@@ -92,14 +92,19 @@ final class TestExecutionServiceImpl implements TestExecutionService {
     @Override
     public List<TestExecutionContext> prepareTestExecutionForSuites(Long workspaceId, List<Long> suiteIds, final SupportsConsoleLog supportsConsoleLog) {
         SupportsConsoleLog mySupportsConsoleLog = getSupportConsoleLogOrCreateEmpty(supportsConsoleLog);
+
         List<TestExecutionContext> output = new ArrayList<>();
         mySupportsConsoleLog.addLogMessage("Executing suite ids " + suiteIds + " in CI Server. Getting data from " + configurer.octaneConfiguration.getLocationForLog() + ":" + workspaceId);
         suiteIds.forEach(suiteId -> {
-            List<Entity> suiteLinks = getSuiteLinks(workspaceId, suiteId);
+            List<Entity> suiteLinks = getSuiteLinks(workspaceId, suiteId, mySupportsConsoleLog);
             List<Entity> suiteLinksWithTestRunner = suiteLinks.stream().filter(e -> e.containsFieldAndValue(EntityConstants.TestSuiteLinkToTest.TEST_RUNNER_FIELD)).collect(Collectors.toList());
             int noRunnerCount = (suiteLinks.size() - suiteLinksWithTestRunner.size());
-            String noRunnerMsg = noRunnerCount > 0 ? "" : String.format(", found %s test(s) without test runner, such tests will be skipped", noRunnerCount);
-            mySupportsConsoleLog.addLogMessage(String.format("Suite %s: found %s test(s) %s", suiteId, suiteLinks.size(), noRunnerMsg));
+            if (noRunnerCount > 0) {
+                String noRunnerMsg = String.format(", Found %s test(s) without test runner, such tests will be skipped", noRunnerCount);
+                mySupportsConsoleLog.addLogMessage(noRunnerMsg);
+            }
+
+            mySupportsConsoleLog.addLogMessage(String.format("Suite %s: found %s test(s)", suiteId, suiteLinks.size()));
             Map<String, List<Entity>> testRunnerId2links = suiteLinksWithTestRunner.stream()
                     .collect(Collectors.groupingBy(e -> ((Entity) e.getField(EntityConstants.TestSuiteLinkToTest.TEST_RUNNER_FIELD)).getId()));
 
@@ -122,7 +127,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
                 try {
                     String testsToRunJson = convertLinksToJson(testRunnerId2links.get(testRunnerId));
                     output.add(new TestExecutionContext(id2testRunners.get(testRunnerId), testsToRunJson,
-                            TestExecutionIdentifierType.SUITE.SUITE, Long.toString(suiteId)));
+                            TestExecutionIdentifierType.SUITE, Long.toString(suiteId)));
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to build testsToRun for test runner " + testRunnerId + " : " + e.getMessage());
                 }
@@ -214,7 +219,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
 
     //*********************************** execute by suite
 
-    private List<Entity> getSuiteLinks(Long workspaceId, Long suiteId) {
+    private List<Entity> getSuiteLinks(Long workspaceId, Long suiteId, SupportsConsoleLog supportsConsoleLog) {
         //http://localhost:8080/dev/api/shared_spaces/1001/workspaces/1002/test_suite_link_to_tests?
         // fields=test_runner,id,order,test_id,execution_parameters,test_runner,taxonomies,run_mode,data_table,test{id,name,subtype,external_test_id,class_name,package,name,subtype,automation_identifier},
         // &order_by=order,id
@@ -222,18 +227,38 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         // &query=%22(test_suite={id=1011};include_in_next_run=true;(test={(!(subtype=%27test_manual%27))}))%22
         List<String> fields = Arrays.asList("test_runner", "id", "order", "test_id", "execution_parameters", "taxonomies",
                 "run_mode", "data_table{relative_path}", "test_runner",
-                "test{id,name,subtype,external_test_id,class_name,package,name,subtype,automation_identifier}");
+                "test{id,name,subtype,external_test_id,class_name,package,name,subtype,automation_identifier,bdd_spec}");
+
         String includeInNextCondition = QueryHelper.condition(EntityConstants.TestSuiteLinkToTest.INCLUDE_IN_NEXT_RUN_FIELD, true);
         String notManualCondition = "(test={(!(subtype='test_manual'))})";
         String suiteIdCondition = QueryHelper.conditionRef(EntityConstants.TestSuiteLinkToTest.TEST_SUITE_FIELD, suiteId);
         List<String> conditions = Arrays.asList(includeInNextCondition, notManualCondition, suiteIdCondition);
+
         List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.TestSuiteLinkToTest.COLLECTION_NAME, conditions, "order,id", fields);
+
+        //add automationIdentifier to get bdd links
+        List<Entity> bddLinks = entities.stream().filter(e -> e.getEntityValue("test").containsFieldAndValue("bdd_spec")).collect(Collectors.toList());
+        if (!bddLinks.isEmpty()) {
+            Set<String> specIds = bddLinks.stream().map(e -> e.getEntityValue("test").getEntityValue("bdd_spec").getId()).collect(Collectors.toSet());
+            List<Entity> bddSpecs = entitiesService.getEntitiesByIds(workspaceId, "bdd_specs", specIds, Collections.singleton("automation_identifier"));
+            Map<String, String> bddId2automationIdentifier = bddSpecs.stream().collect(Collectors.toMap(Entity::getId, e -> e.getStringValue("automation_identifier")));
+            bddLinks.forEach(bddLink -> {
+                String bddSpecId = bddLink.getEntityValue("test").getEntityValue("bdd_spec").getId();
+                String automationIdentifier = bddId2automationIdentifier.get(bddSpecId);
+                bddLink.getEntityValue("test").setField("automation_identifier", automationIdentifier);
+            });
+        }
 
         //filter our gherkin/Bdd manual tests
         List<Entity> filteredEntities = entities.stream()
                 .filter(e -> e.getField("run_mode") == null ||
                         (!"list_node.run_mode.manually".equals(((Entity) e.getField("run_mode")).getId())))
                 .collect(Collectors.toList());
+        int countManual = entities.size() - filteredEntities.size();
+        if (countManual > 0) {
+            supportsConsoleLog.addLogMessage(String.format("Found %s gherkin/bdd tests with manual run mode. Such tests are skipped", countManual));
+        }
+
         return filteredEntities;
     }
 
@@ -249,7 +274,10 @@ final class TestExecutionServiceImpl implements TestExecutionService {
             if (test.containsFieldAndValue("automation_identifier")) {
                 data.addParameters(CucumberJVMConverter.FEATURE_FILE_PATH, test.getStringValue("automation_identifier"));
             }
-            //TODO ADD BDD SUPPORT
+
+            if (test.containsFieldAndValue("external_test_id")) {
+                data.addParameters("external_test_id", test.getStringValue("external_test_id"));
+            }
 
             if (test.containsFieldAndValue("data_table")) {
                 data.addParameters(CucumberJVMConverter.FEATURE_FILE_PATH, link.getEntityValue("data_table").getStringValue("relative_path"));
