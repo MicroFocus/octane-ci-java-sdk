@@ -75,18 +75,18 @@ final class TestExecutionServiceImpl implements TestExecutionService {
     public void executeSuiteRuns(Long workspaceId, List<Long> suiteIds, Long optionalReleaseId, String optionalSuiteRunName, SupportsConsoleLog supportsConsoleLog) throws IOException {
         SupportsConsoleLog mySupportsConsoleLog = getSupportConsoleLogOrCreateEmpty(supportsConsoleLog);
 
-        mySupportsConsoleLog.addLogMessage("Executing suite ids " + suiteIds + " in " + configurer.octaneConfiguration.getLocationForLog() + ":" + workspaceId);
+        mySupportsConsoleLog.println("Executing suite ids " + suiteIds + " in " + configurer.octaneConfiguration.getLocationForLog() + ":" + workspaceId);
         for (Long suiteId : suiteIds) {
             this.validateSuiteRun(workspaceId, suiteId);
         }
 
         Entity release = getReleaseOrThrow(workspaceId, optionalReleaseId);
-        mySupportsConsoleLog.addLogMessage("Using release  - " + release.getId());
+        mySupportsConsoleLog.println("Using release  - " + release.getId());
         List<Entity> suiteRuns = this.planSuiteRuns(workspaceId, suiteIds, release, optionalSuiteRunName);
         for (Entity suiteRun : suiteRuns) {
             this.runSuiteRun(workspaceId, Long.parseLong(suiteRun.getId()));
         }
-        mySupportsConsoleLog.addLogMessage("Suite runs are started");
+        mySupportsConsoleLog.println("Suite runs are started");
     }
 
     @Override
@@ -94,29 +94,29 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         SupportsConsoleLog mySupportsConsoleLog = getSupportConsoleLogOrCreateEmpty(supportsConsoleLog);
 
         List<TestExecutionContext> output = new ArrayList<>();
-        mySupportsConsoleLog.addLogMessage("Executing suite ids " + suiteIds + " in CI Server. Getting data from " + configurer.octaneConfiguration.getLocationForLog() + ":" + workspaceId);
+        mySupportsConsoleLog.println("Fetching test data for suite ids " + suiteIds + " from " + configurer.octaneConfiguration.getLocationForLog() + ":" + workspaceId);
         suiteIds.forEach(suiteId -> {
             List<Entity> suiteLinks = getSuiteLinks(workspaceId, suiteId, mySupportsConsoleLog);
             List<Entity> suiteLinksWithTestRunner = suiteLinks.stream().filter(e -> e.containsFieldAndValue(EntityConstants.TestSuiteLinkToTest.TEST_RUNNER_FIELD)).collect(Collectors.toList());
             int noRunnerCount = (suiteLinks.size() - suiteLinksWithTestRunner.size());
             if (noRunnerCount > 0) {
-                String noRunnerMsg = String.format(", Found %s test(s) without test runner, such tests will be skipped", noRunnerCount);
-                mySupportsConsoleLog.addLogMessage(noRunnerMsg);
+                String noRunnerMsg = String.format("Suite %s: found %s test(s) without test runner, such tests will be skipped", suiteId, noRunnerCount);
+                mySupportsConsoleLog.println(noRunnerMsg);
             }
 
-            mySupportsConsoleLog.addLogMessage(String.format("Suite %s: found %s test(s)", suiteId, suiteLinks.size()));
+            mySupportsConsoleLog.println(String.format("Suite %s: found %s test(s) eligible for execution", suiteId, suiteLinks.size()));
             Map<String, List<Entity>> testRunnerId2links = suiteLinksWithTestRunner.stream()
                     .collect(Collectors.groupingBy(e -> ((Entity) e.getField(EntityConstants.TestSuiteLinkToTest.TEST_RUNNER_FIELD)).getId()));
 
             //test runners
             Map<String, Entity> id2testRunners = getTestRunners(workspaceId, testRunnerId2links.keySet()).stream().collect(Collectors.toMap(Entity::getId, Function.identity()));
-
             List<Entity> testRunnersFromAnotherCiServer = id2testRunners.values().stream().filter(e -> !this.configurer.octaneConfiguration.getInstanceId()
                     .equals(e.getEntityValue("ci_server").getStringValue(EntityConstants.CIServer.INSTANCE_ID_FIELD))).collect(Collectors.toList());
             if (!testRunnersFromAnotherCiServer.isEmpty()) {
                 //if there are test runners from another ci server, need to remove such tests from execution
                 String runnerNames = testRunnersFromAnotherCiServer.stream().map(Entity::getName).collect(Collectors.joining(","));
-                mySupportsConsoleLog.addLogMessage("Found tests with test runner(s) belong to another ci server, such tests will be skipped. Test runners are : " + runnerNames);
+                mySupportsConsoleLog.println(String.format("Suite %s: found tests with test runner(s) belong to another ci server, such tests will be skipped. Test runners are : %s"
+                        , suiteId, runnerNames));
 
                 //remove not relevant test runners
                 testRunnersFromAnotherCiServer.forEach(e -> testRunnerId2links.remove(e.getId()));
@@ -125,8 +125,9 @@ final class TestExecutionServiceImpl implements TestExecutionService {
 
             testRunnerId2links.keySet().forEach(testRunnerId -> {
                 try {
-                    String testsToRunJson = convertLinksToJson(testRunnerId2links.get(testRunnerId));
-                    output.add(new TestExecutionContext(id2testRunners.get(testRunnerId), testsToRunJson,
+                    List<Entity> links = testRunnerId2links.get(testRunnerId);
+                    String testsToRunJson = convertLinksToJson(links);
+                    output.add(new TestExecutionContext(id2testRunners.get(testRunnerId), testsToRunJson, links,
                             TestExecutionIdentifierType.SUITE, Long.toString(suiteId)));
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to build testsToRun for test runner " + testRunnerId + " : " + e.getMessage());
@@ -139,7 +140,22 @@ final class TestExecutionServiceImpl implements TestExecutionService {
 
     private SupportsConsoleLog getSupportConsoleLogOrCreateEmpty(SupportsConsoleLog supportsConsoleLog) {
         if (supportsConsoleLog == null) {
-            return msg -> {
+            return new SupportsConsoleLog() {
+                @Override
+                public void println(String msg) {
+                }
+
+                @Override
+                public void print(String msg) {
+                }
+
+                @Override
+                public void append(String msg) {
+                }
+
+                @Override
+                public void newLine() {
+                }
             };
         }
         return supportsConsoleLog;
@@ -235,7 +251,6 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         List<String> conditions = Arrays.asList(includeInNextCondition, notManualCondition, suiteIdCondition);
 
         List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.TestSuiteLinkToTest.COLLECTION_NAME, conditions, "order,id", fields);
-
         //add automationIdentifier to get bdd links
         List<Entity> bddLinks = entities.stream().filter(e -> e.getEntityValue("test").containsFieldAndValue("bdd_spec")).collect(Collectors.toList());
         if (!bddLinks.isEmpty()) {
@@ -256,7 +271,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
                 .collect(Collectors.toList());
         int countManual = entities.size() - filteredEntities.size();
         if (countManual > 0) {
-            supportsConsoleLog.addLogMessage(String.format("Found %s gherkin/bdd tests with manual run mode. Such tests are skipped", countManual));
+            supportsConsoleLog.println(String.format("Suite %s: found %s gherkin/bdd tests with manual run mode. Such tests are skipped", suiteId, countManual));
         }
 
         return filteredEntities;
@@ -307,7 +322,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
 
     private List<Entity> getTestRunners(Long workspaceId, Collection<String> ids) {
         //http://localhost:8080/dev/api/shared_spaces/1001/workspaces/1002/executors?fields=ci_job,ci_server{instance_id}
-        List<String> fields = Arrays.asList("ci_job", "ci_server{instance_id}");
+        List<String> fields = Arrays.asList("ci_job", "name", "ci_server{instance_id}");
         List<Entity> entities = entitiesService.getEntitiesByIds(workspaceId, EntityConstants.Executors.COLLECTION_NAME, ids, fields);
         return entities;
     }
