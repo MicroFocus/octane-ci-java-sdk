@@ -219,8 +219,8 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         Map<String, String> actionPathToUnitIdMap = new HashMap<>();
         movedTests.forEach(automatedTest -> {
             // match units from octane to automated test by the original repository path prefix
-            String originalActionPathPrefix = UftTestDiscoveryUtils.getActionPathPrefix(automatedTest, true);
-            String newActionPathPrefix = UftTestDiscoveryUtils.getActionPathPrefix(automatedTest, false);
+            String originalActionPathPrefix = UftTestDiscoveryUtils.getTestPathPrefix(automatedTest, true);
+            String newActionPathPrefix = UftTestDiscoveryUtils.getTestPathPrefix(automatedTest, false);
             List<Entity> entities = unitsFromServer.stream()
                     .filter(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).startsWith(originalActionPathPrefix))
                     .collect(Collectors.toList());
