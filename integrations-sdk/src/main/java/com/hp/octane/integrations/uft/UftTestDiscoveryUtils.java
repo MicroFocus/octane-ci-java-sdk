@@ -63,6 +63,8 @@ public class UftTestDiscoveryUtils {
 
     public static final String UFT_PARAM_ARGUMENTS_COLLECTION_NODE_NAME = "ArgumentsCollection";
 
+    public static final String UFT_ACTION_DESCRIPTION_NODE_NAME = "Description";
+
     public static final String UFT_COMPONENT_NODE_NAME = "Component";
 
     public static final String UFT_DEPENDENCY_NODE_NAME = "Dependency";
@@ -144,6 +146,11 @@ public class UftTestDiscoveryUtils {
         return UftTestType.None;
     }
 
+    public static boolean isUftActionFile(String path) {
+        String loweredPath = path.toLowerCase();
+        return loweredPath.endsWith(RESOURCE_MTR_FILE);
+    }
+
     public static boolean isTestMainFilePath(String path) {
         return !getUftTestType(path).isNone();
     }
@@ -189,12 +196,24 @@ public class UftTestDiscoveryUtils {
 
         // discover actions only for mbt testingToolType and gui tests
         if (TestingToolType.MBT.equals(testingToolType) && UftTestType.GUI.equals(testType)) {
-            String actionPathPrefix = (SdkStringUtils.isEmpty(test.getPackage()) ? "" : test.getPackage() + "\\") +
-                    test.getName() + ":";
+            String actionPathPrefix = getActionPathPrefix(test, false);
             test.setActions(parseActionsAndParameters(testDocument, actionPathPrefix, test.getName(), dirPath));
         }
 
         return test;
+    }
+
+    // in case a test was moved and we need the action path prefix before the move then set orgPath to true
+    protected static String getActionPathPrefix(AutomatedTest test, boolean orgPath) {
+        return getTestPathPrefix(test, orgPath) + "\\%s:%s";
+    }
+
+    // constructs a test path that contains only the test package and name
+    protected static String getTestPathPrefix(AutomatedTest test, boolean orgPath) {
+        String testPackage = orgPath ? test.getOldPackage() : test.getPackage();
+        String testName = orgPath ? test.getOldName() : test.getName();
+
+        return (SdkStringUtils.isEmpty(testPackage) ? "" : testPackage + "\\") + testName;
     }
 
     public static String convertToHtmlFormatIfRequired(String description) {
@@ -374,7 +393,8 @@ public class UftTestDiscoveryUtils {
             String actionName = componentNode.getTextContent();
             if (!actionName.equalsIgnoreCase(ACTION_0)) { // filter action0
                 UftTestAction action = new UftTestAction();
-                action.setName(testName + ":" + actionName);
+                action.setName(actionName);
+                action.setTestName(testName);
                 actionMap.put(actionName, action);
             }
         }
@@ -405,9 +425,11 @@ public class UftTestDiscoveryUtils {
         }
     }
 
+    // repository path is of the following format:
+    // <test package>\<test name>\<action name>:<action logical name | action name>
     private static void setActionPath(UftTestAction action, String actionPathPrefix) {
         String actionName = SdkStringUtils.isEmpty(action.getLogicalName()) ? action.getName() : action.getLogicalName();
-        action.setRepositoryPath(actionPathPrefix + actionName);
+        action.setRepositoryPath(String.format(actionPathPrefix, action.getName(), actionName));
     }
 
     private static void readParameters(File testDirPath, Map<String, UftTestAction> actionMap) throws IOException, ParserConfigurationException, SAXException {
@@ -420,7 +442,7 @@ public class UftTestDiscoveryUtils {
             if (actionFolder.exists()) {
                 File resourceMtrFile = new File(actionFolder, RESOURCE_MTR_FILE);
                 if (resourceMtrFile.exists()) {
-                    entry.getValue().setParameters(parseParameterFile(resourceMtrFile, documentBuilder));
+                    parseActionMtrFile(resourceMtrFile, documentBuilder, entry.getValue());
                 }
             } else {
                 entry.getValue().setParameters(Collections.emptyList());
@@ -429,7 +451,7 @@ public class UftTestDiscoveryUtils {
         }
     }
 
-    private static List<UftTestParameter> parseParameterFile(File resourceMtrFile, DocumentBuilder documentBuilder) throws IOException, SAXException {
+    private static void parseActionMtrFile(File resourceMtrFile, DocumentBuilder documentBuilder, UftTestAction action) throws IOException, SAXException {
         List<UftTestParameter> parameters = new ArrayList<>();
         InputStream is = new FileInputStream(resourceMtrFile);
         String xmlContent = extractXmlContentFromTspFile(is);
@@ -451,7 +473,9 @@ public class UftTestDiscoveryUtils {
             }
         }
 
-        return parameters;
+        action.setParameters(parameters);
+        String description = document.getElementsByTagName(UFT_ACTION_DESCRIPTION_NODE_NAME).item(0).getTextContent();
+        action.setDescription(description);
     }
 
 }

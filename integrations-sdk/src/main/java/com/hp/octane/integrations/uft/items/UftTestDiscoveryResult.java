@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This file represents result of UFT discovery (tests and data tables)
@@ -60,24 +61,18 @@ public class UftTestDiscoveryResult implements Serializable {
 
     @JsonIgnore
     private List<AutomatedTest> getTestByOctaneStatus(OctaneStatus status) {
-        List<AutomatedTest> filtered = new ArrayList<>();
-        for (AutomatedTest test : tests) {
-            if (test.getOctaneStatus().equals(status)) {
-                filtered.add(test);
-            }
-        }
-        return Collections.unmodifiableList(filtered);
+        return tests.stream()
+                .filter(automatedTest -> automatedTest.getOctaneStatus().equals(status))
+                .collect(Collectors.collectingAndThen(Collectors.toList(),
+                        Collections::unmodifiableList));
     }
 
     @JsonIgnore
     private List<ScmResourceFile> getResourceFilesByOctaneStatus(OctaneStatus status) {
-        List<ScmResourceFile> filtered = new ArrayList<>();
-        for (ScmResourceFile file : scmResourceFiles) {
-            if (file.getOctaneStatus().equals(status)) {
-                filtered.add(file);
-            }
-        }
-        return Collections.unmodifiableList(filtered);
+        return scmResourceFiles.stream()
+                .filter(scmResourceFile -> scmResourceFile.getOctaneStatus().equals(status))
+                .collect(Collectors.collectingAndThen(Collectors.toList(),
+                        Collections::unmodifiableList));
     }
 
     @JsonIgnore
