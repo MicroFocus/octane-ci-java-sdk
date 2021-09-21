@@ -357,6 +357,9 @@ final class TasksProcessorImpl implements TasksProcessor {
 			try {
 				CIBuildStatusInfo myStatus = configurer.pluginServices.getJobBuildStatus(statusInfo.getJobCiId(), statusInfo.getParamName(), statusInfo.getParamValue());
 				output.add(myStatus);
+			} catch (SPIMethodNotImplementedException notImplemented) {
+				result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
+				return;
 			} catch (Exception e) {
 				statusInfo.setExceptionMessage(e.getMessage());
 				output.add(statusInfo);
