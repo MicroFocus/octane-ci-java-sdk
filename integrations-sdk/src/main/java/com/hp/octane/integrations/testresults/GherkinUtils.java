@@ -23,9 +23,18 @@ import java.util.List;
 
 public class GherkinUtils {
 
-    public static void aggregateGherkinFilesToMqmResultFile(Collection<File> gherkinFiles, File mqmFile, String jobId, String buildId) throws Exception {
+    /***
+     * Aggregate several Gherkin test results files to one
+     * @param gherkinFiles gherkinFiles
+     * @param mqmFile mqmFile
+     * @param jobId jobId
+     * @param buildId buildId
+     * @param optionalDtoFactory Added for bamboo that need to pass its own dto factory, if null - we create default dtoFactory
+     * @throws Exception
+     */
+    public static void aggregateGherkinFilesToMqmResultFile(Collection<File> gherkinFiles, File mqmFile, String jobId, String buildId, DTOFactory optionalDtoFactory) throws Exception {
         List<XmlWritableTestResult> result = parseFiles(gherkinFiles);
-        writeXmlFile(mqmFile, jobId, buildId, result);
+        writeXmlFile(mqmFile, jobId, buildId, result, optionalDtoFactory);
     }
 
     public static List<XmlWritableTestResult> parseFiles(Collection<File> gherkinFiles) throws ParserConfigurationException, SAXException, IOException {
@@ -227,10 +236,13 @@ public class GherkinUtils {
         }
     }
 
-    private static void writeXmlFile(File mqmFile, String planName, String buildNumber, List<XmlWritableTestResult> gherkinXmlWritableTestResults) throws IOException, XMLStreamException {
+    private static void writeXmlFile(File mqmFile, String planName, String buildNumber, List<XmlWritableTestResult> gherkinXmlWritableTestResults, DTOFactory dtoFactory) throws IOException, XMLStreamException {
         FileOutputStream outputStream = new FileOutputStream(mqmFile);
         try {
-            XMLStreamWriter writer = DTOFactory.getInstance().getXMLMapper().getFactory().getXMLOutputFactory().createXMLStreamWriter(outputStream, "UTF-8");
+            if (dtoFactory == null) {
+                dtoFactory = DTOFactory.getInstance();
+            }
+            XMLStreamWriter writer = dtoFactory.getXMLMapper().getFactory().getXMLOutputFactory().createXMLStreamWriter(outputStream, "UTF-8");
             if (!gherkinXmlWritableTestResults.isEmpty()) {
                 writer.writeStartDocument("UTF-8", "1.0");
                 writer.writeStartElement("test_result");
