@@ -34,6 +34,7 @@ import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import org.apache.commons.codec.Charsets;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.http.HttpStatus;
@@ -52,6 +53,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.services.rest.RestService.ACCEPT_HEADER;
@@ -66,10 +68,29 @@ public class MfMBTConverter extends MfUftConverter {
     public static final String MBT_DATA = "mbtData";
     public static final String MBT_PARENT_SUB_DIR = "___mbt";
     public static final String MBT_DATA_NOT_INCLUDED = "mbtDataNotIncluded";
-
+    public static final Pattern specialCharsPattern = Pattern.compile("[\\/:*?\"<>|%;]");
+    public static final String BASE64_PREFIX = "BASE64_";
     List<MbtTest> mbtTests;
 
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
+
+    public static String encodeTestNameIfRequired(String name) {
+        if (name.startsWith(" ") || name.endsWith(" ") || specialCharsPattern.matcher(name).find()) {
+            return BASE64_PREFIX + Base64.getUrlEncoder().encodeToString(name.getBytes(Charsets.UTF_8));
+        } else {
+            return name;
+        }
+    }
+
+    public static String decodeTestNameIfRequired(String name) {
+        if (name.startsWith(BASE64_PREFIX)) {
+            byte[] decodedBytes = Base64.getUrlDecoder().decode(name.substring(BASE64_PREFIX.length()));
+            String decodedString = new String(decodedBytes, Charsets.UTF_8);
+            return decodedString;
+        } else {
+            return name;
+        }
+    }
 
     @Override
     public String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
@@ -88,6 +109,10 @@ public class MfMBTConverter extends MfUftConverter {
     }
 
     private void handleMBTModel(List<TestToRunData> tests, String checkoutFolder, Map<String, String> globalParameters) {
+        //replace test name if required
+        for (TestToRunData data : tests) {
+            data.setTestName(encodeTestNameIfRequired(data.getTestName()));
+        }
 
         mbtTests = new ArrayList<>();
         //StringBuilder str = new StringBuilder();

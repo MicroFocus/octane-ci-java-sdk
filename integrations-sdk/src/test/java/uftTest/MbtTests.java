@@ -4,7 +4,6 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.MbtActionParameter;
 import com.hp.octane.integrations.dto.general.MbtData;
 import com.hp.octane.integrations.executor.converters.MfMBTConverter;
-import com.hp.octane.integrations.executor.converters.MfUftConverter;
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultData;
 import org.junit.Assert;
@@ -36,7 +35,7 @@ public class MbtTests {
     @Test
     public void testComputeResourcePath() {
         String osName = System.getProperty("os.name");
-        if(osName.toLowerCase(Locale.ROOT).contains("windows")){
+        if (osName.toLowerCase(Locale.ROOT).contains("windows")) {
             String path = MfMBTConverter.computeResourcePath("..\\ss", "c:\\aa\\bb");
             Assert.assertEquals("c:\\aa\\ss", path.toLowerCase(Locale.ROOT));
         }
@@ -49,7 +48,7 @@ public class MbtTests {
         Assert.assertEquals(1, resultData.size());
         UftResultData data1 = resultData.get(0);
         String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's physical description:<br>wpftypename = window<br>regexpwndtitle = Micro Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample Application<br> (Warning). ";
-        validateAction(23, "Warning", errorMessage,"Action1 [Two test_same function 2]", data1);
+        validateAction(23, "Warning", errorMessage, "Action1 [Two test_same function 2]", data1);
     }
 
     @Test
@@ -75,7 +74,7 @@ public class MbtTests {
         Assert.assertEquals(2, resultData.size());
 
         validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData.get(0));
-        validateAction(9 , "Done", "", "Action1 [FUNCTION-TEST1]", resultData.get(1));
+        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData.get(1));
     }
 
     private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultData data) {
@@ -86,4 +85,33 @@ public class MbtTests {
         Assert.assertEquals(4, data.getParents().size());
         Assert.assertEquals(lastParent, data.getParents().get(3));
     }
+
+    @Test
+    public void testNameEncodingWithoutIllegalChars() {
+        String name = "my name";
+        String encoded = MfMBTConverter.encodeTestNameIfRequired(name);
+        String decoded = MfMBTConverter.decodeTestNameIfRequired(encoded);
+        Assert.assertEquals(name, decoded);
+        Assert.assertEquals(name, encoded);
+    }
+
+    @Test
+    public void testNameEncodingWithIllegalChars() {
+        String name = "my name^*";
+        String encoded = MfMBTConverter.encodeTestNameIfRequired(name);
+        String decoded = MfMBTConverter.decodeTestNameIfRequired(encoded);
+        Assert.assertEquals(name, decoded);
+        Assert.assertNotEquals(name, encoded);
+    }
+
+    @Test
+    public void testNameEncodingWithEndingSpace() {
+        String name = "my name ";
+        String encoded = MfMBTConverter.encodeTestNameIfRequired(name);
+        String decoded = MfMBTConverter.decodeTestNameIfRequired(encoded);
+        Assert.assertEquals(name, decoded);
+        Assert.assertNotEquals(name, encoded);
+    }
+
+
 }
