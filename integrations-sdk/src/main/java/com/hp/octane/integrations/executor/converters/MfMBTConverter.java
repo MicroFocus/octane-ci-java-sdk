@@ -161,6 +161,9 @@ public class MfMBTConverter extends MfUftConverter {
             try {
                 for (int i = 0; i < mbtData.getActions().size(); i++) {
                     MbtAction mbtAction = mbtData.getActions().get(i);
+                    String sanitizedTestPath = sanitizeTestPath(mbtAction.getTestPath()); // remove the action from the test path is exists
+                    mbtAction.setTestPath(sanitizedTestPath);
+
                     if (!new File(mbtAction.getTestPath()).exists()) {
                         throw new IllegalArgumentException(String.format("Test path %s is not found. UnitId = %s.", mbtAction.getTestPath(), mbtAction.getUnitId()));
                     }
@@ -225,6 +228,23 @@ public class MfMBTConverter extends MfUftConverter {
                     Collections.emptyList(), Collections.emptyList());
             mbtTests.add(test);
         }
+    }
+
+    // remove action# from repository path for execution, if exists
+    private String sanitizeTestPath(String testPath) {
+        if(SdkStringUtils.isEmpty(testPath)) {
+            return testPath;
+        }
+
+        int lastIndex = testPath.lastIndexOf("\\");
+        if (lastIndex > -1) {
+            String lastPart = testPath.substring(lastIndex);
+            if(lastPart.toLowerCase().contains("action")) {
+                return testPath.substring(0, lastIndex);
+            }
+        }
+
+        return testPath;
     }
 
     private void handleMbtDataRetrieval(List<TestToRunData> tests, Map<String, String> globalParameters) {
