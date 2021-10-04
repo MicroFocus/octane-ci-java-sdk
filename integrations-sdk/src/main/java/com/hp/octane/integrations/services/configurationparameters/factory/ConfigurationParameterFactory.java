@@ -29,6 +29,8 @@ public class ConfigurationParameterFactory {
 				return JobListCacheAllowedParameter.create(paramValue);
 			case OctaneRootsCacheAllowedParameter.KEY:
 				return OctaneRootsCacheAllowedParameter.create(paramValue);
+			case AddGlobalParameterToTestsParameter.KEY:
+				return AddGlobalParameterToTestsParameter.create(paramValue);
 			default:
 				throw new NoSuchElementException("Unknown parameter : " + paramKey);
 		}
@@ -98,6 +100,15 @@ public class ConfigurationParameterFactory {
 		}
 		return OctaneRootsCacheAllowedParameter.DEFAULT;
 	}
+
+	public static boolean addGlobalParametersToTests(OctaneConfiguration configuration) {
+		AddGlobalParameterToTestsParameter param = (AddGlobalParameterToTestsParameter) configuration.getParameter(AddGlobalParameterToTestsParameter.KEY);
+		if (param != null) {
+			return param.isToAdd();
+		}
+		return AddGlobalParameterToTestsParameter.DEFAULT;
+	}
+
 
 	public static Boolean validateBooleanValue(String rawValue, String key){
 		if (rawValue == null) {

@@ -16,8 +16,11 @@
 
 package com.hp.octane.integrations.executor.converters;
 
+import com.hp.octane.integrations.OctaneClient;
+import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -59,9 +62,9 @@ public class MfUftConverter extends TestsToRunConverter {
 
     public String convertToMtbxContent(List<TestToRunData> tests, String workingDir, Map<String, String> globalParameters) {
 
-        boolean addGlobalParameters = globalParameters != null &&
-                globalParameters.containsKey(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM) &&
-                "true".equalsIgnoreCase(globalParameters.getOrDefault(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM, "false"));
+
+        boolean addGlobalParameters = isAddGlobalParameters(globalParameters);
+
         /*<Mtbx>
             <Test name="test1" path=workingDir + "\APITest1">
             <Parameter type="string" name="myName" value="myValue"/> //type is optional, possible values = float,string,any,boolean,bool,int,integer,number,password,datetime,date,long,double,decimal
@@ -75,86 +78,106 @@ public class MfUftConverter extends TestsToRunConverter {
 			</Test>
 		</Mtbx>*/
 
-        try {
-            DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-            Document doc = docBuilder.newDocument();
-            Element rootElement = doc.createElement("Mtbx");
-            doc.appendChild(rootElement);
+            try {
+                DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
+                Document doc = docBuilder.newDocument();
+                Element rootElement = doc.createElement("Mtbx");
+                doc.appendChild(rootElement);
 
-            for (TestToRunData test : tests) {
-                Element testElement = doc.createElement("Test");
-                String packageAndTestName = (SdkStringUtils.isNotEmpty(test.getPackageName())
-                        ? test.getPackageName() + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER
-                        : "")
-                        + test.getTestName();
-                testElement.setAttribute("name", packageAndTestName);
-                String path = workingDir + (SdkStringUtils.isEmpty(test.getPackageName())
-                        ? ""
-                        : SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getPackageName())
-                        + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getTestName();
-                testElement.setAttribute("path", path);
+                for (TestToRunData test : tests) {
+                    Element testElement = doc.createElement("Test");
+                    String packageAndTestName = (SdkStringUtils.isNotEmpty(test.getPackageName())
+                            ? test.getPackageName() + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER
+                            : "")
+                            + test.getTestName();
+                    testElement.setAttribute("name", packageAndTestName);
+                    String path = workingDir + (SdkStringUtils.isEmpty(test.getPackageName())
+                            ? ""
+                            : SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getPackageName())
+                            + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + test.getTestName();
+                    testElement.setAttribute("path", path);
 
-                //add parameters
-                test.getParameters().forEach((paramKey, paramValue) -> {
-                    if (DATA_TABLE_PARAMETER.equals(paramKey) || ITERATIONS_PARAMETER.equals(paramKey) || MBT_DATA.equals(paramKey)) {
-                        //skip, will be handled later
-                    } else {
-                        if (INNER_RUN_ID_PARAMETER.equals(paramKey)) {
-                            if (!addGlobalParameters) {
-                                return;
+                    //add parameters
+                    test.getParameters().forEach((paramKey, paramValue) -> {
+                        if (DATA_TABLE_PARAMETER.equals(paramKey) || ITERATIONS_PARAMETER.equals(paramKey) || MBT_DATA.equals(paramKey)) {
+                            //skip, will be handled later
+                        } else {
+                            if (INNER_RUN_ID_PARAMETER.equals(paramKey)) {
+                                if (!addGlobalParameters) {
+                                    return;
+                                }
                             }
+
+                            addParameterToTestElement(doc, testElement, paramKey, paramValue);
                         }
-
-                        addParameterToTestElement(doc, testElement, paramKey, paramValue);
+                    });
+                    if (addGlobalParameters) {
+                        globalParameters.entrySet().stream().filter(p -> !p.getKey().equals(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM))
+                                .forEach(entry -> addParameterToTestElement(doc, testElement, entry.getKey(), entry.getValue()));
                     }
-                });
-                if (addGlobalParameters) {
-                    globalParameters.entrySet().stream().filter(p -> !p.getKey().equals(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM))
-                            .forEach(entry -> addParameterToTestElement(doc, testElement, entry.getKey(), entry.getValue()));
-                }
 
-                //add data table
-                String dataTable = test.getParameter(DATA_TABLE_PARAMETER);
-                if (SdkStringUtils.isNotEmpty(dataTable)) {
-                    Element dataTableElement = doc.createElement("DataTable");
-                    dataTableElement.setAttribute("path", workingDir + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + dataTable);
-                    testElement.appendChild(dataTableElement);
-                }
-
-                //add iterations
-                String iterations = test.getParameter(ITERATIONS_PARAMETER);
-                if (SdkStringUtils.isNotEmpty(iterations)) {
-                    String[] parts = iterations.split(",");
-                    Element iterationElement = doc.createElement("Iterations");
-                    iterationElement.setAttribute("mode", parts[0].trim());
-
-                    if (parts.length >= 3) {
-                        iterationElement.setAttribute("start", parts[1].trim());
-                        iterationElement.setAttribute("end", parts[2].trim());
+                    //add data table
+                    String dataTable = test.getParameter(DATA_TABLE_PARAMETER);
+                    if (SdkStringUtils.isNotEmpty(dataTable)) {
+                        Element dataTableElement = doc.createElement("DataTable");
+                        dataTableElement.setAttribute("path", workingDir + SdkConstants.FileSystem.WINDOWS_PATH_SPLITTER + dataTable);
+                        testElement.appendChild(dataTableElement);
                     }
-                    testElement.appendChild(iterationElement);
+
+                    //add iterations
+                    String iterations = test.getParameter(ITERATIONS_PARAMETER);
+                    if (SdkStringUtils.isNotEmpty(iterations)) {
+                        String[] parts = iterations.split(",");
+                        Element iterationElement = doc.createElement("Iterations");
+                        iterationElement.setAttribute("mode", parts[0].trim());
+
+                        if (parts.length >= 3) {
+                            iterationElement.setAttribute("start", parts[1].trim());
+                            iterationElement.setAttribute("end", parts[2].trim());
+                        }
+                        testElement.appendChild(iterationElement);
+                    }
+
+
+                    rootElement.appendChild(testElement);
                 }
 
+                TransformerFactory tf = TransformerFactory.newInstance();
+                Transformer transformer = tf.newTransformer();
+                transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
-                rootElement.appendChild(testElement);
+                StringWriter writer = new StringWriter();
+                transformer.transform(new DOMSource(doc), new StreamResult(writer));
+
+                return writer.toString();
+            } catch (ParserConfigurationException | TransformerException e) {
+                String msg = "Failed to build MTBX content : " + e.getMessage();
+                logger.error(msg);
+                throw new RuntimeException(msg);
             }
+    }
 
-            TransformerFactory tf = TransformerFactory.newInstance();
-            Transformer transformer = tf.newTransformer();
-            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+    private boolean isAddGlobalParameters(Map<String, String> globalParameters) {
+        boolean addGlobalParameters = false;
+        if (globalParameters != null) {
+            //check job level params
+            addGlobalParameters = globalParameters.containsKey(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM) &&
+                    "true".equalsIgnoreCase(globalParameters.getOrDefault(SdkConstants.JobParameters.ADD_GLOBAL_PARAMETERS_TO_TESTS_PARAM, "false"));
 
-            StringWriter writer = new StringWriter();
-            transformer.transform(new DOMSource(doc), new StreamResult(writer));
-
-            return writer.toString();
-        } catch (ParserConfigurationException | TransformerException e) {
-            String msg = "Failed to build MTBX content : " + e.getMessage();
-            logger.error(msg);
-            throw new RuntimeException(msg);
+            //check global param
+            if (!addGlobalParameters && globalParameters.containsKey(SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME)) {
+                try {
+                    OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(globalParameters.get(SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME));
+                    addGlobalParameters = ConfigurationParameterFactory.addGlobalParametersToTests(octaneClient.getConfigurationService().getConfiguration());
+                } catch (Exception e) {
+                    logger.info("Failed to get octane client by id " + globalParameters.get(SdkConstants.JobParameters.OCTANE_CONFIG_ID_PARAMETER_NAME));
+                }
+            }
         }
+        return addGlobalParameters;
     }
 
     private void addParameterToTestElement(Document doc, Element testElement, String paramKey, String paramValue) {

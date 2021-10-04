@@ -338,6 +338,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 				.setValue(configurer.octaneConfiguration.getInstanceId());
 		ciParameters.getParameters().add(ciParameter);
 
+		CIParameter octaneUrlParameter = dtoFactory.newDTO(CIParameter.class);
+		octaneUrlParameter.setName(SdkConstants.JobParameters.OCTANE_URL_PARAMETER_NAME)
+				.setValue(configurer.octaneConfiguration.getUrl());
+		ciParameters.getParameters().add(octaneUrlParameter);
+
 		configurer.pluginServices.runPipeline(jobId, ciParameters);
 		result.setStatus(HttpStatus.SC_CREATED);
 	}
