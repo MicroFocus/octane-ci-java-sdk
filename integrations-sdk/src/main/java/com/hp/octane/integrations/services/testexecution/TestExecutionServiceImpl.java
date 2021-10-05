@@ -181,7 +181,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         List<Long> missingSuiteIds = suiteIds.stream().filter(suiteId -> !map.containsKey(suiteId)).collect(Collectors.toList());
         if (!missingSuiteIds.isEmpty()) {
             String idsAsString = missingSuiteIds.stream().map(Object::toString).collect(Collectors.joining(", "));
-            throw new IllegalArgumentException("Following suite ids are missing ALM Octane : " + idsAsString);
+            throw new IllegalArgumentException("Following suite ids are missing in ALM Octane : " + idsAsString);
         }
         return map;
     }
