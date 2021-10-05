@@ -75,7 +75,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
     public void executeSuiteRuns(Long workspaceId, List<Long> suiteIds, Long optionalReleaseId, String optionalSuiteRunName, SupportsConsoleLog supportsConsoleLog) throws IOException {
         SupportsConsoleLog mySupportsConsoleLog = getSupportConsoleLogOrCreateEmpty(supportsConsoleLog);
 
-        mySupportsConsoleLog.println("Executing suite ids " + suiteIds + " in " + configurer.octaneConfiguration.getLocationForLog() + ":" + workspaceId);
+        mySupportsConsoleLog.println("Executing suite ids " + suiteIds + " in " + configurer.octaneConfiguration.getLocationForLog() + ": " + workspaceId);
         for (Long suiteId : suiteIds) {
             this.validateSuiteRun(workspaceId, suiteId);
         }
@@ -84,9 +84,13 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         mySupportsConsoleLog.println("Using release  - " + release.getId());
         List<Entity> suiteRuns = this.planSuiteRuns(workspaceId, suiteIds, release, optionalSuiteRunName);
         for (Entity suiteRun : suiteRuns) {
+            String suiteId = suiteRun.getEntityValue(EntityConstants.Run.TEST_FIELD).getId();
+            String url = this.configurer.octaneConfiguration.getUrl() + String.format("/ui/?p=%s/%s#/entity-navigation?entityType=run&id=%s",
+                    this.configurer.octaneConfiguration.getSharedSpace(), workspaceId, suiteRun.getId());
+            mySupportsConsoleLog.println(String.format("Suite %s - suite run id is %s , %s", suiteId, suiteRun.getId(), url));
             this.runSuiteRun(workspaceId, Long.parseLong(suiteRun.getId()));
         }
-        mySupportsConsoleLog.println("Suite runs are started");
+        mySupportsConsoleLog.println("Suite runs are started ");
     }
 
     @Override
@@ -207,7 +211,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
             return suiteRun;
         }).collect(Collectors.toList());
 
-        List<Entity> entities = entitiesService.postEntities(workspaceId, EntityConstants.Run.COLLECTION_NAME, suiteRuns);
+        List<Entity> entities = entitiesService.postEntities(workspaceId, EntityConstants.Run.COLLECTION_NAME, suiteRuns, Arrays.asList(EntityConstants.Run.TEST_FIELD));
         return entities;
     }
 
