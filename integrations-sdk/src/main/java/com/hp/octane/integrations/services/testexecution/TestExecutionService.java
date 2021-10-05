@@ -44,4 +44,6 @@ public interface TestExecutionService {
     void executeSuiteRuns(Long workspaceId, List<Long> suiteIds, Long optionalReleaseId, String optionalSuiteRunName, SupportsConsoleLog supportsConsoleLog) throws IOException;
 
     List<TestExecutionContext> prepareTestExecutionForSuites(Long workspaceId, List<Long> suiteIds, final SupportsConsoleLog supportsConsoleLog);
+
+    Map<Long, String> validateAllSuiteIdsExistAndReturnSuiteNames(Long workspaceId, List<Long> suiteIds);
 }

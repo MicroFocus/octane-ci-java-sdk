@@ -18,6 +18,11 @@ public class EntityConstants {
         public static final String ENTITY_NAME = "test";
 
     }
+
+    public static class Test_Suite extends Base {
+        public static final String COLLECTION_NAME = "test_suites";
+    }
+
     public static class AutomatedTest extends Base {
         public static final String COLLECTION_NAME = "automated_tests";
         public static final String ENTITY_NAME = "automated_test";

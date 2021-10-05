@@ -175,9 +175,15 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         return release;
     }
 
-    private Map<Long, String> getSuiteNames(Long workspaceId, List<Long> suiteIds) {
-        List<Entity> entities = entitiesService.getEntitiesByIds(workspaceId, EntityConstants.Test.COLLECTION_NAME, suiteIds, Collections.singletonList("name"));
-        return entities.stream().collect(Collectors.toMap(e -> Long.parseLong(e.getId()), Entity::getName));
+    public Map<Long, String> validateAllSuiteIdsExistAndReturnSuiteNames(Long workspaceId, List<Long> suiteIds) {
+        List<Entity> entities = entitiesService.getEntitiesByIds(workspaceId, EntityConstants.Test_Suite.COLLECTION_NAME, suiteIds, Collections.singletonList("name"));
+        Map<Long, String> map = entities.stream().collect(Collectors.toMap(e -> Long.parseLong(e.getId()), Entity::getName));
+        List<Long> missingSuiteIds = suiteIds.stream().filter(suiteId -> !map.containsKey(suiteId)).collect(Collectors.toList());
+        if (!missingSuiteIds.isEmpty()) {
+            String idsAsString = missingSuiteIds.stream().map(Object::toString).collect(Collectors.joining(", "));
+            throw new IllegalArgumentException("Following suite ids are missing ALM Octane : " + idsAsString);
+        }
+        return map;
     }
 
     private Optional<Entity> getDefaultRelease(Long workspaceId) {
@@ -187,7 +193,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
     }
 
     private List<Entity> planSuiteRuns(Long workspaceId, List<Long> suiteIds, Entity release, String suiteRunName) {
-        Map<Long, String> suiteNames = SdkStringUtils.isNotEmpty(suiteRunName) ? Collections.emptyMap() : this.getSuiteNames(workspaceId, suiteIds);
+        Map<Long, String> suiteNames = SdkStringUtils.isNotEmpty(suiteRunName) ? Collections.emptyMap() : this.validateAllSuiteIdsExistAndReturnSuiteNames(workspaceId, suiteIds);
         Entity status = dtoFactory.newDTO(Entity.class).setType(EntityConstants.Lists.ENTITY_NAME).setId("list_node.run_native_status.not_completed");
 
         List<Entity> suiteRuns = suiteIds.stream().map(suiteId -> {
