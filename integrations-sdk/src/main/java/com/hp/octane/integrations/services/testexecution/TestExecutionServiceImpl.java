@@ -75,7 +75,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
     public void executeSuiteRuns(Long workspaceId, List<Long> suiteIds, Long optionalReleaseId, String optionalSuiteRunName, SupportsConsoleLog supportsConsoleLog) throws IOException {
         SupportsConsoleLog mySupportsConsoleLog = getSupportConsoleLogOrCreateEmpty(supportsConsoleLog);
 
-        mySupportsConsoleLog.println("Executing suite ids " + suiteIds + " in " + configurer.octaneConfiguration.getLocationForLog() + ": " + workspaceId);
+        mySupportsConsoleLog.println("Executing suite ids " + suiteIds + " in " + configurer.octaneConfiguration.getLocationForLog() + ", workspace " + workspaceId);
         for (Long suiteId : suiteIds) {
             this.validateSuiteRun(workspaceId, suiteId);
         }
