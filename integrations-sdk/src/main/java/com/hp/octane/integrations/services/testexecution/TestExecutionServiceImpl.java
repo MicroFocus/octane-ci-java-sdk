@@ -108,7 +108,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
                 mySupportsConsoleLog.println(noRunnerMsg);
             }
 
-            mySupportsConsoleLog.println(String.format("Suite %s: found %s test(s) eligible for execution", suiteId, suiteLinks.size()));
+            mySupportsConsoleLog.println(String.format("suite %s: found %s test(s) eligible for execution", suiteId, suiteLinks.size()));
             Map<String, List<Entity>> testRunnerId2links = suiteLinksWithTestRunner.stream()
                     .collect(Collectors.groupingBy(e -> ((Entity) e.getField(EntityConstants.TestSuiteLinkToTest.TEST_RUNNER_FIELD)).getId()));
 
