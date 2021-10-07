@@ -36,4 +36,8 @@ public interface CIBuildStatusInfo extends DTOBase, Serializable {
     String getExceptionMessage();
 
     CIBuildStatusInfo setExceptionMessage(String exceptionMessage);
+
+    CIBuildStatusInfo setExceptionCode(Integer message);
+
+    Integer getExceptionCode();
 }

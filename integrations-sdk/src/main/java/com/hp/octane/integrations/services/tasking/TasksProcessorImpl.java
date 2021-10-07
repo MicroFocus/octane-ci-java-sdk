@@ -365,8 +365,13 @@ final class TasksProcessorImpl implements TasksProcessor {
 			} catch (SPIMethodNotImplementedException notImplemented) {
 				result.setStatus(HttpStatus.SC_NOT_IMPLEMENTED);
 				return;
+			} catch (ErrorCodeBasedException ex) {
+				statusInfo.setExceptionMessage(ex.getMessage());
+				statusInfo.setExceptionCode(ex.getErrorCode());
+				output.add(statusInfo);
 			} catch (Exception e) {
 				statusInfo.setExceptionMessage(e.getMessage());
+				statusInfo.setExceptionCode(HttpStatus.SC_INTERNAL_SERVER_ERROR);
 				output.add(statusInfo);
 			}
 		}

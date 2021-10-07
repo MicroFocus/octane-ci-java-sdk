@@ -33,6 +33,7 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     private String paramName;
     private String paramValue;
     private String exceptionMessage;
+    private Integer exceptionCode;
     private CIBuildResult buildResult = CIBuildResult.UNAVAILABLE;
 
 
@@ -111,5 +112,16 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     public CIBuildStatusInfo setExceptionMessage(String exceptionMessage) {
         this.exceptionMessage = exceptionMessage;
         return this;
+    }
+
+    @Override
+    public CIBuildStatusInfo setExceptionCode(Integer exceptionCode) {
+        this.exceptionCode = exceptionCode;
+        return this;
+    }
+
+    @Override
+    public Integer getExceptionCode() {
+        return exceptionCode;
     }
 }
