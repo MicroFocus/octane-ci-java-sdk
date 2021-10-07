@@ -33,6 +33,7 @@ import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
+import com.hp.octane.integrations.uft.items.UftTestType;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.csv.CSVFormat;
@@ -164,8 +165,14 @@ public class MfMBTConverter extends MfUftConverter {
                     String sanitizedTestPath = sanitizeTestPath(mbtAction.getTestPath()); // remove the action from the test path is exists
                     mbtAction.setTestPath(sanitizedTestPath);
 
-                    if (!new File(mbtAction.getTestPath()).exists()) {
+                    //validate test folder exist
+                    File testFolderFile = new File(mbtAction.getTestPath());
+                    if (!testFolderFile.exists()) {
                         throw new IllegalArgumentException(String.format("Test path %s is not found. UnitId = %s.", mbtAction.getTestPath(), mbtAction.getUnitId()));
+                    }
+                    //validate that uft test folder is valid
+                    if (UftTestDiscoveryUtils.isUftTestFolder(testFolderFile.listFiles()).isNone()) {
+                        throw new IllegalArgumentException(String.format("Invalid test path %s. UnitId = %s.", mbtAction.getTestPath(), mbtAction.getUnitId()));
                     }
 
                     String actionParameters = extractActionParameterNames(mbtAction);

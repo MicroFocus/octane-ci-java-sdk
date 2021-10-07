@@ -134,6 +134,9 @@ public class UftTestDiscoveryUtils {
     }
 
     public static UftTestType isUftTestFolder(File[] paths) {
+        if (paths == null) {
+            return UftTestType.None;
+        }
         for (File path : paths) {
             if (path.getName().endsWith(STFileExtention)) {
                 return UftTestType.API;
