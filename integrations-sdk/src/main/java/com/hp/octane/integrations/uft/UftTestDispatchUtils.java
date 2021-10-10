@@ -21,11 +21,15 @@ import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.uft.items.CustomLogger;
 import com.hp.octane.integrations.uft.items.JobRunContext;
 import com.hp.octane.integrations.uft.items.UftTestDiscoveryResult;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class UftTestDispatchUtils {
+
+    private static final Logger logger = LogManager.getLogger(UftTestDispatchUtils.class);
 
     private static Map<TestingToolType, DiscoveryResultPreparer> preparersMap = new HashMap<>();
 
@@ -39,6 +43,7 @@ public class UftTestDispatchUtils {
     }
 
     public static void prepareDiscoveryResultForDispatch(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+        logger.info("Prepare discovery results before dispatching for: {}, full sync: {} ", discoveryResult.getTestingToolType(), discoveryResult.isFullScan());
         if (discoveryResult.isFullScan()) {
             getDiscoveryResultPreparer(discoveryResult.getTestingToolType()).prepareDiscoveryResultForDispatchInFullSyncMode(entitiesService, discoveryResult);
         } else {

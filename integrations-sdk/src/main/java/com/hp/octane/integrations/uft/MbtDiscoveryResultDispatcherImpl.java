@@ -72,6 +72,8 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
     private boolean postUnits(EntitiesService entitiesService, List<UftTestAction> actions, long workspaceId) {
         if (!actions.isEmpty()) {
+            logger.debug("dispatching {} new units", actions.size());
+
             Entity parentFolder = retrieveParentFolder(entitiesService, workspaceId);
 
             List<Entity> parameterToAdd = new ArrayList<>(); // add external parameter entities list to be filled by each action creation
@@ -80,14 +82,19 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
             Map<String, Entity> unitEntities = entitiesService.postEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToAdd, Arrays.asList(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)).stream()
                     .collect(Collectors.toMap(entity -> entity.getField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toString(), Function.identity()));
 
+            logger.debug("actual new units {} added", unitEntities.size());
+
             // replace parent unit entities for parameters in order to save their relations
+            logger.debug("dispatching {} new unit parameters", parameterToAdd.size());
             parameterToAdd.forEach(parameter -> {
                 Entity parentUnit = (Entity) parameter.getField(EntityConstants.MbtUnitParameter.MODEL_ITEM);
                 Entity newParentUnit = unitEntities.get(parentUnit.getField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toString());
                 parameter.setField(EntityConstants.MbtUnitParameter.MODEL_ITEM, createModelItemEntity(newParentUnit));
             });
             // add parameters
-            entitiesService.postEntities(workspaceId, EntityConstants.MbtUnitParameter.COLLECTION_NAME, parameterToAdd);
+            List<Entity> unitParameterEntities = entitiesService.postEntities(workspaceId, EntityConstants.MbtUnitParameter.COLLECTION_NAME, parameterToAdd);
+            logger.debug("actual new unit parameters {} added", unitParameterEntities.size());
+
         }
         return true;
     }
@@ -95,6 +102,7 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
     // we do not delete units. instead, we reset some of their attributes
     private boolean deleteUnits(EntitiesService entitiesService, List<UftTestAction> actions, long workspaceId) {
         if (!actions.isEmpty()) {
+            logger.debug("dispatching {} deleted units", actions.size());
             // convert actions to dtos
             List<Entity> unitsToUpdate = actions.stream().map(action -> dtoFactory.newDTO(Entity.class)
                     .setId(action.getId())
@@ -105,13 +113,15 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                     .collect(Collectors.toList());
 
             // update units
-            entitiesService.updateEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToUpdate);
+            List<Entity> deletedUnitEntities = entitiesService.updateEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToUpdate);
+            logger.debug("actual deleted units {} updated", deletedUnitEntities.size());
         }
         return true;
     }
 
     private boolean updateUnits(EntitiesService entitiesService, List<UftTestAction> actions, long workspaceId) {
         if (!actions.isEmpty()) {
+            logger.debug("dispatching {} updated units", actions.size());
             // convert actions to dtos
             List<Entity> unitsToUpdate = actions.stream().map(action -> {
                 String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getTestName() + ":" + action.getName() : action.getLogicalName();
@@ -124,7 +134,8 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                     .collect(Collectors.toList());
 
             // update units
-            entitiesService.updateEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToUpdate);
+            List<Entity> updatedUnitEntities = entitiesService.updateEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToUpdate);
+            logger.debug("actual updated units {}", updatedUnitEntities.size());
         }
         return true;
     }

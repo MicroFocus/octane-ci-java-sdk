@@ -84,6 +84,8 @@ public class UftTestDiscoveryUtils {
     }
 
     public static UftTestDiscoveryResult doFullDiscovery(File root, TestingToolType testingToolType) {
+        logger.info("Full sync requested for: {}, path: {}, ", testingToolType, root.getAbsolutePath());
+
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();
         scanFileSystemRecursively(root, root, result, testingToolType);
         result.setFullScan(true);
@@ -181,6 +183,8 @@ public class UftTestDiscoveryUtils {
     }
 
     public static AutomatedTest createAutomatedTest(File root, File dirPath, UftTestType testType, TestingToolType testingToolType) {
+        logger.debug("Process test, path: {}, test type: {}", dirPath.getPath(), testType);
+
         AutomatedTest test = new AutomatedTest();
         test.setName(dirPath.getName());
 
