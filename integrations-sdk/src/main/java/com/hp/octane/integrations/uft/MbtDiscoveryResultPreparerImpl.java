@@ -25,11 +25,13 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
 
     @Override
     public void prepareDiscoveryResultForDispatchInFullSyncMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
-        // currently supports only full sync. so, either a unit exists or not, without modifications
         String condition = QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
         List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
 
-        Map<String, Entity> octaneUnitsMap = unitsFromServer.stream().collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(), action -> action));
+        Map<String, Entity> octaneUnitsMap = unitsFromServer.stream()
+                .collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(),
+                        action -> action,
+                        (action1, action2) -> action1)); // remove duplicates TODO (Itay)- remove when repository path uniqueness validation will be added in octane
 
         removeExistingUnits(discoveryResult, octaneUnitsMap);
     }
@@ -158,7 +160,10 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         String condition = QueryHelper.conditionIn(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, newActionsRepositoryPaths, false);
         List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
 
-        Map<String, Entity> octaneUnitsMap = unitsFromServer.stream().collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(), action -> action));
+        Map<String, Entity> octaneUnitsMap = unitsFromServer.stream()
+                .collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(),
+                        action -> action,
+                        (action1, action2) -> action1)); // remove duplicates TODO (Itay)- remove when repository path uniqueness validation will be added in octane
 
         removeExistingUnits(discoveryResult, octaneUnitsMap);
     }
@@ -191,7 +196,10 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                 .toArray(String[]::new));
 
         List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
-        Map<String, Entity> scmPathToEntityMap = unitsFromServer.stream().collect(Collectors.toMap(entity -> extractScmPathFromActionPath(entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)), action -> action));
+        Map<String, Entity> scmPathToEntityMap = unitsFromServer.stream()
+                .collect(Collectors.toMap(entity -> extractScmPathFromActionPath(entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)),
+                        action -> action,
+                        (action1, action2) -> action1)); // remove duplicates TODO (Itay)- remove when repository path uniqueness validation will be added in octane
 
         handleUpdatedTestAddedActionCase(scmPathToActionMap, scmPathToEntityMap);
 
