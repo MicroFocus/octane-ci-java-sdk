@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.uft.items;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -42,6 +43,7 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
     public UftTestAction() {
         this.octaneStatus = OctaneStatus.NEW;
+        this.parameters = Collections.emptyList();
     }
 
     public String getId() {
