@@ -18,6 +18,7 @@ package com.hp.octane.integrations.services.vulnerabilities.fod;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
+import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FODConstants;
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FodConnectionFactory;
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.pojos.FODUser;
@@ -45,7 +46,13 @@ public class FODValuesConverter {
     private List<FODUser> allUsers;
 
     public void init() {
-        allUsers = FODUsersRestService.getAllUsers();
+        try {
+            allUsers = FODUsersRestService.getAllUsers();
+        }catch (PermanentException e){
+            allUsers=new ArrayList<>();
+            logger.error("current user in Unauthorized to get users data, 'Manage users' permission is required. only data that not requires this permission will return (user emails will not be added to the result)");
+        }
+
     }
 
     private OctaneIssue createIssue(Vulnerability vulnerability,

@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.vulnerabilities.fod;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.ExistingIssuesInOctane;
 import com.hp.octane.integrations.services.vulnerabilities.PackIssuesToOctaneUtils;
@@ -29,6 +30,7 @@ import com.hp.octane.integrations.services.vulnerabilities.fod.dto.services.FODV
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -83,8 +85,15 @@ public class FODServiceImpl implements FODService {
     }
 
     @Override
-    public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem queueItem) {
-        return false;
+    public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+        String runRootDir = getTargetDir(configurer.pluginServices.getAllowedOctaneStorage(),
+                vulnerabilitiesQueueItem.getJobId(),
+                vulnerabilitiesQueueItem.getBuildId());
+        if (runRootDir == null) {
+            return false;
+        }
+        File directoryToBeDeleted = new File(runRootDir);
+        return deleteDirectory(directoryToBeDeleted);
     }
 
     @Override
@@ -153,7 +162,7 @@ public class FODServiceImpl implements FODService {
             releaseId = this.configurer.pluginServices.getFodRelease(queueItem.getJobId(), queueItem.getBuildId()).toString();
             queueItem.getAdditionalProperties().put("releaseId", releaseId);
         }
-        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "FOD ReleaseId:" + releaseId);
+        //logger.warn(configurer.octaneConfiguration.getLocationForLog() + "FOD ReleaseId:" + releaseId);
     }
 
     Long getRelease(VulnerabilitiesQueueItem item) {
@@ -168,7 +177,7 @@ public class FODServiceImpl implements FODService {
 
     private List<OctaneIssue> fetchIssues(VulnerabilitiesQueueItem queueItem, String remoteTag) throws IOException {
 
-        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "Security scan is done, time to get issues from.");
+        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "Security scan is done.");
         List<Vulnerability> allVulnerabilities =
                 FODVulnerabilityService.getAllVulnerabilities(getRelease(queueItem));
         List<Vulnerability> nonClosedIssues = filterOutBeforeBaselineIssues(queueItem.getBaselineDate(), allVulnerabilities);
@@ -186,6 +195,7 @@ public class FODServiceImpl implements FODService {
         Map<String, VulnerabilityAllData> idToAllData = getVulnerabilityAllDataMap(getRelease(queueItem),
                 sortedIssues.issuesRequiredExtendedData);
 
+        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "fetch existing issues from Octane");
         List<OctaneIssue> octaneIssuesToUpdate =
                 securityIssueValuesHelper.createOctaneIssuesFromVulns(sortedIssues.issuesToUpdate, remoteTag, idToAllData,
                         queueItem.getBaselineDate());
@@ -247,7 +257,12 @@ public class FODServiceImpl implements FODService {
             }
             //Scan that has not started, and not in progress is completed.
             return (!Scan.IN_PROGRESS.equals(completeScan.status) &&
-                    !Scan.NOT_STARTED.equals(completeScan.status));
+                    !Scan.NOT_STARTED.equals(completeScan.status) &&
+                    !Scan.QUEUED.equals(completeScan.status));
+        } catch (PermanentException e){
+            throw e;
+        } catch (TemporaryException e){
+            throw e;
         } catch (Exception e) {
             return false;
         }
