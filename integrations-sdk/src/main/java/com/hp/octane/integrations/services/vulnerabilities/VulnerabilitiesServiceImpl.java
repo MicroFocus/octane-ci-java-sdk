@@ -141,7 +141,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		vulnerabilitiesQueueItem.setToolType(toolType);
 		vulnerabilitiesQueueItem.setAdditionalProperties(additionalProperties);
 		vulnerabilitiesQueue.add(vulnerabilitiesQueueItem);
-		logger.info(configurer.octaneConfiguration.getLocationForLog() + vulnerabilitiesQueueItem.getJobId() + ":" + vulnerabilitiesQueueItem.getBuildId() + " was added to vulnerabilities queue");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + vulnerabilitiesQueueItem.getJobId() + ":" + vulnerabilitiesQueueItem.getBuildId() + " was added to vulnerabilities queue, currently : "+vulnerabilitiesQueue.size()+" items in queue");
 
 		workerPreflight.itemAddedToQueue();
 	}
@@ -333,6 +333,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem queueItem){
 		if (queueItem.getToolType().equals(ToolType.SSC)){
 			return sscService.vulnerabilitiesQueueItemCleanUp(queueItem);
+		}
+		if (queueItem.getToolType().equals(ToolType.FOD)){
+			return fodService.vulnerabilitiesQueueItemCleanUp(queueItem);
 		}
 		else{
 			return true;
