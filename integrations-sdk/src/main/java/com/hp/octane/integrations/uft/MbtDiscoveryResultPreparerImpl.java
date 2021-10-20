@@ -261,6 +261,8 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         movedTests.forEach(automatedTest -> automatedTest.getActions().forEach(action -> {
             action.setId(actionPathToUnitIdMap.get(action.getRepositoryPath()));
             action.setOctaneStatus(OctaneStatus.MODIFIED);
+            action.getParameters().forEach(parameter -> parameter.setOctaneStatus(OctaneStatus.NONE));
+            removeItemsWithStatusNone(action.getParameters());
         }));
     }
 
