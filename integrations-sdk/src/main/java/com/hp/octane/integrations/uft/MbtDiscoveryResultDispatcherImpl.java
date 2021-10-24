@@ -42,20 +42,42 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
         Map<OctaneStatus, List<UftTestAction>> actionsByStatusMap = allActions.stream().collect(Collectors.groupingBy(UftTestAction::getOctaneStatus));
 
+        Entity autoDiscoveredFolder = null;
+        if (CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.NEW)) || CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.MODIFIED))) {
+            autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId);
+        }
+
         // handle new actions- create new units and parameters in octane
-        dispatchNewActions(entitiesService, actionsByStatusMap.get(OctaneStatus.NEW), workspaceId, customLogger);
+        dispatchNewActions(entitiesService, actionsByStatusMap.get(OctaneStatus.NEW), autoDiscoveredFolder, workspaceId, customLogger);
 
         // handle deleted actions- currently do nothing
         dispatchDeletedActions(entitiesService, actionsByStatusMap.get(OctaneStatus.DELETED), workspaceId, customLogger);
 
         // handle updated actions- update units in octane
-        dispatchUpdatedActions(entitiesService, actionsByStatusMap.get(OctaneStatus.MODIFIED), workspaceId, customLogger);
+        dispatchUpdatedActions(entitiesService, actionsByStatusMap.get(OctaneStatus.MODIFIED), autoDiscoveredFolder, workspaceId, customLogger);
     }
 
-    private void dispatchNewActions(EntitiesService entitiesService, List<UftTestAction> newActions, long workspaceId, CustomLogger customLogger) {
+    private void dispatchNewActions(EntitiesService entitiesService, List<UftTestAction> newActions, Entity autoDiscoveredFolder, long workspaceId, CustomLogger customLogger) {
         if (CollectionUtils.isNotEmpty(newActions)) {
-            postUnits(entitiesService, newActions, workspaceId);
+            Map<String, Entity> foldersMap = createParentFolders(entitiesService, newActions, autoDiscoveredFolder, workspaceId);
+            postUnits(entitiesService, newActions, foldersMap, workspaceId);
         }
+    }
+
+    private Map<String, Entity> createParentFolders(EntitiesService entitiesService, List<UftTestAction> newActions, Entity autoDiscoveredFolder, long workspaceId) {
+        // find existing sub folders. each folder's name is the test name that contains the actions
+        List<Entity> existingSubFolders = retrieveChildFolders(entitiesService, workspaceId, Long.parseLong(autoDiscoveredFolder.getId()));
+        Map<String, Entity> existingSubFoldersMap = existingSubFolders.stream().collect(Collectors.toMap(Entity::getName, entity -> entity));
+
+        Set<String> testNames = newActions.stream().map(UftTestAction::getTestName).collect(Collectors.toSet());
+        // find which folders are missing and need to be created
+        testNames.removeAll(existingSubFoldersMap.keySet());
+        if (CollectionUtils.isNotEmpty(testNames)) {
+            Map<String, Entity> newFoldersMap = postFolders(entitiesService, testNames, autoDiscoveredFolder, workspaceId);
+            existingSubFoldersMap.putAll(newFoldersMap);
+        }
+
+        return existingSubFoldersMap;
     }
 
     private void dispatchDeletedActions(EntitiesService entitiesService, List<UftTestAction> deletedActions, long workspaceId, CustomLogger customLogger) {
@@ -64,22 +86,64 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         }
     }
 
-    private void dispatchUpdatedActions(EntitiesService entitiesService, List<UftTestAction> updatedActions, long workspaceId, CustomLogger customLogger) {
+    private void dispatchUpdatedActions(EntitiesService entitiesService, List<UftTestAction> updatedActions, Entity autoDiscoveredFolder, long workspaceId, CustomLogger customLogger) {
         if (CollectionUtils.isNotEmpty(updatedActions)) {
+            updateParentFolders(entitiesService, updatedActions, autoDiscoveredFolder, workspaceId);
             updateUnits(entitiesService, updatedActions, workspaceId);
         }
     }
 
-    private boolean postUnits(EntitiesService entitiesService, List<UftTestAction> actions, long workspaceId) {
+    // update the name of unit's folders after a test was moved
+    private void updateParentFolders(EntitiesService entitiesService, List<UftTestAction> updatedActions, Entity autoDiscoveredFolder, long workspaceId) {
+        Map<String, String> oldNameToNewName = updatedActions.stream().filter(action -> action.isMoved() && !action.getTestName().equals(action.getOldTestName()))
+                .collect(Collectors.toMap(UftTestAction::getOldTestName, UftTestAction::getTestName, (s1, s2) -> s1));
+
+        if (!oldNameToNewName.isEmpty()) {
+            String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.PARENT, Long.parseLong(autoDiscoveredFolder.getId()));
+            String condition2 = QueryHelper.conditionIn(EntityConstants.ModelFolder.NAME_FIELD, oldNameToNewName.keySet(), false);
+            List<Entity> foldersToUpdate = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Arrays.asList(condition1, condition2), Arrays.asList(EntityConstants.ModelFolder.ID_FIELD, EntityConstants.ModelFolder.NAME_FIELD));
+            updateFolders(entitiesService, foldersToUpdate, oldNameToNewName, workspaceId);
+        }
+    }
+
+    private Map<String, Entity> postFolders(EntitiesService entitiesService, Set<String> names, Entity parentFolder, long workspaceId) {
+        if (!names.isEmpty()) {
+            logger.info("dispatching {} new folders", names.size());
+
+            // add folders
+            List<Entity> foldersToAdd = names.stream().map(name -> createFolderEntity(name, parentFolder)).collect(Collectors.toList());
+            Map<String, Entity> folderEntities = entitiesService.postEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, foldersToAdd, null).stream()
+                    .collect(Collectors.toMap(Entity::getName, Function.identity()));
+
+            logger.info("actual new folders {} added", folderEntities.size());
+
+            return folderEntities;
+        }
+
+        return Collections.emptyMap();
+    }
+
+    private void updateFolders(EntitiesService entitiesService, List<Entity> foldersToUpdate, Map<String, String> oldNameToNewName, long workspaceId) {
+        if (!foldersToUpdate.isEmpty()) {
+            logger.info("dispatching {} updated folders", foldersToUpdate.size());
+
+            // update folders
+            foldersToUpdate = foldersToUpdate.stream().map(entity -> dtoFactory.newDTO(Entity.class).setId(entity.getId()).setName(oldNameToNewName.get(entity.getName())))
+                    .collect(Collectors.toList());
+            List<Entity> folderEntities = entitiesService.updateEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, foldersToUpdate);
+
+            logger.info("actual updated folders {}", folderEntities.size());
+        }
+    }
+
+    private boolean postUnits(EntitiesService entitiesService, List<UftTestAction> actions, Map<String, Entity> foldersMap, long workspaceId) {
         if (!actions.isEmpty()) {
             logger.info("dispatching {} new units", actions.size());
 
-            Entity parentFolder = retrieveParentFolder(entitiesService, workspaceId);
-
             List<Entity> parameterToAdd = new ArrayList<>(); // add external parameter entities list to be filled by each action creation
             // add units
-            List<Entity> unitsToAdd = actions.stream().map(action -> createUnitEntity(action, parentFolder, parameterToAdd)).collect(Collectors.toList());
-            Map<String, Entity> unitEntities = entitiesService.postEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToAdd, Arrays.asList(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)).stream()
+            List<Entity> unitsToAdd = actions.stream().map(action -> createUnitEntity(action, foldersMap, parameterToAdd)).collect(Collectors.toList());
+            Map<String, Entity> unitEntities = entitiesService.postEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToAdd, Collections.singletonList(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)).stream()
                     .collect(Collectors.toMap(entity -> entity.getField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toString(), Function.identity()));
 
             logger.info("actual new units {} added", unitEntities.size());
@@ -105,11 +169,11 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
             logger.info("dispatching {} deleted units", actions.size());
             // convert actions to dtos
             List<Entity> unitsToUpdate = actions.stream().map(action -> dtoFactory.newDTO(Entity.class)
-                    .setId(action.getId())
-                    .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, null)
-                    .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, NOT_AUTOMATED_AUTOMATION_STATUS)
-                    .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, null)
-            )
+                            .setId(action.getId())
+                            .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, null)
+                            .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, NOT_AUTOMATED_AUTOMATION_STATUS)
+                            .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, null)
+                    )
                     .collect(Collectors.toList());
 
             // update units
@@ -124,13 +188,13 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
             logger.info("dispatching {} updated units", actions.size());
             // convert actions to dtos
             List<Entity> unitsToUpdate = actions.stream().map(action -> {
-                String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getTestName() + ":" + action.getName() : action.getLogicalName();
-                return dtoFactory.newDTO(Entity.class)
-                        .setId(action.getId())
-                        .setField(EntityConstants.MbtUnit.NAME_FIELD, unitName)
-                        .setField(EntityConstants.MbtUnit.DESCRIPTION_FIELD, action.getDescription())
-                        .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath());
-            })
+                        String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getTestName() + ":" + action.getName() : action.getLogicalName();
+                        return dtoFactory.newDTO(Entity.class)
+                                .setId(action.getId())
+                                .setField(EntityConstants.MbtUnit.NAME_FIELD, unitName)
+                                .setField(EntityConstants.MbtUnit.DESCRIPTION_FIELD, action.getDescription())
+                                .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath());
+                    })
                     .collect(Collectors.toList());
 
             // update units
@@ -147,8 +211,24 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         return entities.get(0);
     }
 
-    private Entity createUnitEntity(UftTestAction action, Entity parentFolder, List<Entity> parameterEntities) {
+    private List<Entity> retrieveChildFolders(EntitiesService entitiesService, long workspaceId, long parentFolderId) {
+        String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.PARENT, parentFolderId);
+        String condition2 = QueryHelper.condition(EntityConstants.ModelFolder.SUBTYPE_FIELD, EntityConstants.ModelFolder.ENTITY_SUBTYPE);
+
+        return entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Arrays.asList(condition1, condition2), Collections.emptyList());
+    }
+
+    private Entity createFolderEntity(String name, Entity parentFolder) {
+        return dtoFactory.newDTO(Entity.class)
+                .setType(EntityConstants.ModelFolder.ENTITY_NAME)
+                .setField(EntityConstants.ModelFolder.SUBTYPE_FIELD, EntityConstants.ModelFolder.ENTITY_SUBTYPE)
+                .setField(EntityConstants.ModelFolder.NAME_FIELD, name)
+                .setField(EntityConstants.ModelFolder.PARENT, parentFolder);
+    }
+
+    private Entity createUnitEntity(UftTestAction action, Map<String, Entity> foldersMap, List<Entity> parameterEntities) {
         String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getTestName() + ":" + action.getName() : action.getLogicalName();
+        Entity parentFolder = foldersMap.get(action.getTestName());
 
         Entity unitEntity = dtoFactory.newDTO(Entity.class)
                 .setType(EntityConstants.MbtUnit.ENTITY_NAME)
