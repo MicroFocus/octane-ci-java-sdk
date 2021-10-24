@@ -65,7 +65,9 @@ public class EntityConstants {
         public static final String ENTITY_NAME = "model_item";
         public static final String ENTITY_SUBTYPE = "model_folder";
 
+        public static final String SUBTYPE_FIELD = "subtype";
         public static final String LOGICAL_NAME = "logical_name";
+        public static final String PARENT = "parent";
     }
 
     public static class ScmResourceFile extends Base {
