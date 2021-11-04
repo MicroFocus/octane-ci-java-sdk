@@ -17,9 +17,14 @@
 package com.hp.octane.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 import com.hp.octane.integrations.dto.general.CIBuildStatusInfo;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * CIBuildStatusInfo DTO implementation.
@@ -35,6 +40,7 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     private String exceptionMessage;
     private Integer exceptionCode;
     private CIBuildResult buildResult = CIBuildResult.UNAVAILABLE;
+    private List<CIParameter> allBuildParams;
 
 
     @Override
@@ -123,5 +129,16 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     @Override
     public Integer getExceptionCode() {
         return exceptionCode;
+    }
+
+    @Override
+    public List<CIParameter> getAllBuildParams() {
+        return allBuildParams;
+    }
+
+    @Override
+    public CIBuildStatusInfo setAllBuildParams(List<CIParameter> allBuildParams) {
+        this.allBuildParams = allBuildParams;
+        return this;
     }
 }

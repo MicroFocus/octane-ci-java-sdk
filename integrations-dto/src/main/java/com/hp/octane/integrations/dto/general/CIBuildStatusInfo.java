@@ -1,10 +1,12 @@
 package com.hp.octane.integrations.dto.general;
 
 import com.hp.octane.integrations.dto.DTOBase;
+import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 
 import java.io.Serializable;
+import java.util.List;
 
 
 public interface CIBuildStatusInfo extends DTOBase, Serializable {
@@ -40,4 +42,8 @@ public interface CIBuildStatusInfo extends DTOBase, Serializable {
     CIBuildStatusInfo setExceptionCode(Integer message);
 
     Integer getExceptionCode();
+
+    List<CIParameter> getAllBuildParams();
+
+    CIBuildStatusInfo setAllBuildParams(List<CIParameter> allBuildParams);
 }
