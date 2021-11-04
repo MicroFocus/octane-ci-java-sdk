@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -132,6 +133,8 @@ public class FODConnector implements FODSource {
 					TypeFactory.defaultInstance().constructType((fetchedEntityInstance).getClass()));
 
 			return entityFetched;
+		} catch (PermanentException e){
+			throw e;
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
@@ -163,30 +166,26 @@ public class FODConnector implements FODSource {
 		httpGet.setHeader("Accept-Encoding", "gzip, deflate, br");
 		CloseableHttpResponse response = null;
 		try {
+			logger.debug("sending the request : "+url);
 			response = httpClient.execute(httpGet);
-			if (response.getStatusLine().getStatusCode() == 401) {
-				getAccessToken();
-				//retry.
-				response = httpClient.execute(httpGet);
+			if (response.getStatusLine().getStatusCode()>300 ) {
+				if(response.getStatusLine().getStatusCode()==401){
+					throw new PermanentException("Cannot authenticate , the user is Unauthorized , make sure you are using the correct role for the user (): " +response.getStatusLine().getReasonPhrase());
+				}
+				if(response.getStatusLine().getStatusCode()==503){
+					throw new TemporaryException("Service Unavailable ,  retry");
+				}
+				throw new PermanentException("unexpected return response : " +response.getStatusLine().getReasonPhrase());
 			}
 			return isToString(response.getEntity().getContent());
 		} catch (IOException e) {
-			e.printStackTrace();
-			getAccessToken();
-			//retry.
-			try {
-				response = httpClient.execute(httpGet);
-				return isToString(response.getEntity().getContent());
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			throw new PermanentException(e);
 		} finally {
 			if (response != null) {
 				EntityUtils.consumeQuietly(response.getEntity());
 				HttpClientUtils.closeQuietly(response);
 			}
 		}
-		return null;
 	}
 
 	private String getUpdatedAccessToken() {
@@ -207,9 +206,12 @@ public class FODConnector implements FODSource {
 		CloseableHttpResponse response = null;
 		try {
 
+			logger.debug("inside getAccessToken():before Post ");
 			response = httpClient.execute(post);
+			logger.debug("inside getAccessToken():after Post, got status : "+response.getStatusLine().getStatusCode());
 			if (response.getStatusLine().getStatusCode() != 200 &&
 					response.getStatusLine().getStatusCode() != 201) {
+				logger.error("inside getAccessToken():after Post, got status : "+response.getStatusLine().getStatusCode());
 				throw new PermanentException("Cannot authenticate:" +response.getStatusLine().getReasonPhrase());
 			}
 
@@ -217,8 +219,10 @@ public class FODConnector implements FODSource {
 			HashMap secTokeAsMap = new ObjectMapper().readValue(secToken, HashMap.class);
 			access_token = secTokeAsMap.get("access_token").toString();
 			accessTokenTime = new Date().getTime();
+			logger.debug("inside getAccessToken():after Post ");
 
 		} catch (IOException e) {
+			logger.error("inside getAccessToken():After Post inside exception ",e);
 			e.printStackTrace();
 			if(response != null) {
 				EntityUtils.consumeQuietly(response.getEntity());

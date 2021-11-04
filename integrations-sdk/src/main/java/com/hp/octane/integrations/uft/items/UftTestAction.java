@@ -16,6 +16,7 @@
 package com.hp.octane.integrations.uft.items;
 
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -32,16 +33,21 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
     private String testName;
 
+    private String oldTestName;
+
     private String description;
 
     private String repositoryPath;
 
     private OctaneStatus octaneStatus;
 
+    private boolean moved = false;
+
     private List<UftTestParameter> parameters;
 
     public UftTestAction() {
         this.octaneStatus = OctaneStatus.NEW;
+        this.parameters = Collections.emptyList();
     }
 
     public String getId() {
@@ -76,6 +82,14 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
         this.testName = testName;
     }
 
+    public String getOldTestName() {
+        return oldTestName;
+    }
+
+    public void setOldTestName(String oldTestName) {
+        this.oldTestName = oldTestName;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -99,6 +113,14 @@ public class UftTestAction implements SupportsOctaneStatus, Serializable {
 
     public void setOctaneStatus(OctaneStatus octaneStatus) {
         this.octaneStatus = octaneStatus;
+    }
+
+    public boolean isMoved() {
+        return moved;
+    }
+
+    public void setMoved(boolean moved) {
+        this.moved = moved;
     }
 
     public List<UftTestParameter> getParameters() {

@@ -84,6 +84,8 @@ public class UftTestDiscoveryUtils {
     }
 
     public static UftTestDiscoveryResult doFullDiscovery(File root, TestingToolType testingToolType) {
+        logger.info("Full sync requested for: {}, path: {}, ", testingToolType, root.getAbsolutePath());
+
         UftTestDiscoveryResult result = new UftTestDiscoveryResult();
         scanFileSystemRecursively(root, root, result, testingToolType);
         result.setFullScan(true);
