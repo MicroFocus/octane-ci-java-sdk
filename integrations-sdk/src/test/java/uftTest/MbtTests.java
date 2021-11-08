@@ -5,7 +5,8 @@ import com.hp.octane.integrations.dto.general.MbtActionParameter;
 import com.hp.octane.integrations.dto.general.MbtData;
 import com.hp.octane.integrations.executor.converters.MfMBTConverter;
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
-import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultData;
+import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData;
+import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,17 +45,18 @@ public class MbtTests {
     @Test
     public void readActionResults1() {
         File file = new File(getClass().getResource("run_mbt_results_with_errors.xml").getFile());
-        List<UftResultData> resultData = UftTestResultsUtils.getMBTData(file);
+        List<UftResultIterationData> resultData = UftTestResultsUtils.getMBTData(file);
         Assert.assertEquals(1, resultData.size());
-        UftResultData data1 = resultData.get(0);
-        String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's physical description:<br>wpftypename = window<br>regexpwndtitle = Micro Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample Application<br> (Warning). ";
+        UftResultStepData data1 = resultData.get(0).getSteps().get(0);
+        String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's                                    physical description:<br>wpftypename = window<br>regexpwndtitle = Micro                                    Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample                                    Application<br> (Warning). ";
         validateAction(23, "Warning", errorMessage, "Action1 [Two test_same function 2]", data1);
     }
 
     @Test
     public void readActionResults2() {
         File file = new File(getClass().getResource("run_mbt_results_8_successful.xml").getFile());
-        List<UftResultData> resultData = UftTestResultsUtils.getMBTData(file);
+        List<UftResultIterationData> iterations = UftTestResultsUtils.getMBTData(file);
+        List<UftResultStepData> resultData = iterations.get(0).getSteps();
         Assert.assertEquals(8, resultData.size());
 
         validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.get(0));
@@ -70,20 +72,24 @@ public class MbtTests {
     @Test
     public void readActionResults3() {
         File file = new File(getClass().getResource("run_mbt_results_with2_runs.xml").getFile());
-        List<UftResultData> resultData = UftTestResultsUtils.getMBTData(file);
-        Assert.assertEquals(2, resultData.size());
+        List<UftResultIterationData> iterations = UftTestResultsUtils.getMBTData(file);
+        Assert.assertEquals(2, iterations.size());
+        List<UftResultStepData> resultData1 = iterations.get(0).getSteps();
+        List<UftResultStepData> resultData2 = iterations.get(1).getSteps();
+        Assert.assertEquals(1, resultData1.size());
+        Assert.assertEquals(1, resultData2.size());
 
-        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData.get(0));
-        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData.get(1));
+        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData1.get(0));
+        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData2.get(0));
     }
 
-    private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultData data) {
+    private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultStepData data) {
         Assert.assertEquals(errorMessage, data.getMessage());
         Assert.assertEquals("Action", data.getType());
         Assert.assertEquals(duration, data.getDuration());
         Assert.assertEquals(result, data.getResult());
-        Assert.assertEquals(4, data.getParents().size());
-        Assert.assertEquals(lastParent, data.getParents().get(3));
+        Assert.assertEquals(3, data.getParents().size());
+        Assert.assertEquals(lastParent, data.getParents().get(2));
     }
 
     @Test
