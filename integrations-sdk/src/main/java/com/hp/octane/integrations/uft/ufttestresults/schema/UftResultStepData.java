@@ -1,15 +1,16 @@
 package com.hp.octane.integrations.uft.ufttestresults.schema;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class UftResultData {
+public class UftResultStepData implements Serializable {
     private List<String> parents;
     private String type;
     private String result;
     private String message;
     private long duration;
 
-    public UftResultData(List<String> parents, String type, String result, String message, long duration) {
+    public UftResultStepData(List<String> parents, String type, String result, String message, long duration) {
         this.parents = parents;
         this.type = type;
         this.result = result;
