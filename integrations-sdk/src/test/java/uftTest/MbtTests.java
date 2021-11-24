@@ -7,15 +7,13 @@ import com.hp.octane.integrations.executor.converters.MfMBTConverter;
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData;
+import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepParameter;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MbtTests {
@@ -49,7 +47,7 @@ public class MbtTests {
         Assert.assertEquals(1, resultData.size());
         UftResultStepData data1 = resultData.get(0).getSteps().get(0);
         String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's                                    physical description:<br>wpftypename = window<br>regexpwndtitle = Micro                                    Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample                                    Application<br> (Warning). ";
-        validateAction(23, "Warning", errorMessage, "Action1 [Two test_same function 2]", data1);
+        validateAction(23, "Warning", errorMessage, "Action1 [Two test_same function 2]", data1, null, null);
     }
 
     @Test
@@ -59,14 +57,18 @@ public class MbtTests {
         List<UftResultStepData> resultData = iterations.get(0).getSteps();
         Assert.assertEquals(8, resultData.size());
 
-        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.get(0));
-        validateAction(3, "Done", "", "Login [FlightGUIBU2]", resultData.get(1));
-        validateAction(1, "Done", "", "Search Order Tab [FlightGUIBU2]", resultData.get(2));
-        validateAction(1, "Done", "", "Search Order By Name [FlightGUIBU2]", resultData.get(3));
-        validateAction(0, "Done", "", "Select Order [FlightGUIBU2]", resultData.get(4));
-        validateAction(8, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(5));
-        validateAction(7, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(6));
-        validateAction(0, "Done", "", "Close App [FlightGUIBU2]", resultData.get(7));
+        List<UftResultStepParameter> inputParameters = Arrays.asList(new UftResultStepParameter("username", "john", "System.String"), new UftResultStepParameter("password", "HP", "System.String"));
+        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.get(0), null, null);
+        validateAction(3, "Done", "", "Login [FlightGUIBU2]", resultData.get(1), inputParameters, null);
+        validateAction(1, "Done", "", "Search Order Tab [FlightGUIBU2]", resultData.get(2), null, null);
+        inputParameters = Arrays.asList(new UftResultStepParameter("Name", "john", "System.String"));
+        validateAction(1, "Done", "", "Search Order By Name [FlightGUIBU2]", resultData.get(3), inputParameters, null);
+        validateAction(0, "Done", "", "Select Order [FlightGUIBU2]", resultData.get(4), null, null);
+        inputParameters = Arrays.asList(new UftResultStepParameter("NumSeats", "14", "System.String"), new UftResultStepParameter("Class", "Economy", "System.String"));
+        validateAction(8, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(5), inputParameters, null);
+        inputParameters = Arrays.asList(new UftResultStepParameter("NumSeats", "10", "System.String"), new UftResultStepParameter("Class", "Economy", "System.String"));
+        validateAction(7, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(6), inputParameters, null);
+        validateAction(0, "Done", "", "Close App [FlightGUIBU2]", resultData.get(7), null, null);
     }
 
     @Test
@@ -79,17 +81,21 @@ public class MbtTests {
         Assert.assertEquals(1, resultData1.size());
         Assert.assertEquals(1, resultData2.size());
 
-        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData1.get(0));
-        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData2.get(0));
+        List<UftResultStepParameter> inputParameters = Arrays.asList(new UftResultStepParameter("parameter1", "4", "System.Double"), new UftResultStepParameter("parameter2", "2", "System.Double"));
+        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData1.get(0), inputParameters, null);
+        inputParameters = Arrays.asList(new UftResultStepParameter("parameter1", "3", "System.Double"), new UftResultStepParameter("parameter2", "1", "System.Double"));
+        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData2.get(0), inputParameters, null);
     }
 
-    private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultStepData data) {
+    private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultStepData data, List<UftResultStepParameter> inputParameters, List<UftResultStepParameter> outputParameters) {
         Assert.assertEquals(errorMessage, data.getMessage());
         Assert.assertEquals("Action", data.getType());
         Assert.assertEquals(duration, data.getDuration());
         Assert.assertEquals(result, data.getResult());
         Assert.assertEquals(3, data.getParents().size());
         Assert.assertEquals(lastParent, data.getParents().get(2));
+        Assert.assertEquals(inputParameters, data.getInputParameters());
+        Assert.assertEquals(outputParameters, data.getOutputParameters());
     }
 
     @Test
