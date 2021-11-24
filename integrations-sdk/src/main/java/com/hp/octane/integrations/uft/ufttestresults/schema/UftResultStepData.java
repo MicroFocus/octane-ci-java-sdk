@@ -9,6 +9,8 @@ public class UftResultStepData implements Serializable {
     private String result;
     private String message;
     private long duration;
+    private List<UftResultStepParameter> inputParameters;
+    private List<UftResultStepParameter> outputParameters;
 
     public UftResultStepData(List<String> parents, String type, String result, String message, long duration) {
         this.parents = parents;
@@ -16,6 +18,16 @@ public class UftResultStepData implements Serializable {
         this.result = result;
         this.message = message;
         this.duration = duration;
+    }
+
+    public UftResultStepData(List<String> parents, String type, String result, String message, long duration, List<UftResultStepParameter> inputParameters, List<UftResultStepParameter> outputParameters) {
+        this.parents = parents;
+        this.type = type;
+        this.result = result;
+        this.message = message;
+        this.duration = duration;
+        this.inputParameters = inputParameters;
+        this.outputParameters = outputParameters;
     }
 
     public List<String> getParents() {
@@ -40,5 +52,13 @@ public class UftResultStepData implements Serializable {
 
     public long getDuration() {
         return duration;
+    }
+
+    public List<UftResultStepParameter> getInputParameters() {
+        return inputParameters;
+    }
+
+    public List<UftResultStepParameter> getOutputParameters() {
+        return outputParameters;
     }
 }

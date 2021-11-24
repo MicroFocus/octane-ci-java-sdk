@@ -2,10 +2,7 @@ package com.hp.octane.integrations.uft.ufttestresults;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.hp.octane.integrations.uft.ufttestresults.schema.ReportNode;
-import com.hp.octane.integrations.uft.ufttestresults.schema.ReportResults;
-import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData;
-import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData;
+import com.hp.octane.integrations.uft.ufttestresults.schema.*;
 
 import java.io.File;
 import java.util.*;
@@ -98,7 +95,15 @@ public class UftTestResultsUtils {
                 errorMessage = getAggregatedErrorMessage((errors));
             }
 
-            results.add(new UftResultStepData(parents, node.getType(), node.getData().getResult(), errorMessage, node.getData().getDuration()));
+            List<UftResultStepParameter> inputParameters = null;
+            if (node.getData().getInputParameters() != null) {
+                inputParameters = node.getData().getInputParameters().stream().map(parameter -> new UftResultStepParameter(parameter.getName(), parameter.getValue(), parameter.getType())).collect(Collectors.toList());
+            }
+            List<UftResultStepParameter> outputParameters = null;
+            if (node.getData().getOutputParameters() != null) {
+                outputParameters = node.getData().getOutputParameters().stream().map(parameter -> new UftResultStepParameter(parameter.getName(), parameter.getValue(), parameter.getType())).collect(Collectors.toList());
+            }
+            results.add(new UftResultStepData(parents, node.getType(), node.getData().getResult(), errorMessage, node.getData().getDuration(), inputParameters, outputParameters));
         }
 
         if (node.getNodes() != null && parents.size() < targetLevel) {

@@ -2,6 +2,8 @@ package com.hp.octane.integrations.uft.ufttestresults.schema;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 public class ReportNodeData {
 
     @JsonProperty("Name")
@@ -18,6 +20,12 @@ public class ReportNodeData {
 
     @JsonProperty("Result")
     private String result;
+
+    @JsonProperty("InputParameters")
+    private List<Parameter> inputParameters;
+
+    @JsonProperty("OutputParameters")
+    private List<Parameter> outputParameters;
 
     public String getName() {
         return name;
@@ -57,5 +65,21 @@ public class ReportNodeData {
 
     public void setErrorText(String errorText) {
         this.errorText = errorText;
+    }
+
+    public List<Parameter> getInputParameters() {
+        return inputParameters;
+    }
+
+    public void setInputParameters(List<Parameter> inputParameters) {
+        this.inputParameters = inputParameters;
+    }
+
+    public List<Parameter> getOutputParameters() {
+        return outputParameters;
+    }
+
+    public void setOutputParameters(List<Parameter> outputParameters) {
+        this.outputParameters = outputParameters;
     }
 }
