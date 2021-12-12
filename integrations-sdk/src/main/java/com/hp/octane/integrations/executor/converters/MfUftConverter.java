@@ -23,6 +23,7 @@ import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.w3c.dom.Document;
@@ -40,6 +41,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /*
  * Converter to uft format (MTBX)
@@ -49,6 +51,7 @@ public class MfUftConverter extends TestsToRunConverter {
     private static final Logger logger = LogManager.getLogger(MfUftConverter.class);
     public static final String DATA_TABLE_PARAMETER = "dataTable";
     public static final String ITERATIONS_PARAMETER = "iterations";
+    public static final String TESTING_TOOL_TYPE_PARAMETER = "testingToolType";
     public static final String MBT_DATA = "mbtData";
 
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
@@ -61,7 +64,10 @@ public class MfUftConverter extends TestsToRunConverter {
     }
 
     public String convertToMtbxContent(List<TestToRunData> tests, String workingDir, Map<String, String> globalParameters) {
-
+        tests = tests.stream().filter(testToRunData -> testToRunData.getParameter(TESTING_TOOL_TYPE_PARAMETER) == null).collect(Collectors.toList());
+        if(CollectionUtils.isEmpty(tests)) {
+            return "";
+        }
 
         boolean addGlobalParameters = isAddGlobalParameters(globalParameters);
 
