@@ -205,7 +205,6 @@ public class MfMBTConverter extends MfUftConverter {
         mbtTests = new ArrayList<>();
         int order = 1;
         for (TestToRunData data : tests) {
-            data.setPackageName("_" + order++);
             String mbtDataRaw = data.getParameter(MBT_DATA);
             MbtData mbtData;
             if (MBT_DATA_NOT_INCLUDED.equals(mbtDataRaw)) {
@@ -215,6 +214,9 @@ public class MfMBTConverter extends MfUftConverter {
             try {
                 String raw = new String(Base64.getDecoder().decode(mbtDataRaw), StandardCharsets.UTF_8);
                 mbtData = DTOFactory.getInstance().dtoFromJson(raw, MbtData.class);
+                if(mbtData.getTestingToolType().equals(TestingToolType.UFT)) { // advance package name only for uft tests. it is not relevant for codeless tests
+                    data.setPackageName("_" + order++);
+                }
             } catch (Exception e) {
                 String msg = "Failed to decode test action data " + data.getTestName() + " : " + e.getMessage();
                 logger.error(msg);
