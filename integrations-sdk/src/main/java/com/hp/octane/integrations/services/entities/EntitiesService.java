@@ -22,6 +22,7 @@ import com.hp.octane.integrations.dto.entities.Entity;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public interface EntitiesService {
 
@@ -40,9 +41,13 @@ public interface EntitiesService {
 
 	List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities, Collection<String> fields);
 
+	List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities, Collection<String> fields, Map<String,String> serviceArgument);
+
 	List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData);
 
 	List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData, Collection<String> fields);
+
+	List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData, Collection<String> fields,Map<String,String> serviceArgument);
 
 	ResponseEntityList getPagedEntities(String url);
 
@@ -63,5 +68,7 @@ public interface EntitiesService {
 	List<Entity> updateEntities(Long workspaceId, String entityCollectionName, String jsonData);
 
 	String buildEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy);
+
+	String buildEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy,Map<String,String> serviceArgument);
 
 }

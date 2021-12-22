@@ -198,7 +198,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
 
     private List<Entity> planSuiteRuns(Long workspaceId, List<Long> suiteIds, Entity release, String suiteRunName) {
         Map<Long, String> suiteNames = SdkStringUtils.isNotEmpty(suiteRunName) ? Collections.emptyMap() : this.validateAllSuiteIdsExistAndReturnSuiteNames(workspaceId, suiteIds);
-        Entity status = dtoFactory.newDTO(Entity.class).setType(EntityConstants.Lists.ENTITY_NAME).setId("list_node.run_native_status.not_completed");
+        Entity status = dtoFactory.newDTO(Entity.class).setType(EntityConstants.Lists.ENTITY_NAME).setId("list_node.run_native_status.planned");
 
         List<Entity> suiteRuns = suiteIds.stream().map(suiteId -> {
             Entity test = dtoFactory.newDTO(Entity.class).setType(EntityConstants.Test.ENTITY_NAME).setId(Long.toString(suiteId));
@@ -211,7 +211,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
             return suiteRun;
         }).collect(Collectors.toList());
 
-        List<Entity> entities = entitiesService.postEntities(workspaceId, EntityConstants.Run.COLLECTION_NAME, suiteRuns, Arrays.asList(EntityConstants.Run.TEST_FIELD));
+        List<Entity> entities = entitiesService.postEntities(workspaceId, EntityConstants.Run.COLLECTION_NAME, suiteRuns, Arrays.asList(EntityConstants.Run.TEST_FIELD),Collections.singletonMap("is_atomic_creation","true"));
         return entities;
     }
 
