@@ -141,15 +141,20 @@ final class EntitiesServiceImpl implements EntitiesService {
 
     @Override
     public List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities, Collection<String> fields) {
-		List<Entity> results = new ArrayList<>();
-    	ListUtils.partition(entities, MAX_UPDATE_LIMIT).forEach(list -> {
-			EntityList entitiesForUpdate = dtoFactory.newDTO(EntityList.class);
-			entitiesForUpdate.setData(list);
-			String jsonData = dtoFactory.dtoToJson(entitiesForUpdate);
-			List<Entity> temp = postEntities(workspaceId, entityCollectionName, jsonData, fields);
-			results.addAll(temp);
-		});
-		return results;
+		return postEntities(workspaceId, entityCollectionName, entities, null,Collections.emptyMap());
+    }
+
+    @Override
+    public List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities, Collection<String> fields, Map<String,String> serviceArgument){
+        List<Entity> results = new ArrayList<>();
+        ListUtils.partition(entities, MAX_UPDATE_LIMIT).forEach(list -> {
+            EntityList entitiesForUpdate = dtoFactory.newDTO(EntityList.class);
+            entitiesForUpdate.setData(list);
+            String jsonData = dtoFactory.dtoToJson(entitiesForUpdate);
+            List<Entity> temp = postEntities(workspaceId, entityCollectionName, jsonData, fields,serviceArgument);
+            results.addAll(temp);
+        });
+        return results;
     }
 
     @Override
@@ -159,13 +164,18 @@ final class EntitiesServiceImpl implements EntitiesService {
 
     @Override
     public List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData, Collection<String> fields) {
+        return postEntities(workspaceId, entityCollectionName, jsonData, null,Collections.EMPTY_MAP);
+    }
+
+    @Override
+    public List<Entity> postEntities(Long workspaceId, String entityCollectionName, String jsonData, Collection<String> fields,Map<String,String> serviceArgument) {
         OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
         Map<String, String> headers = new HashMap<>();
         headers.put(ACCEPT_HEADER, ContentType.APPLICATION_JSON.getMimeType());
         headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
         headers.put(OctaneRestClient.CLIENT_TYPE_HEADER, OctaneRestClient.CLIENT_TYPE_VALUE);
 
-        String url = buildEntityUrl(workspaceId, entityCollectionName, null, fields, null, null, null);
+        String url = buildEntityUrl(workspaceId, entityCollectionName, null, fields, null, null, null,serviceArgument);
         OctaneRequest request = dtoFactory.newDTO(OctaneRequest.class)
                 .setMethod(HttpMethod.POST)
                 .setUrl(url)
@@ -268,6 +278,10 @@ final class EntitiesServiceImpl implements EntitiesService {
     }
 
     public String buildEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy) {
+        return buildEntityUrl(workspaceId, collection, conditions, fields, offset, limit, orderBy,Collections.EMPTY_MAP);
+    }
+
+    public String buildEntityUrl(Long workspaceId, String collection, Collection<String> conditions, Collection<String> fields, Integer offset, Integer limit, String orderBy,Map<String,String> serviceArgument) {
 
         StringBuilder template = new StringBuilder(configurer.octaneConfiguration.getUrl());
         template.append("/api/shared_spaces/");
@@ -308,6 +322,13 @@ final class EntitiesServiceImpl implements EntitiesService {
         if (SdkStringUtils.isNotEmpty(orderBy)) {
             params.put("order", orderBy);
             template.append("&" + ORDER_BY_FRAGMENT);
+        }
+
+        if(!serviceArgument.isEmpty()){
+            serviceArgument.forEach((key,value) ->{
+                params.put(key,value);
+                template.append("&" + key + "={" +key +"}");
+            });
         }
         return resolveTemplate(template.toString(), params);
     }
