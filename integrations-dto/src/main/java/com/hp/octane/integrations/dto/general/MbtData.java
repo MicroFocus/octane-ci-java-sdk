@@ -1,16 +1,20 @@
 package com.hp.octane.integrations.dto.general;
 
 import com.hp.octane.integrations.dto.DTOBase;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 
 import java.util.List;
 
 public interface MbtData extends DTOBase {
 
-    List<MbtAction> getActions();
+    List<MbtUnit> getUnits();
 
-    MbtData setActions(List<MbtAction> actions);
+    MbtData setUnits(List<MbtUnit> units);
 
     MbtDataTable getData();
 
     MbtData setData(MbtDataTable dataTable);
+
+    TestingToolType getTestingToolType();
+
 }

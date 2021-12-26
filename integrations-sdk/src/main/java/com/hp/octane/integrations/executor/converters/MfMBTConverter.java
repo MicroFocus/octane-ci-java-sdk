@@ -25,15 +25,15 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
-import com.hp.octane.integrations.dto.general.MbtAction;
-import com.hp.octane.integrations.dto.general.MbtActionParameter;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.general.MbtData;
 import com.hp.octane.integrations.dto.general.MbtDataTable;
+import com.hp.octane.integrations.dto.general.MbtUnit;
+import com.hp.octane.integrations.dto.general.MbtUnitParameter;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverterResult;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
-import com.hp.octane.integrations.uft.items.UftTestType;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.csv.CSVFormat;
@@ -66,14 +66,20 @@ import static com.hp.octane.integrations.utils.SdkConstants.JobParameters.*;
 public class MfMBTConverter extends MfUftConverter {
 
     private static final Logger logger = LogManager.getLogger(MfMBTConverter.class);
+
     public static final String MBT_DATA = "mbtData";
+
     public static final String MBT_PARENT_SUB_DIR = "___mbt";
+
     public static final String MBT_DATA_NOT_INCLUDED = "mbtDataNotIncluded";
+
     public static final Pattern specialCharsPattern = Pattern.compile("[\\/:*?\"<>|%;]");
+
     public static final String BASE64_PREFIX = "BASE64_";
-    List<MbtTest> mbtTests;
 
     public static final String INNER_RUN_ID_PARAMETER = "runId";//should not be handled by uft
+
+    List<MbtTest> mbtTests;
 
     public static String encodeTestNameIfRequired(String name) {
         if (name.startsWith(" ") || name.endsWith(" ") || specialCharsPattern.matcher(name).find()) {
@@ -86,11 +92,91 @@ public class MfMBTConverter extends MfUftConverter {
     public static String decodeTestNameIfRequired(String name) {
         if (name.startsWith(BASE64_PREFIX)) {
             byte[] decodedBytes = Base64.getUrlDecoder().decode(name.substring(BASE64_PREFIX.length()));
-            String decodedString = new String(decodedBytes, Charsets.UTF_8);
-            return decodedString;
+            return new String(decodedBytes, Charsets.UTF_8);
         } else {
             return name;
         }
+    }
+
+    private static boolean shouldRetrieveMbtData(List<TestToRunData> tests) {
+        return tests.get(0).getParameters().get(MBT_DATA).equals(MBT_DATA_NOT_INCLUDED);
+    }
+
+    private static Map<String, String> parseSuiteRunDataJson(String responseJson) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            return objectMapper.readValue(responseJson, Map.class);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Invalid suite run data format: " + e.getMessage(), e);
+        }
+    }
+
+    private static String extractDataTableIterations(MbtData mbtData, TestToRunData testToRunData) {
+        String encodedIterationsAsString = "";
+        MbtDataTable dataTable = mbtData.getData();
+        if (dataTable != null && dataTable.getParameters() != null && !dataTable.getParameters().isEmpty()) {
+            StringBuilderWriter stringBuilderWriter = new StringBuilderWriter();
+            try (CSVPrinter csvPrinter = new CSVPrinter(stringBuilderWriter, CSVFormat.DEFAULT.withHeader(dataTable.getParameters().stream().toArray(String[]::new)))) {
+                dataTable.getIterations().forEach(iteration -> {
+                    try {
+                        csvPrinter.printRecord(iteration);
+                    } catch (IOException e) {
+                        logger.error("Failed to build data table iterations record for mbt test {}", testToRunData.getTestName(), e);
+                    }
+                });
+            } catch (IOException e) {
+                logger.error("Failed to build data table iterations for mbt test {}", testToRunData.getTestName(), e);
+            }
+            String iterationsAsString = stringBuilderWriter.toString();
+            byte[] encodedIterations = Base64.getEncoder().encode(iterationsAsString.getBytes(StandardCharsets.UTF_8));
+            encodedIterationsAsString = new String(encodedIterations, StandardCharsets.UTF_8);
+        }
+        return encodedIterationsAsString;
+    }
+
+    private static String extractActionParameterNames(MbtUnit mbtUnit) {
+        List<MbtUnitParameter> parameters = mbtUnit.getParameters();
+        if (parameters != null && !parameters.isEmpty()) {
+            StringBuilder parameterString = new StringBuilder();
+            parameters.forEach(mbtUnitParameter -> {
+                String parameterName = mbtUnitParameter.getName();
+                switch (mbtUnitParameter.getType().toUpperCase()) {
+                    case "INPUT":
+                        parameterString.append(SdkStringUtils.isEmpty(mbtUnitParameter.getOutputParameter()) ?
+                                ",DataTable(\"" + parameterName + "\")" : "," + mbtUnitParameter.getOutputParameter());
+                        break;
+                    case "OUTPUT":
+                    default:
+                        parameterString.append(",").append(parameterName);
+                        break;
+                }
+            });
+            return parameterString.toString();
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * if path to resource is relative to test, compute absolute path to resource
+     *
+     * @param testPath
+     * @param resourcePath
+     * @return
+     */
+    public static String computeResourcePath(String resourcePath, String testPath) {
+        if (resourcePath.startsWith("..")) {
+            File file = new File(testPath, resourcePath);
+            try {
+                return file.getCanonicalPath();
+            } catch (IOException e) {
+                String msg = String.format("Failed to computeResourcePath for resource %s , test %s", resourcePath, testPath);
+                logger.error(msg);
+                return resourcePath;
+            }
+        }
+        return resourcePath;
+
     }
 
     @Override
@@ -105,6 +191,7 @@ public class MfMBTConverter extends MfUftConverter {
         result.setMbtTests(mbtTests);
     }
 
+    @Override
     public void enrichTestsData(List<TestToRunData> tests, Map<String, String> globalParameters) {
         handleMbtDataRetrieval(tests, globalParameters);
     }
@@ -116,10 +203,8 @@ public class MfMBTConverter extends MfUftConverter {
         }
 
         mbtTests = new ArrayList<>();
-        //StringBuilder str = new StringBuilder();
         int order = 1;
         for (TestToRunData data : tests) {
-            data.setPackageName("_" + order++);
             String mbtDataRaw = data.getParameter(MBT_DATA);
             MbtData mbtData;
             if (MBT_DATA_NOT_INCLUDED.equals(mbtDataRaw)) {
@@ -129,124 +214,155 @@ public class MfMBTConverter extends MfUftConverter {
             try {
                 String raw = new String(Base64.getDecoder().decode(mbtDataRaw), StandardCharsets.UTF_8);
                 mbtData = DTOFactory.getInstance().dtoFromJson(raw, MbtData.class);
+                if(mbtData.getTestingToolType().equals(TestingToolType.UFT)) { // advance package name only for uft tests. it is not relevant for codeless tests
+                    data.setPackageName("_" + order++);
+                }
             } catch (Exception e) {
                 String msg = "Failed to decode test action data " + data.getTestName() + " : " + e.getMessage();
                 logger.error(msg);
                 throw new RuntimeException(msg);
             }
-            //parse test and action names
-            for (int i = mbtData.getActions().size() - 1; i >= 0; i--) {
-                MbtAction mbtAction = mbtData.getActions().get(i);
-                String scmPath = mbtAction.getPathInScm();
-                if (scmPath == null || !scmPath.contains(":")) {
-                    logger.error(String.format("UnitId %s has invalid scmPath : %s, skipping", mbtAction.getUnitId(), mbtAction.getPathInScm()));
-                    mbtData.getActions().remove((i));
-                    continue;
-                }
-                String[] testAndActionParts = scmPath.split(":");//example : GUITests/f1/GUITest02:Action1
-                String testPath = checkoutFolder + "\\" + testAndActionParts[0];
-                String actionName = testAndActionParts[1];
-                mbtAction.setTestPath(testPath).setActionName(actionName);
+
+            if (mbtData.getTestingToolType().equals(TestingToolType.UFT)) {
+                convertUftTest(checkoutFolder, data, mbtData);
+            } else {
+                convertCodelessTest(data, mbtData);
             }
-
-            //build script
-            List<String> scriptLinesList = new ArrayList<>();
-            List<String> underlyingTestsList = new ArrayList<>();
-            List<Long> unitIds = new ArrayList<>();
-
-            String testLineSplitter = "'********************************************************************************************************************************************";
-            scriptLinesList.add("");
-            scriptLinesList.add(testLineSplitter);
-            scriptLinesList.add("");
-
-            try {
-                for (int i = 0; i < mbtData.getActions().size(); i++) {
-                    MbtAction mbtAction = mbtData.getActions().get(i);
-                    String sanitizedTestPath = sanitizeTestPath(mbtAction.getTestPath()); // remove the action from the test path is exists
-                    mbtAction.setTestPath(sanitizedTestPath);
-
-                    //validate test folder exist
-                    File testFolderFile = new File(mbtAction.getTestPath());
-                    if (!testFolderFile.exists()) {
-                        throw new IllegalArgumentException(String.format("Test path %s is not found. UnitId = %s.", mbtAction.getTestPath(), mbtAction.getUnitId()));
-                    }
-                    //validate that uft test folder is valid
-                    if (UftTestDiscoveryUtils.isUftTestFolder(testFolderFile.listFiles()).isNone()) {
-                        throw new IllegalArgumentException(String.format("Invalid test path %s. UnitId = %s.", mbtAction.getTestPath(), mbtAction.getUnitId()));
-                    }
-
-                    String actionParameters = extractActionParameterNames(mbtAction);
-                    TestResources testResources = extractTestResources(mbtAction.getTestPath());
-                    boolean theSameTestAsPrev = i > 0 ? mbtData.getActions().get(i - 1).getTestPath().equals(mbtAction.getTestPath()) : false;
-
-                    if (theSameTestAsPrev) {
-                        scriptLinesList.add("'The action belongs to the test of the previous action. Skip reloading function libraries and recovery scenarios.");
-                    } else {
-
-                        if (!testResources.functionLibraries.isEmpty()) {
-                            scriptLinesList.add("");
-                            scriptLinesList.add("'Add function libraries");
-                            scriptLinesList.add("RestartFLEngine");
-                            for (String fl : testResources.functionLibraries) {
-                                scriptLinesList.add(String.format("LoadFunctionLibrary \"%s\"", fl));
-                            }
-                        }
-
-                        if (!testResources.recoveryScenarios.isEmpty()) {
-                            scriptLinesList.add("");
-                            scriptLinesList.add("'Add recovery scenarios");
-                            scriptLinesList.add("CleanRSManager");
-                            String scenarios = "LoadRecoveryScenario " + testResources.recoveryScenarios.stream().
-                                    map(rs -> String.format("\"%s|%s|1|1*\"", rs.path, rs.name)).collect(Collectors.joining(","));
-                            scriptLinesList.add(scenarios);
-                        }
-                    }
-
-                    scriptLinesList.add("");
-                    scriptLinesList.add("'Run action");
-                    if (actionParameters != null) {
-                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", mbtAction.getTestPath(), mbtAction.getActionName(), actionParameters));
-                    } else {
-                        scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", mbtAction.getTestPath(), mbtAction.getActionName()));
-                    }
-
-                    scriptLinesList.add("");
-                    scriptLinesList.add(testLineSplitter);
-                    scriptLinesList.add("");
-
-                    //END SCRIPT
-
-                    underlyingTestsList.add(mbtAction.getTestPath());
-                    unitIds.add(mbtAction.getUnitId());
-                }
-
-            } catch (Exception e) {
-                logger.error("Failed to build script for test " + data.getTestName() + " : " + e.getMessage());
-                throw e;
-            }
-
-
-            String script = String.join("\r\n", scriptLinesList);
-
-            //ADD PARAMETERS to data table
-            String encodedIterationsAsString = extractDataTableIterations(mbtData, data);
-
-            MbtTest test = new MbtTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString,
-                    Collections.emptyList(), Collections.emptyList());
-            mbtTests.add(test);
         }
+    }
+
+    private void convertUftTest(String checkoutFolder, TestToRunData data, MbtData mbtData) {
+        //parse test and action names
+        for (int i = mbtData.getUnits().size() - 1; i >= 0; i--) {
+            MbtUnit mbtUnit = mbtData.getUnits().get(i);
+            String scmPath = mbtUnit.getPathInScm();
+            if (scmPath == null || !scmPath.contains(":")) {
+                logger.error("UnitId {} has invalid scmPath : {}, skipping", mbtUnit.getUnitId(), mbtUnit.getPathInScm());
+                mbtData.getUnits().remove((i));
+                continue;
+            }
+            String[] testAndActionParts = scmPath.split(":");//example : GUITests/f1/GUITest02:Action1
+            String testPath = checkoutFolder + "\\" + testAndActionParts[0];
+            String actionName = testAndActionParts[1];
+            mbtUnit.setTestPath(testPath).setActionName(actionName);
+        }
+
+        //build script
+        List<String> scriptLinesList = new ArrayList<>();
+        List<String> underlyingTestsList = new ArrayList<>();
+        List<Long> unitIds = new ArrayList<>();
+
+        String testLineSplitter = "'********************************************************************************************************************************************";
+        scriptLinesList.add("");
+        scriptLinesList.add(testLineSplitter);
+        scriptLinesList.add("");
+
+        try {
+            for (int i = 0; i < mbtData.getUnits().size(); i++) {
+                MbtUnit mbtUnit = mbtData.getUnits().get(i);
+                String sanitizedTestPath = sanitizeTestPath(mbtUnit.getTestPath()); // remove the action from the test path is exists
+                mbtUnit.setTestPath(sanitizedTestPath);
+
+                //validate test folder exist
+                File testFolderFile = new File(mbtUnit.getTestPath());
+                if (!testFolderFile.exists()) {
+                    throw new IllegalArgumentException(String.format("Test path %s is not found. UnitId = %s.", mbtUnit.getTestPath(), mbtUnit.getUnitId()));
+                }
+                //validate that uft test folder is valid
+                if (UftTestDiscoveryUtils.isUftTestFolder(testFolderFile.listFiles()).isNone()) {
+                    throw new IllegalArgumentException(String.format("Invalid test path %s. UnitId = %s.", mbtUnit.getTestPath(), mbtUnit.getUnitId()));
+                }
+
+                String actionParameters = extractActionParameterNames(mbtUnit);
+                TestResources testResources = extractTestResources(mbtUnit.getTestPath());
+                boolean theSameTestAsPrev = i > 0 ? mbtData.getUnits().get(i - 1).getTestPath().equals(mbtUnit.getTestPath()) : false;
+
+                if (theSameTestAsPrev) {
+                    scriptLinesList.add("'The action belongs to the test of the previous action. Skip reloading function libraries and recovery scenarios.");
+                } else {
+
+                    if (!testResources.functionLibraries.isEmpty()) {
+                        scriptLinesList.add("");
+                        scriptLinesList.add("'Add function libraries");
+                        scriptLinesList.add("RestartFLEngine");
+                        for (String fl : testResources.functionLibraries) {
+                            scriptLinesList.add(String.format("LoadFunctionLibrary \"%s\"", fl));
+                        }
+                    }
+
+                    if (!testResources.recoveryScenarios.isEmpty()) {
+                        scriptLinesList.add("");
+                        scriptLinesList.add("'Add recovery scenarios");
+                        scriptLinesList.add("CleanRSManager");
+                        String scenarios = "LoadRecoveryScenario " + testResources.recoveryScenarios.stream().
+                                map(rs -> String.format("\"%s|%s|1|1*\"", rs.path, rs.name)).collect(Collectors.joining(","));
+                        scriptLinesList.add(scenarios);
+                    }
+                }
+
+                scriptLinesList.add("");
+                scriptLinesList.add("'Run action");
+                if (actionParameters != null) {
+                    scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\",rngAll%s", mbtUnit.getTestPath(), mbtUnit.getActionName(), actionParameters));
+                } else {
+                    scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", mbtUnit.getTestPath(), mbtUnit.getActionName()));
+                }
+
+                scriptLinesList.add("");
+                scriptLinesList.add(testLineSplitter);
+                scriptLinesList.add("");
+
+                //END SCRIPT
+
+                underlyingTestsList.add(mbtUnit.getTestPath());
+                unitIds.add(mbtUnit.getUnitId());
+            }
+
+        } catch (Exception e) {
+            logger.error("Failed to build script for test {} : {}", data.getTestName(), e.getMessage());
+            throw e;
+        }
+
+        String script = String.join("\r\n", scriptLinesList);
+
+        //ADD PARAMETERS to data table
+        String encodedIterationsAsString = extractDataTableIterations(mbtData, data);
+
+        MbtUftTest test = new MbtUftTest(data.getTestName(), data.getPackageName(), script, underlyingTestsList, unitIds, encodedIterationsAsString,
+                Collections.emptyList(), Collections.emptyList());
+        mbtTests.add(test);
+    }
+
+    private void convertCodelessTest(TestToRunData data, MbtData mbtData) {
+        // this will prevent codeless test to be transformed to mtbx
+        data.addParameters(TESTING_TOOL_TYPE_PARAMETER, TestingToolType.CODELESS.value());
+
+        MbtCodelessTest mbtCodelessTest = new MbtCodelessTest(data.getTestName());
+        mbtCodelessTest.setMbtDataTable(mbtData.getData());
+        for (MbtUnit mbtUnit : mbtData.getUnits()) {
+            MbtCodelessUnit mbtCodelessUnit = new MbtCodelessUnit();
+            mbtCodelessUnit.setUnitId(mbtUnit.getUnitId());
+            mbtCodelessUnit.setName(mbtUnit.getName());
+            mbtCodelessUnit.setOrder(mbtUnit.getOrder());
+            mbtCodelessUnit.setScript(mbtUnit.getScript());
+            mbtCodelessUnit.setParameters(mbtUnit.getParameters());
+
+            mbtCodelessTest.getUnits().add(mbtCodelessUnit);
+        }
+
+        mbtTests.add(mbtCodelessTest);
     }
 
     // remove action# from repository path for execution, if exists
     private String sanitizeTestPath(String testPath) {
-        if(SdkStringUtils.isEmpty(testPath)) {
+        if (SdkStringUtils.isEmpty(testPath)) {
             return testPath;
         }
 
         int lastIndex = testPath.lastIndexOf("\\");
         if (lastIndex > -1) {
             String lastPart = testPath.substring(lastIndex);
-            if(lastPart.toLowerCase().contains("action")) {
+            if (lastPart.toLowerCase().contains("action")) {
                 return testPath.substring(0, lastIndex);
             }
         }
@@ -283,90 +399,13 @@ public class MfMBTConverter extends MfUftConverter {
                         }
                     }
                 } else {
-                    logger.error("Failed to get response " + (octaneResponse != null ? octaneResponse.getStatus() : "(null)"));
+                    logger.error("Failed to get response {}", (octaneResponse != null ? octaneResponse.getStatus() : "(null)"));
                     return;
                 }
             } catch (IOException e) {
                 logger.error("Failed to get response ", e);
                 return;
             }
-        }
-    }
-
-    private static boolean shouldRetrieveMbtData(List<TestToRunData> tests) {
-        return tests.get(0).getParameters().get(MBT_DATA).equals(MBT_DATA_NOT_INCLUDED);
-    }
-
-    private static Map<String, String> parseSuiteRunDataJson(String responseJson) {
-        try {
-            ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            Map<String, String> result = objectMapper.readValue(responseJson, Map.class);
-            return result;
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Invalid suite run data format: " + e.getMessage(), e);
-        }
-    }
-
-    private static String extractDataTableIterations(MbtData mbtData, TestToRunData testToRunData) {
-        String encodedIterationsAsString = "";
-        MbtDataTable dataTable = mbtData.getData();
-        if (dataTable != null && dataTable.getParameters() != null && !dataTable.getParameters().isEmpty()) {
-            StringBuilderWriter stringBuilderWriter = new StringBuilderWriter();
-            try (CSVPrinter csvPrinter = new CSVPrinter(stringBuilderWriter, CSVFormat.DEFAULT.withHeader(dataTable.getParameters().stream().toArray(String[]::new)))) {
-                dataTable.getIterations().forEach(iteration -> {
-                    try {
-                        csvPrinter.printRecord(iteration);
-                    } catch (IOException e) {
-                        logger.error("Failed to build data table iterations record for mbt test " + testToRunData.getTestName(), e);
-                    }
-                });
-            } catch (IOException e) {
-                logger.error("Failed to build data table iterations for mbt test " + testToRunData.getTestName(), e);
-            }
-            String iterationsAsString = stringBuilderWriter.toString();
-            byte[] encodedIterations = Base64.getEncoder().encode(iterationsAsString.getBytes(StandardCharsets.UTF_8));
-            encodedIterationsAsString = new String(encodedIterations, StandardCharsets.UTF_8);
-        }
-        return encodedIterationsAsString;
-    }
-
-    private static String extractActionParameterNames(MbtAction mbtAction) {
-        List<MbtActionParameter> parameters = mbtAction.getParameters();
-        if (parameters != null && !parameters.isEmpty()) {
-            StringBuilder parameterString = new StringBuilder();
-            parameters.forEach(mbtActionParameter -> {
-                String parameterName = mbtActionParameter.getName();
-                switch (mbtActionParameter.getType().toUpperCase()) {
-                    case "INPUT":
-                        parameterString.append(SdkStringUtils.isEmpty(mbtActionParameter.getOutputParameter()) ?
-                                ",DataTable(\"" + parameterName + "\")" : "," + mbtActionParameter.getOutputParameter());
-                        break;
-                    case "OUTPUT":
-                    default:
-                        parameterString.append(",").append(parameterName);
-                        break;
-                }
-            });
-            return parameterString.toString();
-        } else {
-            return null;
-        }
-    }
-
-    private static class TestResources {
-        List<String> functionLibraries = new ArrayList<>();
-        List<RecoveryScenario> recoveryScenarios = new ArrayList<>();
-    }
-
-    private static class RecoveryScenario {
-        String path;
-        String name;
-
-        public static RecoveryScenario create(String path, String name) {
-            RecoveryScenario rc = new RecoveryScenario();
-            rc.path = path;
-            rc.name = name;
-            return rc;
         }
     }
 
@@ -396,35 +435,36 @@ public class MfMBTConverter extends MfUftConverter {
                 if (rsAsArray.length > 1) {
                     String rsPath = computeResourcePath(rsAsArray[0], testPath);
                     String rsName = rsAsArray[1];
-                    //String position = rsAsArray[2];
                     content.recoveryScenarios.add(RecoveryScenario.create(rsPath, rsName));
                 }
             }
         } catch (IOException | ParserConfigurationException | SAXException e) {
-            logger.error("Failed to parse function libraries/recovery scenarios for tests " + testPath + " : " + e);
+            logger.error("Failed to parse function libraries/recovery scenarios for tests {} : {}", testPath, e);
         }
         return content;
     }
 
-    /**
-     * if path to resource is relative to test, compute absolute path to resource
-     *
-     * @param testPath
-     * @param resourcePath
-     * @return
-     */
-    public static String computeResourcePath(String resourcePath, String testPath) {
-        if (resourcePath.startsWith("..")) {
-            File file = new File(testPath, resourcePath);
-            try {
-                return file.getCanonicalPath();
-            } catch (IOException e) {
-                String msg = String.format("Failed to computeResourcePath for resource %s , test %s", resourcePath, testPath);
-                logger.error(msg);
-                return resourcePath;
-            }
-        }
-        return resourcePath;
+    private static class TestResources {
+
+        List<String> functionLibraries = new ArrayList<>();
+
+        List<RecoveryScenario> recoveryScenarios = new ArrayList<>();
 
     }
+
+    private static class RecoveryScenario {
+
+        String path;
+
+        String name;
+
+        public static RecoveryScenario create(String path, String name) {
+            RecoveryScenario rc = new RecoveryScenario();
+            rc.path = path;
+            rc.name = name;
+            return rc;
+        }
+
+    }
+
 }

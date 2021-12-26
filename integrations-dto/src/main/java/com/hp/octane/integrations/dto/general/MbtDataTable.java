@@ -2,9 +2,10 @@ package com.hp.octane.integrations.dto.general;
 
 import com.hp.octane.integrations.dto.DTOBase;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface MbtDataTable extends DTOBase {
+public interface MbtDataTable extends DTOBase, Serializable {
 
     List<String> getParameters();
 

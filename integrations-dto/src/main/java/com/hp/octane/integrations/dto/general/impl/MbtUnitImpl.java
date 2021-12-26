@@ -1,21 +1,32 @@
 package com.hp.octane.integrations.dto.general.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.general.MbtAction;
-import com.hp.octane.integrations.dto.general.MbtActionParameter;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
+import com.hp.octane.integrations.dto.general.MbtUnit;
+import com.hp.octane.integrations.dto.general.MbtUnitParameter;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MbtActionImpl implements MbtAction {
+public class MbtUnitImpl implements MbtUnit {
 
     private String pathInScm;
+
     private String name;
+
     private long unitId;
+
     private int order;
-    private List<MbtActionParameter> parameters;
+
+    private List<MbtUnitParameter> parameters;
+
     private String testPath;
+
     private String actionName;
+
+    private TestingToolType testingToolType;
+
+    private String script;
 
     @Override
     public String getPathInScm() {
@@ -23,7 +34,7 @@ public class MbtActionImpl implements MbtAction {
     }
 
     @Override
-    public MbtAction setPathInScm(String pathInScm) {
+    public MbtUnit setPathInScm(String pathInScm) {
         this.pathInScm = pathInScm;
         return this;
     }
@@ -44,7 +55,7 @@ public class MbtActionImpl implements MbtAction {
     }
 
     @Override
-    public MbtAction setUnitId(long unitId) {
+    public MbtUnit setUnitId(long unitId) {
         this.unitId = unitId;
         return this;
     }
@@ -55,18 +66,18 @@ public class MbtActionImpl implements MbtAction {
     }
 
     @Override
-    public MbtAction setOrder(int order) {
+    public MbtUnit setOrder(int order) {
         this.order = order;
         return this;
     }
 
     @Override
-    public List<MbtActionParameter> getParameters() {
+    public List<MbtUnitParameter> getParameters() {
         return parameters;
     }
 
     @Override
-    public MbtAction setParameters(List<MbtActionParameter> parameters) {
+    public MbtUnit setParameters(List<MbtUnitParameter> parameters) {
         this.parameters = parameters;
         return this;
     }
@@ -77,7 +88,7 @@ public class MbtActionImpl implements MbtAction {
     }
 
     @Override
-    public MbtAction setTestPath(String testPath) {
+    public MbtUnit setTestPath(String testPath) {
         this.testPath = testPath;
         return this;
     }
@@ -88,8 +99,31 @@ public class MbtActionImpl implements MbtAction {
     }
 
     @Override
-    public MbtAction setActionName(String actionName) {
+    public MbtUnit setActionName(String actionName) {
         this.actionName = actionName;
         return this;
     }
+
+    @Override
+    public String getScript() {
+        return script;
+    }
+
+    @Override
+    public MbtUnit setScript(String script) {
+        this.script = script;
+        return this;
+    }
+
+    @Override
+    public TestingToolType getTestingToolType() {
+        return testingToolType;
+    }
+
+    @Override
+    public MbtUnit setTestingToolType(TestingToolType testingToolType) {
+        this.testingToolType = testingToolType;
+        return this;
+    }
+
 }

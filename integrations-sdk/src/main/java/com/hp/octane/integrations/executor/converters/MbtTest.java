@@ -1,67 +1,40 @@
 package com.hp.octane.integrations.executor.converters;
 
-import java.io.Serializable;
-import java.util.List;
+import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 
-public class MbtTest implements Serializable {
+import java.io.Serializable;
+
+/**
+ * @author Itay Karo on 21/11/2021
+ */
+public abstract class MbtTest implements Serializable {
 
     private String name;
 
-    private String script;
+    private TestingToolType type;
 
-    private String packageName;
+    public MbtTest() {
+    }
 
-    private List<String> underlyingTests;
-
-    private List<Long> unitIds;
-
-    private String encodedIterations;
-
-    private List<String> functionLibraries;
-
-    private List<String> recoveryScenarios;
-
-    public MbtTest(String name, String packageName, String script, List<String> underlyingTests, List<Long> unitIds, String encodedIterations, List<String> functionLibraries,
-                   List<String> recoveryScenarios) {
+    public MbtTest(String name, TestingToolType type) {
         this.name = name;
-        this.packageName = packageName;
-        this.script = script;
-        this.underlyingTests = underlyingTests;
-        this.unitIds = unitIds;
-        this.encodedIterations = encodedIterations;
-        this.functionLibraries = functionLibraries;
-        this.recoveryScenarios = recoveryScenarios;
+        this.type = type;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getScript() {
-        return script;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getPackage() {
-        return packageName;
+    public TestingToolType getType() {
+        return type;
     }
 
-    public List<String> getUnderlyingTests() {
-        return underlyingTests;
+    public void setType(TestingToolType type) {
+        this.type = type;
     }
 
-    public List<Long> getUnitIds() {
-        return unitIds;
-    }
-
-    public String getEncodedIterations() {
-        return encodedIterations;
-    }
-
-    public List<String> getFunctionLibraries() {
-        return functionLibraries;
-    }
-
-    public List<String> getRecoveryScenarios() {
-        return recoveryScenarios;
-    }
 }

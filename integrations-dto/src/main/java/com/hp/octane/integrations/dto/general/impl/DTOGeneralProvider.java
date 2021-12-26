@@ -36,9 +36,9 @@ public final class DTOGeneralProvider extends DTOInternalProviderBase {
         dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
         dtoPairs.put(Taxonomy.class, TaxonomyImpl.class);
         dtoPairs.put(ListItem.class, ListItemImpl.class);
-        dtoPairs.put(MbtAction.class, MbtActionImpl.class);
+        dtoPairs.put(MbtUnit.class, MbtUnitImpl.class);
         dtoPairs.put(MbtData.class, MbtDataImpl.class);
-        dtoPairs.put(MbtActionParameter.class, MbtActionParameterImpl.class);
+        dtoPairs.put(MbtUnitParameter.class, MbtUnitParameterImpl.class);
         dtoPairs.put(MbtDataTable.class, MbtDataTableImpl.class);
 
         dtoPairs.put(CIBuildStatusInfo.class, CIBuildStatusInfoImpl.class);
