@@ -141,7 +141,7 @@ final class EntitiesServiceImpl implements EntitiesService {
 
     @Override
     public List<Entity> postEntities(Long workspaceId, String entityCollectionName, List<Entity> entities, Collection<String> fields) {
-		return postEntities(workspaceId, entityCollectionName, entities, null,Collections.emptyMap());
+		return postEntities(workspaceId, entityCollectionName, entities, fields,Collections.emptyMap());
     }
 
     @Override
