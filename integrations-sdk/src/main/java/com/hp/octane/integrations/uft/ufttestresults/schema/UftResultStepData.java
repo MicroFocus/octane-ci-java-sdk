@@ -1,6 +1,7 @@
 package com.hp.octane.integrations.uft.ufttestresults.schema;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UftResultStepData implements Serializable {
@@ -9,8 +10,8 @@ public class UftResultStepData implements Serializable {
     private String result;
     private String message;
     private long duration;
-    private List<UftResultStepParameter> inputParameters;
-    private List<UftResultStepParameter> outputParameters;
+    private List<UftResultStepParameter> inputParameters = new ArrayList<>();
+    private List<UftResultStepParameter> outputParameters = new ArrayList<>();
 
     public UftResultStepData(List<String> parents, String type, String result, String message, long duration) {
         this.parents = parents;
