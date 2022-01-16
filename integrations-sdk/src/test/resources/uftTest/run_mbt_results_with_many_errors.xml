@@ -1,0 +1,1014 @@
+<?xml version="1.0"?>
+<Results version="1.0">
+<ReportNode type="testrun">
+<ReportNode type="Iteration">
+<ReportNode type="Action">
+<ReportNode type="Step">
+<Data>
+    <Name>LoadFunctionLibrary</Name>
+    <Description>LoadFunctionLibrary function passed</Description>
+    <StartTime>2021-07-25 07:41:01</StartTime>
+    <Result>Passed</Result>
+    <Extension>
+      <IconKey>fae1401c59ed4a3fad79c8c634d6d509</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>LoadFunctionLibrary</Name>
+    <Description>LoadFunctionLibrary function passed</Description>
+    <StartTime>2021-07-25 07:41:01</StartTime>
+    <Result>Passed</Result>
+    <Extension>
+      <IconKey>fae1401c59ed4a3fad79c8c634d6d509</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>LoadFunctionLibrary</Name>
+    <Description>LoadFunctionLibrary function passed</Description>
+    <StartTime>2021-07-25 07:41:01</StartTime>
+    <Result>Passed</Result>
+    <Extension>
+      <IconKey>fae1401c59ed4a3fad79c8c634d6d509</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Action">
+<ReportNode type="Step">
+<Data>
+    <Name>SystemUtil.Run "C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe",1</Name>
+    <StartTime>2021-07-25 07:41:02</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>b7089761753d448c84f1a49629288968</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Invalid procedure call or argument</Name>
+    <ErrorText>Invalid procedure call or argument</ErrorText>
+    <Description>&lt;BR/&gt;Line (4): &amp;quot;systemutil.Run(&amp;quot;C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe&amp;quot;)&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:02</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[systemutil.Run("C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe")]]></Scripts>
+          <LineNo><![CDATA[4]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\0b0aa61f-79da-4123-b40b-f85cd5bc6b9f.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>SystemUtil.Run "C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe",1</Name>
+    <StartTime>2021-07-25 07:41:03</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>b7089761753d448c84f1a49629288968</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Invalid procedure call or argument</Name>
+    <ErrorText>Invalid procedure call or argument</ErrorText>
+    <Description>&lt;BR/&gt;Line (6): &amp;quot;systemutil.Run(&amp;quot;C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe&amp;quot;)&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:03</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[systemutil.Run("C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe")]]></Scripts>
+          <LineNo><![CDATA[6]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\fe37fa99-88ac-40de-b75b-8454e69a6358.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (13): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;agentName&amp;quot;).Set &amp;quot;muli&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:03</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("agentName").Set "muli"]]></Scripts>
+          <LineNo><![CDATA[13]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\3e36bc5d-4d4c-4040-aecb-0f8ce85291de.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (14): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;password&amp;quot;).SetSecure &amp;quot;60edd45fdda413a9266b065f3f8b&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:03</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("password").SetSecure "60edd45fdda413a9266b065f3f8b"]]></Scripts>
+          <LineNo><![CDATA[14]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\e3220175-95fb-441b-bae3-d3f8d1413473.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (15): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfButton(&amp;quot;OK&amp;quot;).Click&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:03</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfButton("OK").Click]]></Scripts>
+          <LineNo><![CDATA[15]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\735741df-e6e2-4f0a-ab44-2e7ec569d3a6.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (17): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;password&amp;quot;).SetSecure &amp;quot;60edd471e7eb&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:03</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("password").SetSecure "60edd471e7eb"]]></Scripts>
+          <LineNo><![CDATA[17]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\c6d9a3b6-a2d6-4df0-87ae-82a817fb52f4.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (18): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;agentName&amp;quot;).Set &amp;quot;john&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:04</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("agentName").Set "john"]]></Scripts>
+          <LineNo><![CDATA[18]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\7830279b-48c2-424a-aa69-2446e417b4af.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (19): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;password&amp;quot;).SetSecure &amp;quot;60edd48049ece8e7905b&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:04</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("password").SetSecure "60edd48049ece8e7905b"]]></Scripts>
+          <LineNo><![CDATA[19]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\d7e6a469-3038-4ec2-9ba9-059dbc055086.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (20): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfButton(&amp;quot;OK&amp;quot;).Click&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:04</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action1 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfButton("OK").Click]]></Scripts>
+          <LineNo><![CDATA[20]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\b0297922-61cb-4abf-aaa1-0e69a2cf05b1.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Context">
+<ReportNode type="Step">
+<Data>
+    <Name>OK.Click</Name>
+    <Description />
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Result>Warning</Result>
+    <Extension>
+      <TestObject>
+        <Repository>Local</Repository>
+        <Path>
+          <Object>
+            <Type>Dialog</Type>
+            <Name><![CDATA[Login Failed]]></Name>
+          </Object>
+          <Object>
+            <Type>WinButton</Type>
+            <Name><![CDATA[OK]]></Name>
+          </Object>
+        </Path>
+        <Operation>Click</Operation>
+        <Properties>
+          <Property>
+            <Name><![CDATA[text]]></Name>
+            <Value><![CDATA[OK]]></Value>
+          </Property>
+          <Property>
+            <Name><![CDATA[nativeclass]]></Name>
+            <Value><![CDATA[Button]]></Value>
+          </Property>
+        </Properties>
+      </TestObject>
+      <IconKey>c8414546b0a24177a2661317c192ebab</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<ReportNode type="Step">
+<ReportNode type="Step">
+<Data>
+    <Name>FlightsGUI.exe</Name>
+    <Description>&lt;SPAN class=text&gt;&lt;div align=left&gt;&lt;dl&gt;&lt;b&gt;&lt;u&gt;Close the following processes&lt;/u&gt;:&lt;/b&gt; FlightsGUI.exe&lt;br&gt;No running processes found&lt;/dl&gt;&lt;/div&gt;&lt;/SPAN&gt;</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>d83dc2af1924493dbee13f434d71600e</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Close process operation</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Skip Iteration</Name>
+    <Description>Proceed to next action iteration.</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>3083bc1093534f33acce1c954b47d9e1</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Action</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Recovery Test</Name>
+    <Description>&lt;SPAN class=text&gt;&lt;div align=left&gt;&lt;dl&gt;&lt;b&gt;&lt;u&gt;Scenario&lt;/u&gt;: &lt;/b&gt;Recovery Test&lt;br&gt;&lt;b&gt;&lt;u&gt;Defined in&lt;/u&gt;: &lt;/b&gt;C:\dev\plugins\hpaa-octane-dev-radi\work\workspace\mbtTestRunner\ForIdan\For idan\Recovery file\Recovery_action.qrs&lt;br&gt;&lt;b&gt;&lt;u&gt;Description&lt;/u&gt;: &lt;/b&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;Post-recovery operation&lt;/u&gt;: &lt;/b&gt;Proceed to next action iteration.&lt;br&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;Activated by trigger&lt;/u&gt;:&lt;/b&gt;&lt;dd&gt;&lt;u&gt;Type&lt;/u&gt;: Test run error&lt;br&gt;&lt;u&gt;The error string&lt;/u&gt;: Any error&lt;/dd&gt;&lt;dt&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;The current test step details&lt;/u&gt;:&lt;/b&gt;&lt;dd&gt;&lt;u&gt;Object&lt;/u&gt;: WinButton("OK")&lt;br&gt;&lt;u&gt;Method&lt;/u&gt;: Click&lt;br&gt;&lt;u&gt;Arguments&lt;/u&gt;: EMPTY&lt;br&gt;&lt;u&gt;Result&lt;/u&gt;: Cannot identify the object&lt;/dd&gt;&lt;/dt&gt;&lt;/dl&gt;&lt;/div&gt;&lt;/SPAN&gt;</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Duration>0</Duration>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>b5169238a1eb4b12a87098b29c6849da</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Error</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<ReportNode type="Step">
+<Data>
+    <Name>FlightsGUI.exe</Name>
+    <Description>&lt;SPAN class=text&gt;&lt;div align=left&gt;&lt;dl&gt;&lt;b&gt;&lt;u&gt;Close the following processes&lt;/u&gt;:&lt;/b&gt; FlightsGUI.exe&lt;br&gt;No running processes found&lt;/dl&gt;&lt;/div&gt;&lt;/SPAN&gt;</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>d83dc2af1924493dbee13f434d71600e</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Close process operation</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Skip Iteration</Name>
+    <Description>Proceed to next action iteration.</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>3083bc1093534f33acce1c954b47d9e1</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Action</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Stop on message box 2</Name>
+    <Description>&lt;SPAN class=text&gt;&lt;div align=left&gt;&lt;dl&gt;&lt;b&gt;&lt;u&gt;Scenario&lt;/u&gt;: &lt;/b&gt;Stop on message box 2&lt;br&gt;&lt;b&gt;&lt;u&gt;Defined in&lt;/u&gt;: &lt;/b&gt;C:\dev\plugins\hpaa-octane-dev-radi\work\workspace\mbtTestRunner\ForIdan\For idan\Recovery file\Recovery_stop on msgbox 2.qrs&lt;br&gt;&lt;b&gt;&lt;u&gt;Description&lt;/u&gt;: &lt;/b&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;Post-recovery operation&lt;/u&gt;: &lt;/b&gt;Proceed to next action iteration.&lt;br&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;Activated by trigger&lt;/u&gt;:&lt;/b&gt;&lt;dd&gt;&lt;u&gt;Type&lt;/u&gt;: Test run error&lt;br&gt;&lt;u&gt;The error string&lt;/u&gt;: Any error&lt;/dd&gt;&lt;dt&gt;&lt;br&gt;&lt;b&gt;&lt;u&gt;The current test step details&lt;/u&gt;:&lt;/b&gt;&lt;dd&gt;&lt;u&gt;Object&lt;/u&gt;: WinButton("OK")&lt;br&gt;&lt;u&gt;Method&lt;/u&gt;: Click&lt;br&gt;&lt;u&gt;Arguments&lt;/u&gt;: EMPTY&lt;br&gt;&lt;u&gt;Result&lt;/u&gt;: Cannot identify the object&lt;/dd&gt;&lt;/dt&gt;&lt;/dl&gt;&lt;/div&gt;&lt;/SPAN&gt;</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Duration>0</Duration>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>b5169238a1eb4b12a87098b29c6849da</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Error</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>OK</Name>
+    <Description>Cannot&amp;nbsp;find&amp;nbsp;the&amp;nbsp;"OK"&amp;nbsp;object's&amp;nbsp;parent&amp;nbsp;"Login&amp;nbsp;Failed"&amp;nbsp;(class&amp;nbsp;Dialog).&lt;br/&gt;Verify&amp;nbsp;that&amp;nbsp;parent&amp;nbsp;properties&amp;nbsp;match&amp;nbsp;an&amp;nbsp;object&amp;nbsp;currently&amp;nbsp;displayed&amp;nbsp;in&amp;nbsp;your&amp;nbsp;application.&lt;br/&gt;&lt;br/&gt;Object's physical description:&lt;br&gt;Text = Login Failed&lt;br&gt;Native Class = #32770&lt;br&gt;is owned window = -1&lt;br&gt;is child window = 0&lt;br&gt;</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Duration>0</Duration>
+    <Result>Warning</Result>
+    <Extension>
+      <TestObject>
+        <Repository>Local</Repository>
+        <Path>
+          <Object>
+            <Type>Dialog</Type>
+            <Name><![CDATA[Login Failed]]></Name>
+          </Object>
+          <Object>
+            <Type>WinButton</Type>
+            <Name><![CDATA[OK]]></Name>
+          </Object>
+        </Path>
+        <OperationData><![CDATA[Cannot&nbsp;find&nbsp;the&nbsp;"OK"&nbsp;object's&nbsp;parent&nbsp;"Login&nbsp;Failed"&nbsp;(class&nbsp;Dialog).<br/>Verify&nbsp;that&nbsp;parent&nbsp;properties&nbsp;match&nbsp;an&nbsp;object&nbsp;currently&nbsp;displayed&nbsp;in&nbsp;your&nbsp;application.]]></OperationData>
+        <Properties>
+          <Property>
+            <Name><![CDATA[text]]></Name>
+            <Value><![CDATA[OK]]></Value>
+          </Property>
+          <Property>
+            <Name><![CDATA[nativeclass]]></Name>
+            <Value><![CDATA[Button]]></Value>
+          </Property>
+        </Properties>
+      </TestObject>
+      <IconKey>c8414546b0a24177a2661317c192ebab</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <NodeType>Run Error</NodeType>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Stop action iteration replay</Name>
+    <Description>Run stopped by user.</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Result>Information</Result>
+    <Extension>
+      <IconKey>44f885ac3c26451797e6eab275bcd23d</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Login Failed</Name>
+    <Description>Dialog</Description>
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Duration>0</Duration>
+    <Result>Warning</Result>
+    <Extension>
+      <TestObject>
+        <Repository>Local</Repository>
+        <Path>
+          <Object>
+            <Type>Dialog</Type>
+            <Name><![CDATA[Login Failed]]></Name>
+          </Object>
+        </Path>
+        <OperationData><![CDATA[Dialog]]></OperationData>
+        <Properties>
+          <Property>
+            <Name><![CDATA[text]]></Name>
+            <Value><![CDATA[Login Failed]]></Value>
+          </Property>
+          <Property>
+            <Name><![CDATA[nativeclass]]></Name>
+            <Value><![CDATA[#32770]]></Value>
+          </Property>
+          <Property>
+            <Name><![CDATA[is owned window]]></Name>
+            <Value><![CDATA[True]]></Value>
+          </Property>
+          <Property>
+            <Name><![CDATA[is child window]]></Name>
+            <Value><![CDATA[False]]></Value>
+          </Property>
+        </Properties>
+      </TestObject>
+      <IconKey>01ac8f49287f4b77a183bcf40563686b</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Action1 [Flight_RecoveryAnd_Function]</Name>
+    <Description />
+    <StartTime>2021-07-25 07:41:02</StartTime>
+    <Duration>23</Duration>
+    <Result>Failed</Result>
+    <InputParameters>
+      <Parameter name="userName" value="muli" type="System.String" />
+    </InputParameters>
+    <Extension>
+      <IconKey>171eb66ca015417f880d4878e3af46b0</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<ReportNode type="Action">
+<ReportNode type="Step">
+<Data>
+    <Name>SystemUtil.Run "C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe",1</Name>
+    <StartTime>2021-07-25 07:41:26</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>b7089761753d448c84f1a49629288968</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Invalid procedure call or argument</Name>
+    <ErrorText>Invalid procedure call or argument</ErrorText>
+    <Description>&lt;BR/&gt;Line (1): &amp;quot;systemutil.Run(&amp;quot;C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe&amp;quot;)&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:26</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[systemutil.Run("C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe")]]></Scripts>
+          <LineNo><![CDATA[1]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\4f3ba2df-d468-40a5-a1c8-664068ca75f3.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (4): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;agentName&amp;quot;).Set &amp;quot;john&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:26</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("agentName").Set "john"]]></Scripts>
+          <LineNo><![CDATA[4]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\48ff4792-56b1-409c-9025-9480326f926e.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (5): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;password&amp;quot;).SetSecure &amp;quot;60f095204fb7357e524f&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:26</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("password").SetSecure "60f095204fb7357e524f"]]></Scripts>
+          <LineNo><![CDATA[5]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\eba02acd-a743-421a-b54e-050ac47436bb.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (6): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfButton(&amp;quot;OK&amp;quot;).Click&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:26</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfButton("OK").Click]]></Scripts>
+          <LineNo><![CDATA[6]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\48f83ddd-7ef5-44f2-a392-2c637ca8eb64.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>SystemUtil.Run "C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe",1</Name>
+    <StartTime>2021-07-25 07:41:26</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>b7089761753d448c84f1a49629288968</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Invalid procedure call or argument</Name>
+    <ErrorText>Invalid procedure call or argument</ErrorText>
+    <Description>&lt;BR/&gt;Line (10): &amp;quot;systemutil.Run(&amp;quot;C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe&amp;quot;)&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:26</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[systemutil.Run("C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe")]]></Scripts>
+          <LineNo><![CDATA[10]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\c80028bc-2364-45bd-aa2b-c13487303d4d.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>SystemUtil.Run "C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe",1</Name>
+    <StartTime>2021-07-25 07:41:27</StartTime>
+    <Result>Done</Result>
+    <Extension>
+      <IconKey>b7089761753d448c84f1a49629288968</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>Invalid procedure call or argument</Name>
+    <ErrorText>Invalid procedure call or argument</ErrorText>
+    <Description>&lt;BR/&gt;Line (12): &amp;quot;systemutil.Run(&amp;quot;C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe&amp;quot;)&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:27</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[systemutil.Run("C:\Program Files (x86)\Micro Focus\UFT One\samples\Flights Application\FlightsGUI.exe")]]></Scripts>
+          <LineNo><![CDATA[12]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\ccc6ce28-91aa-4212-b669-8d5e0b29023d.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (19): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;agentName&amp;quot;).Set &amp;quot;muli&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:27</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("agentName").Set "muli"]]></Scripts>
+          <LineNo><![CDATA[19]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\0020bef3-c01d-41e7-83cc-c450cba316f7.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (20): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;password&amp;quot;).SetSecure &amp;quot;60edd45fdda413a9266b065f3f8b&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:28</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("password").SetSecure "60edd45fdda413a9266b065f3f8b"]]></Scripts>
+          <LineNo><![CDATA[20]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\a9e448c9-06f8-41ca-9bd7-2edc0d9080de.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (21): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfButton(&amp;quot;OK&amp;quot;).Click&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:28</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfButton("OK").Click]]></Scripts>
+          <LineNo><![CDATA[21]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\4cd64707-d9eb-4c9a-a7bd-7aee6baef900.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (23): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;password&amp;quot;).SetSecure &amp;quot;60edd471e7eb&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:28</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("password").SetSecure "60edd471e7eb"]]></Scripts>
+          <LineNo><![CDATA[23]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\46d4acf2-156e-448a-a01c-305bd939a288.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (24): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;agentName&amp;quot;).Set &amp;quot;john&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:28</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("agentName").Set "john"]]></Scripts>
+          <LineNo><![CDATA[24]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\f2a8f18a-b1b6-4c46-8908-abc4ea860e4a.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (25): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfEdit(&amp;quot;password&amp;quot;).SetSecure &amp;quot;60edd48049ece8e7905b&amp;quot;&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:28</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfEdit("password").SetSecure "60edd48049ece8e7905b"]]></Scripts>
+          <LineNo><![CDATA[25]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\69bb4c47-8118-45d0-91a9-b877d6d4608a.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>ActiveX component can't create object: 'WpfWindow'</Name>
+    <ErrorText>ActiveX component can't create object: 'WpfWindow'</ErrorText>
+    <Description>&lt;BR/&gt;Line (26): &amp;quot;WpfWindow(&amp;quot;Micro Focus MyFlight Sample&amp;quot;).WpfButton(&amp;quot;OK&amp;quot;).Click&amp;quot;.</Description>
+    <StartTime>2021-07-25 07:41:28</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[WpfWindow("Micro Focus MyFlight Sample").WpfButton("OK").Click]]></Scripts>
+          <LineNo><![CDATA[26]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\7a662295-6bce-431c-8979-860ecd91a3c0.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<ReportNode type="Step">
+<Data>
+    <Name>The "Login Failed"  object was not found in the Object Repository.</Name>
+    <ErrorText>The "Login Failed"  object was not found in the Object Repository.
+Check the Object Repository to confirm that the object exists or to find the correct name for the object.</ErrorText>
+    <Description>The &amp;quot;Login Failed&amp;quot;  object was not found in the Object Repository.&lt;BR/&gt;Check the Object Repository to confirm that the object exists or to find the correct name for the object.&lt;BR/&gt;Line (27): &amp;quot;Dialog(&amp;quot;Login Failed&amp;quot;).WinButton(&amp;quot;OK&amp;quot;).Click&amp;quot;. </Description>
+    <StartTime>2021-07-25 07:41:28</StartTime>
+    <Result>Failed</Result>
+    <Extension>
+      <StackTrace>
+        <StackFrame>
+          <ModuleName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></ModuleName>
+          <FileName><![CDATA[Action2 [Flight_RecoveryAnd_Function]]]></FileName>
+          <Language><![CDATA[VBScript - script block]]></Language>
+          <FunctionName><![CDATA[VBScript global code]]></FunctionName>
+          <Scripts><![CDATA[Dialog("Login Failed").WinButton("OK").Click]]></Scripts>
+          <LineNo><![CDATA[27]]></LineNo>
+        </StackFrame>
+      </StackTrace>
+      <IconKey>429011c6b36448e987e0ae7be084c8a9</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+      <MergeIsErrorIcon>True</MergeIsErrorIcon>
+    </Extension>
+    <Snapshot reference="Resources\Snapshots\53683e37-95b8-4d42-8dc6-24c8792a969d.jpeg" />
+    <DeviceInfo />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Action2 [Flight_RecoveryAnd_Function]</Name>
+    <Description />
+    <StartTime>2021-07-25 07:41:25</StartTime>
+    <Duration>3</Duration>
+    <Result>Failed</Result>
+    <InputParameters />
+    <Extension>
+      <IconKey>171eb66ca015417f880d4878e3af46b0</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Action1</Name>
+    <Description />
+    <StartTime>2021-07-25 07:41:01</StartTime>
+    <Duration>27</Duration>
+    <Result>Failed</Result>
+    <InputParameters />
+    <Extension>
+      <IconKey>dc9a950880cf4d2e8b6b6689dbe96fdd</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+  </Data>
+</ReportNode>
+<Data>
+    <Name>Action0</Name>
+    <Description />
+    <StartTime>2021-07-25 07:41:01</StartTime>
+    <Duration>27</Duration>
+    <Result>Failed</Result>
+    <Extension>
+      <IconKey>f4d1aa2a74874db4bc79ea57a0efaf08</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <Index>1</Index>
+    <TestedApplications />
+  </Data>
+</ReportNode>
+<Data>
+    <Name>idan_00001</Name>
+    <ToolName>Micro Focus Unified Functional Testing</ToolName>
+    <ToolVersion>0</ToolVersion>
+    <ToolVersionStringLiteral>15.0.2</ToolVersionStringLiteral>
+    <Description />
+    <StartTime>2021-07-25 07:41:00</StartTime>
+    <Duration>28</Duration>
+    <Result>Failed</Result>
+    <InputParameters />
+    <Extension>
+      <IconKey>90526dbff527414ebede262f475550dd</IconKey>
+      <IsPlainTextNodeName>True</IsPlainTextNodeName>
+    </Extension>
+    <Environment>
+      <Timezone>+03:00:00</Timezone>
+      <Locale>English (United States)</Locale>
+      <User>CORPDOM\berkovir</User>
+      <CpuInfo>Intel(R) Core(TM) i7-8850H CPU @ 2.60GHz</CpuInfo>
+      <NumberOfCores>12</NumberOfCores>
+      <TotalMemory>32575</TotalMemory>
+      <HostName>microfocus.com\ILBERKOVIR03</HostName>
+      <OSInfo>Windows 10</OSInfo>
+    </Environment>
+    <TestedApplications />
+    <Links>
+      <Link type="DataTable" reference="Default.xlsx" displayname="Default Data Table" />
+    </Links>
+  </Data>
+</ReportNode>
+<GeneralInfo>
+    <ResultName>idan_00001</ResultName>
+    <RunStartTime>2021-07-25 07:41:00</RunStartTime>
+    <Timezone>+03:00:00</Timezone>
+    <OrchestrationToolName>Micro Focus Unified Functional Testing</OrchestrationToolName>
+    <OrchestrationToolVersion>0</OrchestrationToolVersion>
+    <OrchestrationToolVersionStringLiteral>15.0.2</OrchestrationToolVersionStringLiteral>
+  </GeneralInfo>
+</Results>

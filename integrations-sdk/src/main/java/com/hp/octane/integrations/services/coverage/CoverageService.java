@@ -39,6 +39,7 @@ public interface CoverageService extends ClosableService, HasQueueService, HasMe
 	 * @param configurer SDK services configurer object
 	 * @param queueingService queueingService
 	 * @param restService restService
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 	 */
 	static CoverageService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
@@ -71,6 +72,7 @@ public interface CoverageService extends ClosableService, HasQueueService, HasMe
 	 * @param buildId        CI Build ID
 	 * @param reportType     report type of the pushed content
 	 * @param reportFileName report file name, optional; when plugin knows that the report is a single file and doesn't need a name, may provide NULL here
+	 * @param rootJobId rootJobId
 	 */
-	void enqueuePushCoverage(String jobId, String buildId, CoverageReportType reportType, String reportFileName);
+	void enqueuePushCoverage(String jobId, String buildId, CoverageReportType reportType, String reportFileName, String rootJobId);
 }

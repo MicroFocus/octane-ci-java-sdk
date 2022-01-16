@@ -19,7 +19,9 @@ package com.hp.octane.integrations.services.entities;
 
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  * Created by berkovir on 17/05/2017.
@@ -34,12 +36,16 @@ public class QueryHelper {
         return name + "={" + condition(refName, value) + "}";
     }
 
-    public static String conditionRefEmtpy(String name) {
+    public static String conditionRefEmpty(String name) {
         return name + "={null}";
     }
 
     public static String conditionNot(String condition) {
         return "!" + condition;
+    }
+
+    public static String conditionStartWith(String name, String value) {
+        return name + "='" + escapeQueryValue(value) + "*'";
     }
 
     public static String condition(String name, String value) {
@@ -50,20 +56,33 @@ public class QueryHelper {
         return name + "=" + value;
     }
 
+    public static String conditionEmpty(String name) {
+        return name + "=null";
+    }
+
     public static String condition(String name, long value) {
         return name + "=" + value;
     }
 
-    public static String conditionIn(String name, Collection<?> ids, boolean isNumber) {
+    public static String condition(String name, boolean value) {
+        return name + "=" + value;
+    }
+
+    public static String orConditions(String... conditions) {
+        return "(" + Arrays.stream(conditions).map(c -> "(" + c + ")").collect(Collectors.joining("||")) + ")";
+    }
+
+    public static String conditionIn(String name, Collection<?> data, boolean isNumber) {
         if (isNumber) {
-            return name + " IN " + SdkStringUtils.join(ids, ",");
+            return name + " IN " + SdkStringUtils.join(data, ",");
         } else {
+            data = data.stream().map(o -> escapeQueryValue((String)o)).collect(Collectors.toList());
             //wrap values with '
-            return name + " IN '" + SdkStringUtils.join(ids, "','") + "'";
+            return name + " IN '" + SdkStringUtils.join(data, "','") + "'";
         }
     }
 
     private static String escapeQueryValue(String value) {
-        return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'])", "\\\\$1");
+        return value.replaceAll("(\\\\)", "$1$1").replaceAll("([\"'()])", "\\\\$1");
     }
 }

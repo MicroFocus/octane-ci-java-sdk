@@ -7,6 +7,7 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
 import com.hp.octane.integrations.dto.parameters.CIParameterType;
+import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 
 import java.util.ArrayList;
@@ -59,9 +60,9 @@ public class TaskingTestPluginServicesTest extends CIPluginServices {
 	}
 
 	@Override
-	public void runPipeline(String jobId, String originalBody) {
+	public void runPipeline(String jobId, CIParameters ciParameters) {
 		if (runAPINotImplemented) {
-			super.runPipeline(jobId, originalBody);
+			super.runPipeline(jobId, ciParameters);
 		}
 		if (runAPIThrowsException) {
 			throw new RuntimeException("runtime exception");

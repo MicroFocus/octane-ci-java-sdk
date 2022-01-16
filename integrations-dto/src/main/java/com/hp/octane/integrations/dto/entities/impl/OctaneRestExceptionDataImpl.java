@@ -7,7 +7,7 @@ import com.hp.octane.integrations.dto.entities.OctaneRestExceptionData;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class OctaneRestExceptionDataImpl implements OctaneRestExceptionData {
 
-
+    private Integer index;
     private String errorCode;
     private String correlationId;
     private String description;
@@ -15,6 +15,11 @@ public class OctaneRestExceptionDataImpl implements OctaneRestExceptionData {
     private String stackTrace;
     private boolean businessError = false;
 
+
+    @Override
+    public Integer getIndex() {
+        return index;
+    }
 
     @Override
     public String getErrorCode() {
@@ -44,6 +49,11 @@ public class OctaneRestExceptionDataImpl implements OctaneRestExceptionData {
     @Override
     public boolean getBusinessError() {
         return businessError;
+    }
+
+    @JsonSetter("index")
+    public void setIndex(Integer index) {
+        this.index = index;
     }
 
     @JsonSetter("error_code")

@@ -23,6 +23,7 @@ import com.hp.octane.integrations.utils.SdkStringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.hp.octane.integrations.executor.TestToRunData.TESTS_TO_RUN_STRING_VERSION;
 
@@ -41,15 +42,27 @@ public abstract class TestsToRunConverter {
         return format;
     }
 
-    public TestsToRunConverterResult convert(String rawTests, String executionDirectory) {
+    public TestsToRunConverterResult convert(String testsToRunStr, String executionDirectory, Map<String, String> globalParameters) {
+        List<TestToRunData> data = parse(testsToRunStr);
+        return convert(data, executionDirectory, globalParameters);
+    }
 
-        List<TestToRunData> data = parse(rawTests);
-        String converted = convert(data, executionDirectory);
-        TestsToRunConverterResult result = new TestsToRunConverterResult(rawTests, data, converted, executionDirectory, testsToRunConvertedParameterName);
+    public TestsToRunConverterResult convert(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
+        String converted = convertInternal(data, executionDirectory, globalParameters);
+        TestsToRunConverterResult result = new TestsToRunConverterResult(data, converted, executionDirectory, testsToRunConvertedParameterName);
+        afterConvert(result);
         return result;
     }
 
-    protected abstract String convert(List<TestToRunData> data, String executionDirectory);
+    public void enrichTestsData(List<TestToRunData> tests, Map<String, String> globalParameters) {
+
+    }
+
+    protected void afterConvert(TestsToRunConverterResult result) {
+
+    }
+
+    protected abstract String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters);
 
     protected void setTestsToRunConvertedParameterName(String value) {
         if (SdkStringUtils.isEmpty(value)) {
@@ -58,21 +71,21 @@ public abstract class TestsToRunConverter {
         testsToRunConvertedParameterName = value;
     }
 
-    protected List<TestToRunData> parse(String rawTests) {
+    public static List<TestToRunData> parse(String rawTests) {
 
         //format: v1:package1|class1|test1|key1=val1|key2=val2;package2|class2|test2#arguments2;package3|class3|test3#arguments3
         if (SdkStringUtils.isEmpty(rawTests)) {
             return null;
         }
         boolean bTestToRunStringVersion = rawTests.startsWith(TESTS_TO_RUN_STRING_VERSION);
-        if( bTestToRunStringVersion ) {
+        if (bTestToRunStringVersion) {
             return parse(rawTests.substring(rawTests.indexOf(":") + 1).split(";"));
         } else {
             return parseJson(rawTests);
         }
     }
 
-    protected List<TestToRunData> parseJson(String rawTestsJson) {
+    private static List<TestToRunData> parseJson(String rawTestsJson) {
         try {
             final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             TestToRunDataCollection result = objectMapper.readValue(rawTestsJson, TestToRunDataCollection.class);
@@ -82,7 +95,7 @@ public abstract class TestsToRunConverter {
         }
     }
 
-    protected List<TestToRunData> parse(String[] rawTestsArr) {
+    private static List<TestToRunData> parse(String[] rawTestsArr) {
         List<TestToRunData> result = new ArrayList<>(rawTestsArr.length);
         int TEST_PARTS_MINIMAL_SIZE = 3;//package1|class1|test1
         int PARAMETER_SIZE = 2;//key=value

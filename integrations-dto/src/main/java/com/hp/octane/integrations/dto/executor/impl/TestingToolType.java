@@ -21,7 +21,9 @@ import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum TestingToolType {
 	UNKNOWN("unknown"),
-	UFT("uft");
+	UFT("uft"),
+	CODELESS("codeless"),
+	MBT("mbt");
 
 	private String value;
 
@@ -42,8 +44,12 @@ public enum TestingToolType {
 
 		TestingToolType result = UNKNOWN;
 		for (TestingToolType v : values()) {
-			if (v.value.compareTo(value) == 0) {
+			if (v.value.compareToIgnoreCase(value) == 0) {
 				result = v;
+				break;
+			}
+			if(value.equalsIgnoreCase("uft one")) { // support octane conversion
+				result = UFT;
 				break;
 			}
 		}

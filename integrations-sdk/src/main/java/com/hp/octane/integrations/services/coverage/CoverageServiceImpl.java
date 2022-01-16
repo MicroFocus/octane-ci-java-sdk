@@ -25,6 +25,7 @@ import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
@@ -38,12 +39,14 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+
+import static com.hp.octane.integrations.services.rest.RestService.CORRELATION_ID_HEADER;
 
 /**
  * Default implementation of Coverage Service
@@ -59,6 +62,7 @@ class CoverageServiceImpl implements CoverageService {
 	private final ObjectQueue<CoverageQueueItem> coveragePushQueue;
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
+	protected final ConfigurationService configurationService;
 	private final WorkerPreflight workerPreflight;
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
@@ -79,6 +83,7 @@ class CoverageServiceImpl implements CoverageService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
 		if (queueingService.isPersistenceEnabled()) {
@@ -87,9 +92,9 @@ class CoverageServiceImpl implements CoverageService {
 			coveragePushQueue = queueingService.initMemoQueue();
 		}
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		coveragePushExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + coveragePushQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY (backed by " + coveragePushQueue.getClass().getSimpleName() + ")");
 	}
 
 	// infallible everlasting background worker
@@ -103,16 +108,16 @@ class CoverageServiceImpl implements CoverageService {
 			try {
 				coverageQueueItem = coveragePushQueue.peek();
 				pushCoverageWithPreflight(coverageQueueItem);
-				logger.debug(configurer.octaneConfiguration.geLocationForLog() + "successfully processed " + coverageQueueItem);
+				logger.debug(configurer.octaneConfiguration.getLocationForLog() + "successfully processed " + coverageQueueItem);
 				coveragePushQueue.remove();
 			} catch (TemporaryException te) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + coverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "temporary error on " + coverageQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", te);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pe) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + coverageQueueItem + ", passing over", pe);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "permanent error on " + coverageQueueItem + ", passing over", pe);
 				coveragePushQueue.remove();
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build coverage item '" + coverageQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected error on build coverage item '" + coverageQueueItem + "', passing over", t);
 				coveragePushQueue.remove();
 			}
 		}
@@ -156,10 +161,10 @@ class CoverageServiceImpl implements CoverageService {
 			try {
 				String[] wss = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
 				if (wss.length > 0) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "coverage of " + jobId + " found " + wss.length + " interested workspace/s in Octane, dispatching the coverage");
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "coverage of " + jobId + " found " + wss.length + " interested workspace/s in Octane, dispatching the coverage");
 					result = true;
 				} else {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "coverage of " + jobId + ", found no interested workspace in Octane");
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "coverage of " + jobId + ", found no interested workspace in Octane");
 				}
 			} catch (IOException ioe) {
 				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
@@ -206,9 +211,14 @@ class CoverageServiceImpl implements CoverageService {
 		} catch (URISyntaxException urise) {
 			throw new PermanentException("failed to build URL to push coverage report", urise);
 		}
+
+		String correlationId = CIPluginSDKUtils.getNextCorrelationId();
+		Map<String, String> headers = new HashMap<>();
+		headers.put(CORRELATION_ID_HEADER, correlationId);
 		OctaneRequest pushCoverageRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(url)
+				.setHeaders(headers)
 				.setBody(coverageReport);
 		try {
 			return restService.obtainOctaneRestClient().execute(pushCoverageRequest);
@@ -218,7 +228,7 @@ class CoverageServiceImpl implements CoverageService {
 	}
 
 	@Override
-	public void enqueuePushCoverage(String jobId, String buildId, CoverageReportType reportType, String reportFileName) {
+	public void enqueuePushCoverage(String jobId, String buildId, CoverageReportType reportType, String reportFileName, String rootJobId) {
 		if (jobId == null || jobId.isEmpty()) {
 			throw new IllegalArgumentException("job ID MUST NOT be null nor empty");
 		}
@@ -229,6 +239,9 @@ class CoverageServiceImpl implements CoverageService {
 			throw new IllegalArgumentException("report type MUST NOT be null");
 		}
 		if (this.configurer.octaneConfiguration.isDisabled()) {
+			return;
+		}
+		if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
 			return;
 		}
 
@@ -255,14 +268,14 @@ class CoverageServiceImpl implements CoverageService {
 		//  get coverage report content
 		InputStream coverageReport = configurer.pluginServices.getCoverageReport(queueItem.jobId, queueItem.buildId, queueItem.reportFileName);
 		if (coverageReport == null) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "no log for " + queueItem + " found, abandoning");
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "no log for " + queueItem + " found, abandoning");
 			return;
 		}
 
 		//  push coverage
 		OctaneResponse response = pushCoverage(queueItem.jobId, queueItem.buildId, queueItem.reportType, coverageReport);
 		if (response.getStatus() == HttpStatus.SC_OK) {
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed coverage of " + queueItem);
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "successfully pushed coverage of " + queueItem + ", CorrelationId - " + response.getCorrelationId());
 		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 			throw new TemporaryException("temporary failed to push coverage of " + queueItem + ", status: " + HttpStatus.SC_SERVICE_UNAVAILABLE);
 		} else {
@@ -289,7 +302,6 @@ class CoverageServiceImpl implements CoverageService {
 	@Override
 	public Map<String, Object> getMetrics() {
 		Map<String, Object> map = new LinkedHashMap<>();
-		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
 		workerPreflight.addMetrics(map);
 		return map;

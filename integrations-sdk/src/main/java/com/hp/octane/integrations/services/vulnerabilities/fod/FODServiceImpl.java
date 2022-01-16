@@ -17,6 +17,7 @@ package com.hp.octane.integrations.services.vulnerabilities.fod;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.PermanentException;
+import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.vulnerabilities.ExistingIssuesInOctane;
 import com.hp.octane.integrations.services.vulnerabilities.PackIssuesToOctaneUtils;
@@ -29,6 +30,7 @@ import com.hp.octane.integrations.services.vulnerabilities.fod.dto.services.FODV
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -58,10 +60,10 @@ public class FODServiceImpl implements FODService {
     @Override
     public InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem) throws IOException {
 
-        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "Entered getVulnerabilitiesScanResultStream");
+        logger.debug(configurer.octaneConfiguration.getLocationForLog() + "Entered getVulnerabilitiesScanResultStream");
         String targetDir = getTargetDir(configurer.pluginServices.getAllowedOctaneStorage(),
                 queueItem.getJobId(), queueItem.getBuildId());
-        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "getVulnerabilitiesScanResultStream target Dir:" + targetDir);
+        logger.debug(configurer.octaneConfiguration.getLocationForLog() + "getVulnerabilitiesScanResultStream target Dir:" + targetDir);
         InputStream cachedScanResult = getCachedScanResult(targetDir);
         if (cachedScanResult != null) {
             logger.warn("results " + queueItem.toString() + "are cached!");
@@ -83,8 +85,15 @@ public class FODServiceImpl implements FODService {
     }
 
     @Override
-    public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem queueItem) {
-        return false;
+    public boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
+        String runRootDir = getTargetDir(configurer.pluginServices.getAllowedOctaneStorage(),
+                vulnerabilitiesQueueItem.getJobId(),
+                vulnerabilitiesQueueItem.getBuildId());
+        if (runRootDir == null) {
+            return false;
+        }
+        File directoryToBeDeleted = new File(runRootDir);
+        return deleteDirectory(directoryToBeDeleted);
     }
 
     @Override
@@ -99,21 +108,21 @@ public class FODServiceImpl implements FODService {
 
     private PplnRunStatus fodScanIsStillInProgress(VulnerabilitiesQueueItem queueItem) {
 
-        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "Check if scan is in progress." + queueItem.getJobId() + "#" + queueItem.getJobId());
+        logger.debug(configurer.octaneConfiguration.getLocationForLog() + "Check if scan is in progress." + queueItem.getJobId() + "#" + queueItem.getJobId());
 
         Long pplRunStartTime = queueItem.getStartTime();
 
         //It is done , but it's scan still active.
         if (getScan(queueItem) == null) {
-            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "need to retrieve the scan Id");
+            logger.debug(configurer.octaneConfiguration.getLocationForLog() + "need to retrieve the scan Id");
             List<Scan> scans = FODReleaseService.getScansLastInFirstFetched(getRelease(queueItem), pplRunStartTime);
             setScanIdForItem(queueItem, scans);
             if (getScan(queueItem) == null) {
                 incFailedTries(queueItem);
-                logger.warn(configurer.octaneConfiguration.geLocationForLog() + "scan Id was not found yet");
+                logger.warn(configurer.octaneConfiguration.getLocationForLog() + "scan Id was not found yet");
             }
         } else {
-            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "scanId is already retrieved from previous polling:" + getScan(queueItem));
+            logger.debug(configurer.octaneConfiguration.getLocationForLog() + "scanId is already retrieved from previous polling:" + getScan(queueItem));
         }
         if (getScan(queueItem) != null) {
             Long release = getRelease(queueItem);
@@ -153,7 +162,7 @@ public class FODServiceImpl implements FODService {
             releaseId = this.configurer.pluginServices.getFodRelease(queueItem.getJobId(), queueItem.getBuildId()).toString();
             queueItem.getAdditionalProperties().put("releaseId", releaseId);
         }
-        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "FOD ReleaseId:" + releaseId);
+        //logger.warn(configurer.octaneConfiguration.getLocationForLog() + "FOD ReleaseId:" + releaseId);
     }
 
     Long getRelease(VulnerabilitiesQueueItem item) {
@@ -168,7 +177,7 @@ public class FODServiceImpl implements FODService {
 
     private List<OctaneIssue> fetchIssues(VulnerabilitiesQueueItem queueItem, String remoteTag) throws IOException {
 
-        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "Security scan is done, time to get issues from.");
+        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "Security scan is done.");
         List<Vulnerability> allVulnerabilities =
                 FODVulnerabilityService.getAllVulnerabilities(getRelease(queueItem));
         List<Vulnerability> nonClosedIssues = filterOutBeforeBaselineIssues(queueItem.getBaselineDate(), allVulnerabilities);
@@ -186,22 +195,23 @@ public class FODServiceImpl implements FODService {
         Map<String, VulnerabilityAllData> idToAllData = getVulnerabilityAllDataMap(getRelease(queueItem),
                 sortedIssues.issuesRequiredExtendedData);
 
+        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "fetch existing issues from Octane");
         List<OctaneIssue> octaneIssuesToUpdate =
                 securityIssueValuesHelper.createOctaneIssuesFromVulns(sortedIssues.issuesToUpdate, remoteTag, idToAllData,
                         queueItem.getBaselineDate());
 
         List<OctaneIssue> total = new ArrayList<>();
         total.addAll(octaneIssuesToUpdate);
-        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "ToUpdate " + octaneIssuesToUpdate.size() + " items : " + octaneIssuesToUpdate);
+        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "ToUpdate " + octaneIssuesToUpdate.size() + " items : " + octaneIssuesToUpdate);
         total.addAll(sortedIssues.issuesToClose);
-        logger.warn(configurer.octaneConfiguration.geLocationForLog() + "ToClose " + sortedIssues.issuesToClose.size() + " items : " + sortedIssues.issuesToClose);
+        logger.warn(configurer.octaneConfiguration.getLocationForLog() + "ToClose " + sortedIssues.issuesToClose.size() + " items : " + sortedIssues.issuesToClose);
         return total;
     }
 
     private Map<String, VulnerabilityAllData> getVulnerabilityAllDataMap(Long releaseId, List<Vulnerability> requiredExtendedData) {
         long SLEEP_MS = 2000;
         long EXPECTED_REQUEST_TIME_MS = 1000;//used to compute waiting time
-        logger.warn(configurer.octaneConfiguration.geLocationForLog() + String.format("getVulnerabilityAllDataMap, requiredExtendedData.size=%s, expected processing duration is %s sec",
+        logger.warn(configurer.octaneConfiguration.getLocationForLog() + String.format("getVulnerabilityAllDataMap, requiredExtendedData.size=%s, expected processing duration is %s sec",
                 requiredExtendedData.size(), requiredExtendedData.size() * (SLEEP_MS + EXPECTED_REQUEST_TIME_MS) / 1000));
         Map<String, VulnerabilityAllData> idToAllData = new HashMap<>();
 
@@ -212,7 +222,7 @@ public class FODServiceImpl implements FODService {
                 doWait(SLEEP_MS);
             }
             if (i > 0 && i % 50 == 0) {
-                logger.warn(configurer.octaneConfiguration.geLocationForLog() + String.format("getVulnerabilityAllDataMap, %s/%s is done, remaining processing duration is %s sec",
+                logger.warn(configurer.octaneConfiguration.getLocationForLog() + String.format("getVulnerabilityAllDataMap, %s/%s is done, remaining processing duration is %s sec",
                         i, requiredExtendedData.size(), (requiredExtendedData.size() - i) * (SLEEP_MS + EXPECTED_REQUEST_TIME_MS) / 1000));
             }
 
@@ -240,14 +250,19 @@ public class FODServiceImpl implements FODService {
                 return false;
             }
 
-            logger.debug(configurer.octaneConfiguration.geLocationForLog() + "scan:" + scanId + " is:" + completeScan.status);
+            logger.debug(configurer.octaneConfiguration.getLocationForLog() + "scan:" + scanId + " is:" + completeScan.status);
 
             if (completeScan.status == null) {
                 return false;
             }
             //Scan that has not started, and not in progress is completed.
             return (!Scan.IN_PROGRESS.equals(completeScan.status) &&
-                    !Scan.NOT_STARTED.equals(completeScan.status));
+                    !Scan.NOT_STARTED.equals(completeScan.status) &&
+                    !Scan.QUEUED.equals(completeScan.status));
+        } catch (PermanentException e){
+            throw e;
+        } catch (TemporaryException e){
+            throw e;
         } catch (Exception e) {
             return false;
         }
@@ -255,7 +270,7 @@ public class FODServiceImpl implements FODService {
 
     private void setScanIdForItem(VulnerabilitiesQueueItem queueItem, List<Scan> scans) {
         Long relevantScanId = getRelevantScan(scans, queueItem);
-        logger.debug(configurer.octaneConfiguration.geLocationForLog() + "scan Id is retrieved:" + relevantScanId);
+        logger.debug(configurer.octaneConfiguration.getLocationForLog() + "scan Id is retrieved:" + relevantScanId);
         if (relevantScanId != null) {
             queueItem.getAdditionalProperties().put("scanId", relevantScanId.toString());
         }

@@ -31,6 +31,7 @@ public interface LogsService extends ClosableService, HasQueueService, HasMetric
 	 * @param configurer   SDK services configurer object
 	 * @param queueingService Queue service
 	 * @param restService  Rest Service
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 	 */
 	static LogsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {

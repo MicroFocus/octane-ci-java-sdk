@@ -18,22 +18,28 @@ package com.hp.octane.integrations.services.tasking;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
+import com.hp.octane.integrations.services.ClosableService;
+import com.hp.octane.integrations.services.HasMetrics;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
+
+import java.util.concurrent.Future;
 
 /**
  * Tasks Processor handles ALM Octane tasks, both coming from abridged logic as well as plugin's REST call delegation.
  * Generally Tasks Processor assumed to be implemented as a singleton, and in any case it should be fully thread safe.
  */
 
-public interface TasksProcessor {
+public interface TasksProcessor extends ClosableService, HasMetrics {
 
 	/**
 	 * Service instance producer - for internal usage only (protected by inaccessible configurer)
 	 *
 	 * @param configurer SDK services configurer object
+	 * @param configurationService configurationService
 	 * @return initialized service
 	 */
-	static TasksProcessor newInstance(OctaneSDK.SDKServicesConfigurer configurer) {
-		return new TasksProcessorImpl(configurer);
+	static TasksProcessor newInstance(OctaneSDK.SDKServicesConfigurer configurer, ConfigurationService configurationService) {
+		return new TasksProcessorImpl(configurer, configurationService);
 	}
 
 	/**
@@ -42,4 +48,10 @@ public interface TasksProcessor {
 	 * @return OctaneResultAbridged
 	 */
 	OctaneResultAbridged execute(OctaneTaskAbridged task);
+
+	/**
+	 * Clear caches of getJobList
+	 * @return future of result. True if cache is updated. False if there was exception, or content is returned as null or cache is not allowed.
+	 */
+	Future<Boolean> resetJobListCache();
 }

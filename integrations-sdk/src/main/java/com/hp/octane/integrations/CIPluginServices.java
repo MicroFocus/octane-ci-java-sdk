@@ -20,10 +20,8 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.executor.CredentialsInfo;
 import com.hp.octane.integrations.dto.executor.DiscoveryInfo;
 import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
-import com.hp.octane.integrations.dto.general.CIJobsList;
-import com.hp.octane.integrations.dto.general.CIPluginInfo;
-import com.hp.octane.integrations.dto.general.CIServerInfo;
-import com.hp.octane.integrations.dto.general.SonarInfo;
+import com.hp.octane.integrations.dto.general.*;
+import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
@@ -32,6 +30,8 @@ import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Definition of CIPluginServices SPI
@@ -142,9 +142,9 @@ public abstract class CIPluginServices {
 	 * Executes the Pipeline, running the root job
 	 *
 	 * @param jobId        Job CI ID to execute
-	 * @param originalBody request body, expected to be a JSON that holds parameters
+	 * @param ciParameters execution parameters
 	 */
-	public void runPipeline(String jobId, String originalBody) {
+	public void runPipeline(String jobId, CIParameters ciParameters) {
 		throw new SPIMethodNotImplementedException("run API is not implemented");
 	}
 
@@ -152,10 +152,21 @@ public abstract class CIPluginServices {
 	 * Stops the Pipeline, running the root job
 	 *
 	 * @param jobId        Job CI ID to stop
-	 * @param originalBody request body, expected to be a JSON that holds parameters
+	 * @param ciParameters execution parameters
 	 */
-	public void stopPipelineRun(String jobId, String originalBody) {
+	public void stopPipelineRun(String jobId, CIParameters ciParameters) {
 		throw new SPIMethodNotImplementedException("stop API is not implemented");
+	}
+
+	/**
+	 * Get build status by some parameter
+	 * @param jobCiId
+	 * @param parameterName
+	 * @param parameterValue
+	 * @return
+	 */
+	public CIBuildStatusInfo getJobBuildStatus(String jobCiId, String parameterName, String parameterValue) {
+		throw new SPIMethodNotImplementedException("getJobBuildStatus API is not implemented");
 	}
 
 	/**
@@ -254,7 +265,24 @@ public abstract class CIPluginServices {
 		return null;
 	}
 
+	/**
+	 * Get credentials ids and names (no real passwords) for auto generation of UFT test runners
+	 * @return return existing credentials
+	 */
+	public List<CredentialsInfo> getCredentials() {
+		return Collections.emptyList();
+	}
+
 	public PipelineNode createExecutor(DiscoveryInfo discoveryInfo) {
+		return null;
+	}
+
+	/**
+	 * Get parent job name
+	 * @param jobId jobId
+	 * @return name of the parent job, or null if there is no parent
+	 */
+	public String getParentJobName (String jobId) {
 		return null;
 	}
 }

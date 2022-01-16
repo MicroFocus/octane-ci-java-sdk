@@ -16,55 +16,52 @@
 
 package com.hp.octane.integrations.dto.tests.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.hp.octane.integrations.dto.tests.TestRunError;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlValue;
 
 /**
  * TestRunError DTO implementation.
  */
-
-@XmlRootElement(name = "error")
-@XmlAccessorType(XmlAccessType.NONE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JacksonXmlRootElement(localName = "error")
 public class TestRunErrorImpl implements TestRunError {
 
-	@XmlAttribute(name = "type")
-	private String errorType;
+    @JacksonXmlProperty(isAttribute = true, localName = "type")
+    private String errorType;
 
-	@XmlAttribute(name = "message")
-	private String errorMessage;
+    @JacksonXmlProperty(isAttribute = true, localName = "message")
+    private String errorMessage;
 
-	@XmlValue
-	private String stackTrace;
+    @JacksonXmlText
+    private String stackTrace;
 
-	public String getErrorType() {
-		return errorType;
-	}
+    public String getErrorType() {
+        return errorType;
+    }
 
-	public TestRunError setErrorType(String errorType) {
-		this.errorType = errorType;
-		return this;
-	}
+    public TestRunError setErrorType(String errorType) {
+        this.errorType = errorType;
+        return this;
+    }
 
-	public String getErrorMessage() {
-		return errorMessage;
-	}
+    public String getErrorMessage() {
+        return errorMessage;
+    }
 
-	public TestRunError setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
-		return this;
-	}
+    public TestRunError setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
+        return this;
+    }
 
-	public String getStackTrace() {
-		return stackTrace;
-	}
+    public String getStackTrace() {
+        return stackTrace;
+    }
 
-	public TestRunError setStackTrace(String stackTrace) {
-		this.stackTrace = stackTrace;
-		return this;
-	}
+    public TestRunError setStackTrace(String stackTrace) {
+        this.stackTrace = stackTrace;
+        return this;
+    }
 }

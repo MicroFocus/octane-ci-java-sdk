@@ -21,19 +21,24 @@ import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.events.CIEvent;
+import com.hp.octane.integrations.dto.events.CIEventType;
 import com.hp.octane.integrations.dto.events.CIEventsList;
+import com.hp.octane.integrations.dto.events.MultiBranchType;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Marker;
+import org.apache.logging.log4j.MarkerManager;
 
 import java.io.IOException;
 import java.io.InterruptedIOException;
@@ -53,11 +58,13 @@ import static com.hp.octane.integrations.services.rest.RestService.*;
 
 final class EventsServiceImpl implements EventsService {
 	private static final Logger logger = LogManager.getLogger(EventsServiceImpl.class);
+	Marker eventsMarker = MarkerManager.getMarker("EVENTS");
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private final ExecutorService eventsPushExecutor = Executors.newSingleThreadExecutor(new EventsServiceWorkerThreadFactory());
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
+	private final ConfigurationService configurationService;
 	private final List<CIEvent> events = Collections.synchronizedList(new LinkedList<>());
 
 
@@ -83,12 +90,13 @@ final class EventsServiceImpl implements EventsService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 		workerPreflight.setWaitAfterConnection(false);
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		eventsPushExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY");
 	}
 
 	@Override
@@ -100,10 +108,24 @@ final class EventsServiceImpl implements EventsService {
 		if (this.configurer.octaneConfiguration.isDisabled()) {
 			return;
 		}
+
+
+		if (ConfigurationParameterFactory.octaneRootsCacheAllowed(configurer.octaneConfiguration)) {
+			Set<String> parents = new HashSet<>();
+			CIPluginSDKUtils.getRootJobCiIds(event.getProject(), event.getCauses(), parents);
+			if (!configurationService.isRelevantForOctane(parents)) {
+				if (CIEventType.STARTED.equals(event.getEventType())) {
+					String eventStr = event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType() + ", parents : " + parents;
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "Event is ignored : " + eventStr);
+				}
+				return;
+			}
+		}
+
 		events.add(event);
 		int eventsSize = events.size();
 		if (eventsSize > MAX_EVENTS_TO_KEEP) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
 			while (events.size() > MAX_EVENTS_TO_KEEP) {        //  in this case we need to read the real-time size of the list
 				events.remove(0);
 			}
@@ -148,59 +170,97 @@ final class EventsServiceImpl implements EventsService {
 			List<CIEvent> eventsChunk = null;
 			CIEventsList eventsSnapshot;
 			try {
-				eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), EVENTS_CHUNK_SIZE)));
+				eventsChunk = getEventsChunk();
+
 				CIServerInfo serverInfo = configurer.pluginServices.getServerInfo();
 				serverInfo.setInstanceId(configurer.octaneConfiguration.getInstanceId());
 				eventsSnapshot = dtoFactory.newDTO(CIEventsList.class)
 						.setServer(serverInfo)
 						.setEvents(eventsChunk);
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() +"failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
+				logger.error(configurer.octaneConfiguration.getLocationForLog() +"failed to serialize chunk of " + (eventsChunk != null ? eventsChunk.size() : "[NULL]") + " events, dropping them off (if any) and continue");
 				removeEvents(eventsChunk);
 				continue;
 			}
 
 			//  send the data to Octane
 			try {
-				logEventsToBeSent(eventsSnapshot);
-				sendEventsData(eventsSnapshot);
+				String correlationId = CIPluginSDKUtils.getNextCorrelationId();
+				logEventsToBeSent(eventsSnapshot, correlationId);
+				sendEventsData(eventsSnapshot, correlationId);
 				removeEvents(eventsChunk);
 				if (events.size() > 0) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "left to send " + events.size() + " events");
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "left to send " + events.size() + " events");
 				}
 			} catch (RequestTimeoutException rte){
 				requestTimeoutCount++;
 				lastRequestTimeoutTime = System.currentTimeMillis();
-				logger.info(configurer.octaneConfiguration.geLocationForLog() + rte.getMessage());
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + rte.getMessage());
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
 			} catch (TemporaryException tqie) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to send events with temporary error, breathing " + TEMPORARY_FAILURE_PAUSE + "ms and continue", tqie);
 				CIPluginSDKUtils.doWait(TEMPORARY_FAILURE_PAUSE);
 			} catch (PermanentException pqie) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with permanent error, dropping this chunk and continue", pqie);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to send events with permanent error, dropping this chunk and continue", pqie);
 				removeEvents(eventsChunk);
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to send events with unexpected error, dropping this chunk and continue", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to send events with unexpected error, dropping this chunk and continue", t);
 				removeEvents(eventsChunk);
 			}
 		}
 	}
 
-	private void logEventsToBeSent(CIEventsList eventsList) {
+	private List<CIEvent> getEventsChunk() {
+		int maxInBulk = ConfigurationParameterFactory.isSendEventsInBulk(configurer.octaneConfiguration) ? EVENTS_CHUNK_SIZE : 1;
+		List<CIEvent> eventsChunk = new ArrayList<>(events.subList(0, Math.min(events.size(), maxInBulk)));
+
+		// - octane generate multibranch child pipeline on the fly
+		// - multibranch child may trigger another job
+		// - if multibranch child pipeline still didn't created, and multibranch child start event comes along with
+		//    downstream job start event, the latest event is thrown in PipelinesServiceImpl#shouldProcessEvent.
+		//    So first run of pipeline might be partial (without structure,tests,commits)
+		// - if in iteration we encounter multibranch child start event - no other event is allowed to be after it and will be pushed in next bulk
+		if (eventsChunk.size() > 1) {
+			for (int i = 0; i < eventsChunk.size(); i++) {
+				CIEvent ciEvent = eventsChunk.get(i);
+				if (CIEventType.STARTED.equals(ciEvent.getEventType()) && MultiBranchType.MULTI_BRANCH_CHILD.equals(ciEvent.getMultiBranchType()) && i + 1 < eventsChunk.size()) {
+					eventsChunk = new ArrayList<>(eventsChunk.subList(0, i + 1));
+					break;
+				}
+			}
+		}
+		return eventsChunk;
+	}
+
+	private void logEventsToBeSent(CIEventsList eventsList, String correlationId) {
 		try {
 			List<String> eventsStringified = new LinkedList<>();
 			for (CIEvent event : eventsList.getEvents()) {
-				eventsStringified.add(event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType());
+				String str = event.getProject() + ":" + event.getBuildCiId() + ":" + event.getEventType();
+				if (CIEventType.FINISHED.equals(event.getEventType()) && event.getTestResultExpected() != null && event.getTestResultExpected() == true) {
+					str += "(tests=true)";
+				}
+				eventsStringified.add(str);
+
 			}
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s ...");
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "sending [" + String.join(", ", eventsStringified) + "] event/s. Correlation ID - " + correlationId);
+
+			if (ConfigurationParameterFactory.isLogEvents(configurer.octaneConfiguration)) {
+				for (CIEvent event : eventsList.getEvents()) {
+					String str = String.format("%s%s:%s:%s %s", configurer.octaneConfiguration.getLocationForLog(), event.getProject(), event.getBuildCiId(),
+							event.getEventType(), dtoFactory.dtoToJson(event));
+					logger.info(eventsMarker, str);
+				}
+			}
 		} catch (Exception e) {
-			logger.error(configurer.octaneConfiguration.geLocationForLog() + "failed to log events to be sent", e);
+			logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to log events to be sent", e);
 		}
 	}
 
-	private void sendEventsData(CIEventsList eventsList) {
+	private void sendEventsData(CIEventsList eventsList, String correlationId) {
 		Map<String, String> headers = new HashMap<>();
 		headers.put(CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+		headers.put(CORRELATION_ID_HEADER, correlationId);
 		OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
 				.setMethod(HttpMethod.PUT)
 				.setUrl(configurer.octaneConfiguration.getUrl() +
@@ -234,7 +294,6 @@ final class EventsServiceImpl implements EventsService {
 	@Override
 	public Map<String, Object> getMetrics() {
 		Map<String, Object> map = new LinkedHashMap<>();
-		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
 		map.put("requestTimeoutCount", this.requestTimeoutCount);
 		if (lastRequestTimeoutTime > 0) {

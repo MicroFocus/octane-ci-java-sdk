@@ -85,7 +85,11 @@ public class PullRequestImpl implements PullRequest {
 
     @Override
     public PullRequest setDescription(String description) {
-        this.description = description;
+        if (description != null && description.length() >= 4000) {
+            this.description = description.substring(0, 3995) + "...";
+        } else {
+            this.description = description;
+        }
         return this;
     }
 

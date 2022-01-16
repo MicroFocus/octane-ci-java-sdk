@@ -33,6 +33,8 @@ public interface SCMDataService extends ClosableService, HasQueueService, HasMet
 	 * @param queueingService queueingService
 	 * @param configurer configurer
 	 * @param restService restService
+	 * @param configurationService Configuration Service
+	 * @param eventsService Event service
 	 * @return return initialized service
 	 */
 	static SCMDataService newInstance(QueueingService queueingService, OctaneSDK.SDKServicesConfigurer configurer,
@@ -47,6 +49,7 @@ public interface SCMDataService extends ClosableService, HasQueueService, HasMet
 	 * @param jobId            any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param buildId          any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
 	 * @param scmData timeout defined for this queue item
+	 * @param rootJobId rootJobId
 	 */
-	void enqueueSCMData( String jobId, String buildId, SCMData scmData);
+	void enqueueSCMData( String jobId, String buildId, SCMData scmData, String rootJobId);
 }

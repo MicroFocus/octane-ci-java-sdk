@@ -112,6 +112,11 @@ public class EntityImpl implements Entity {
     }
 
     @Override
+    public Entity getEntityValue(String fieldName) {
+        return (Entity) getField(fieldName);
+    }
+
+    @Override
     public Boolean getBooleanValue(String fieldName) {
         return (Boolean) getField(fieldName);
     }
@@ -119,6 +124,11 @@ public class EntityImpl implements Entity {
     @Override
     public boolean containsField(String fieldName) {
         return getFields().containsKey(fieldName);
+    }
+
+    @Override
+    public boolean containsFieldAndValue(String fieldName) {
+        return getFields().containsKey(fieldName) && getFields().get(fieldName) != null;
     }
 
 

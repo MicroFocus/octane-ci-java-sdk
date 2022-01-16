@@ -26,6 +26,7 @@ import com.hp.octane.integrations.exceptions.RequestTimeoutException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
+import com.hp.octane.integrations.services.configuration.ConfigurationServiceImpl;
 import com.hp.octane.integrations.services.configurationparameters.factory.ConfigurationParameterFactory;
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
@@ -44,11 +45,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+
+import static com.hp.octane.integrations.services.rest.RestService.CORRELATION_ID_HEADER;
 
 /**
  * Default implementation of tests service
@@ -68,7 +73,7 @@ final class TestsServiceImpl implements TestsService {
 	private final OctaneSDK.SDKServicesConfigurer configurer;
 	private final RestService restService;
 	private final WorkerPreflight workerPreflight;
-
+	private final ConfigurationService configurationService;
 
 	//Metrics
 	private long requestTimeoutCount = 0;
@@ -97,14 +102,14 @@ final class TestsServiceImpl implements TestsService {
 
 		this.configurer = configurer;
 		this.restService = restService;
+		this.configurationService = configurationService;
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "starting background worker...");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "starting background worker...");
 		testsPushExecutor.execute(this::worker);
-		logger.info(configurer.octaneConfiguration.geLocationForLog() + "initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "initialized SUCCESSFULLY (backed by " + testResultsQueue.getClass().getSimpleName() + ")");
 	}
 
-	@Override
 	public boolean isTestsResultRelevant(String jobId, String rootJobId) {
 		String serverCiId = configurer.octaneConfiguration.getInstanceId();
 		if (jobId == null || jobId.isEmpty()) {
@@ -155,7 +160,6 @@ final class TestsServiceImpl implements TestsService {
 		return ConfigurationParameterFactory.isEncodeCiJobBase64(configurer.octaneConfiguration);
 	}
 
-	@Override
 	public OctaneResponse pushTestsResult(TestsResult testsResult, String jobId, String buildId) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
@@ -168,11 +172,10 @@ final class TestsServiceImpl implements TestsService {
 		}
 
 		String testsResultAsXml = dtoFactory.dtoToXml(testsResult);
-		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes(Charset.defaultCharset()));
+		InputStream testsResultAsStream = new ByteArrayInputStream(testsResultAsXml.getBytes(Charsets.UTF_8));
 		return pushTestsResult(testsResultAsStream, jobId, buildId);
 	}
 
-	@Override
 	public OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException {
 		if (testsResult == null) {
 			throw new IllegalArgumentException("tests result MUST NOT be null");
@@ -187,6 +190,7 @@ final class TestsServiceImpl implements TestsService {
 		OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
 		Map<String, String> headers = new HashMap<>();
 		headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_XML.getMimeType());
+		headers.put(CORRELATION_ID_HEADER, CIPluginSDKUtils.getNextCorrelationId());
 
 		String tempJobId = jobId;
 		boolean base64 = isEncodeBase64();
@@ -235,6 +239,10 @@ final class TestsServiceImpl implements TestsService {
 			return;
 		}
 
+		if (!((ConfigurationServiceImpl) configurationService).isRelevantForOctane(rootJobId)) {
+			return;
+		}
+
 		testResultsQueue.add(new TestsResultQueueItem(jobId, buildId, rootJobId));
 		workerPreflight.itemAddedToQueue();
 	}
@@ -264,16 +272,16 @@ final class TestsServiceImpl implements TestsService {
 			} catch (RequestTimeoutException rte){
 				requestTimeoutCount++;
 				lastRequestTimeoutTime = System.currentTimeMillis();
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + rte.getMessage());
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + rte.getMessage());
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (TemporaryException tque) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "temporary error on " + testsResultQueueItem + ", breathing " + TEMPORARY_ERROR_BREATHE_INTERVAL + "ms and retrying", tque);
 				CIPluginSDKUtils.doWait(TEMPORARY_ERROR_BREATHE_INTERVAL);
 			} catch (PermanentException pqie) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "permanent error on " + testsResultQueueItem + ", passing over", pqie);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "permanent error on " + testsResultQueueItem + ", passing over", pqie);
 				testResultsQueue.remove();
 			} catch (Throwable t) {
-				logger.error(configurer.octaneConfiguration.geLocationForLog() + "unexpected error on build log item '" + testsResultQueueItem + "', passing over", t);
+				logger.error(configurer.octaneConfiguration.getLocationForLog() + "unexpected error on build log item '" + testsResultQueueItem + "', passing over", t);
 				testResultsQueue.remove();
 			}
 		}
@@ -284,35 +292,41 @@ final class TestsServiceImpl implements TestsService {
 		//  validate test result - first to be done as it is the cheapest to 'fail fast'
 		InputStream testsResultA = configurer.pluginServices.getTestsResult(queueItem.jobId, queueItem.buildId);
 		if (testsResultA == null) {
-			logger.warn(configurer.octaneConfiguration.geLocationForLog() + "test result of " + queueItem + " resolved to be NULL, skipping");
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "test result of " + queueItem + " resolved to be NULL, skipping");
 			return;
 		}
 		try {
 			//  preflight
 			InputStream testsResultB;
 			boolean isRelevant = isTestsResultRelevant(queueItem.jobId, queueItem.rootJobId);
-			logger.info(configurer.octaneConfiguration.geLocationForLog() + "test results preflight " + queueItem + " = " + isRelevant);
+			logger.info(configurer.octaneConfiguration.getLocationForLog() + "test results preflight " + queueItem + " = " + isRelevant);
 			if (!isRelevant) {
 				return;
 			}
 
-			//  [YG] TODO: TEMPORARY SOLUTION - ci server ID, job ID and build ID should move to become a query parameters
-			try {
-				String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResultA);
-				testResultXML = testResultXML.replaceAll("<build.*?>",
-						"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>")
-				.replace("</build>","");//remove closing build element if exist
+			if (!this.configurationService.isOctaneVersionGreaterOrEqual("15.1.60")) {
+				try {
+					//for 15.1.60 - instance id is passed by query param
+					//for earlier version - instance id is part of test result body
+					String testResultXML = CIPluginSDKUtils.inputStreamToUTF8String(testsResultA);
+					testResultXML = testResultXML.replaceAll("<build.*?>",
+							"<build server_id=\"" + configurer.octaneConfiguration.getInstanceId() + "\" job_id=\"" + queueItem.jobId + "\" build_id=\"" + queueItem.buildId + "\"/>")
+							.replace("</build>", "");//remove closing build element if exist
 
-				testsResultB = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
-			} catch (Exception e) {
-				throw new PermanentException("failed to update ci server instance ID in the test results XML");
+					testsResultB = new ByteArrayInputStream(testResultXML.getBytes(Charsets.UTF_8));
+				} catch (Exception e) {
+					throw new PermanentException("failed to update ci server instance ID in the test results XML");
+				}
+			} else {
+				testsResultB = testsResultA;
 			}
 
 			//  push
 			try {
 				OctaneResponse response = pushTestsResult(testsResultB, queueItem.jobId, queueItem.buildId);
 				if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
-					logger.info(configurer.octaneConfiguration.geLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() + ", response: " + response.getBody());//addconfiguration
+					logger.info(configurer.octaneConfiguration.getLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() +
+							", response: " + response.getBody() + ", CorrelationId - " + response.getCorrelationId());
 				} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
 					throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
 				} else {
@@ -324,14 +338,14 @@ final class TestsServiceImpl implements TestsService {
 				try {
 					testsResultB.close();
 				} catch (IOException e) {
-					logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to close test result file after push test for " + queueItem);
+					logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to close test result file after push test for " + queueItem);
 				}
 			}
 		} finally {
 			try {
 				testsResultA.close();
 			} catch (IOException e) {
-				logger.warn(configurer.octaneConfiguration.geLocationForLog() + "failed to close test result file after push test for " + queueItem);
+				logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to close test result file after push test for " + queueItem);
 			}
 		}
 	}
@@ -355,7 +369,6 @@ final class TestsServiceImpl implements TestsService {
 	@Override
 	public Map<String, Object> getMetrics() {
 		Map<String, Object> map = new LinkedHashMap<>();
-		map.put("isShutdown", this.isShutdown());
 		map.put("queueSize", this.getQueueSize());
 		map.put("requestTimeoutCount", this.requestTimeoutCount);
 		if (lastRequestTimeoutTime > 0) {

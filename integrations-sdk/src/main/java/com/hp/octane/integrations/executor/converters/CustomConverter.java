@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
  * Converter to any given format
@@ -65,7 +66,8 @@ public class CustomConverter extends TestsToRunConverter {
         CustomFormat customFormat = new CustomFormat();
         String defaultErrorTemplate = "Field '%s' is missing in format json";
         Map<String, Object> parsed = parseJson(format, Map.class);
-        customFormat.setTestPattern(getMapValue(parsed, "testPattern", defaultErrorTemplate));
+        customFormat.setAllowDuplication(getMapValue(parsed, "allowDuplication", false, true));
+        customFormat.setTestPattern(getStringRequiredMapValue(parsed, "testPattern", defaultErrorTemplate));
         customFormat.setTestDelimiter(getMapValue(parsed, "testDelimiter", false, ""));
         customFormat.setPrefix(getMapValue(parsed, "prefix", false, ""));
         customFormat.setSuffix(getMapValue(parsed, "suffix", false, ""));
@@ -94,18 +96,18 @@ public class CustomConverter extends TestsToRunConverter {
                 case "replaceRegex":
                     errorMessage = "The replacement 'replaceRegex' is missing field '%s'";
                     action = new ReplaceRegex()
-                            .initialize(getMapValue(m, "regex", errorMessage),
-                                    getMapValue(m, "replacement", errorMessage));
+                            .initialize(getStringRequiredMapValue(m, "regex", errorMessage),
+                                    getStringRequiredMapValue(m, "replacement", errorMessage));
                     break;
                 case "replaceRegexFirst":
                     errorMessage = "The replacement 'replaceRegexFirst' is missing field '%s'";
-                    action = new ReplaceRegexFirst().initialize(getMapValue(m, "regex", errorMessage),
-                            getMapValue(m, "replacement", errorMessage));
+                    action = new ReplaceRegexFirst().initialize(getStringRequiredMapValue(m, "regex", errorMessage),
+                            getStringRequiredMapValue(m, "replacement", errorMessage));
                     break;
                 case "replaceString":
                     errorMessage = "The replacement 'replaceString' is missing field '%s'";
-                    action = new ReplaceString().initialize(getMapValue(m, "string", errorMessage),
-                            getMapValue(m, "replacement", errorMessage));
+                    action = new ReplaceString().initialize(getStringRequiredMapValue(m, "string", errorMessage),
+                            getStringRequiredMapValue(m, "replacement", errorMessage));
                     break;
                 case "joinString":
                     action = new JoinString().initialize(getMapValue(m, "prefix", "", false, null),
@@ -131,40 +133,53 @@ public class CustomConverter extends TestsToRunConverter {
         return customFormat;
     }
 
-    private static String getMapValue(Map<String, Object> map, String fieldName, boolean required, String defaultValue) {
+    private static <T> T getMapValue(Map<String, Object> map, String fieldName, boolean required, T defaultValue) {
         return getMapValue(map, fieldName, defaultValue, required, "Field '%s' is missing in format json");
     }
 
-    private static String getMapValue(Map<String, Object> map, String fieldName, String errorMessageTemplateIfNull) {
+    private static String getStringRequiredMapValue(Map<String, Object> map, String fieldName, String errorMessageTemplateIfNull) {
         return getMapValue(map, fieldName, "", true, errorMessageTemplateIfNull);
     }
 
-    private static String getMapValue(Map<String, Object> map, String fieldName, String defaultValue, boolean required, String errorMessageTemplateIfNull) {
+    private static <T> T getMapValue(Map<String, Object> map, String fieldName, T defaultValue, boolean required, String errorMessageTemplateIfNull) {
+
         if (map.containsKey(fieldName)) {
-            return (String) map.get(fieldName);
+            T obj = (T) map.get(fieldName);
+            if (obj != null && defaultValue != null && (obj instanceof String) && !(defaultValue instanceof String)) {
+                String suffix = "";
+                if (defaultValue instanceof Boolean) {
+                    suffix = ". Expected boolean value.";
+                }
+                throw new IllegalArgumentException("Illegal value for field " + fieldName + suffix);
+            }
+            return obj;
         } else {
             if (required) {
                 throw new IllegalArgumentException(String.format(errorMessageTemplateIfNull, fieldName));
             } else {
-                return defaultValue == null ? "" : defaultValue;
+                return defaultValue;
             }
         }
+
     }
 
     @Override
-    public String convert(List<TestToRunData> data, String executionDirectory) {
+    public String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
         Set<String> existingKeys = new HashSet<>();
         addToSetIfPatterContains(existingKeys, $_PACKAGE);
         addToSetIfPatterContains(existingKeys, $_CLASS);
         addToSetIfPatterContains(existingKeys, $_TEST_NAME);
         data.stream().flatMap(t -> t.getParameters().keySet().stream()).map(param -> "$" + param).forEach(key -> addToSetIfPatterContains(existingKeys, key));
 
-        String collect = data.stream()
+        Stream<String> stream = data.stream()
                 .map(n -> convertToFormat(n, existingKeys))
-                .filter(str -> str != null && !str.isEmpty())
-                .distinct()
-                .collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
-        return collect;
+                .filter(str -> str != null && !str.isEmpty());
+
+        if (!customFormat.allowDuplication) {
+            stream = stream.distinct();
+        }
+        String result = stream.collect(Collectors.joining(customFormat.getTestDelimiter(), customFormat.getPrefix(), customFormat.getSuffix()));
+        return result;
     }
 
     private void addToSetIfPatterContains(Set<String> set, String key) {
@@ -277,6 +292,7 @@ public class CustomConverter extends TestsToRunConverter {
         private String testPattern = "";
         private String prefix = "";
         private String suffix = "";
+        private boolean allowDuplication = true;
         private String testsToRunConvertedParameterName;
         private Map<String, List<ReplaceAction>> replacements = new HashMap<>();
 
@@ -327,6 +343,14 @@ public class CustomConverter extends TestsToRunConverter {
         public CustomFormat setTestsToRunConvertedParameterName(String testsToRunConvertedParameterName) {
             this.testsToRunConvertedParameterName = testsToRunConvertedParameterName;
             return this;
+        }
+
+        public boolean isAllowDuplication() {
+            return allowDuplication;
+        }
+
+        public void setAllowDuplication(boolean allowDuplication) {
+            this.allowDuplication = allowDuplication;
         }
     }
 

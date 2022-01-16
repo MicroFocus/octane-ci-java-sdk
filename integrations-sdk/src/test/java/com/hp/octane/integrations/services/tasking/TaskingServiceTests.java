@@ -2,6 +2,7 @@ package com.hp.octane.integrations.services.tasking;
 
 import com.hp.octane.integrations.OctaneClient;
 import com.hp.octane.integrations.OctaneConfiguration;
+import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
@@ -37,7 +38,7 @@ public class TaskingServiceTests {
 	public static void setupClient() {
 		String inId = UUID.randomUUID().toString();
 		String sspId = UUID.randomUUID().toString();
-		OctaneConfiguration configuration = new OctaneConfiguration(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
 		client = OctaneSDK.addClient(configuration, TaskingTestPluginServicesTest.class);
 	}
 
@@ -100,36 +101,6 @@ public class TaskingServiceTests {
 		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
 		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
 		Assert.assertNull(resultAbridged.getBody());
-	}
-
-	@Test
-	public void testStatusAPI() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
-
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setId(UUID.randomUUID().toString())
-				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/status");
-		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
-
-		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
-
-		CIProviderSummaryInfo status = dtoFactory.dtoFromJson(resultAbridged.getBody(), CIProviderSummaryInfo.class);
-		Assert.assertNotNull(status);
-
-		Assert.assertNotNull(status.getSdk());
-		Assert.assertNotNull(status.getSdk().getApiVersion());
-		Assert.assertEquals(1, (int) status.getSdk().getApiVersion());
-		Assert.assertEquals(OctaneSDK.SDK_VERSION, status.getSdk().getSdkVersion());
-
-		Assert.assertNotNull(status.getPlugin());
-		Assert.assertEquals(TEST_PLUGIN_VERSION, status.getPlugin().getVersion());
-
-		Assert.assertNotNull(status.getServer());
-		Assert.assertEquals(TEST_SERVER_URL, status.getServer().getUrl());
-		Assert.assertEquals(TEST_SERVER_TYPE, status.getServer().getType());
-		Assert.assertEquals(TEST_SERVER_VERSION, status.getServer().getVersion());
-		Assert.assertEquals(TEST_SENDING_TIME, status.getServer().getSendingTime());
 	}
 
 	@Test

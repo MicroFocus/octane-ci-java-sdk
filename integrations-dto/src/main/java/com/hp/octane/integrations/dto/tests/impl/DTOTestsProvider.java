@@ -34,12 +34,6 @@ public final class DTOTestsProvider extends DTOInternalProviderBase {
 		dtoPairs.put(TestRun.class, TestRunImpl.class);
 		dtoPairs.put(TestField.class, TestFieldImpl.class);
 		dtoPairs.put(TestsResult.class, TestsResultImpl.class);
-
-		xmlAbles.add(BuildContextImpl.class);
-		xmlAbles.add(TestRunErrorImpl.class);
-		xmlAbles.add(TestRunImpl.class);
-		xmlAbles.add(TestFieldImpl.class);
-		xmlAbles.add(TestsResultImpl.class);
 	}
 
 	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {

@@ -77,7 +77,7 @@ public final class OctaneSDK {
 
 		//  validate instance ID uniqueness
 		String instanceId = octaneConfiguration.getInstanceId();
-		logger.info(octaneConfiguration.geLocationForLog() + "Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
+		logger.info(octaneConfiguration.getLocationForLog() + "Octane Client instance initializing, instanceId " + octaneConfiguration.getInstanceId());
 
 		if (!isInstanceIdUnique(instanceId)) {
 			throw new IllegalStateException("SDK instance claiming for instance ID [" + instanceId + "] is already present");
@@ -85,7 +85,7 @@ public final class OctaneSDK {
 
 		//  validate shared space ID uniqueness
 		String sharedSpace = octaneConfiguration.getSharedSpace();
-		if (!isSharedSpaceUnique(octaneConfiguration.getFarm(), sharedSpace)) {
+		if (!isSharedSpaceUnique(octaneConfiguration.getUrl(), sharedSpace)) {
 			throw new IllegalStateException("SDK instance claiming for shared space ID [" + sharedSpace + "] is already present");
 		}
 
@@ -108,7 +108,7 @@ public final class OctaneSDK {
 		octaneConfiguration.attached = true;
 		clients.put(octaneConfiguration, newInstance);
 		long initTime = ((System.currentTimeMillis() - startTime) / 1000);
-		logger.info(octaneConfiguration.geLocationForLog() + "OctaneClient is initialized SUCCESSFULLY in " + initTime + " sec.");
+		logger.info(octaneConfiguration.getLocationForLog() + "OctaneClient is initialized SUCCESSFULLY in " + initTime + " sec.");
 		return newInstance;
 	}
 
@@ -199,11 +199,12 @@ public final class OctaneSDK {
 	 * @param client          client / api key
 	 * @param secret          secret / api secret
 	 * @param pluginServicesClass class that extends CIPluginServices
+	 * @return   List of available workspaces
 	 * @throws IOException in case of basic connectivity failure
 	 */
 	public static List<Entity> testOctaneConfigurationAndFetchAvailableWorkspaces(String octaneServerUrl, String sharedSpaceId, String client, String secret, Class<? extends CIPluginServices> pluginServicesClass) throws IOException {
 		//  instance ID is a MUST parameter but not needed for configuration validation, therefore RANDOM value provided
-		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
+		OctaneConfiguration configuration = OctaneConfiguration.create(UUID.randomUUID().toString(), octaneServerUrl, sharedSpaceId);
 		configuration.setSecret(secret);
 		configuration.setClient(client);
 		if (pluginServicesClass == null) {
@@ -229,7 +230,7 @@ public final class OctaneSDK {
 			List<Entity> workspaces = entitiesService.getEntities(null/*no workspace*/, EntityConstants.Workspaces.COLLECTION_NAME, null/*no conditions*/, Arrays.asList(EntityConstants.Base.NAME_FIELD));
 			return workspaces;
 		} catch (Exception e) {
-			logger.error(configuration.geLocationForLog() + "Failed to fetch workspaces in testOctaneConfigurationAndFetchAvailableWorkspaces : " + e.getMessage());
+			logger.error(configuration.getLocationForLog() + "Failed to fetch workspaces in testOctaneConfigurationAndFetchAvailableWorkspaces : " + e.getMessage());
 			return null;
 		}
 	}
@@ -239,7 +240,7 @@ public final class OctaneSDK {
 	}
 
 	static boolean isSharedSpaceUnique(String host, String sharedSpace) {
-		return clients.keySet().stream().noneMatch(oc -> (oc.getFarm() + oc.getSharedSpace()).equals(host + sharedSpace));
+		return clients.keySet().stream().noneMatch(oc -> (oc.getUrl() + oc.getSharedSpace()).equals(host + sharedSpace));
 	}
 
 	/**

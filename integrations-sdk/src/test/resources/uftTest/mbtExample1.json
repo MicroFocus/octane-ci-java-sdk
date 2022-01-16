@@ -1,0 +1,106 @@
+{
+  "data": {
+    "parameters": [
+      "param1.1",
+      "param1.2",
+      "param3.1",
+      "param2.1",
+      "param1.1_2",
+      "param1.2_2"
+    ],
+    "iterations": [
+      [
+        "1.1",
+        "1.2",
+        "3.1",
+        "2.1",
+        "1.1",
+        "1.2"
+      ],
+      [
+        "6",
+        "5",
+        "54",
+        "3",
+        "2",
+        "1"
+      ]
+    ]
+  },
+  "actions": [
+    {
+      "name": "unit1",
+      "unitId": 1003,
+      "pathInScm": "GUITest1:Action0",
+      "parameters": [
+        {
+          "parameterId": 1006,
+          "name": "param1.1",
+          "type": "input",
+          "order": 1
+        },
+        {
+          "parameterId": 1007,
+          "name": "param1.2",
+          "type": "input",
+          "order": 2
+        }
+      ],
+      "order": 1
+    },
+    {
+      "name": "unit3",
+      "unitId": 1005,
+      "pathInScm": "GUITest1:Action0",
+      "parameters": [
+        {
+          "parameterId": 1008,
+          "name": "param3.1",
+          "type": "input",
+          "order": 3
+        }
+      ],
+      "order": 2
+    },
+    {
+      "name": "unit2",
+      "unitId": 1004,
+      "pathInScm": "GUITest1:Action0",
+      "parameters": [
+        {
+          "parameterId": 1009,
+          "name": "param2.1",
+          "type": "input",
+          "order": 4
+        },
+        {
+          "parameterId": 1010,
+          "name": "param2.2",
+          "type": "output",
+          "order": 5
+        }
+      ],
+      "order": 3
+    },
+    {
+      "name": "unit1",
+      "unitId": 1003,
+      "pathInScm": "GUITest1:Action0",
+      "parameters": [
+        {
+          "parameterId": 1011,
+          "name": "param1.1_2",
+          "type": "input",
+          "order": 6
+        },
+        {
+          "parameterId": 1012,
+          "name": "param1.2_2",
+          "type": "input",
+          "order": 7
+        }
+      ],
+      "order": 4
+    }
+  ]
+}

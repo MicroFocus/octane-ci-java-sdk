@@ -18,7 +18,8 @@
 <Configuration status="INFO">
 
 	<Properties>
-		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%-50t] %-32c{1}: %m%n</Property>
+		<Property name="pattern">%d{dd/MM/yyyy HH:mm:ss,SSS} %-5p [%-50.50t] %-32.32c{1}: %m%n</Property>
+		<Property name="markerPattern">%d{dd/MM/yyyy HH:mm:ss,SSS} : %m%n%n</Property>
 	</Properties>
 
 	<Appenders>
@@ -29,10 +30,24 @@
 			<Policies>
 				<SizeBasedTriggeringPolicy size="2MB"/>
 			</Policies>
-			<DefaultRolloverStrategy max="10" fileIndex="min"/>
+			<DefaultRolloverStrategy max="5" fileIndex="min"/>
+			<NoMarkerFilter onMatch="ACCEPT" onMismatch="DENY"/>
 		</RollingFile>
 		<Async name="asyncOctaneFileAppender">
 			<AppenderRef ref="octaneFileAppender"/>
+		</Async>
+
+		<RollingFile name="eventsFileAppender" append="true" fileName="${sys:octaneAllowedStorage:-}nga/logs/events.log"
+					 filePattern="${sys:octaneAllowedStorage:-}nga/logs/events-%i.log">
+			<PatternLayout pattern="${markerPattern}"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="4MB"/>
+			</Policies>
+			<DefaultRolloverStrategy max="5" fileIndex="min"/>
+			<MarkerFilter marker="EVENTS" onMatch="ACCEPT" onMismatch="DENY"/>
+		</RollingFile>
+		<Async name="asyncEventsFileAppender">
+			<AppenderRef ref="eventsFileAppender"/>
 		</Async>
 
 		<Console name="octaneConsoleAppender" target="SYSTEM_OUT">
@@ -44,7 +59,9 @@
 	<Loggers>
 		<Root level="info" additivity="true">
 			<AppenderRef ref="asyncOctaneFileAppender"/>
+			<AppenderRef ref="asyncEventsFileAppender"/>
 		</Root>
+
 	</Loggers>
 
 </Configuration>

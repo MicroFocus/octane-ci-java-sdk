@@ -19,7 +19,7 @@ import com.hp.octane.integrations.services.HasMetrics;
 import com.hp.octane.integrations.services.bridge.BridgeService;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import com.hp.octane.integrations.services.coverage.CoverageService;
-import com.hp.octane.integrations.services.pullrequests.PullRequestService;
+import com.hp.octane.integrations.services.pullrequestsandbranches.PullRequestAndBranchService;
 import com.hp.octane.integrations.services.scmdata.SCMDataService;
 import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.entities.EntitiesService;
@@ -28,6 +28,7 @@ import com.hp.octane.integrations.services.logs.LogsService;
 import com.hp.octane.integrations.services.pipelines.PipelineContextService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.tasking.TasksProcessor;
+import com.hp.octane.integrations.services.testexecution.TestExecutionService;
 import com.hp.octane.integrations.services.tests.TestsService;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesService;
 
@@ -133,7 +134,14 @@ public interface OctaneClient extends HasMetrics {
 	 *
 	 * @return service, MUST NOT be null
 	 */
-	PullRequestService getPullRequestService();
+	PullRequestAndBranchService getPullRequestAndBranchService();
+
+	/**
+	 * provides TestExecution service
+	 *
+	 * @return service, MUST NOT be null
+	 */
+	TestExecutionService getTestExecutionService();
 
 	/**
 	 * provides Vulnerabilities service
@@ -148,4 +156,6 @@ public interface OctaneClient extends HasMetrics {
 	 * @return service, MUST NOT be null
 	 */
 	SCMDataService getSCMDataService();
+
+	void validateOctaneIsActiveAndSupportVersion(String version);
 }

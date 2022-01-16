@@ -17,9 +17,10 @@ package com.hp.octane.integrations.utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.dto.causes.CIEventCause;
+import com.hp.octane.integrations.dto.causes.CIEventCauseType;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.dto.general.OctaneConnectivityStatus;
-import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.services.configurationparameters.EncodeCiJobBase64Parameter;
 import org.apache.commons.codec.Charsets;
 import org.apache.logging.log4j.LogManager;
@@ -34,9 +35,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -134,13 +133,13 @@ public class CIPluginSDKUtils {
 	 *
 	 * @param input valid URL sting
 	 * @return parsed URL
-	 * @throws OctaneSDKGeneralException exception on any incorrect URL input
+	 * @throws IllegalArgumentException exception on any incorrect URL input
 	 */
 	public static URL parseURL(String input) {
 		try {
 			return new URL(input);
 		} catch (MalformedURLException murle) {
-			throw new OctaneSDKGeneralException("failed to parse '" + input + "' as URL", murle);
+			throw new IllegalArgumentException("failed to parse '" + input + "' as URL", murle);
 		}
 	}
 
@@ -276,5 +275,28 @@ public class CIPluginSDKUtils {
 		//Service Temporarily Unavailable"
 	}
 
+	/**
+	 *
+	 * @param jobId current job id
+	 * @param causes causes that called to jobId
+	 * @param parents parents - will contains final list of  parents
+	 */
+	public static void getRootJobCiIds(String jobId, List<CIEventCause> causes , Set<String> parents) {
+		if (causes != null) {
+			for (CIEventCause cause : causes) {
+				if (CIEventCauseType.UPSTREAM.equals(cause.getType())) {
+					getRootJobCiIds(cause.getProject(), cause.getCauses() , parents);
+				} else {
+					if (jobId != null && !jobId.isEmpty() && parents!=null) {
+						parents.add(jobId);
+					}
+				}
+			}
+		}
+	}
+
+	public static String getNextCorrelationId(){
+		return UUID.randomUUID().toString().replace("-","").substring(0,25);
+	}
 }
 

@@ -17,6 +17,7 @@
 package com.hp.octane.integrations.dto.events.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.hp.octane.integrations.dto.causes.CIEventCause;
 import com.hp.octane.integrations.dto.events.*;
 import com.hp.octane.integrations.dto.parameters.CIParameter;
@@ -29,6 +30,7 @@ import java.util.List;
  * Base implementation of CI Event object
  */
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 class CIEventImpl implements CIEvent {
 	private CIEventType eventType;
@@ -52,6 +54,8 @@ class CIEventImpl implements CIEvent {
 	private String previousProject;
 	private String previousProjectDisplayName;
 	private ItemType itemType;
+	private Boolean skipValidation;
+	private Boolean isVirtualProject;
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -69,6 +73,26 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setProjectDisplayName(String projectDisplayName) {
 		this.projectDisplayName = projectDisplayName;
+		return this;
+	}
+
+	public Boolean getSkipValidation() {
+		return skipValidation;
+	}
+
+	public CIEvent setSkipValidation(Boolean skipValidation) {
+		this.skipValidation = skipValidation;
+		return this;
+	}
+
+	@Override
+	public Boolean getIsVirtualProject() {
+		return isVirtualProject;
+	}
+
+	@Override
+	public CIEvent setIsVirtualProject(Boolean isVirtualJob) {
+		this.isVirtualProject = isVirtualJob;
 		return this;
 	}
 

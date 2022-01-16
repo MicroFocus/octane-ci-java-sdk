@@ -30,6 +30,7 @@ public enum CIServerTypes {
 	TFS("tfs"),
 	GOCD("gocd"),
 	GITLAB("gitlab"),
+	PULSEUNO("pulseuno"),
 	UNKNOWN("unknown");
 
 	private String value;

@@ -33,6 +33,7 @@ public interface VulnerabilitiesService extends ClosableService, HasQueueService
 	 * @param vulnerabilitiesToolServices vulnerabilitiesToolServices
 	 * @param configurer configurer
 	 * @param restService restService
+	 * @param configurationService Configuration Service
 	 * @return return initialized service
 	 */
 	static VulnerabilitiesService newInstance (QueueingService queueingService,VulnerabilitiesToolService[] vulnerabilitiesToolServices,
@@ -50,11 +51,13 @@ public interface VulnerabilitiesService extends ClosableService, HasQueueService
 	 * @param startRunTime     timestamp of build start
 	 * @param queueItemTimeout timeout defined for this queue item
 	 * @param additionalProperties additionalProperties
+	 * @param rootJobId rootJobId
 	 */
 	void enqueueRetrieveAndPushVulnerabilities(String jobId,
 											   String buildId,
 											   ToolType toolType,
 											   long startRunTime,
 											   long queueItemTimeout,
-											   Map<String,String> additionalProperties);
+											   Map<String,String> additionalProperties,
+											   String rootJobId);
 }

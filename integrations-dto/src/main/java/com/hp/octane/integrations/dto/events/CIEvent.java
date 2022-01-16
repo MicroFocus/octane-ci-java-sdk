@@ -38,6 +38,14 @@ public interface CIEvent extends DTOBase {
 
 	CIEvent setEventType(CIEventType type);
 
+	Boolean getSkipValidation();
+
+	CIEvent setSkipValidation(Boolean skipValidation);
+
+	Boolean getIsVirtualProject();
+
+	CIEvent setIsVirtualProject(Boolean isVirtual);
+
 	String getBuildCiId();
 
 	CIEvent setPhaseType(PhaseType phaseType);

@@ -23,39 +23,55 @@ import com.hp.octane.integrations.dto.DTOBase;
 
 public interface TestRun extends DTOBase {
 
-	String getModuleName();
+    String getModuleName();
 
-	TestRun setModuleName(String moduleName);
+    TestRun setModuleName(String moduleName);
 
-	String getPackageName();
+    String getPackageName();
 
-	TestRun setPackageName(String packageName);
+    TestRun setPackageName(String packageName);
 
-	String getClassName();
+    String getClassName();
 
-	TestRun setClassName(String className);
+    TestRun setClassName(String className);
 
-	String getTestName();
+    String getTestName();
 
-	TestRun setTestName(String testName);
+    TestRun setTestName(String testName);
 
-	TestRunResult getResult();
+    TestRunResult getResult();
 
-	TestRun setResult(TestRunResult result);
+    TestRun setResult(TestRunResult result);
 
-	long getDuration();
+    long getDuration();
 
-	TestRun setDuration(long duration);
+    TestRun setDuration(long duration);
 
-	long getStarted();
+    long getStarted();
 
-	TestRun setStarted(long started);
+    TestRun setStarted(long started);
 
-	TestRunError getError();
+    String getRunType();
 
-	TestRun setError(TestRunError testError);
+    TestRun setRunType(String runType);
 
-	String getExternalReportUrl();
+    TestRunError getError();
 
-	TestRun setExternalReportUrl(String externalReportUrl);
+    TestRun setError(TestRunError testError);
+
+    String getExternalReportUrl();
+
+    TestRun setExternalReportUrl(String externalReportUrl);
+
+    String getExternalRunId();
+
+    TestRun setExternalRunId(String externalRunId);
+
+    String getExternalTestId();
+
+    TestRun setExternalTestId(String externalTestId);
+
+    String getDescription();
+
+    TestRun setDescription(String description);
 }

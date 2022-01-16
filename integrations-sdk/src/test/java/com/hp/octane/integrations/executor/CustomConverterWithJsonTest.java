@@ -44,7 +44,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        TestsToRunConverterResult result = converter.convert(fullFormatRawData, "");
+        TestsToRunConverterResult result = converter.convert(fullFormatRawData, "", null);
 
         Assert.assertEquals("converted", result.getTestsToRunConvertedParameterName());
         Assert.assertEquals("[MF.simple.tests.AppTest#myTest||MF.simple.tests.AppTestB#test\\040Send]", result.getConvertedTestsString());
@@ -77,7 +77,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.bubus.AppTestA#myTestA+MFA.simpleA.bubus.AppTestB#bubu Send", actual);
     }
@@ -93,23 +93,57 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.tests=apptesta#MYTESTA+MFA.simpleA.tests=apptestb#TEST SEND", actual);
     }
 
     @Test
-    public void joinStringTest() {
+    public void joinStringWithDuplicationTest() {
         String json = "{" +
                 "\"testPattern\": \"$package\"," +
                 "\"replacements\": [" +
-                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix\"}" +
+                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix;\"}" +
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals("prefix|MFA.simpleA.tests|suffix", actual);
+        Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;prefix|MFA.simpleA.tests|suffix;", actual);
+    }
+
+    @Test
+    public void joinStringWithoutDuplicationTest() {
+        String json = "{" +
+                "\"allowDuplication\": false," +
+                "\"testPattern\": \"$package\"," +
+                "\"replacements\": [" +
+                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix;\"}" +
+                "]}";
+
+        CustomConverter converter = new CustomConverter(json);
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
+
+        Assert.assertEquals("prefix|MFA.simpleA.tests|suffix;", actual);
+    }
+
+    @Test
+    public void booleanAsStringTest() {
+        String json = "{" +
+                "\"allowDuplication\": \"false\"," +
+                "\"testPattern\": \"$package\"," +
+                "\"replacements\": [" +
+                "{\"type\":\"joinString\",\"target\":\"$package\",\"prefix\":\"prefix|\",\"suffix\":\"|suffix;\"}" +
+                "]}";
+
+        try {
+            CustomConverter converter = new CustomConverter(json);
+            Assert.fail("Fail is expected");
+        }catch (IllegalArgumentException e){
+            Assert.assertEquals("Illegal value for field allowDuplication. Expected boolean value.", e.getMessage());
+        }catch (Exception e1){
+            Assert.fail("Wrong exception is received");
+        }
     }
 
     @Test
@@ -122,7 +156,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(fullFormatRawData, "").getConvertedTestsString();
+        String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MFA.simpleA.bubus.AppbubuA#mybubuA+MFA.simpleA.bubus.AppbubuB#bubu Send", actual);
     }
@@ -138,7 +172,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(singleRawDataWithExternalTest, "").getConvertedTestsString();
+        String actual = converter.convert(singleRawDataWithExternalTest, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MF.simple.tests.AppTest#testAlways-BUBU", actual);
     }
@@ -155,7 +189,7 @@ public class CustomConverterWithJsonTest {
                 "]}";
 
         CustomConverter converter = new CustomConverter(json);
-        String actual = converter.convert(singleRawDataWithExternalTest, "").getConvertedTestsString();
+        String actual = converter.convert(singleRawDataWithExternalTest, "", null).getConvertedTestsString();
 
         Assert.assertEquals("MF.simple.tests.AppTest#testAlways-BUBU+MF.simple.tests.AppTest#testNotAlways", actual);
     }

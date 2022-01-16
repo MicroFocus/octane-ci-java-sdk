@@ -16,27 +16,19 @@
 package com.hp.octane.integrations.services.tasking;
 
 import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.services.configuration.ConfigurationService;
 import org.junit.Test;
 
 public class TaskingServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA() {
-		new TasksProcessorImpl(null);
+		new TasksProcessorImpl(null,null);
 	}
 
 	@Test(expected = ClassCastException.class)
 	public void testB() {
-		new TasksProcessorImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+		new TasksProcessorImpl((OctaneSDK.SDKServicesConfigurer) new Object(),(ConfigurationService) new Object());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testC() {
-		TasksProcessor.newInstance(null);
-	}
-
-	@Test(expected = ClassCastException.class)
-	public void testD() {
-		TasksProcessor.newInstance((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
 }

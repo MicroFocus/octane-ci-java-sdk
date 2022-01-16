@@ -30,6 +30,7 @@ public enum CIEventType {
 	FINISHED("finished"),
 	SCM("scm"),
 	DELETED("deleted"),
+	REMOVED_FROM_QUEUE("removed_from_queue"),
 	RENAMED("renamed");
 
 	private String value;

@@ -41,6 +41,7 @@ public interface SonarService extends ClosableService, HasQueueService, HasMetri
 	 * @param configurer SDK services configurer object
 	 * @param queueingService queueingService
 	 * @param coverageService coverageService
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 
 	 */
@@ -76,8 +77,9 @@ public interface SonarService extends ClosableService, HasQueueService, HasMetri
 	 * @param projectKey Key of a project in Sonar server
 	 * @param sonarURL   Sonar server URL
 	 * @param sonarToken Sonar server authentication token
+	 * @param rootJobId rootJobId
 	 */
-	void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken);
+	void enqueueFetchAndPushSonarCoverage(String jobId, String buildId, String projectKey, String sonarURL, String sonarToken, String rootJobId);
 
 	/**
 	 * ensure that webhook with the ciCallbackUrl exist in the Sonar server

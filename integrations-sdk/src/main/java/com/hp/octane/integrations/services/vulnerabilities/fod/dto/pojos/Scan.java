@@ -31,6 +31,9 @@ public class Scan  implements Serializable{
     public final static String IN_PROGRESS = "In_Progress";
     public final static String COMPLETED = "Completed";
     public final static String NOT_STARTED = "Not_Started";
+    public final static String QUEUED = "Queued";
+
+
 
     @JsonProperty("scanId")
     public Long scanId;

@@ -10,47 +10,46 @@ public class OctaneConfigurationTests {
 	//  illegal instance ID
 	@Test(expected = IllegalArgumentException.class)
 	public void testA1() {
-		new OctaneConfiguration(null, null, null);
+		new OctaneConfigurationIntern(null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testA2() {
-		new OctaneConfiguration("", null, null);
+		new OctaneConfigurationIntern("", null, null);
 	}
 
 	//  illegal URL
 	@Test(expected = IllegalArgumentException.class)
 	public void testB1() {
-		new OctaneConfiguration(UUID.randomUUID().toString(), null, null);
+		new OctaneConfigurationIntern(UUID.randomUUID().toString(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testB2() {
-		new OctaneConfiguration(UUID.randomUUID().toString(), "", null);
+		new OctaneConfigurationIntern(UUID.randomUUID().toString(), "", null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testB3() {
-		new OctaneConfiguration(UUID.randomUUID().toString(), "non-valid-url", null);
+		new OctaneConfigurationIntern(UUID.randomUUID().toString(), "non-valid-url", null);
 	}
 
 	//  illegal shared space ID
 	@Test(expected = IllegalArgumentException.class)
 	public void testC1() {
-		new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:9999", null);
+		new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:9999", null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testC2() {
-		new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:9999", "");
+		new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:9999", "");
 	}
 
 	@Test
 	public void testD() {
-		OctaneConfiguration oc = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:9999/some/path?query=false", "1002");
+		OctaneConfiguration oc = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:9999/some/path?query=false", "1002");
 		Assert.assertNotNull(oc);
-		Assert.assertEquals("http://localhost:9999", oc.getUrl());
-		Assert.assertEquals("localhost:9999", oc.getFarm());
+		Assert.assertEquals("http://localhost:9999/some/path", oc.getUrl());
 		Assert.assertNotNull(oc.toString());
 		Assert.assertFalse(oc.toString().isEmpty());
 		Assert.assertFalse(oc.attached);
@@ -58,25 +57,17 @@ public class OctaneConfigurationTests {
 
 	@Test
 	public void testE() {
-		OctaneConfiguration oc = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:9999/some/path?query=false", "1002");
+		OctaneConfiguration oc = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:9999/some/path?query=false", "1002");
 		Assert.assertNotNull(oc);
 
-		oc.setUrl("https://some.host.com/some/path?query=false");
-		Assert.assertEquals("https://some.host.com", oc.getUrl());
-		Assert.assertEquals("some.host.com", oc.getFarm());
+		oc.setUiLocation("https://some.host.com/some/path/ui?query=false&p=1002");
+		Assert.assertEquals("https://some.host.com/some/path", oc.getUrl());
 
-		oc.setUrl("http://localhost.end");
+		oc.setUiLocation("http://localhost.end/ui?&p=1002");
 		Assert.assertEquals("http://localhost.end", oc.getUrl());
-		Assert.assertEquals("localhost.end", oc.getFarm());
 
-		oc.setUrl("http://localhost.end:9999");
+		oc.setUiLocation("http://localhost.end:9999/ui?&p=1003");
 		Assert.assertEquals("http://localhost.end:9999", oc.getUrl());
-		Assert.assertEquals("localhost.end:9999", oc.getFarm());
-
-		oc.setSharedSpace("1002");
-		Assert.assertEquals("1002", oc.getSharedSpace());
-
-		oc.setSharedSpace("1001");
-		Assert.assertEquals("1001", oc.getSharedSpace());
+		Assert.assertEquals("1003", oc.getSharedSpace());
 	}
 }

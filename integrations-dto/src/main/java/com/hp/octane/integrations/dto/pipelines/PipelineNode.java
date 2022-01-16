@@ -51,4 +51,12 @@ public interface PipelineNode extends DTOBase {
 	MultiBranchType getMultiBranchType();
 
 	PipelineNode setMultiBranchType(MultiBranchType multiBranchType);
+
+	Boolean getHasUpstream();
+
+	PipelineNode setHasUpstream(Boolean hasUpstream);
+
+	Boolean getIsTestRunner();
+
+	PipelineNode setIsTestRunner(Boolean isTestRunner);
 }

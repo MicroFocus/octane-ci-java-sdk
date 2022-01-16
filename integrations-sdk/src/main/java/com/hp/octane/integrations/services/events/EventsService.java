@@ -30,6 +30,7 @@ public interface EventsService extends ClosableService, HasQueueService, HasMetr
 	 *
 	 * @param configurer  SDK services configurer object
 	 * @param restService Rest Service
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 	 */
 	static EventsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {

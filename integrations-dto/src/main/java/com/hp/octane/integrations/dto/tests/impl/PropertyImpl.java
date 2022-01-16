@@ -16,41 +16,43 @@
 
 package com.hp.octane.integrations.dto.tests.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.octane.integrations.dto.tests.Property;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  * Created by lev on 31/05/2016.
  */
-@XmlRootElement(name = "property")
-@XmlAccessorType(XmlAccessType.NONE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JacksonXmlRootElement(localName = "property")
 public class PropertyImpl implements Property {
 
-    @XmlAttribute(name = "name")
+    @JacksonXmlProperty(isAttribute = true, localName = "name")
     private String propertyName;
 
-    @XmlAttribute(name = "value")
+    @JacksonXmlProperty(isAttribute = true, localName = "value")
     private String propertyValue;
 
+    @Override
     public String getPropertyName() {
         return propertyName;
     }
 
+    @Override
     public Property setPropertyName(String name) {
-        propertyName = name;
+        this.propertyName = name;
         return this;
     }
 
+    @Override
     public String getPropertyValue() {
         return propertyValue;
     }
 
+    @Override
     public Property setPropertyValue(String value) {
-        propertyValue = value;
+        this.propertyValue = value;
         return this;
     }
 }

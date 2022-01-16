@@ -15,10 +15,7 @@
 
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.hp.octane.integrations.CIPluginServices;
-import com.hp.octane.integrations.OctaneClient;
-import com.hp.octane.integrations.OctaneConfiguration;
-import com.hp.octane.integrations.OctaneSDK;
+import com.hp.octane.integrations.*;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
@@ -54,13 +51,13 @@ public class VulnerabilitiesServiceNegativeTests {
 	//  enqueue API negative testing validation
 	@Test(expected = IllegalArgumentException.class)
 	public void testE1() {
-		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(null, null, ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities(null, null, ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -68,13 +65,13 @@ public class VulnerabilitiesServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testE2() {
-		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("", null, ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("", null, ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -82,13 +79,13 @@ public class VulnerabilitiesServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testE3() {
-		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", null, ToolType.SSC, 0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", null, ToolType.SSC, 0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -96,13 +93,13 @@ public class VulnerabilitiesServiceNegativeTests {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testE4() {
-		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "", ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "", ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}
@@ -111,13 +108,13 @@ public class VulnerabilitiesServiceNegativeTests {
 	//  this one is the OK one
 	@Test
 	public void testE5() {
-		OctaneConfiguration configuration = new OctaneConfiguration(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
 		Assert.assertNotNull(client);
 
 		VulnerabilitiesService vulnerabilitiesService = client.getVulnerabilitiesService();
 		try {
-			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "build-id", ToolType.SSC,0, 0,null);
+			vulnerabilitiesService.enqueueRetrieveAndPushVulnerabilities("job-id", "build-id", ToolType.SSC,0, 0,null, null);
 		} finally {
 			OctaneSDK.removeClient(client);
 		}

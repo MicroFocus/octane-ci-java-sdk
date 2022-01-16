@@ -27,22 +27,28 @@ import com.hp.octane.integrations.dto.general.*;
 
 public final class DTOGeneralProvider extends DTOInternalProviderBase {
 
-	public DTOGeneralProvider(DTOFactory.DTOConfiguration configuration) {
-		super(configuration);
-		dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
-		dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
-		dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
-		dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
-		dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
-		dtoPairs.put(Taxonomy.class, TaxonomyImpl.class);
-		dtoPairs.put(ListItem.class, ListItemImpl.class);
-	}
+    public DTOGeneralProvider(DTOFactory.DTOConfiguration configuration) {
+        super(configuration);
+        dtoPairs.put(CIPluginInfo.class, CIPluginInfoImpl.class);
+        dtoPairs.put(CIServerInfo.class, CIServerInfoImpl.class);
+        dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
+        dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
+        dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
+        dtoPairs.put(Taxonomy.class, TaxonomyImpl.class);
+        dtoPairs.put(ListItem.class, ListItemImpl.class);
+        dtoPairs.put(MbtUnit.class, MbtUnitImpl.class);
+        dtoPairs.put(MbtData.class, MbtDataImpl.class);
+        dtoPairs.put(MbtUnitParameter.class, MbtUnitParameterImpl.class);
+        dtoPairs.put(MbtDataTable.class, MbtDataTableImpl.class);
 
-	protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
-		T result = null;
-		if (dtoPairs.containsKey(targetType)) {
-			result = (T) dtoPairs.get(targetType).newInstance();
-		}
-		return result;
-	}
+        dtoPairs.put(CIBuildStatusInfo.class, CIBuildStatusInfoImpl.class);
+    }
+
+    protected <T extends DTOBase> T instantiateDTO(Class<T> targetType) throws InstantiationException, IllegalAccessException {
+        T result = null;
+        if (dtoPairs.containsKey(targetType)) {
+            result = (T) dtoPairs.get(targetType).newInstance();
+        }
+        return result;
+    }
 }

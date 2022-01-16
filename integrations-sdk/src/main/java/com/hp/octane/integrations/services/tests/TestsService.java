@@ -36,43 +36,12 @@ public interface TestsService extends ClosableService, HasQueueService, HasMetri
 	 * @param configurer      SDK services configurer object
 	 * @param queueingService Queue service
 	 * @param restService     Rest Service
+	 * @param configurationService Configuration Service
 	 * @return initialized service
 	 */
 	static TestsService newInstance(OctaneSDK.SDKServicesConfigurer configurer, QueueingService queueingService, RestService restService, ConfigurationService configurationService) {
 		return new TestsServiceImpl(configurer, queueingService, restService, configurationService);
 	}
-
-	/**
-	 * Verifies against Octane, whether the tests result for the specific Job are relevant or not
-	 * @param jobId jobId
-	 * @param rootJobId any identification of Root Job that triggered this job. Null - if there is no such job.
-	 * @return true if isTestsResultRelevant
-	 * @throws IOException IOException
-	 */
-	boolean isTestsResultRelevant(String jobId, String rootJobId) throws IOException;
-
-	/**
-	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
-	 *
-	 * @param testsResult ready-to-be-pushed TestsResult object, having a collection of tests results with the relevant build context
-	 * @param jobId       ID of the job that produced the results
-	 * @param buildId     ID of the build that produced the results
-	 * @return OctaneResponse
-	 * @throws IOException IOException
-	 */
-	OctaneResponse pushTestsResult(TestsResult testsResult, String jobId, String buildId) throws IOException;
-
-	/**
-	 *
-	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
-	 *
-	 * @param testsResult ready-to-be-pushed TestsResult resource given as an InputStream
-	 * @param jobId       ID of the job that produced the results
-	 * @param buildId     ID of the build that produced the results
-	 * @return OctaneResponse
-	 * @throws IOException IOException
-	 */
-	OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException;
 
 	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval.

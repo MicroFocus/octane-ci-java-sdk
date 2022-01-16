@@ -15,25 +15,24 @@
  */
 package com.hp.octane.integrations.executor;
 
+import com.hp.octane.integrations.executor.converters.MbtTest;
+
+import java.io.Serializable;
 import java.util.List;
 
-public class TestsToRunConverterResult {
+public class TestsToRunConverterResult implements Serializable {
     private String rawTestsString;
     private List<TestToRunData> testsData;
     private String convertedTestsString;
     private String workingDirectory;
     private String testsToRunConvertedParameterName;
+    private List<MbtTest> mbtTests;
 
-    public TestsToRunConverterResult(String rawTestsString, List<TestToRunData> testsData, String convertedTestsString, String workingDirectory, String testsToRunConvertedParameterName) {
-        this.rawTestsString = rawTestsString;
+    public TestsToRunConverterResult(List<TestToRunData> testsData, String convertedTestsString, String workingDirectory, String testsToRunConvertedParameterName) {
         this.testsData = testsData;
         this.convertedTestsString = convertedTestsString;
         this.workingDirectory = workingDirectory;
         this.testsToRunConvertedParameterName = testsToRunConvertedParameterName;
-    }
-
-    public String getRawTestsString() {
-        return rawTestsString;
     }
 
     public List<TestToRunData> getTestsData() {
@@ -50,5 +49,13 @@ public class TestsToRunConverterResult {
 
     public String getTestsToRunConvertedParameterName() {
         return testsToRunConvertedParameterName;
+    }
+
+    public List<MbtTest> getMbtTests() {
+        return mbtTests;
+    }
+
+    public void setMbtTests(List<MbtTest> mbtTests) {
+        this.mbtTests = mbtTests;
     }
 }

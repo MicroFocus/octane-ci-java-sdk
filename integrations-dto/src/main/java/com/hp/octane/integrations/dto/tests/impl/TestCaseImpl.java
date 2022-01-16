@@ -16,64 +16,86 @@
 
 package com.hp.octane.integrations.dto.tests.impl;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.octane.integrations.dto.tests.TestCase;
-
-import javax.xml.bind.annotation.*;
+import com.hp.octane.integrations.dto.tests.TestCaseFailure;
 
 /**
  * Created by lev on 31/05/2016.
  */
-@XmlRootElement(name = "testcase")
-@XmlAccessorType(XmlAccessType.NONE)
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JacksonXmlRootElement(localName = "testcase")
+@JsonPropertyOrder({"name", "classname", "time", "failure"})
 public class TestCaseImpl implements TestCase {
-    @XmlAttribute(name = "name")
+
+    @JacksonXmlProperty(isAttribute = true, localName = "name")
     private String name;
 
-    @XmlAttribute(name = "time")
+    @JacksonXmlProperty(isAttribute = true, localName = "time")
     private String time;
 
-    @XmlAttribute(name = "status")
+    @JacksonXmlProperty(isAttribute = true, localName = "status")
     private String status;
 
-    @XmlAttribute(name = "classname")
+    @JacksonXmlProperty(isAttribute = true, localName = "classname")
     private String className;
 
+    @JacksonXmlProperty(localName = "failure")
+    private TestCaseFailure failure;
 
-    public String getTestName() {
+    public String getName() {
         return name;
     }
 
-    public TestCase setTestName(String name) {
+    public TestCase setName(String name) {
         this.name = name;
         return this;
     }
 
-    public String getTestTime() {
+    @Override
+    public String getTime() {
         return time;
     }
 
-    public TestCase setTestTime(String time) {
+    @Override
+    public TestCase setTime(String time) {
         this.time = time;
         return this;
     }
 
+    @Override
     public String getTestStatus() {
         return status;
     }
 
+    @Override
     public TestCase setTestStatus(String status) {
         this.status = status;
         return this;
     }
 
-    public String getTestClassName() {
+    @Override
+    public String getClassName() {
         return className;
     }
 
-    public TestCase setTestClassName(String className) {
+    @Override
+    public TestCase setClassName(String className) {
         this.className = className;
         return this;
     }
 
+    @Override
+    public TestCaseFailure getFailure() {
+        return failure;
+    }
 
+    @Override
+    public TestCase setFailure(TestCaseFailure failure) {
+        this.failure = failure;
+        return this;
+    }
 }

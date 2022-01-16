@@ -17,4 +17,5 @@ public class TestToRunDataCollection {
     public String getVersion() {
         return version;
     }
+
 }

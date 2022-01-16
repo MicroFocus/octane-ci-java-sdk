@@ -4,14 +4,15 @@ import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 
 import java.util.List;
+import java.util.Map;
 
 
 public class CucumberJVMConverter extends TestsToRunConverter {
 
-    private static final String FEATURE_FILE_PATH = "featureFilePath";
+    public static final String FEATURE_FILE_PATH = "featureFilePath";
 
     @Override
-    protected String convert(List<TestToRunData> data, String executionDirectory) {
+    protected String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
 
 
         StringBuilder sb = new StringBuilder();
