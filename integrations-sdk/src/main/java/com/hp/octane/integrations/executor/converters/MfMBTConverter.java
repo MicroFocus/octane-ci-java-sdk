@@ -137,21 +137,22 @@ public class MfMBTConverter extends MfUftConverter {
     private static String extractActionParameterNames(MbtUnit mbtUnit) {
         List<MbtUnitParameter> parameters = mbtUnit.getParameters();
         if (parameters != null && !parameters.isEmpty()) {
-            StringBuilder parameterString = new StringBuilder();
+            StringBuilder inputParameters = new StringBuilder();
+            StringBuilder outputParameters = new StringBuilder();
             parameters.forEach(mbtUnitParameter -> {
                 String parameterName = mbtUnitParameter.getName();
                 switch (mbtUnitParameter.getType().toUpperCase()) {
                     case "INPUT":
-                        parameterString.append(SdkStringUtils.isEmpty(mbtUnitParameter.getOutputParameter()) ?
+                        inputParameters.append(SdkStringUtils.isEmpty(mbtUnitParameter.getOutputParameter()) ?
                                 ",DataTable(\"" + parameterName + "\")" : "," + mbtUnitParameter.getOutputParameter());
                         break;
                     case "OUTPUT":
                     default:
-                        parameterString.append(",").append(parameterName);
+                        outputParameters.append(",").append(parameterName);
                         break;
                 }
             });
-            return parameterString.toString();
+            return inputParameters.append(outputParameters).toString();
         } else {
             return null;
         }
