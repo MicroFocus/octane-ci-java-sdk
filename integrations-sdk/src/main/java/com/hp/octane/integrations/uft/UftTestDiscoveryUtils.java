@@ -19,6 +19,7 @@ import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.uft.items.*;
 import com.hp.octane.integrations.utils.SdkConstants;
 import com.hp.octane.integrations.utils.SdkStringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.poi.poifs.filesystem.*;
@@ -343,8 +344,8 @@ public class UftTestDiscoveryUtils {
     }
 
     private static Document getGuiTestDocument(File dirPath) throws IOException, ParserConfigurationException, SAXException {
-        File tspTestFile = new File(dirPath, GUI_TEST_FILE);
-        if (!tspTestFile.exists()) {
+        File tspTestFile = getFileIfExist(dirPath, GUI_TEST_FILE);
+        if (tspTestFile == null) {
             return null;
         }
 
@@ -358,8 +359,8 @@ public class UftTestDiscoveryUtils {
     }
 
     private static Document getApiTestDocument(File dirPath) throws ParserConfigurationException, IOException, SAXException {
-        File actionsFile = new File(dirPath, API_ACTIONS_FILE);
-        if (!actionsFile.exists()) {
+        File actionsFile = getFileIfExist(dirPath, API_ACTIONS_FILE);
+        if (actionsFile == null) {
             return null;
         }
 
@@ -367,6 +368,25 @@ public class UftTestDiscoveryUtils {
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
         return dBuilder.parse(actionsFile);
+    }
+
+    private static File getFileIfExist(File dirPath, String fileName) {
+        if(SystemUtils.IS_OS_LINUX) {
+            Optional<File> optionalFile = Arrays.stream(dirPath.listFiles()).filter(file -> file.getName().equalsIgnoreCase(fileName)).findFirst();
+            if(optionalFile.isPresent()) {
+                return optionalFile.get();
+            } else {
+                logger.warn("File {} does not exist", dirPath.getAbsolutePath() + File.separator + fileName);
+            }
+        } else {
+            File file = new File(dirPath, fileName);
+            if(file.exists()) {
+                return file;
+            } else {
+                logger.warn("File {} does not exist", file.getAbsolutePath());
+            }
+        }
+        return null;
     }
 
     private static List<UftTestAction> parseActionsAndParameters(Document document, String actionPathPrefix, String testName, File dirPath) {
@@ -445,9 +465,11 @@ public class UftTestDiscoveryUtils {
             String actionName = entry.getKey();
             File actionFolder = new File(testDirPath, actionName);
             if (actionFolder.exists()) {
-                File resourceMtrFile = new File(actionFolder, RESOURCE_MTR_FILE);
-                if (resourceMtrFile.exists()) {
+                File resourceMtrFile = getFileIfExist(actionFolder, RESOURCE_MTR_FILE);
+                if (resourceMtrFile != null) {
                     parseActionMtrFile(resourceMtrFile, documentBuilder, entry.getValue());
+                } else {
+                    logger.warn("resource.mtr file for action {} does not exist", actionName);
                 }
             } else {
                 entry.getValue().setParameters(Collections.emptyList());
