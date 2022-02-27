@@ -76,9 +76,13 @@ public class UftTestDiscoveryUtils {
 
     public static final String UFT_ACTION_TYPE_ATTR = "Type";
 
+    public static final String UFT_ACTION_SCOPE_ATTR = "Scope";
+
     public static final String UFT_ACTION_KIND_VALUE = "16";
 
     public static final String UFT_ACTION_TYPE_VALUE = "1";
+
+    public static final String UFT_ACTION_SCOPE_VALUE = "0";
 
     public static UftTestDiscoveryResult doFullDiscovery(File root) {
         return doFullDiscovery(root, TestingToolType.UFT);
@@ -436,9 +440,10 @@ public class UftTestDiscoveryUtils {
             attributes = dependencyNode.getAttributes();
             String type = attributes.getNamedItem(UFT_ACTION_TYPE_ATTR).getNodeValue();
             String kind = attributes.getNamedItem(UFT_ACTION_KIND_ATTR).getNodeValue();
+            String scope = attributes.getNamedItem(UFT_ACTION_SCOPE_ATTR).getNodeValue();
             String logicalName = attributes.getNamedItem(UFT_ACTION_LOGICAL_ATTR).getNodeValue();
 
-            if (type.equals(UFT_ACTION_TYPE_VALUE) && kind.equals(UFT_ACTION_KIND_VALUE) && SdkStringUtils.isNotEmpty(logicalName)) {
+            if (type.equals(UFT_ACTION_TYPE_VALUE) && kind.equals(UFT_ACTION_KIND_VALUE) && scope.equals(UFT_ACTION_SCOPE_VALUE) && SdkStringUtils.isNotEmpty(logicalName)) {
                 String dependencyStr = dependencyNode.getTextContent();
                 String actionName = dependencyStr.substring(0, dependencyStr.indexOf("\\"));
                 if (!actionName.equalsIgnoreCase(ACTION_0)) { // action0 is not relevant
