@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.executor.TestConnectivityInfo;
 import com.hp.octane.integrations.dto.general.*;
 import com.hp.octane.integrations.dto.parameters.CIParameters;
 import com.hp.octane.integrations.dto.pipelines.PipelineNode;
+import com.hp.octane.integrations.dto.scm.Branch;
 import com.hp.octane.integrations.dto.securityscans.FodServerConfiguration;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.SPIMethodNotImplementedException;
@@ -167,6 +168,16 @@ public abstract class CIPluginServices {
 	 */
 	public CIBuildStatusInfo getJobBuildStatus(String jobCiId, String parameterName, String parameterValue) {
 		throw new SPIMethodNotImplementedException("getJobBuildStatus API is not implemented");
+	}
+
+	/**
+	 * Get list of branches by a filter
+	 * @param jobCiId          Job CI ID to get branches from
+	 * @param filterBranchName special filter for list of branches
+	 * @return
+	 */
+	public List<Branch> getListOfBranches(String jobCiId, String filterBranchName) {
+		throw new SPIMethodNotImplementedException("get list of branches API is not implemented");
 	}
 
 	/**

@@ -27,6 +27,7 @@ public class BranchImpl implements Branch {
 
     private String octaneId;
     private String name;
+    private String internalId;
     private Boolean isMerged;
     private String lastCommitSHA;
     private String lastCommitUrl;
@@ -131,6 +132,17 @@ public class BranchImpl implements Branch {
     @Override
     public Branch setOctaneId(String octaneId) {
         this.octaneId = octaneId;
+        return this;
+    }
+
+    @Override
+    public String getInternalId() {
+        return internalId;
+    }
+
+    @Override
+    public Branch setInternalId(String internalId) {
+        this.internalId = internalId;
         return this;
     }
 }
