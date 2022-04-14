@@ -60,7 +60,7 @@ public interface PipelineNode extends DTOBase {
 
 	PipelineNode setIsTestRunner(Boolean isTestRunner);
 
-	String getDefaultBranchId();
+	String getDefaultBranchName();
 
-	PipelineNode setDefaultBranchId(String defaultBranchId);
+	PipelineNode setDefaultBranchName(String defaultBranchName);
 }

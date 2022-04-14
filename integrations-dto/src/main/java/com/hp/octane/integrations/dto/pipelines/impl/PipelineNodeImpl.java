@@ -37,7 +37,7 @@ class PipelineNodeImpl implements PipelineNode {
 	private List<PipelinePhase> phasesPostBuild = new ArrayList<>();
 	private Boolean hasUpstream;
 	private Boolean isTestRunner;
-	private String defaultBranchId;
+	private String defaultBranchName;
 
 	public String getJobCiId() {
 		return jobCiId;
@@ -118,13 +118,13 @@ class PipelineNodeImpl implements PipelineNode {
 	}
 
 	@Override
-	public String getDefaultBranchId() {
-		return defaultBranchId;
+	public String getDefaultBranchName() {
+		return defaultBranchName;
 	}
 
 	@Override
-	public PipelineNode setDefaultBranchId(String defaultBranchId) {
-		this.defaultBranchId = defaultBranchId;
+	public PipelineNode setDefaultBranchName(String defaultBranchName) {
+		this.defaultBranchName = defaultBranchName;
 		return this;
 	}
 }
