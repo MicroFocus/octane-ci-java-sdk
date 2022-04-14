@@ -57,6 +57,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String RUN = "run";
 	private static final String STOP = "stop";
 	private static final String BUILD_STATUS = "build_status";
+	private static final String BRANCHES = "branches";
 	private static final String BUILDS = "builds";
 	private static final String EXECUTOR = "executor";
 	private static final String INIT = "init";
@@ -109,15 +110,8 @@ final class TasksProcessorImpl implements TasksProcessor {
 				suspendCiEvents(result, task.getBody());
 			} else if (path[0].startsWith(JOBS)) {
 				if (path.length == 1) {
-					Map<String, String> queryParams = new HashMap<>();
-					String queryParamsStr = path[0].contains("?") ? path[0].substring(path[0].indexOf("?") + 1) : path[0];
-					String[] queryParamsParts = queryParamsStr.split("&");
-					for (String p : queryParamsParts) {
-						String[] parts = p.split("=");
-						if (parts.length == 2) {
-							queryParams.put(parts[0], parts[1]);
-						}
-					}
+					Map<String, String> queryParams = getQueryParamsMap(path[0]);
+
 					boolean includingParameters = !"false".equals(queryParams.get("parameters"));
 					Long workspaceId = queryParams.containsKey("workspaceId") ? Long.parseLong(queryParams.get("workspaceId")) : null;
 					executeJobsListRequest(result, includingParameters, workspaceId);
@@ -132,6 +126,13 @@ final class TasksProcessorImpl implements TasksProcessor {
 				}
 			} else if (BUILD_STATUS.equalsIgnoreCase(path[0])) {
 				executeGetBulkBuildStatusRequest(result, task.getBody());
+			} else if (path[0].startsWith(BRANCHES)) {
+				Map<String, String> queryParams = getQueryParamsMap(path[1]);
+
+				String jobCiId = path[1].substring(0, path[1].indexOf("?"));
+				String filterBranchName = queryParams.getOrDefault("filterBranchName", null);
+
+				executeBranchesListRequest(result, jobCiId, filterBranchName);
 			} else if (EXECUTOR.equalsIgnoreCase(path[0])) {
 				if (HttpMethod.POST.equals(task.getMethod()) && path.length == 2) {
 					if (INIT.equalsIgnoreCase(path[1])) {
@@ -187,6 +188,15 @@ final class TasksProcessorImpl implements TasksProcessor {
 
 		logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + task.getId() + "' available with status " + result.getStatus() +", processing time is " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
 		return result;
+	}
+
+	private void executeBranchesListRequest(OctaneResultAbridged result, String jobCiId, String filterBranchName) {
+		result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+
+		CIBranchesList content = configurer.pluginServices.getBranchesList(jobCiId, filterBranchName);
+		result.setBody(dtoFactory.dtoToJson(content));
+		logger.info(configurer.octaneConfiguration.getLocationForLog() + "executeBranchesListRequest: found " +
+				content.getBranches().size() + " branches, body size is " + result.getBody().length());
 	}
 
 	@Override
@@ -378,6 +388,19 @@ final class TasksProcessorImpl implements TasksProcessor {
 
 		result.setBody(dtoFactory.dtoCollectionToJson(output));
 		result.setStatus(HttpStatus.SC_OK);
+	}
+
+	private Map<String, String> getQueryParamsMap(String path) {
+		Map<String, String> queryParams = new HashMap<>();
+		String queryParamsStr = path.contains("?") ? path.substring(path.indexOf("?") + 1) : path;
+		String[] queryParamsParts = queryParamsStr.split("&");
+		for (String p : queryParamsParts) {
+			String[] parts = p.split("=");
+			if (parts.length == 2) {
+				queryParams.put(parts[0], parts[1]);
+			}
+		}
+		return queryParams;
 	}
 
 	private void suspendCiEvents(OctaneResultAbridged result, String suspend) {

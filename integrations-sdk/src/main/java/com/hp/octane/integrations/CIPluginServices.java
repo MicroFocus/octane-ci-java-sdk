@@ -176,7 +176,7 @@ public abstract class CIPluginServices {
 	 * @param filterBranchName special filter for list of branches
 	 * @return
 	 */
-	public List<Branch> getListOfBranches(String jobCiId, String filterBranchName) {
+	public CIBranchesList getBranchesList(String jobCiId, String filterBranchName) {
 		throw new SPIMethodNotImplementedException("get list of branches API is not implemented");
 	}
 
