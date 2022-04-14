@@ -126,7 +126,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 				}
 			} else if (BUILD_STATUS.equalsIgnoreCase(path[0])) {
 				executeGetBulkBuildStatusRequest(result, task.getBody());
-			} else if (path[0].startsWith(BRANCHES)) {
+			} else if (path.length == 2 && path[0].startsWith(BRANCHES)) {
 				Map<String, String> queryParams = getQueryParamsMap(path[1]);
 
 				String jobCiId = path[1].substring(0, path[1].indexOf("?"));
