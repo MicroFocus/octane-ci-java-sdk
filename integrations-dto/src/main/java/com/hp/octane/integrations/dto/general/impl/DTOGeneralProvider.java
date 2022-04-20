@@ -34,6 +34,7 @@ public final class DTOGeneralProvider extends DTOInternalProviderBase {
         dtoPairs.put(CIPluginSDKInfo.class, CIPluginSDKInfoImpl.class);
         dtoPairs.put(CIProviderSummaryInfo.class, CIProviderSummaryInfoImpl.class);
         dtoPairs.put(CIJobsList.class, CIJobsListImpl.class);
+        dtoPairs.put(CIBranchesList.class, CIBranchesListImpl.class);
         dtoPairs.put(Taxonomy.class, TaxonomyImpl.class);
         dtoPairs.put(ListItem.class, ListItemImpl.class);
         dtoPairs.put(MbtUnit.class, MbtUnitImpl.class);
