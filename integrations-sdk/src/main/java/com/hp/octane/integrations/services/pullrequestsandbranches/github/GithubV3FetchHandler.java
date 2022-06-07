@@ -149,6 +149,9 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
                 .collect(Collectors.toList());
         logConsumer.accept(String.format("Received %d pull-requests, while %d are matching source/target filters", pullRequests.size(), filteredPullRequests.size()));
 
+        printPullRequestTitles(logConsumer, pullRequests, "Received pull-requests:");
+        printPullRequestTitles(logConsumer, filteredPullRequests, "Matching pull-requests:");
+
         if (!filteredPullRequests.isEmpty()) {
             //users
             Set<String> userUrls = filteredPullRequests.stream().map(PullRequest::getUser).map(PullRequestUser::getUrl).collect(Collectors.toSet());
@@ -225,6 +228,17 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
         return result;
     }
 
+    private void printPullRequestTitles(Consumer<String> logConsumer, List<PullRequest> pullRequests, String textToPrint) {
+        if (pullRequests.isEmpty()) {
+            return;
+        }
+
+        logConsumer.accept(textToPrint);
+        for (PullRequest pr : pullRequests) {
+            String prTitle = (null == pr.getTitle()) ? "<no title>" : pr.getTitle();
+            logConsumer.accept(prTitle);
+        }
+    }
 
     private SCMRepository buildScmRepository(boolean useSSHFormat, PullRequestRepo ref) {
         String url = "unknown repository";
