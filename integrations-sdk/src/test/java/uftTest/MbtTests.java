@@ -47,7 +47,7 @@ public class MbtTests {
         Assert.assertEquals(1, resultData.size());
         UftResultStepData data1 = resultData.get(0).getSteps().get(0);
         String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's                                    physical description:<br>wpftypename = window<br>regexpwndtitle = Micro                                    Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample                                    Application<br> (Warning). ";
-        validateAction(23, "Warning", errorMessage, "Action1 [Two test_same function 2]", data1, null, null);
+        validateAction(23, "Warning", errorMessage, "Action1 [Two test_same function 2]", data1, Collections.EMPTY_LIST, null);
     }
 
     @Test
@@ -58,17 +58,17 @@ public class MbtTests {
         Assert.assertEquals(8, resultData.size());
 
         List<UftResultStepParameter> inputParameters = Arrays.asList(new UftResultStepParameter("username", "john", "System.String"), new UftResultStepParameter("password", "HP", "System.String"));
-        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.get(0), null, null);
+        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.get(0), Collections.EMPTY_LIST, null);
         validateAction(3, "Done", "", "Login [FlightGUIBU2]", resultData.get(1), inputParameters, null);
-        validateAction(1, "Done", "", "Search Order Tab [FlightGUIBU2]", resultData.get(2), null, null);
+        validateAction(1, "Done", "", "Search Order Tab [FlightGUIBU2]", resultData.get(2),  Collections.EMPTY_LIST, null);
         inputParameters = Arrays.asList(new UftResultStepParameter("Name", "john", "System.String"));
         validateAction(1, "Done", "", "Search Order By Name [FlightGUIBU2]", resultData.get(3), inputParameters, null);
-        validateAction(0, "Done", "", "Select Order [FlightGUIBU2]", resultData.get(4), null, null);
+        validateAction(0, "Done", "", "Select Order [FlightGUIBU2]", resultData.get(4), Collections.EMPTY_LIST, null);
         inputParameters = Arrays.asList(new UftResultStepParameter("NumSeats", "14", "System.String"), new UftResultStepParameter("Class", "Economy", "System.String"));
         validateAction(8, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(5), inputParameters, null);
         inputParameters = Arrays.asList(new UftResultStepParameter("NumSeats", "10", "System.String"), new UftResultStepParameter("Class", "Economy", "System.String"));
         validateAction(7, "Done", "", "Update Order Details [FlightGUIBU2]", resultData.get(6), inputParameters, null);
-        validateAction(0, "Done", "", "Close App [FlightGUIBU2]", resultData.get(7), null, null);
+        validateAction(0, "Done", "", "Close App [FlightGUIBU2]", resultData.get(7), Collections.EMPTY_LIST, null);
     }
 
     @Test
