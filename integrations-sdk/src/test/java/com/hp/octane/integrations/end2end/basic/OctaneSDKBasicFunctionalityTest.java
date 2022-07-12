@@ -521,7 +521,7 @@ public class OctaneSDKBasicFunctionalityTest {
 					TestsResult testsResult = dtoFactory.dtoFromXml(rawTestResultBody, TestsResult.class);
 					//  [YG] below validations are done to ensure NEW API (via query params) aligned with an OLD API (data within XML)
 					//  [YG] in the future we'll remove OLD API and this validation should be done differently
-					request.mergeQueryParameters("", request.getQueryString(), false);
+					request.mergeQueryParameters("", request.getQueryString());
 					Assert.assertEquals(request.getQueryParameters().getString("instance-id"), testsResult.getBuildContext().getServerId());
 					Assert.assertEquals(request.getQueryParameters().getString("job-ci-id"), testsResult.getBuildContext().getJobId());
 					Assert.assertEquals(request.getQueryParameters().getString("build-ci-id"), testsResult.getBuildContext().getBuildId());

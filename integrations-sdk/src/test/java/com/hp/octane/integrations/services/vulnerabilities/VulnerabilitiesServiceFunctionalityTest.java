@@ -426,7 +426,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
             simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", request -> {
                 try {
                     //  retrieve query parameters
-                    request.mergeQueryParameters("", request.getQueryString(), false);
+                    request.mergeQueryParameters("", request.getQueryString());
                     preflightRequestsCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
                             .add(request.getQueryParameters().getString("instance-id") + "|" +
@@ -474,7 +474,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
             simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", request -> {
                 try {
                     //  retrieve query parameters
-                    request.mergeQueryParameters("", request.getQueryString(), false);
+                    request.mergeQueryParameters("", request.getQueryString());
                     preflightRequestsCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
                             .add(request.getQueryParameters().getString("instance-id") + "|" +
