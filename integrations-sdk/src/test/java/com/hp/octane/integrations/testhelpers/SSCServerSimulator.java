@@ -160,7 +160,7 @@ public class SSCServerSimulator extends RestServerSimulator{
                 });
     }
     public boolean queryIsAboutProjectName(String paramName, String paramValue, Request request) {
-        request.mergeQueryParameters("", request.getQueryString(), false);
+        request.mergeQueryParameters("", request.getQueryString());
         String queryString = request.getQueryParameters().getString("q");
         return queryString != null && queryString.substring((paramName + ":").length()).startsWith(paramValue);
     }
