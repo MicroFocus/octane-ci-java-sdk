@@ -50,6 +50,12 @@
 			<artifactId>httpclient</artifactId>
 			<groupId>org.apache.httpcomponents</groupId>
 			<version>${httpclient.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>commons-codec</groupId>
+					<artifactId>commons-codec</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
