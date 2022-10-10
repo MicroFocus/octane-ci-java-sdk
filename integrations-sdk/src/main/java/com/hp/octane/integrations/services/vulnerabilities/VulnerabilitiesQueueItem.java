@@ -26,10 +26,10 @@ public class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
     private String buildId;
     private long startTime;
     private long timeout;
-    private ToolType toolType;
+    private String toolType;
     private boolean isRelevant;
     private Date baselineDate;
-    private Map<String,String> additionalProperties = new HashMap<>();
+    private Map<String, String> additionalProperties = new HashMap<>();
 
     public String getJobId() {
         return jobId;
@@ -71,11 +71,11 @@ public class VulnerabilitiesQueueItem implements QueueingService.QueueItem {
         this.timeout = timeout;
     }
 
-    public ToolType getToolType() {
+    public String getToolType() {
         return toolType;
     }
 
-    public void setToolType(ToolType toolType) {
+    public void setToolType(String toolType) {
         this.toolType = toolType;
     }
 

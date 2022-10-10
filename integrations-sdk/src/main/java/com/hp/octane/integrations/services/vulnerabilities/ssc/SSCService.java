@@ -17,9 +17,15 @@ package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
 
 public interface SSCService extends VulnerabilitiesToolService {
+
+    @Override
+    default String getVulnerabilitiesToolKey() {
+        return ToolType.SSC.name();
+    }
 
     /**
      * Service instance producer - for internal usage only (protected by inaccessible configurer)

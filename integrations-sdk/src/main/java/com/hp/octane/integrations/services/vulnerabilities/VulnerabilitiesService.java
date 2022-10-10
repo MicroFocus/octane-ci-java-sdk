@@ -27,37 +27,64 @@ import java.util.Map;
 
 public interface VulnerabilitiesService extends ClosableService, HasQueueService, HasMetrics {
 
-	/**
-	 * 	 Service instance producer - for internal usage only (protected by inaccessible configurer)
-	 * @param queueingService queueingService
-	 * @param vulnerabilitiesToolServices vulnerabilitiesToolServices
-	 * @param configurer configurer
-	 * @param restService restService
-	 * @param configurationService Configuration Service
-	 * @return return initialized service
-	 */
-	static VulnerabilitiesService newInstance (QueueingService queueingService,VulnerabilitiesToolService[] vulnerabilitiesToolServices,
-											   OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
-		return new VulnerabilitiesServiceImpl(queueingService, vulnerabilitiesToolServices, configurer, restService, configurationService);
-	}
+    /**
+     * Register custom vulnerabilities tool service
+     * @param vulnerabilitiesToolService vulnerabilities tool service instance
+     */
+    void addVulnerabilitiesToolService(VulnerabilitiesToolService vulnerabilitiesToolService);
 
-	/**
-	 * Enqueue retrieve and push vulnerabilities scan
-	 * This is the preferred way to push vulnerabilities scan results to Octane. This method provides facilities of queue, non-main thread execution and retry.
-	 *
-	 * @param jobId            any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
-	 * @param buildId          any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
-	 * @param toolType         toolType
-	 * @param startRunTime     timestamp of build start
-	 * @param queueItemTimeout timeout defined for this queue item
-	 * @param additionalProperties additionalProperties
-	 * @param rootJobId rootJobId
-	 */
-	void enqueueRetrieveAndPushVulnerabilities(String jobId,
-											   String buildId,
-											   ToolType toolType,
-											   long startRunTime,
-											   long queueItemTimeout,
-											   Map<String,String> additionalProperties,
-											   String rootJobId);
+    /**
+     * Service instance producer - for internal usage only (protected by inaccessible configurer)
+     *
+     * @param queueingService             queueingService
+     * @param vulnerabilitiesToolServices vulnerabilitiesToolServices
+     * @param configurer                  configurer
+     * @param restService                 restService
+     * @param configurationService        Configuration Service
+     * @return return initialized service
+     */
+    static VulnerabilitiesService newInstance(QueueingService queueingService, VulnerabilitiesToolService[] vulnerabilitiesToolServices,
+                                              OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
+        return new VulnerabilitiesServiceImpl(queueingService, vulnerabilitiesToolServices, configurer, restService, configurationService);
+    }
+
+    /**
+     * Enqueue retrieve and push vulnerabilities scan
+     * This is the preferred way to push vulnerabilities scan results to Octane. This method provides facilities of queue, non-main thread execution and retry.
+     *
+     * @param jobId                any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+     * @param buildId              any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+     * @param toolType             toolType
+     * @param startRunTime         timestamp of build start
+     * @param queueItemTimeout     timeout defined for this queue item
+     * @param additionalProperties additionalProperties
+     * @param rootJobId            rootJobId
+     */
+    void enqueueRetrieveAndPushVulnerabilities(String jobId,
+                                               String buildId,
+                                               ToolType toolType,
+                                               long startRunTime,
+                                               long queueItemTimeout,
+                                               Map<String, String> additionalProperties,
+                                               String rootJobId);
+
+    /**
+     * Enqueue retrieve and push vulnerabilities scan
+     * This is the preferred way to push vulnerabilities scan results to Octane. This method provides facilities of queue, non-main thread execution and retry.
+     *
+     * @param jobId                any identification of Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+     * @param buildId              any identification of Build or the specified above Job, that the tests results are related to and that SPI's `getTestsResult` method will know to work with
+     * @param toolType             toolType
+     * @param startRunTime         timestamp of build start
+     * @param queueItemTimeout     timeout defined for this queue item
+     * @param additionalProperties additionalProperties
+     * @param rootJobId            rootJobId
+     */
+    void enqueueRetrieveAndPushVulnerabilities(String jobId,
+                                               String buildId,
+                                               String toolType,
+                                               long startRunTime,
+                                               long queueItemTimeout,
+                                               Map<String, String> additionalProperties,
+                                               String rootJobId);
 }
