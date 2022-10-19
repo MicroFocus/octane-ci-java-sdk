@@ -20,6 +20,7 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
+import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import com.hp.octane.integrations.services.WorkerPreflight;
@@ -30,10 +31,7 @@ import com.hp.octane.integrations.services.configurationparameters.factory.Confi
 import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.services.rest.RestService;
-import com.hp.octane.integrations.services.vulnerabilities.fod.FODService;
 import com.hp.octane.integrations.services.vulnerabilities.fod.dto.FodConnectionFactory;
-import com.hp.octane.integrations.services.vulnerabilities.sonar.SonarVulnerabilitiesService;
-import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
@@ -43,11 +41,11 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Default implementation of vulnerabilities service
@@ -64,9 +62,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	protected final RestService restService;
 	protected final ConfigurationService configurationService;
 	protected final OctaneSDK.SDKServicesConfigurer configurer;
-	protected SSCService sscService;
-	protected FODService fodService;
-	protected SonarVulnerabilitiesService sonarVulnerabilitiesService;
+	private final Map<String, VulnerabilitiesToolService> vulnerabilitiesServices;
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	private int TEMPORARY_ERROR_BREATHE_INTERVAL = 15000;
@@ -77,7 +73,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	private final WorkerPreflight workerPreflight;
 
 	public VulnerabilitiesServiceImpl(QueueingService queueingService, VulnerabilitiesToolService[] vulnerabilitiesToolServices,
-									  OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
+										  OctaneSDK.SDKServicesConfigurer configurer, RestService restService, ConfigurationService configurationService) {
 
 		if (queueingService == null) {
 			throw new IllegalArgumentException("queue Service MUST NOT be null");
@@ -99,14 +95,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		this.workerPreflight = new WorkerPreflight(this, configurationService, logger);
 		FodConnectionFactory.setConfigurer(this.configurer);
 
-		for (VulnerabilitiesToolService vulnToolService : vulnerabilitiesToolServices) {
-			if(vulnToolService instanceof  SonarVulnerabilitiesService) {
-				this.sonarVulnerabilitiesService = (SonarVulnerabilitiesService)vulnToolService;
-			} else if(vulnToolService instanceof  SSCService) {
-				this.sscService = (SSCService)vulnToolService;
-			} else if(vulnToolService instanceof  FODService){
-				this.fodService = (FODService)vulnToolService;
-			}
+		vulnerabilitiesServices = new HashMap<>();
+		for (VulnerabilitiesToolService vulnerabilitiesToolService : vulnerabilitiesToolServices) {
+			vulnerabilitiesServices.put(vulnerabilitiesToolService.getVulnerabilitiesToolKey(), vulnerabilitiesToolService);
 		}
 
 		if (queueingService.isPersistenceEnabled()) {
@@ -121,12 +112,22 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	@Override
+	public void addVulnerabilitiesToolService(VulnerabilitiesToolService vulnerabilitiesToolService) {
+		this.vulnerabilitiesServices.put(vulnerabilitiesToolService.getVulnerabilitiesToolKey(), vulnerabilitiesToolService);
+	}
+
+	@Override
+	public void enqueueRetrieveAndPushVulnerabilities(String jobId, String buildId, ToolType toolType, long startRunTime, long queueItemTimeout, Map<String, String> additionalProperties, String rootJobId) {
+		this.enqueueRetrieveAndPushVulnerabilities(jobId, buildId, toolType.name(), startRunTime, queueItemTimeout, additionalProperties, rootJobId);
+	}
+
+	@Override
 	public void enqueueRetrieveAndPushVulnerabilities(String jobId,
-	                                                  String buildId,
-	                                                  ToolType toolType,
-	                                                  long startRunTime,
-	                                                  long queueItemTimeout,
-													  Map<String,String> additionalProperties,
+													  String buildId,
+													  String toolType,
+													  long startRunTime,
+													  long queueItemTimeout,
+													  Map<String, String> additionalProperties,
 													  String rootJobId) {
 		if (this.configurer.octaneConfiguration.isDisabled()) {
 			return;
@@ -216,20 +217,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				}
 			}
 
-			InputStream vulnerabilitiesStream = null;
-
-			if (queueItem.getToolType().equals(ToolType.SONAR)){
-				vulnerabilitiesStream = sonarVulnerabilitiesService.getVulnerabilitiesScanResultStream(queueItem);
-
-			}
-			else if (queueItem.getToolType().equals(ToolType.SSC)){
-				logger.debug(configurer.octaneConfiguration.getLocationForLog() + "SSC flow as expected");
-				vulnerabilitiesStream = sscService.getVulnerabilitiesScanResultStream(queueItem);
-			}
-			else if (queueItem.getToolType().equals(ToolType.FOD)){
-				logger.debug(configurer.octaneConfiguration.getLocationForLog() + "Handling FOD queueItem");
-				vulnerabilitiesStream = fodService.getVulnerabilitiesScanResultStream(queueItem);
-			}
+			InputStream vulnerabilitiesStream = getToolService(queueItem).getVulnerabilitiesScanResultStream(queueItem);
 
 			if (vulnerabilitiesStream == null) {
 				return false;
@@ -240,6 +228,11 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		} catch (IOException e) {
 			throw new PermanentException(e);
 		}
+	}
+
+	private VulnerabilitiesToolService getToolService(VulnerabilitiesQueueItem queueItem) {
+		return Optional.ofNullable(vulnerabilitiesServices.get(queueItem.getToolType()))
+				.orElseThrow(() -> new OctaneSDKGeneralException("Vulnerability tool service with name \"" + queueItem.getToolType() + "\" is not registered."));
 	}
 
 	private boolean isEncodeBase64() {
@@ -331,15 +324,10 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 	}
 
 	private boolean vulnerabilitiesQueueItemCleanUp(VulnerabilitiesQueueItem queueItem){
-		if (queueItem.getToolType().equals(ToolType.SSC)){
-			return sscService.vulnerabilitiesQueueItemCleanUp(queueItem);
-		}
-		if (queueItem.getToolType().equals(ToolType.FOD)){
-			return fodService.vulnerabilitiesQueueItemCleanUp(queueItem);
-		}
-		else{
+		if (queueItem == null) {
 			return true;
 		}
+		return getToolService(queueItem).vulnerabilitiesQueueItemCleanUp(queueItem);
 	}
 
 	@Override

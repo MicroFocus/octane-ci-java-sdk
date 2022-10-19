@@ -28,6 +28,8 @@ import java.util.List;
 
 public interface VulnerabilitiesToolService {
 
+    String getVulnerabilitiesToolKey();
+
     /**
      * get Vulnerabilities from external tool
      * @param queueItem queueItem
@@ -56,4 +58,5 @@ public interface VulnerabilitiesToolService {
                 vulnerabilitiesQueueItem.getBuildId(),
                 remoteTag);
     }
+
 }

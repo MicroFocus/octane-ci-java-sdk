@@ -17,9 +17,16 @@ package com.hp.octane.integrations.services.vulnerabilities.fod;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.rest.RestService;
+import com.hp.octane.integrations.services.vulnerabilities.ToolType;
 import com.hp.octane.integrations.services.vulnerabilities.VulnerabilitiesToolService;
 
 public interface FODService extends VulnerabilitiesToolService {
+
+    @Override
+    default String getVulnerabilitiesToolKey() {
+        return ToolType.FOD.name();
+    }
+
     /**
      * Service instance producer - for internal usage only (protected by inaccessible configurer)
      *
