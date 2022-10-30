@@ -61,4 +61,8 @@ public interface Branch extends DTOBase, Serializable {
     String getOctaneId();
 
     Branch setOctaneId(String octaneId);
+
+    String getInternalId();
+
+    Branch setInternalId(String internalId);
 }

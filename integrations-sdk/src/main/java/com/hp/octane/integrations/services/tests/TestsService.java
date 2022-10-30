@@ -44,6 +44,19 @@ public interface TestsService extends ClosableService, HasQueueService, HasMetri
 	}
 
 	/**
+	 *
+	 * Publishes Tests Result to Octane server - SYNCHRONOUSLY
+	 *
+	 * @param testsResult ready-to-be-pushed TestsResult resource given as an InputStream
+	 * @param jobId       ID of the job that produced the results
+	 * @param buildId     ID of the build that produced the results
+	 * @return OctaneResponse
+	 * @throws IOException IOException
+	 */
+	OctaneResponse pushTestsResult(InputStream testsResult, String jobId, String buildId) throws IOException;
+
+
+	/**
 	 * Enqueue push tests result by submitting build reference for future tests retrieval.
 	 * This is the preferred way to push tests results to Octane. This method provides facilities of queue, non-main thread execution and retry.
 	 * Pay attention, that when pushing tests results this way, it is assumed that your SPI implementation knows to retrieve and provide TestsResult object given the relevant jobCiId/buildCiId (as they are provided hereby)

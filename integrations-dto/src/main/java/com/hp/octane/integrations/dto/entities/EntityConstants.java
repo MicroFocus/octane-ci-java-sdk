@@ -150,6 +150,7 @@ public class EntityConstants {
     public static class Milestone extends Base {
         public static final String COLLECTION_NAME = "milestones";
         public static final String RELEASE_FIELD = "release";
+        public static final String ENTITY_NAME = "milestone";
     }
 
     public static class Lists extends Base {
@@ -160,4 +161,14 @@ public class EntityConstants {
     public static class Workspaces extends Base {
         public static final String COLLECTION_NAME = "workspaces";
     }
+
+    public static class Pipeline extends Base {
+        public static final String COLLECTION_NAME = "pipelines";
+        public static final String ROOT_JOB_NAME = "root_job_name";
+        public static final String CI_SERVER = "ci_server";
+        public static final String CURRENT_RELEASE = "current_release";
+        public static final String CURRENT_MILESTONE = "current_milestone";
+
+    }
+
 }

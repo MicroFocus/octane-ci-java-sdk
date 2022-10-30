@@ -112,7 +112,7 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
             // add folders
             List<Entity> foldersToAdd = names.stream().map(name -> createFolderEntity(name, parentFolder)).collect(Collectors.toList());
-            Map<String, Entity> folderEntities = entitiesService.postEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, foldersToAdd, null).stream()
+            Map<String, Entity> folderEntities = entitiesService.postEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, foldersToAdd, Collections.singletonList(EntityConstants.Base.NAME_FIELD)).stream()
                     .collect(Collectors.toMap(Entity::getName, Function.identity()));
 
             logger.info("actual new folders {} added", folderEntities.size());
