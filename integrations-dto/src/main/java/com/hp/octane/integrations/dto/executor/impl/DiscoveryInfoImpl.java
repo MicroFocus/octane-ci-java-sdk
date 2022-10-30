@@ -36,6 +36,7 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     private boolean forceFullDiscovery;
     private TestingToolType testingToolType;
     private String configurationId;
+    private String additionalData;
 
     @Override
     public String getWorkspaceId() {
@@ -129,6 +130,17 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     }
 
     @Override
+    public String getAdditionalData() {
+        return additionalData;
+    }
+
+    @Override
+    public DiscoveryInfo setAdditionalData(String additionalData) {
+        this.additionalData = additionalData;
+        return this;
+    }
+
+    @Override
     public String getExecutorType() {
         return executorType;
     }
@@ -137,4 +149,5 @@ public class DiscoveryInfoImpl implements DiscoveryInfo {
     public void setExecutorType(String executorType) {
         this.executorType = executorType;
     }
+
 }

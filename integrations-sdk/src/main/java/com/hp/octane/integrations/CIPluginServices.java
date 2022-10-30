@@ -288,6 +288,8 @@ public abstract class CIPluginServices {
 		return null;
 	}
 
+	public OctaneResponse syncNow(DiscoveryInfo discoveryInfo) { return null; }
+
 	/**
 	 * Get parent job name
 	 * @param jobId jobId

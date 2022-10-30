@@ -64,4 +64,8 @@ public interface DiscoveryInfo extends DTOBase {
 	String getConfigurationId();
 
 	void setConfigurationId(String configurationId);
+
+	String getAdditionalData();
+
+    DiscoveryInfo setAdditionalData(String additionalData);
 }
