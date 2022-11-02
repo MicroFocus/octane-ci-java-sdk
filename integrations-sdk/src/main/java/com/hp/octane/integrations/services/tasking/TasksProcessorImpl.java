@@ -64,6 +64,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 	private static final String CREDENTIALS = "credentials";
+	private static final String SYNC_NOW = "sync_now";
 
 	private ExecutorService jobListCacheExecutor = Executors.newSingleThreadExecutor();
 	private CacheItem jobListCacheItem;
@@ -153,6 +154,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 					} else if (CREDENTIALS_UPSERT.equalsIgnoreCase(path[1])) {
 						CredentialsInfo credentialsInfo = dtoFactory.dtoFromJson(task.getBody(), CredentialsInfo.class);
 						executeUpsertCredentials(result, credentialsInfo);
+					} else if (SYNC_NOW.equalsIgnoreCase(path[1])) {
+						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+						discoveryInfo.setConfigurationId(configurer.octaneConfiguration.getInstanceId());
+						configurer.pluginServices.syncNow(discoveryInfo);
 					} else {
 						result.setStatus(HttpStatus.SC_NOT_FOUND);
 					}
