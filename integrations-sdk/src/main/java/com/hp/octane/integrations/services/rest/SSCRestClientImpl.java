@@ -145,7 +145,7 @@ class SSCRestClientImpl implements SSCRestClient {
 
     private String getNetHost(String serverURL) {
         //http://myd-vma00564.swinfra.net:8180/ssc
-        String prefix = "http://";
+        String prefix = "://";
         int indexOfStart = serverURL.toLowerCase().indexOf(prefix) + prefix.length();
         int indexOfEnd = serverURL.lastIndexOf("/");
         if (indexOfEnd < 0 || indexOfEnd <= indexOfStart) {
