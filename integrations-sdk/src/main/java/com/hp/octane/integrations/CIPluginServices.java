@@ -269,8 +269,7 @@ public abstract class CIPluginServices {
 		return null;
 	}
 
-	public void deleteExecutor(String id) {
-	}
+	public void deleteExecutor(String id) {}
 
 	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
 		return null;
@@ -298,4 +297,6 @@ public abstract class CIPluginServices {
 	public String getParentJobName (String jobId) {
 		return null;
 	}
+
+	public void updateExecutor(DiscoveryInfo discoveryInfo) {}
 }

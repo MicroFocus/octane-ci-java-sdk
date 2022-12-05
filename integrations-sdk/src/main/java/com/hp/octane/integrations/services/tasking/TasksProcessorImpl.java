@@ -61,6 +61,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String BUILDS = "builds";
 	private static final String EXECUTOR = "executor";
 	private static final String INIT = "init";
+	private static final String UPDATE = "update";
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 	private static final String CREDENTIALS = "credentials";
@@ -145,6 +146,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 							result.setBody(dtoFactory.dtoToJson(node));
 							result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 						}
+						result.setStatus(HttpStatus.SC_OK);
+					} else if (UPDATE.equalsIgnoreCase(path[1])) {
+						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+						discoveryInfo.setConfigurationId(configurer.octaneConfiguration.getInstanceId());
+						configurer.pluginServices.updateExecutor(discoveryInfo);
 						result.setStatus(HttpStatus.SC_OK);
 					} else if (TEST_CONN.equalsIgnoreCase(path[1])) {
 						TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
