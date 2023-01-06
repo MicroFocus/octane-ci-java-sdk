@@ -25,6 +25,7 @@ import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Base implementation of CI Event object
@@ -51,6 +52,7 @@ class CIEventImpl implements CIEvent {
 	private PhaseType phaseType;
 	private String commonHashId;
 	private String branchName;
+    private Map<String, String> ciExecutionParameters;
 	private String previousProject;
 	private String previousProjectDisplayName;
 	private ItemType itemType;
@@ -267,6 +269,17 @@ class CIEventImpl implements CIEvent {
 
 	public CIEvent setBranchName(String branchName) {
 		this.branchName = branchName;
+		return this;
+	}
+
+	@Override
+	public Map<String, String> getCiExecutionParameters() {
+		return ciExecutionParameters;
+	}
+
+	@Override
+	public CIEvent setCiExecutionParameters(Map<String, String> ciExecutionParameters) {
+		this.ciExecutionParameters = ciExecutionParameters;
 		return this;
 	}
 

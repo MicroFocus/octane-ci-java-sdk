@@ -23,6 +23,7 @@ import com.hp.octane.integrations.dto.scm.SCMData;
 import com.hp.octane.integrations.dto.snapshots.CIBuildResult;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * CI Event DTO
@@ -119,4 +120,8 @@ public interface CIEvent extends DTOBase {
 	String getPreviousProject();
 
 	String getPreviousProjectDisplayName();
+
+	Map<String, String> getCiExecutionParameters();
+
+	CIEvent setCiExecutionParameters(Map<String, String> ciExecutionParams);
 }
