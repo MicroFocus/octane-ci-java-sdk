@@ -52,7 +52,7 @@ class CIEventImpl implements CIEvent {
 	private PhaseType phaseType;
 	private String commonHashId;
 	private String branchName;
-    private Map<String, String> ciExecutionParameters;
+    private Map<String, String> environmentOutputtedParameters;
 	private String previousProject;
 	private String previousProjectDisplayName;
 	private ItemType itemType;
@@ -273,13 +273,13 @@ class CIEventImpl implements CIEvent {
 	}
 
 	@Override
-	public Map<String, String> getCiExecutionParameters() {
-		return ciExecutionParameters;
+	public Map<String, String> getEnvironmentOutputtedParameters() {
+		return environmentOutputtedParameters;
 	}
 
 	@Override
-	public CIEvent setCiExecutionParameters(Map<String, String> ciExecutionParameters) {
-		this.ciExecutionParameters = ciExecutionParameters;
+	public CIEvent setEnvironmentOutputtedParameters(Map<String, String> environmentOutputtedParameters) {
+		this.environmentOutputtedParameters = environmentOutputtedParameters;
 		return this;
 	}
 

@@ -121,7 +121,7 @@ public interface CIEvent extends DTOBase {
 
 	String getPreviousProjectDisplayName();
 
-	Map<String, String> getCiExecutionParameters();
+	Map<String, String> getEnvironmentOutputtedParameters();
 
-	CIEvent setCiExecutionParameters(Map<String, String> ciExecutionParams);
+	CIEvent setEnvironmentOutputtedParameters(Map<String, String> environmentOutputtedParameters);
 }
