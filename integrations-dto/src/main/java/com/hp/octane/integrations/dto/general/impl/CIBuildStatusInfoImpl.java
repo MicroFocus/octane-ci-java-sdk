@@ -41,6 +41,7 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
     private Integer exceptionCode;
     private CIBuildResult buildResult = CIBuildResult.UNAVAILABLE;
     private List<CIParameter> allBuildParams;
+    private Map<String, String> environmentOutputtedParameters;
 
 
     @Override
@@ -141,4 +142,17 @@ class CIBuildStatusInfoImpl implements CIBuildStatusInfo {
         this.allBuildParams = allBuildParams;
         return this;
     }
+
+    @Override
+    public CIBuildStatusInfo setEnvironmentOutputtedParameters(Map<String, String> environmentOutputtedParameters) {
+        this.environmentOutputtedParameters = environmentOutputtedParameters;
+        return this;
+    }
+
+    @Override
+    public Map<String, String> getEnvironmentOutputtedParameters() {
+        return environmentOutputtedParameters;
+    }
+
+
 }
