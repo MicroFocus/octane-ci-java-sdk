@@ -28,10 +28,7 @@ import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import org.apache.commons.codec.Charsets;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +39,8 @@ public class UftTestDiscoveryResult implements Serializable {
     private List<AutomatedTest> tests = new ArrayList<>();
 
     private List<ScmResourceFile> scmResourceFiles = new ArrayList<>();
+
+    private Map<String, List<String>> combineDataTableHashCodeToTestPathListMap = new HashMap<>();
 
     private List<String> deletedFolders = new ArrayList<>();
 
@@ -170,6 +169,18 @@ public class UftTestDiscoveryResult implements Serializable {
     public void setAllScmResourceFiles(List<ScmResourceFile> scmResourceFiles) {
         this.scmResourceFiles = scmResourceFiles;
     }
+
+    @JsonProperty("combineDataTableHashCodeToTestPathListMap")
+    public Map<String, List<String>> getCombineDataTableHashCodeToTestPathListMap() {
+        return combineDataTableHashCodeToTestPathListMap;
+    }
+
+    @JsonProperty("combineDataTableHashCodeToTestPathListMap")
+    public void setCombineDataTableHashCodeToTestPathListMap(Map<String, List<String>> combineDataTableHashCodeToTestPathListMap) {
+        this.combineDataTableHashCodeToTestPathListMap = combineDataTableHashCodeToTestPathListMap;
+    }
+
+
 
     public void writeToFile(File fileToWriteTo) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
