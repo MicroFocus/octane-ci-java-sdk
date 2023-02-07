@@ -23,6 +23,8 @@ public class ConfigurationParameterFactory {
 				return FortifySSCFetchTimeoutParameter.create(paramValue);
 			case SendEventsInBulkParameter.KEY:
 				return SendEventsInBulkParameter.create(paramValue);
+			case UftTestsDeepRenameParameter.KEY:
+				return UftTestsDeepRenameParameter.create(paramValue);
 			case LogEventsParameter.KEY:
 				return LogEventsParameter.create(paramValue);
 			case JobListCacheAllowedParameter.KEY:
@@ -68,6 +70,16 @@ public class ConfigurationParameterFactory {
 		}
 		return SendEventsInBulkParameter.DEFAULT;
 	}
+
+	public static boolean isUftTestsDeepRenameCheckEnabled(OctaneConfiguration configuration) {
+		UftTestsDeepRenameParameter param = (UftTestsDeepRenameParameter) configuration.getParameter(UftTestsDeepRenameParameter.KEY);
+		if (param != null) {
+			return param.isUftTestsDeepRenameCheckEnabled();
+		}
+		return UftTestsDeepRenameParameter.DEFAULT;
+	}
+
+
 
 	public static boolean isLogEvents(OctaneConfiguration configuration) {
 		LogEventsParameter param = (LogEventsParameter) configuration.getParameter(LogEventsParameter.KEY);
