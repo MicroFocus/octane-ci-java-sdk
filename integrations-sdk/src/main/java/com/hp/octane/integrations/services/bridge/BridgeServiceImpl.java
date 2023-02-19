@@ -299,7 +299,7 @@ final class BridgeServiceImpl implements BridgeService {
                     int submitStatus = putAbridgedResult(
                             configurer.octaneConfiguration.getInstanceId(),
                             result.getId(),
-                            dtoFactory.dtoToJsonStream(result), false);
+                            result, false);
                     logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
                 });
             }
@@ -308,7 +308,8 @@ final class BridgeServiceImpl implements BridgeService {
         }
     }
 
-    private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON, boolean rerun) {
+    private int putAbridgedResult(String selfIdentity, String taskId, OctaneResultAbridged result, boolean rerun) {
+        InputStream contentJSON = dtoFactory.dtoToJsonStream(result);
         OctaneRestClient octaneRestClientImpl = restService.obtainOctaneRestClient();
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -326,7 +327,7 @@ final class BridgeServiceImpl implements BridgeService {
             logger.error("{} failed to submit abridged task's result, rerun = {}", configurer.octaneConfiguration.getLocationForLog(), rerun, ioe);
             if(!rerun) {
                 CIPluginSDKUtils.doWait(1000);
-                return putAbridgedResult(selfIdentity, taskId, contentJSON, true);
+                return putAbridgedResult(selfIdentity, taskId, result, true);
             } else {
                 return 0;
             }
