@@ -41,10 +41,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
@@ -302,7 +299,7 @@ final class BridgeServiceImpl implements BridgeService {
                     int submitStatus = putAbridgedResult(
                             configurer.octaneConfiguration.getInstanceId(),
                             result.getId(),
-                            dtoFactory.dtoToJsonStream(result));
+                            dtoFactory.dtoToJsonStream(result), false);
                     logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
                 });
             }
@@ -311,7 +308,7 @@ final class BridgeServiceImpl implements BridgeService {
         }
     }
 
-    private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
+    private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON, boolean rerun) {
         OctaneRestClient octaneRestClientImpl = restService.obtainOctaneRestClient();
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -326,8 +323,13 @@ final class BridgeServiceImpl implements BridgeService {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
         } catch (IOException ioe) {
-            logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to submit abridged task's result", ioe);
-            return 0;
+            logger.error("{} failed to submit abridged task's result, rerun = {}", configurer.octaneConfiguration.getLocationForLog(), rerun, ioe);
+            if(!rerun) {
+                CIPluginSDKUtils.doWait(1000);
+                return putAbridgedResult(selfIdentity, taskId, contentJSON, true);
+            } else {
+                return 0;
+            }
         }
     }
 
