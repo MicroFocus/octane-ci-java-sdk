@@ -72,6 +72,8 @@ final class BridgeServiceImpl implements BridgeService {
     private long requestTimeoutCount = 0;
     private long lastRequestTimeoutTime = 0;
 
+    private final int PUT_ABRIDGE_RESULT_TIMEOUT = System.getProperty("octane.sdk.bridge.abridge_result_timeout") != null ? Integer.parseInt(System.getProperty("octane.sdk.bridge.abridge_result_timeout")) : 20;
+
     BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor, ConfigurationService configurationService) {
         if (configurer == null) {
             throw new IllegalArgumentException("invalid configurer");
@@ -319,7 +321,8 @@ final class BridgeServiceImpl implements BridgeService {
                         RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
                         RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks/" + taskId + "/result")
                 .setHeaders(headers)
-                .setBody(contentJSON);
+                .setBody(contentJSON)
+                .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT);// timeout on Octane side is 30 sec so enable timeout that one retry will be executed
         try {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
