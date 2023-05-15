@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Definition of CIPluginServices SPI
@@ -263,6 +264,9 @@ public abstract class CIPluginServices {
 		return null;
 	}
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
+	}
+
+	public void setCorrelationId(Map<String, String> headers) {
 	}
 
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {

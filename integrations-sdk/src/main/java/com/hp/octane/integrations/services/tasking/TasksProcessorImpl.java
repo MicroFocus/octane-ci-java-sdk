@@ -106,6 +106,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.setServiceId(configurer.octaneConfiguration.getInstanceId());
 		String[] path = pathTokenizer(task.getUrl());
 		try {
+			if(task.getHeaders() != null && !task.getHeaders().isEmpty()) {
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "headers are not empty! passing to plugin");
+				configurer.pluginServices.setCorrelationId(task.getHeaders());
+			}
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
 			} else if (path.length == 1 && SUSPEND_STATUS.equals(path[0])) {
