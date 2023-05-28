@@ -13,6 +13,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 /**
  * @author Itay Karo on 26/08/2021
@@ -36,10 +38,15 @@ public class UftDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
     @Override
     public void prepareDiscoveryResultForDispatchInScmChangesMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
         if (isOctaneSupportTestRename(entitiesService)) {
-            handleMovedTests(discoveryResult);
+
+            if (!discoveryResult.getCombineDataTableHashCodeToTestPathListMap().isEmpty()) {
+                handleMovedTestsWithBulkTestRename(discoveryResult);
+            } else {
+                handleMovedTests(discoveryResult);
+            }
+
             handleMovedDataTables(discoveryResult);
         }
-
         validateTestDiscoveryAndCompleteTestIdsForScmChangeDetection(entitiesService, discoveryResult);
         validateTestDiscoveryAndCompleteDataTableIdsForScmChangeDetection(entitiesService, discoveryResult);
 
@@ -312,6 +319,54 @@ public class UftDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         }
     }
 
+    private void handleMovedTestsWithBulkTestRename(UftTestDiscoveryResult result) {
+        List<AutomatedTest> newTests = result.getNewTests();
+        List<AutomatedTest> deletedTests = result.getDeletedTests();
+        if (!newTests.isEmpty() && !deletedTests.isEmpty()) {
+            Map<String, List<AutomatedTest>> dst2Test = new HashMap<>();
+            List<AbstractMap.SimpleEntry<AutomatedTest, AutomatedTest>> deleted2newMovedTests = new LinkedList<>();
+
+            for (AutomatedTest newTest : newTests) {
+                if (SdkStringUtils.isNotEmpty(newTest.getChangeSetDst())) {
+                    String key = newTest.getChangeSetDst();
+                    dst2Test.computeIfAbsent(key, k -> new LinkedList<>()).add(newTest);
+                }
+            }
+            for (AutomatedTest deletedTest : deletedTests) {
+
+                if (SdkStringUtils.isNotEmpty(deletedTest.getChangeSetDst())) {
+                    String key = deletedTest.getChangeSetDst();
+                    if (dst2Test.containsKey(key)) {
+                        if (dst2Test.get(key).size() == 1) {
+                            AutomatedTest newTest = dst2Test.get(key).get(0);
+                            deleted2newMovedTests.add(new AbstractMap.SimpleEntry(deletedTest, newTest));
+                        } else {
+                            AbstractMap.SimpleEntry<AutomatedTest, AutomatedTest> pairsDeletedNew = createPairsDeletedNew(dst2Test.get(key), deletedTest, result);
+                            if (pairsDeletedNew != null) {
+                                deleted2newMovedTests.add(pairsDeletedNew);
+                            } else {
+                                logger.warn("since found same tests we can't determine which test modified");
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (AbstractMap.SimpleEntry<AutomatedTest, AutomatedTest> entry : deleted2newMovedTests) {
+                AutomatedTest deletedTest = entry.getKey();
+                AutomatedTest newTest = entry.getValue();
+
+                newTest.setIsMoved(true);
+                newTest.setOldName(deletedTest.getName());
+                newTest.setOldPackage(deletedTest.getPackage());
+                newTest.setOctaneStatus(OctaneStatus.MODIFIED);
+
+                result.getAllTests().remove(deletedTest);
+            }
+        }
+    }
+
+
     private void handleMovedDataTables(UftTestDiscoveryResult result) {
         List<ScmResourceFile> newItems = result.getNewScmResourceFiles();
         List<ScmResourceFile> deletedItems = result.getDeletedScmResourceFiles();
@@ -342,6 +397,53 @@ public class UftDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                 result.getAllScmResourceFiles().remove(deletedFile);
             }
         }
+    }
+
+    private AbstractMap.SimpleEntry<AutomatedTest, AutomatedTest> createPairsDeletedNew(List<AutomatedTest> newTests, AutomatedTest deletedTest, UftTestDiscoveryResult result) {
+
+        Map<String, List<String>> combineDataTableHashCodeToTestPathList = result.getCombineDataTableHashCodeToTestPathListMap();
+        List<AutomatedTest> deletedTestsList = new LinkedList<>();
+        List<AutomatedTest> newTestsList = new LinkedList<>();
+        combineDataTableHashCodeToTestPathList.values().forEach(entry -> {
+            List<AutomatedTest> tempDeletedTestsList = new LinkedList<>();
+            List<AutomatedTest> tempNewTestsList = new LinkedList<>();
+            entry.forEach(testPath1 -> {
+                List<AutomatedTest> internalDeletedTestsList = new LinkedList<>();
+                List<AutomatedTest> internalNewTestsList = new LinkedList<>();
+
+                String deletedTestPath = deletedTest.getPackage() + "\\" + deletedTest.getName();
+                if (deletedTestPath.equals(testPath1)) {
+                    internalDeletedTestsList.add(deletedTest);
+                }
+                newTests.forEach(test -> {
+                    String newTestPath = test.getPackage() + "\\" + test.getName();
+                    if (newTestPath.equals(testPath1)) {
+                        internalNewTestsList.add(test);
+                    }
+                });
+                tempDeletedTestsList.addAll(internalDeletedTestsList);
+                tempNewTestsList.addAll(internalNewTestsList);
+
+            });
+            if (tempDeletedTestsList.size() == 1 && tempNewTestsList.size() == 1) {
+                deletedTestsList.addAll(tempDeletedTestsList);
+                newTestsList.addAll(tempNewTestsList);
+            } else if (tempDeletedTestsList.size() == 1 && tempNewTestsList.size() > 1) {
+                String allTestsName = getTestsName(tempNewTestsList);
+                logger.warn("The following tests are dupilcated: " + allTestsName + " it is recommended to rename duplicated test one by one and not in bulk.");
+            }
+
+        });
+        if (deletedTestsList.size() == 1 && newTestsList.size() == 1) {
+            return new AbstractMap.SimpleEntry<>(deletedTestsList.get(0), newTestsList.get(0));
+        } else {
+            return null;
+        }
+    }
+
+    private String getTestsName(List<AutomatedTest> tempNewTestsList) {
+        String returnString = tempNewTestsList.stream().map(test -> test.getName() + ", ").collect(Collectors.joining());
+        return returnString.substring(0, returnString.length() - 2);
     }
 
     /**
@@ -468,3 +570,5 @@ public class UftDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
     }
 
 }
+
+

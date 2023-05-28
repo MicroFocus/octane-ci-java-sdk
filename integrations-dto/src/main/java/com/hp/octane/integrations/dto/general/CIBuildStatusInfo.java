@@ -7,6 +7,7 @@ import com.hp.octane.integrations.dto.snapshots.CIBuildStatus;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 
 public interface CIBuildStatusInfo extends DTOBase, Serializable {
@@ -46,4 +47,8 @@ public interface CIBuildStatusInfo extends DTOBase, Serializable {
     List<CIParameter> getAllBuildParams();
 
     CIBuildStatusInfo setAllBuildParams(List<CIParameter> allBuildParams);
+
+    CIBuildStatusInfo setEnvironmentOutputtedParameters(Map<String, String> environmentOutputtedParameters);
+
+    Map<String, String> getEnvironmentOutputtedParameters();
 }

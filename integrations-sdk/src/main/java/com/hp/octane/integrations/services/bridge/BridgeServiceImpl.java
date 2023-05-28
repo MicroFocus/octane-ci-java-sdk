@@ -41,10 +41,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
@@ -74,6 +71,8 @@ final class BridgeServiceImpl implements BridgeService {
     private long stateStartTime = 0;
     private long requestTimeoutCount = 0;
     private long lastRequestTimeoutTime = 0;
+
+    private final int PUT_ABRIDGE_RESULT_TIMEOUT = System.getProperty("octane.sdk.bridge.abridge_result_timeout") != null ? Integer.parseInt(System.getProperty("octane.sdk.bridge.abridge_result_timeout")) : 20;
 
     BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor, ConfigurationService configurationService) {
         if (configurer == null) {
@@ -302,7 +301,7 @@ final class BridgeServiceImpl implements BridgeService {
                     int submitStatus = putAbridgedResult(
                             configurer.octaneConfiguration.getInstanceId(),
                             result.getId(),
-                            dtoFactory.dtoToJsonStream(result));
+                            result, false);
                     logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
                 });
             }
@@ -311,7 +310,8 @@ final class BridgeServiceImpl implements BridgeService {
         }
     }
 
-    private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
+    private int putAbridgedResult(String selfIdentity, String taskId, OctaneResultAbridged result, boolean rerun) {
+        InputStream contentJSON = dtoFactory.dtoToJsonStream(result);
         OctaneRestClient octaneRestClientImpl = restService.obtainOctaneRestClient();
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -321,13 +321,19 @@ final class BridgeServiceImpl implements BridgeService {
                         RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
                         RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks/" + taskId + "/result")
                 .setHeaders(headers)
-                .setBody(contentJSON);
+                .setBody(contentJSON)
+                .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT);// timeout on Octane side is 30 sec so enable timeout that one retry will be executed
         try {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
         } catch (IOException ioe) {
-            logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to submit abridged task's result", ioe);
-            return 0;
+            logger.error("{} failed to submit abridged task's result, rerun = {}", configurer.octaneConfiguration.getLocationForLog(), rerun, ioe);
+            if(!rerun) {
+                CIPluginSDKUtils.doWait(1000);
+                return putAbridgedResult(selfIdentity, taskId, result, true);
+            } else {
+                return 0;
+            }
         }
     }
 

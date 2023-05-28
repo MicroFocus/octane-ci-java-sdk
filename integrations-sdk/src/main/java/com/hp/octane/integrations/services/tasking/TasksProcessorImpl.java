@@ -61,6 +61,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String BUILDS = "builds";
 	private static final String EXECUTOR = "executor";
 	private static final String INIT = "init";
+	private static final String UPDATE = "update";
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 	private static final String CREDENTIALS = "credentials";
@@ -105,6 +106,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.setServiceId(configurer.octaneConfiguration.getInstanceId());
 		String[] path = pathTokenizer(task.getUrl());
 		try {
+			if(task.getHeaders() != null && !task.getHeaders().isEmpty()) {
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "headers are not empty! passing to plugin");
+				configurer.pluginServices.setCorrelationId(task.getHeaders());
+			}
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
 			} else if (path.length == 1 && SUSPEND_STATUS.equals(path[0])) {
@@ -145,6 +150,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 							result.setBody(dtoFactory.dtoToJson(node));
 							result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 						}
+						result.setStatus(HttpStatus.SC_OK);
+					} else if (UPDATE.equalsIgnoreCase(path[1])) {
+						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+						discoveryInfo.setConfigurationId(configurer.octaneConfiguration.getInstanceId());
+						configurer.pluginServices.updateExecutor(discoveryInfo);
 						result.setStatus(HttpStatus.SC_OK);
 					} else if (TEST_CONN.equalsIgnoreCase(path[1])) {
 						TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);

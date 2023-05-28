@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Definition of CIPluginServices SPI
@@ -265,12 +266,14 @@ public abstract class CIPluginServices {
 	public void runTestDiscovery(DiscoveryInfo discoveryInfo) {
 	}
 
+	public void setCorrelationId(Map<String, String> headers) {
+	}
+
 	public OctaneResponse checkRepositoryConnectivity(TestConnectivityInfo testConnectivityInfo) {
 		return null;
 	}
 
-	public void deleteExecutor(String id) {
-	}
+	public void deleteExecutor(String id) {}
 
 	public OctaneResponse upsertCredentials(CredentialsInfo credentialsInfo) {
 		return null;
@@ -298,4 +301,6 @@ public abstract class CIPluginServices {
 	public String getParentJobName (String jobId) {
 		return null;
 	}
+
+	public void updateExecutor(DiscoveryInfo discoveryInfo) {}
 }
