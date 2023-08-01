@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -323,11 +324,13 @@ final class BridgeServiceImpl implements BridgeService {
                 .setHeaders(headers)
                 .setBody(contentJSON)
                 .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT);// timeout on Octane side is 30 sec so enable timeout that one retry will be executed
+        long start = System.currentTimeMillis();
         try {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
         } catch (IOException ioe) {
-            logger.error("{} failed to submit abridged task's result, rerun = {}", configurer.octaneConfiguration.getLocationForLog(), rerun, ioe);
+            logger.error("{}failed to submit abridged task's result, rerun = {}, start = {} ,timeout = {} sec, took = {} ms", configurer.octaneConfiguration.getLocationForLog(),
+                    rerun,new SimpleDateFormat("dd/MM/yyyy HH:mm:ss,SSS").format(new Date(start)),PUT_ABRIDGE_RESULT_TIMEOUT,System.currentTimeMillis() - start, ioe);
             if(!rerun) {
                 CIPluginSDKUtils.doWait(1000);
                 return putAbridgedResult(selfIdentity, taskId, result, true);
