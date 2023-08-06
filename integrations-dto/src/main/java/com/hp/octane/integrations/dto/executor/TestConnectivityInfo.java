@@ -39,4 +39,8 @@ public interface TestConnectivityInfo extends DTOBase {
 
     TestConnectivityInfo setCredentialsId(String CredentialsId);
 
+    String getAdditionalData();
+
+    TestConnectivityInfo setAdditionalData(String additionalData);
+
 }

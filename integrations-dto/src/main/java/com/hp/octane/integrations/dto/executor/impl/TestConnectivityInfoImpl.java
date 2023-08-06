@@ -29,6 +29,7 @@ public class TestConnectivityInfoImpl implements TestConnectivityInfo {
     private String username;
     private String password;
     private String credentialsId;
+    private String additionalData;
 
     @Override
     public SCMRepository getScmRepository() {
@@ -71,6 +72,17 @@ public class TestConnectivityInfoImpl implements TestConnectivityInfo {
     @Override
     public TestConnectivityInfo setCredentialsId(String credentialsId) {
         this.credentialsId = credentialsId;
+        return this;
+    }
+
+    @Override
+    public String getAdditionalData() {
+        return this.additionalData;
+    }
+
+    @Override
+    public TestConnectivityInfo setAdditionalData(String additionalData) {
+        this.additionalData = additionalData;
         return this;
     }
 }
