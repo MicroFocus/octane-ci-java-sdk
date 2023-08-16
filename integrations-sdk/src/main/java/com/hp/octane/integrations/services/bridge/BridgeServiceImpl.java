@@ -329,7 +329,7 @@ final class BridgeServiceImpl implements BridgeService {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
         } catch (IOException ioe) {
-            logger.error("{}failed to submit abridged task's result, rerun = {}, start = {} ,timeout = {} sec, took = {} ms", configurer.octaneConfiguration.getLocationForLog(),
+            logger.error("{}failed to submit abridged task's result {}, rerun = {}, start = {} ,timeout = {} sec, took = {} ms",taskId, configurer.octaneConfiguration.getLocationForLog(),
                     rerun,new SimpleDateFormat("dd/MM/yyyy HH:mm:ss,SSS").format(new Date(start)),PUT_ABRIDGE_RESULT_TIMEOUT,System.currentTimeMillis() - start, ioe);
             if(!rerun) {
                 CIPluginSDKUtils.doWait(1000);
