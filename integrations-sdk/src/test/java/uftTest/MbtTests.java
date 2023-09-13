@@ -46,7 +46,7 @@ public class MbtTests {
         List<UftResultIterationData> resultData = UftTestResultsUtils.getMBTData(file);
         Assert.assertEquals(1, resultData.size());
         UftResultStepData data1 = resultData.get(0).getSteps().get(0);
-        String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's                                    physical description:<br>wpftypename = window<br>regexpwndtitle = Micro                                    Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample                                    Application<br> (Warning). ";
+        String errorMessage = "Cannot find the \"password\" object's parent \"Open Text MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's                                    physical description:<br>wpftypename = window<br>regexpwndtitle = Open                                    Text MyFlight Sample Application<br>devname = Open Text MyFlight Sample                                    Application<br> (Warning). ";
         validateAction(23, "Warning", errorMessage, "Action1 [Two test_same function 2]", data1, Collections.EMPTY_LIST, null);
     }
 

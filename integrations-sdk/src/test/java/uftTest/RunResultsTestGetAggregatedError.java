@@ -45,7 +45,7 @@ public class RunResultsTestGetAggregatedError {
     @Test
     public void testResultForComputerLocked() {
         String err = getAggregatedError("run_results_computer_locked.xml");
-        String expected = "The Micro Focus Unified Functional Testing computer is locked or logged off.";
+        String expected = "The Open Text Unified Functional Testing computer is locked or logged off.";
         Assert.assertEquals(expected, err);
     }
 
