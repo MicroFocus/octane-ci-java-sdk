@@ -211,9 +211,6 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		try {
 			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
 			for (int i = 0; i < 2; i++) {
-				if(i == 1) {
-					logger.warn(configurer.octaneConfiguration.getLocationForLog() + "retry sending failed request " + request);
-				}
 				uriRequest = createHttpRequest(request);
 				context = createHttpContext(request.getUrl(), request.getTimeoutSec(), false);
 				synchronized (REQUESTS_LIST_LOCK) {

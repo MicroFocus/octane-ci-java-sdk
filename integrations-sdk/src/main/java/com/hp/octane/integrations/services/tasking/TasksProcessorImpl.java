@@ -338,10 +338,7 @@ final class TasksProcessorImpl implements TasksProcessor {
 			CIJobsList content = configurer.pluginServices.getJobsList(myIncludingParameters, myWorkspaceId);
 			logger.info("Finish get job content without cache took {} ms",System.currentTimeMillis() -startGetJobList);
 			if (content != null) {
-				logger.info("Start parsing content into string");
-				long startParsingResult = System.currentTimeMillis();
 				result.setBody(dtoFactory.dtoToJson(content));
-				logger.info("Finish parsing content into string took {} ms",System.currentTimeMillis() -startParsingResult);
 				if (cacheAllowed) {
 					jobListCacheItem = CacheItem.create(content);
 				}
