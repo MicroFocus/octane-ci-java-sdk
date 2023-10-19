@@ -2,6 +2,7 @@ package com.hp.octane.integrations.uft.ufttestresults;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.hp.octane.integrations.dto.tests.TestRunResult;
 import com.hp.octane.integrations.uft.ufttestresults.schema.*;
 
 import java.io.File;
@@ -103,7 +104,8 @@ public class UftTestResultsUtils {
             if (node.getData().getOutputParameters() != null) {
                 outputParameters = node.getData().getOutputParameters().stream().map(parameter -> new UftResultStepParameter(parameter.getName(), parameter.getValue(), parameter.getType())).collect(Collectors.toList());
             }
-            results.add(new UftResultStepData(parents, node.getType(), node.getData().getResult(), errorMessage, node.getData().getDuration(), inputParameters, outputParameters));
+            String result = node.getData().getResult().equalsIgnoreCase("Warning") ? TestRunResult.PASSED.value() : node.getData().getResult();
+            results.add(new UftResultStepData(parents, node.getType(), result, errorMessage, node.getData().getDuration(), inputParameters, outputParameters));
         }
 
         if (node.getNodes() != null && parents.size() < targetLevel) {
