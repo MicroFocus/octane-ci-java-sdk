@@ -357,7 +357,7 @@ public class UftTestDiscoveryUtils {
             } else {
                 return getApiTestDocument(dirPath);
             }
-        } catch (IOException | ParserConfigurationException | SAXException e) {
+        } catch (Exception e) {
             logger.error("Failed to create document for path: {}, test type: {}", dirPath.getPath(), testType.name(), e);
             return null;
         }
