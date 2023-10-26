@@ -1,6 +1,7 @@
 package com.hp.octane.integrations.testresults;
 
 import com.hp.octane.integrations.dto.tests.TestRunResult;
+import org.apache.commons.lang3.StringUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -13,6 +14,7 @@ import java.util.Map;
 public class GherkinXmlWritableTestResult implements XmlWritableTestResult {
     private Map<String, String> attributes;
     private Element contentElement;
+    private final int ERROR_MESSAGE_MAX_SIZE = System.getProperty("octane.sdk.tests.error_message_max_size") != null ? Integer.parseInt(System.getProperty("octane.sdk.tests.error_message_max_size")) : 512*512;
 
     public GherkinXmlWritableTestResult(String name, Element xmlElement, long duration, TestRunResult status) {
         this.attributes = new HashMap<>();
@@ -54,7 +56,13 @@ public class GherkinXmlWritableTestResult implements XmlWritableTestResult {
                 if (child instanceof Element) {
                     writeXmlElement(writer, (Element) child);
                 } else if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
-                    writer.writeCharacters(child.getNodeValue());
+                    if(child.getParentNode() != null && "error_message".equals(child.getParentNode().getNodeName())){
+                        String errorMassage = child.getNodeValue();
+                        errorMassage = errorMassage.length() > ERROR_MESSAGE_MAX_SIZE ? StringUtils.abbreviate(errorMassage,ERROR_MESSAGE_MAX_SIZE) : errorMassage;
+                        writer.writeCharacters(errorMassage);
+                    } else {
+                        writer.writeCharacters(child.getNodeValue());
+                    }
                 }
             }
             writer.writeEndElement();
