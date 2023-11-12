@@ -152,6 +152,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				.setConnectionManager(connectionManager);
 
 		httpClient = clientBuilder.build();
+
 	}
 
 	@Override
@@ -336,8 +337,8 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			int timeoutMs = requestTimeoutSec * 1000;
 			requestConfigBuilder
 					.setConnectTimeout(timeoutMs)
-					.setConnectionRequestTimeout(timeoutMs)
-					.setSocketTimeout(timeoutMs);
+					.setConnectionRequestTimeout(23000)
+					.setSocketTimeout(26000);
 		}
 
 		context.setRequestConfig(requestConfigBuilder.build());
