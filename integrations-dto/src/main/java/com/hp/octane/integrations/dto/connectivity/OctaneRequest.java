@@ -63,4 +63,10 @@ public interface OctaneRequest extends DTOBase {
 	int getTimeoutSec();
 
 	OctaneRequest setTimeoutSec(int timeoutSec);
+
+	int getSocketTimeout();
+	OctaneRequest setSocketTimeout(int socketTimeoutSec);
+
+	int getConnectionTimeout();
+	OctaneRequest setConnectionTimeout(int connectionTimeoutSec);
 }

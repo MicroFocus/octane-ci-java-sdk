@@ -55,6 +55,8 @@ class OctaneRequestImpl implements OctaneRequest {
 	private Map<String, String> headers;
 	private InputStream body;
 	private int timeoutSec;
+	private int socketTimeoutSec;
+	private int connectionTimeoutSec;
 
 	@Override
 	public String getUrl() {
@@ -127,6 +129,26 @@ class OctaneRequestImpl implements OctaneRequest {
 	@Override
 	public OctaneRequest setTimeoutSec(int timeoutSec) {
 		this.timeoutSec = timeoutSec;
+		return this;
+	}
+
+	@Override
+	public int getSocketTimeout(){
+		return socketTimeoutSec;
+	}
+	@Override
+	public OctaneRequest setSocketTimeout(int socketTimeoutSec){
+		this.socketTimeoutSec = socketTimeoutSec;
+		return this;
+	}
+
+	@Override
+	public int getConnectionTimeout(){
+		return connectionTimeoutSec;
+	}
+	@Override
+	public OctaneRequest setConnectionTimeout(int connectionTimeoutSec){
+		this.connectionTimeoutSec = connectionTimeoutSec;
 		return this;
 	}
 }

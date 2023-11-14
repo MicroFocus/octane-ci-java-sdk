@@ -213,7 +213,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 			//  we are running this loop either once or twice: once - regular flow, twice - when retrying after re-login attempt
 			for (int i = 0; i < 2; i++) {
 				uriRequest = createHttpRequest(request);
-				context = createHttpContext(request.getUrl(), request.getTimeoutSec(), false);
+				context = createHttpContext(request.getUrl(), request.getTimeoutSec(), false,request.getSocketTimeout(),request.getConnectionTimeout());
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests2Started.put(uriRequest, System.currentTimeMillis());
 				}
@@ -303,7 +303,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		return request;
 	}
 
-	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest) {
+	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest,int socketTimeout,int connectionTimeout) {
 		HttpClientContext context = HttpClientContext.create();
 		context.setCookieStore(new BasicCookieStore());
 
@@ -335,10 +335,13 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		// set timeout if needed
 		if (requestTimeoutSec > 0) {
 			int timeoutMs = requestTimeoutSec * 1000;
+			int socketTimeoutMs = socketTimeout > 0 ? socketTimeout * 1000 : requestTimeoutSec * 1000;
+			int connectionTimeoutMs = connectionTimeout > 0 ? connectionTimeout* 1000 : requestTimeoutSec * 1000;
+
 			requestConfigBuilder
 					.setConnectTimeout(timeoutMs)
-					.setConnectionRequestTimeout(23000)
-					.setSocketTimeout(26000);
+					.setConnectionRequestTimeout(socketTimeoutMs)
+					.setSocketTimeout(connectionTimeoutMs);
 		}
 
 		context.setRequestConfig(requestConfigBuilder.build());
@@ -389,7 +392,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		try {
 			HttpUriRequest loginRequest = buildLoginRequest(config);
-			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), 0, true);
+			HttpClientContext context = createHttpContext(loginRequest.getURI().toString(), 0, true,0,0);
 			response = httpClient.execute(loginRequest, context);
 
 			if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {

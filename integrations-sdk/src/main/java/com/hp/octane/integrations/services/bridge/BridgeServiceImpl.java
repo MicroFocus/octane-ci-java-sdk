@@ -339,13 +339,17 @@ final class BridgeServiceImpl implements BridgeService {
                         RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks/" + taskId + "/result")
                 .setHeaders(headers)
                 .setBody(contentJSON)
-                .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT);// timeout on Octane side is 30 sec so enable timeout that one retry will be executed
+                .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT)
+                .setSocketTimeout(23)
+                .setConnectionTimeout(26);
+
+        // timeout on Octane side is 30 sec so enable timeout that one retry will be executed
         long start = System.currentTimeMillis();
         try {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
         } catch (IOException ioe) {
-            logger.error("{}failed to submit abridged task's result {}, rerun = {}, start = {} ,timeout = {} sec, took = {} ms",taskId, configurer.octaneConfiguration.getLocationForLog(),
+            logger.error("{} failed to submit abridged task's result {}, rerun = {}, start = {} ,timeout = {} sec, took = {} ms",taskId, configurer.octaneConfiguration.getLocationForLog(),
                     rerun,new SimpleDateFormat("dd/MM/yyyy HH:mm:ss,SSS").format(new Date(start)),PUT_ABRIDGE_RESULT_TIMEOUT,System.currentTimeMillis() - start, ioe);
             if(!rerun) {
                 CIPluginSDKUtils.doWait(1000);
