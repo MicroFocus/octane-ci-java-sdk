@@ -139,4 +139,8 @@ public interface CIEvent extends DTOBase {
 	Map<String, String> getEnvironmentOutputtedParameters();
 
 	CIEvent setEnvironmentOutputtedParameters(Map<String, String> environmentOutputtedParameters);
+
+	String getStateLogicalName();
+
+	CIEvent setStateLogicalName(String stateLogicalName);
 }

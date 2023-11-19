@@ -46,7 +46,8 @@ public enum CIEventType {
 	SCM("scm"),
 	DELETED("deleted"),
 	REMOVED_FROM_QUEUE("removed_from_queue"),
-	RENAMED("renamed");
+	RENAMED("renamed"),
+	CHANGE_EXEC_STATE("change_exec_state");
 
 	private String value;
 
