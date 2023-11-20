@@ -73,6 +73,7 @@ class CIEventImpl implements CIEvent {
 	private ItemType itemType;
 	private Boolean skipValidation;
 	private Boolean isVirtualProject;
+	private String stateLogicalName;
 
 	public PhaseType getPhaseType() {
 		return phaseType;
@@ -306,6 +307,15 @@ class CIEventImpl implements CIEvent {
 	@Override
 	public CIEvent setTestResultExpected(boolean expected) {
 		this.testResultExpected = expected;
+		return this;
+	}
+
+	public String getStateLogicalName() {
+		return stateLogicalName;
+	}
+
+	public CIEvent setStateLogicalName(String stateLogicalName) {
+		this.stateLogicalName = stateLogicalName;
 		return this;
 	}
 }
