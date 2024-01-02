@@ -1,17 +1,32 @@
-/*
- *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+/**
+ * Copyright 2017-2023 Open Text
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * The only warranties for products and services of Open Text and
+ * its affiliates and licensors (“Open Text”) are as may be set forth
+ * in the express warranty statements accompanying such products and services.
+ * Nothing herein should be construed as constituting an additional warranty.
+ * Open Text shall not be liable for technical or editorial errors or
+ * omissions contained herein. The information contained herein is subject
+ * to change without notice.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Except as specifically indicated otherwise, this document contains
+ * confidential information and a valid license is required for possession,
+ * use or copying. If this work is provided to the U.S. Government,
+ * consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ * Computer Software Documentation, and Technical Data for Commercial Items are
+ * licensed to the U.S. Government under vendor's standard commercial license.
  *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.hp.octane.integrations.uft.items;
@@ -28,10 +43,7 @@ import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import org.apache.commons.codec.Charsets;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +54,8 @@ public class UftTestDiscoveryResult implements Serializable {
     private List<AutomatedTest> tests = new ArrayList<>();
 
     private List<ScmResourceFile> scmResourceFiles = new ArrayList<>();
+
+    private Map<String, List<String>> combineDataTableHashCodeToTestPathListMap = new HashMap<>();
 
     private List<String> deletedFolders = new ArrayList<>();
 
@@ -170,6 +184,18 @@ public class UftTestDiscoveryResult implements Serializable {
     public void setAllScmResourceFiles(List<ScmResourceFile> scmResourceFiles) {
         this.scmResourceFiles = scmResourceFiles;
     }
+
+    @JsonProperty("combineDataTableHashCodeToTestPathListMap")
+    public Map<String, List<String>> getCombineDataTableHashCodeToTestPathListMap() {
+        return combineDataTableHashCodeToTestPathListMap;
+    }
+
+    @JsonProperty("combineDataTableHashCodeToTestPathListMap")
+    public void setCombineDataTableHashCodeToTestPathListMap(Map<String, List<String>> combineDataTableHashCodeToTestPathListMap) {
+        this.combineDataTableHashCodeToTestPathListMap = combineDataTableHashCodeToTestPathListMap;
+    }
+
+
 
     public void writeToFile(File fileToWriteTo) throws IOException {
         ObjectMapper mapper = new ObjectMapper();

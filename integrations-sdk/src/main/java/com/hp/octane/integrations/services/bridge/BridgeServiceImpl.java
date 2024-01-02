@@ -1,16 +1,32 @@
-/*
- *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+/**
+ * Copyright 2017-2023 Open Text
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * The only warranties for products and services of Open Text and
+ * its affiliates and licensors (“Open Text”) are as may be set forth
+ * in the express warranty statements accompanying such products and services.
+ * Nothing herein should be construed as constituting an additional warranty.
+ * Open Text shall not be liable for technical or editorial errors or
+ * omissions contained herein. The information contained herein is subject
+ * to change without notice.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Except as specifically indicated otherwise, this document contains
+ * confidential information and a valid license is required for possession,
+ * use or copying. If this work is provided to the U.S. Government,
+ * consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ * Computer Software Documentation, and Technical Data for Commercial Items are
+ * licensed to the U.S. Government under vendor's standard commercial license.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.hp.octane.integrations.services.bridge;
@@ -37,14 +53,12 @@ import java.io.InputStream;
 import java.io.InterruptedIOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
@@ -74,6 +88,8 @@ final class BridgeServiceImpl implements BridgeService {
     private long stateStartTime = 0;
     private long requestTimeoutCount = 0;
     private long lastRequestTimeoutTime = 0;
+
+    private final int PUT_ABRIDGE_RESULT_TIMEOUT = System.getProperty("octane.sdk.bridge.abridge_result_timeout") != null ? Integer.parseInt(System.getProperty("octane.sdk.bridge.abridge_result_timeout")) : 20;
 
     BridgeServiceImpl(OctaneSDK.SDKServicesConfigurer configurer, RestService restService, TasksProcessor tasksProcessor, ConfigurationService configurationService) {
         if (configurer == null) {
@@ -302,7 +318,7 @@ final class BridgeServiceImpl implements BridgeService {
                     int submitStatus = putAbridgedResult(
                             configurer.octaneConfiguration.getInstanceId(),
                             result.getId(),
-                            dtoFactory.dtoToJsonStream(result));
+                            result, false);
                     logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
                 });
             }
@@ -311,7 +327,8 @@ final class BridgeServiceImpl implements BridgeService {
         }
     }
 
-    private int putAbridgedResult(String selfIdentity, String taskId, InputStream contentJSON) {
+    private int putAbridgedResult(String selfIdentity, String taskId, OctaneResultAbridged result, boolean rerun) {
+        InputStream contentJSON = dtoFactory.dtoToJsonStream(result);
         OctaneRestClient octaneRestClientImpl = restService.obtainOctaneRestClient();
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
@@ -321,13 +338,21 @@ final class BridgeServiceImpl implements BridgeService {
                         RestService.SHARED_SPACE_INTERNAL_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
                         RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks/" + taskId + "/result")
                 .setHeaders(headers)
-                .setBody(contentJSON);
+                .setBody(contentJSON)
+                .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT);// timeout on Octane side is 30 sec so enable timeout that one retry will be executed
+        long start = System.currentTimeMillis();
         try {
             OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
             return octaneResponse.getStatus();
         } catch (IOException ioe) {
-            logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to submit abridged task's result", ioe);
-            return 0;
+            logger.error("{}failed to submit abridged task's result {}, rerun = {}, start = {} ,timeout = {} sec, took = {} ms",taskId, configurer.octaneConfiguration.getLocationForLog(),
+                    rerun,new SimpleDateFormat("dd/MM/yyyy HH:mm:ss,SSS").format(new Date(start)),PUT_ABRIDGE_RESULT_TIMEOUT,System.currentTimeMillis() - start, ioe);
+            if(!rerun) {
+                CIPluginSDKUtils.doWait(1000);
+                return putAbridgedResult(selfIdentity, taskId, result, true);
+            } else {
+                return 0;
+            }
         }
     }
 

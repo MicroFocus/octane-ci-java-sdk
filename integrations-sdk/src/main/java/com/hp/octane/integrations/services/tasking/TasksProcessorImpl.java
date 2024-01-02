@@ -1,16 +1,32 @@
-/*
- *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+/**
+ * Copyright 2017-2023 Open Text
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * The only warranties for products and services of Open Text and
+ * its affiliates and licensors (“Open Text”) are as may be set forth
+ * in the express warranty statements accompanying such products and services.
+ * Nothing herein should be construed as constituting an additional warranty.
+ * Open Text shall not be liable for technical or editorial errors or
+ * omissions contained herein. The information contained herein is subject
+ * to change without notice.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Except as specifically indicated otherwise, this document contains
+ * confidential information and a valid license is required for possession,
+ * use or copying. If this work is provided to the U.S. Government,
+ * consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ * Computer Software Documentation, and Technical Data for Commercial Items are
+ * licensed to the U.S. Government under vendor's standard commercial license.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.hp.octane.integrations.services.tasking;
@@ -61,9 +77,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 	private static final String BUILDS = "builds";
 	private static final String EXECUTOR = "executor";
 	private static final String INIT = "init";
+	private static final String UPDATE = "update";
 	private static final String TEST_CONN = "test_conn";
 	private static final String CREDENTIALS_UPSERT = "credentials_upsert";
 	private static final String CREDENTIALS = "credentials";
+	private static final String SYNC_NOW = "sync_now";
 
 	private ExecutorService jobListCacheExecutor = Executors.newSingleThreadExecutor();
 	private CacheItem jobListCacheItem;
@@ -104,6 +122,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 		result.setServiceId(configurer.octaneConfiguration.getInstanceId());
 		String[] path = pathTokenizer(task.getUrl());
 		try {
+			if(task.getHeaders() != null && !task.getHeaders().isEmpty()) {
+				logger.info(configurer.octaneConfiguration.getLocationForLog() + "headers are not empty! passing to plugin");
+				configurer.pluginServices.setCorrelationId(task.getHeaders());
+			}
 			if (path.length == 1 && STATUS.equals(path[0])) {
 				executeStatusRequest(result);
 			} else if (path.length == 1 && SUSPEND_STATUS.equals(path[0])) {
@@ -145,6 +167,11 @@ final class TasksProcessorImpl implements TasksProcessor {
 							result.getHeaders().put(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
 						}
 						result.setStatus(HttpStatus.SC_OK);
+					} else if (UPDATE.equalsIgnoreCase(path[1])) {
+						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+						discoveryInfo.setConfigurationId(configurer.octaneConfiguration.getInstanceId());
+						configurer.pluginServices.updateExecutor(discoveryInfo);
+						result.setStatus(HttpStatus.SC_OK);
 					} else if (TEST_CONN.equalsIgnoreCase(path[1])) {
 						TestConnectivityInfo testConnectivityInfo = dtoFactory.dtoFromJson(task.getBody(), TestConnectivityInfo.class);
 						OctaneResponse connTestResult = configurer.pluginServices.checkRepositoryConnectivity(testConnectivityInfo);
@@ -153,6 +180,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 					} else if (CREDENTIALS_UPSERT.equalsIgnoreCase(path[1])) {
 						CredentialsInfo credentialsInfo = dtoFactory.dtoFromJson(task.getBody(), CredentialsInfo.class);
 						executeUpsertCredentials(result, credentialsInfo);
+					} else if (SYNC_NOW.equalsIgnoreCase(path[1])) {
+						DiscoveryInfo discoveryInfo = dtoFactory.dtoFromJson(task.getBody(), DiscoveryInfo.class);
+						discoveryInfo.setConfigurationId(configurer.octaneConfiguration.getInstanceId());
+						configurer.pluginServices.syncNow(discoveryInfo);
 					} else {
 						result.setStatus(HttpStatus.SC_NOT_FOUND);
 					}
@@ -302,7 +333,10 @@ final class TasksProcessorImpl implements TasksProcessor {
 		if (!cacheIsUsed) {
 			Long myWorkspaceId = cacheAllowed ? null : workspaceId;//workspaceId is not support for cache
 			Boolean myIncludingParameters = cacheAllowed ? true : includingParameters;//myIncludingParameters should be true is cache is allowed
+			logger.info("Starting to get jobs without cache");
+			long startGetJobList = System.currentTimeMillis();
 			CIJobsList content = configurer.pluginServices.getJobsList(myIncludingParameters, myWorkspaceId);
+			logger.info("Finish get job content without cache took {} ms",System.currentTimeMillis() -startGetJobList);
 			if (content != null) {
 				result.setBody(dtoFactory.dtoToJson(content));
 				if (cacheAllowed) {

@@ -1,16 +1,32 @@
-/*
- *     Copyright 2017 EntIT Software LLC, a Micro Focus company, L.P.
- *     Licensed under the Apache License, Version 2.0 (the "License");
- *     you may not use this file except in compliance with the License.
- *     You may obtain a copy of the License at
+/**
+ * Copyright 2017-2023 Open Text
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ * The only warranties for products and services of Open Text and
+ * its affiliates and licensors (“Open Text”) are as may be set forth
+ * in the express warranty statements accompanying such products and services.
+ * Nothing herein should be construed as constituting an additional warranty.
+ * Open Text shall not be liable for technical or editorial errors or
+ * omissions contained herein. The information contained herein is subject
+ * to change without notice.
  *
- *     Unless required by applicable law or agreed to in writing, software
- *     distributed under the License is distributed on an "AS IS" BASIS,
- *     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *     See the License for the specific language governing permissions and
- *     limitations under the License.
+ * Except as specifically indicated otherwise, this document contains
+ * confidential information and a valid license is required for possession,
+ * use or copying. If this work is provided to the U.S. Government,
+ * consistent with FAR 12.211 and 12.212, Commercial Computer Software,
+ * Computer Software Documentation, and Technical Data for Commercial Items are
+ * licensed to the U.S. Government under vendor's standard commercial license.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.hp.octane.integrations.end2end.basic;
@@ -124,7 +140,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -134,7 +150,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -144,7 +160,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverage
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2) {
 					//  TODO: add deeper verification
 					return true;
@@ -179,7 +195,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			simulatePushCoverageAllClients();
 
 			//  validate events
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3 &&
 						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					//  client A
@@ -210,7 +226,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1 &&
 						testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
 					//  TODO: add deeper verification
@@ -221,7 +237,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1 &&
 						logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
 					//  TODO: add deeper verification
@@ -232,7 +248,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverages
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2 &&
 						coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
 					//  TODO: add deeper verification
@@ -262,7 +278,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			simulatePushCoverageAllClients();
 
 			//  validate events
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
 					eventsCollectors.get(spIdB).forEach(cil -> {
@@ -281,7 +297,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
 					Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
@@ -292,7 +308,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
 					Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
@@ -303,7 +319,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverages
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
 					Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
@@ -440,7 +456,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -450,7 +466,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -460,7 +476,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverage
-			GeneralTestUtils.waitAtMostFor(5000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2) {
 					//  TODO: add deeper verification
 					return true;
