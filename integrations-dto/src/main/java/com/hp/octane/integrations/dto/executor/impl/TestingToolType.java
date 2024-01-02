@@ -38,12 +38,14 @@ public enum TestingToolType {
 	UNKNOWN("unknown"),
 	UFT("uft"),
 	CODELESS("codeless"),
-	MBT("mbt");
+	MBT("mbt"),
+	MBT_TESTNG("mbt_testng"),
+	TESTNG("testng");
 
-	private String value;
+	private final String value;
 
-	TestingToolType(String status) {
-		this.value = status;
+	TestingToolType(String value) {
+		this.value = value;
 	}
 
 	@JsonValue
