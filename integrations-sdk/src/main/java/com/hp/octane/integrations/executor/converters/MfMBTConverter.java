@@ -323,6 +323,7 @@ public class MfMBTConverter extends MfUftConverter {
                 } else {
                     scriptLinesList.add(String.format("LoadAndRunAction \"%s\",\"%s\"", mbtUnit.getTestPath(), mbtUnit.getActionName()));
                 }
+                scriptLinesList.add("\r\nIf Reporter.CurrentActionIterationStatus = 1 Then\r\nExitAction\r\nEnd If");
 
                 scriptLinesList.add("");
                 scriptLinesList.add(testLineSplitter);
@@ -416,11 +417,9 @@ public class MfMBTConverter extends MfUftConverter {
                     }
                 } else {
                     logger.error("Failed to get response {}", (octaneResponse != null ? octaneResponse.getStatus() : "(null)"));
-                    return;
                 }
             } catch (IOException e) {
                 logger.error("Failed to get response ", e);
-                return;
             }
         }
     }
