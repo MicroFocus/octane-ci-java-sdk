@@ -77,6 +77,8 @@ public class EntityConstants {
         public static final String AUTOMATION_STATUS_FIELD = "automation_status";
         public static final String REPOSITORY_PATH_FIELD = "repository_path";
         public static final String TESTING_TOOL_TYPE_FIELD = "testing_tool_type";
+        public static final String TEST_RUNNER_FIELD = "test_runner";
+        public static final String SCM_REPOSITORY_FIELD = "scm_repository";
     }
 
     public static class MbtUnitParameter extends Base {

@@ -39,6 +39,8 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                 .collect(Collectors.toList());
 
         long workspaceId = Long.parseLong(result.getWorkspaceId());
+        String runnerId = result.getTestRunnerId();
+        String scmRepositoryId = result.getScmRepositoryId();
 
         Map<OctaneStatus, List<UftTestAction>> actionsByStatusMap = allActions.stream().collect(Collectors.groupingBy(UftTestAction::getOctaneStatus));
 
@@ -48,19 +50,19 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         }
 
         // handle new actions- create new units and parameters in octane
-        dispatchNewActions(entitiesService, actionsByStatusMap.get(OctaneStatus.NEW), autoDiscoveredFolder, workspaceId, customLogger);
+        dispatchNewActions(entitiesService, actionsByStatusMap.get(OctaneStatus.NEW), autoDiscoveredFolder, workspaceId, runnerId, scmRepositoryId, customLogger);
 
         // handle deleted actions- currently do nothing
         dispatchDeletedActions(entitiesService, actionsByStatusMap.get(OctaneStatus.DELETED), workspaceId, customLogger);
 
         // handle updated actions- update units in octane
-        dispatchUpdatedActions(entitiesService, actionsByStatusMap.get(OctaneStatus.MODIFIED), autoDiscoveredFolder, workspaceId, customLogger);
+        dispatchUpdatedActions(entitiesService, actionsByStatusMap.get(OctaneStatus.MODIFIED), autoDiscoveredFolder, workspaceId, runnerId, scmRepositoryId, customLogger);
     }
 
-    private void dispatchNewActions(EntitiesService entitiesService, List<UftTestAction> newActions, Entity autoDiscoveredFolder, long workspaceId, CustomLogger customLogger) {
+    private void dispatchNewActions(EntitiesService entitiesService, List<UftTestAction> newActions, Entity autoDiscoveredFolder, long workspaceId, String runnerId, String scmRepositoryId, CustomLogger customLogger) {
         if (CollectionUtils.isNotEmpty(newActions)) {
             Map<String, Entity> foldersMap = createParentFolders(entitiesService, newActions, autoDiscoveredFolder, workspaceId);
-            postUnits(entitiesService, newActions, foldersMap, workspaceId);
+            postUnits(entitiesService, newActions, foldersMap, workspaceId, runnerId, scmRepositoryId);
         }
     }
 
@@ -86,10 +88,10 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         }
     }
 
-    private void dispatchUpdatedActions(EntitiesService entitiesService, List<UftTestAction> updatedActions, Entity autoDiscoveredFolder, long workspaceId, CustomLogger customLogger) {
+    private void dispatchUpdatedActions(EntitiesService entitiesService, List<UftTestAction> updatedActions, Entity autoDiscoveredFolder, long workspaceId, String runnerId, String scmRepositoryId, CustomLogger customLogger) {
         if (CollectionUtils.isNotEmpty(updatedActions)) {
             updateParentFolders(entitiesService, updatedActions, autoDiscoveredFolder, workspaceId);
-            updateUnits(entitiesService, updatedActions, workspaceId);
+            updateUnits(entitiesService, updatedActions, workspaceId, runnerId, scmRepositoryId);
         }
     }
 
@@ -136,13 +138,13 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         }
     }
 
-    private boolean postUnits(EntitiesService entitiesService, List<UftTestAction> actions, Map<String, Entity> foldersMap, long workspaceId) {
+    private boolean postUnits(EntitiesService entitiesService, List<UftTestAction> actions, Map<String, Entity> foldersMap, long workspaceId, String runnerId, String scmRepositoryId) {
         if (!actions.isEmpty()) {
             logger.info("dispatching {} new units", actions.size());
 
             List<Entity> parameterToAdd = new ArrayList<>(); // add external parameter entities list to be filled by each action creation
             // add units
-            List<Entity> unitsToAdd = actions.stream().map(action -> createUnitEntity(action, foldersMap, parameterToAdd)).collect(Collectors.toList());
+            List<Entity> unitsToAdd = actions.stream().map(action -> createUnitEntity(action, foldersMap, parameterToAdd, runnerId, scmRepositoryId)).collect(Collectors.toList());
             Map<String, Entity> unitEntities = entitiesService.postEntities(workspaceId, EntityConstants.MbtUnit.COLLECTION_NAME, unitsToAdd, Collections.singletonList(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)).stream()
                     .collect(Collectors.toMap(entity -> entity.getField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toString(), Function.identity()));
 
@@ -173,6 +175,8 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                             .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, null)
                             .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, NOT_AUTOMATED_AUTOMATION_STATUS)
                             .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, null)
+                            .setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, null)
+                            .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, null)
                     )
                     .collect(Collectors.toList());
 
@@ -183,9 +187,13 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         return true;
     }
 
-    private boolean updateUnits(EntitiesService entitiesService, List<UftTestAction> actions, long workspaceId) {
+    private boolean updateUnits(EntitiesService entitiesService, List<UftTestAction> actions, long workspaceId, String runnerId, String scmRepositoryId) {
         if (!actions.isEmpty()) {
             logger.info("dispatching {} updated units", actions.size());
+
+            Entity scmRepository = dtoFactory.newDTO(Entity.class).setType(EntityConstants.ScmRepository.ENTITY_NAME).setId(scmRepositoryId);
+            Entity testRunner = dtoFactory.newDTO(Entity.class).setType(EntityConstants.Executors.ENTITY_NAME).setId(runnerId);
+
             // convert actions to dtos
             List<Entity> unitsToUpdate = actions.stream().map(action -> {
                         String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getTestName() + ":" + action.getName() : action.getLogicalName();
@@ -193,6 +201,8 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                                 .setId(action.getId())
                                 .setField(EntityConstants.MbtUnit.NAME_FIELD, unitName)
                                 .setField(EntityConstants.MbtUnit.DESCRIPTION_FIELD, action.getDescription())
+                                .setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, scmRepository)
+                                .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, testRunner)
                                 .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath());
                     })
                     .collect(Collectors.toList());
@@ -226,9 +236,11 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                 .setField(EntityConstants.ModelFolder.PARENT, parentFolder);
     }
 
-    private Entity createUnitEntity(UftTestAction action, Map<String, Entity> foldersMap, List<Entity> parameterEntities) {
+    private Entity createUnitEntity(UftTestAction action, Map<String, Entity> foldersMap, List<Entity> parameterEntities, String runnerId, String scmRepositoryId) {
         String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getTestName() + ":" + action.getName() : action.getLogicalName();
         Entity parentFolder = foldersMap.get(action.getTestName());
+        Entity scmRepository = dtoFactory.newDTO(Entity.class).setType(EntityConstants.ScmRepository.ENTITY_NAME).setId(scmRepositoryId);
+        Entity testRunner = dtoFactory.newDTO(Entity.class).setType(EntityConstants.Executors.ENTITY_NAME).setId(runnerId);
 
         Entity unitEntity = dtoFactory.newDTO(Entity.class)
                 .setType(EntityConstants.MbtUnit.ENTITY_NAME)
@@ -238,6 +250,8 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                 .setField(EntityConstants.MbtUnit.PARENT, parentFolder)
                 .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, AUTOMATED_AUTOMATION_STATUS)
                 .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath())
+                .setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, scmRepository)
+                .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, testRunner)
                 .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, TESTING_TOOL_TYPE);
 
         if (CollectionUtils.isNotEmpty(action.getParameters())) {
