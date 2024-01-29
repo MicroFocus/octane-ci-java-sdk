@@ -25,8 +25,10 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
 
     @Override
     public void prepareDiscoveryResultForDispatchInFullSyncMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
-        String condition = QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
-        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
+        String conditionRepositoryPathNotEmpty = QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
+        String conditionHasScmRepository = QueryHelper.conditionRef(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, Long.parseLong(discoveryResult.getScmRepositoryId()));
+
+        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), conditionRepositoryPathNotEmpty, conditionHasScmRepository);
 
         Map<String, Entity> octaneUnitsMap = unitsFromServer.stream()
                 .collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(),
@@ -56,7 +58,8 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
     }
 
     private List<Entity> getUnitsFromServer(EntitiesService entitiesService, String workspaceId, String... conditions) {
-        List<String> fields = new ArrayList<>(Arrays.asList(EntityConstants.MbtUnit.ID_FIELD, EntityConstants.MbtUnit.NAME_FIELD, EntityConstants.MbtUnit.DESCRIPTION_FIELD, EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
+        List<String> fields = new ArrayList<>(Arrays.asList(EntityConstants.MbtUnit.ID_FIELD, EntityConstants.MbtUnit.NAME_FIELD,
+                EntityConstants.MbtUnit.DESCRIPTION_FIELD, EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, EntityConstants.MbtUnit.TEST_RUNNER_FIELD));
 
         return entitiesService.getEntities(Long.parseLong(workspaceId), EntityConstants.MbtUnit.COLLECTION_NAME, Arrays.asList(conditions), fields);
     }
@@ -64,8 +67,14 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
     private void removeExistingUnits(UftTestDiscoveryResult discoveryResult, Map<String, Entity> octaneUnitsMap) {
         discoveryResult.getAllTests().forEach(automatedTest -> {
             automatedTest.getActions().forEach(action -> {
-                if (Objects.nonNull(octaneUnitsMap.get(action.getRepositoryPath().toLowerCase()))) {
-                    action.setOctaneStatus(OctaneStatus.NONE);
+                Entity octaneUnit = octaneUnitsMap.get(action.getRepositoryPath().toLowerCase());
+                if (Objects.nonNull(octaneUnit)) {
+                    if (octaneUnit.getField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD) == null) {
+                        action.setOctaneStatus(OctaneStatus.MODIFIED);
+                        action.setId(octaneUnit.getId());
+                    } else {
+                        action.setOctaneStatus(OctaneStatus.NONE);
+                    }
                 }
             });
             removeItemsWithStatusNone(automatedTest.getActions());
