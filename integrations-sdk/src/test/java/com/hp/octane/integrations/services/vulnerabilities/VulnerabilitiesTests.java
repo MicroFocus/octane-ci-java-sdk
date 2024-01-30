@@ -137,8 +137,8 @@ public class VulnerabilitiesTests {
     public void extendedData() {
         Issues.Issue issue = new Issues.Issue();
         issue.issueName = "name";
-        issue.likelihood = "likelihood";
-        issue.impact = "impact";
+        issue.likelihood = "2.5";
+        issue.impact = "2.5";
         issue.kingdom = "kingdom";
         issue.confidance = "confidence";
         issue.removedDate = "removedDate";
@@ -149,9 +149,9 @@ public class VulnerabilitiesTests {
         List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(), "Tag", new HashMap<>());
 
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("issueName"), "name");
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"), "likelihood");
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"), "2.5");
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("kingdom"), "kingdom");
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("impact"), "impact");
+        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("impact"), "2.5");
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("confidence"), "confidence");
         Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("removedDate"), "removedDate");
     }
