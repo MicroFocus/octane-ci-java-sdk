@@ -200,9 +200,9 @@ public class SSCToOctaneIssueUtil {
     //Low - Low impact (<2.5) and low likelihood (<2.5). Low priority issues are difficult to discover and exploit and typically result in little asset damage.
     private static String getNewOctaneSeverityFromSSCValue(String likelihood, String impact) {
         String logicalNameForSeverity = null;
-        Float ssclikelhood = Float.valueOf(likelihood);
-        Float sscimpact = Float.valueOf(impact);
         try {
+            Float ssclikelhood = Float.valueOf(likelihood);
+            Float sscimpact = Float.valueOf(impact);
             if (sscimpact >= 2.5 && ssclikelhood >= 2.5) {
                 logicalNameForSeverity = SEVERITY_LG_NAME_CRITICAL;
             }
