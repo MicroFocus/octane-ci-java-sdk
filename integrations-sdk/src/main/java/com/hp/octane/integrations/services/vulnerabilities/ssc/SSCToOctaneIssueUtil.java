@@ -8,20 +8,20 @@
  * Open Text shall not be liable for technical or editorial errors or
  * omissions contained herein. The information contained herein is subject
  * to change without notice.
- *
+ * <p>
  * Except as specifically indicated otherwise, this document contains
  * confidential information and a valid license is required for possession,
  * use or copying. If this work is provided to the U.S. Government,
  * consistent with FAR 12.211 and 12.212, Commercial Computer Software,
  * Computer Software Documentation, and Technical Data for Commercial Items are
  * licensed to the U.S. Government under vendor's standard commercial license.
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -74,7 +74,7 @@ public class SSCToOctaneIssueUtil {
         logger.debug("enter createOctaneIssue");
         OctaneIssue octaneIssue = dtoFactory.newDTO(OctaneIssue.class);
         setOctaneAnalysis(dtoFactory, issue, octaneIssue);
-        setOctaneSeverity(dtoFactory, issue, octaneIssue);
+        setOctaneSeverity(issue, octaneIssue);
         setOctaneStatus(issue, octaneIssue);
         Map<String, String> extendedData = prepareExtendedData(issue, issueDetails);
         octaneIssue.setExtendedData(extendedData);
@@ -181,27 +181,28 @@ public class SSCToOctaneIssueUtil {
         return retVal;
     }
 
-    private static void setOctaneSeverity(DTOFactory dtoFactory, Issues.Issue issue, OctaneIssue octaneIssue) {
-        if (issue.severity != null) {
-            String octaneSeverity = getOctaneSeverityFromSSCValue(issue.likelihood, issue.impact, issue.severity);
+    private static void setOctaneSeverity(Issues.Issue issue, OctaneIssue octaneIssue) {
+        String octaneSeverity = null;
+        if (issue.likelihood != null && issue.impact != null) {
+            octaneSeverity = getNewOctaneSeverityFromSSCValue(issue.likelihood, issue.impact);
+        } else if (issue.severity != null) {
+            octaneSeverity = getOctaneSeverityFromSSCValue(issue.severity);
+        }
+        if (octaneSeverity != null) {
             octaneIssue.setSeverity(createListNodeEntity(octaneSeverity));
         }
     }
 
-    private static String getOctaneSeverityFromSSCValue(String likelihood, String impact, Integer severity) {
-        // the new calculation of priority (severity):
-        //Critical - High impact (>=2.5) and high likelihood (>=2.5). Critical issues are easy for the attacker to discover and exploit to result in extensive asset damage.
-        //High - High impact (>=2.5) but low likelihood (<2.5). High priority issues are often difficult to discover and exploit, but can result in extensive asset damage.
-        //Medium - Low impact (<2.5) but high likelihood (>=2.5). Medium priority issues are easy to discover and exploit, but often result in little asset damage.
-        //Low - Low impact (<2.5) and low likelihood (<2.5). Low priority issues are difficult to discover and exploit and typically result in little asset damage.
-
-        //fallback in case impact or likelihood are null
-        //Legacy Priority Metadata Value based on Severity and Confidence:
+    // the new calculation of priority (severity):
+    //Critical - High impact (>=2.5) and high likelihood (>=2.5). Critical issues are easy for the attacker to discover and exploit to result in extensive asset damage.
+    //High - High impact (>=2.5) but low likelihood (<2.5). High priority issues are often difficult to discover and exploit, but can result in extensive asset damage.
+    //Medium - Low impact (<2.5) but high likelihood (>=2.5). Medium priority issues are easy to discover and exploit, but often result in little asset damage.
+    //Low - Low impact (<2.5) and low likelihood (<2.5). Low priority issues are difficult to discover and exploit and typically result in little asset damage.
+    private static String getNewOctaneSeverityFromSSCValue(String likelihood, String impact) {
         String logicalNameForSeverity = null;
         Float ssclikelhood = Float.valueOf(likelihood);
         Float sscimpact = Float.valueOf(impact);
-//        Integer sscconfidance = Integer.valueOf(confidance);
-       if (ssclikelhood != null && sscimpact != null) {
+        try {
             if (sscimpact >= 2.5 && ssclikelhood >= 2.5) {
                 logicalNameForSeverity = SEVERITY_LG_NAME_CRITICAL;
             }
@@ -214,22 +215,26 @@ public class SSCToOctaneIssueUtil {
             if (sscimpact < 2.5 && ssclikelhood < 2.5) {
                 logicalNameForSeverity = SEVERITY_LG_NAME_LOW;
             }
-        } else {
-
-            if (severity == null) {
-                return null;
-            }
-
-            if (severity.equals(2)) {
-                logicalNameForSeverity = SEVERITY_LG_NAME_LOW;
-            } else if (severity.equals(3)) {
-                logicalNameForSeverity = SEVERITY_LG_NAME_MEDIUM;
-            } else if (severity.equals(4)) {
-                logicalNameForSeverity = SEVERITY_LG_NAME_HIGH;
-            } else if (severity.equals(5)) {
-                logicalNameForSeverity = SEVERITY_LG_NAME_CRITICAL;
-            }
+        } catch (Exception e) {
+            logger.error("failed to process vulnerability severity (priority) input: {},{}", likelihood, impact, e);
         }
+        return logicalNameForSeverity;
+    }
+
+    //fallback in case impact or likelihood are null
+    //Legacy Priority Metadata Value based on Severity and Confidence:
+    private static String getOctaneSeverityFromSSCValue(Integer severity) {
+        String logicalNameForSeverity = null;
+        if (severity.equals(4)) {
+            logicalNameForSeverity = SEVERITY_LG_NAME_CRITICAL;
+        } else if (severity.equals(3)) {
+            logicalNameForSeverity = SEVERITY_LG_NAME_HIGH;
+        } else if (severity.equals(2)) {
+            logicalNameForSeverity = SEVERITY_LG_NAME_MEDIUM;
+        } else if (severity.equals(1)) {
+            logicalNameForSeverity = SEVERITY_LG_NAME_LOW;
+        }
+
         return logicalNameForSeverity;
     }
 
