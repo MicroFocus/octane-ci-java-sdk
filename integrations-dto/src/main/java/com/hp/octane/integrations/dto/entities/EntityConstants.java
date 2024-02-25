@@ -100,6 +100,7 @@ public class EntityConstants {
         public static final String SUBTYPE_FIELD = "subtype";
         public static final String LOGICAL_NAME = "logical_name";
         public static final String PARENT = "parent";
+        public static final String TEST_RUNNER_FIELD = "test_runner";
     }
 
     public static class ScmResourceFile extends Base {
