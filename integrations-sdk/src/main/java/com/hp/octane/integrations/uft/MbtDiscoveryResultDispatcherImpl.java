@@ -46,7 +46,11 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
         Entity autoDiscoveredFolder = null;
         if (CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.NEW)) || CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.MODIFIED))) {
-            autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, Long.parseLong(runnerId));
+            if (runnerId.isEmpty()) {
+                autoDiscoveredFolder = getGitMirrorFolder(entitiesService, workspaceId);
+            } else {
+                autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, Long.parseLong(runnerId));
+            }
         }
 
         // handle new actions- create new units and parameters in octane
