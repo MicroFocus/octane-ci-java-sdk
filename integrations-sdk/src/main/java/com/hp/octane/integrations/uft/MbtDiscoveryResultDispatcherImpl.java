@@ -46,7 +46,19 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
         Entity autoDiscoveredFolder = null;
         if (CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.NEW)) || CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.MODIFIED))) {
-            autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId);
+            Long lRunnerId;
+
+            try {
+                lRunnerId = Long.parseLong(runnerId);
+            } catch (NumberFormatException nfe) {
+                lRunnerId = null;
+            }
+
+            if (lRunnerId == null) {
+                autoDiscoveredFolder = getGitMirrorFolder(entitiesService, workspaceId);
+            } else {
+                autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, lRunnerId);
+            }
         }
 
         // handle new actions- create new units and parameters in octane
@@ -214,11 +226,30 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         return true;
     }
 
-    private Entity retrieveParentFolder(EntitiesService entitiesService, long workspaceId) {
+    public Entity retrieveParentFolder(EntitiesService entitiesService, long workspaceId, long executorId) {
+        Entity autoDiscoveredFolder = getRunnerDedicatedFolder(entitiesService, workspaceId, executorId);
+
+        if (autoDiscoveredFolder == null) {
+            // backward compatibility for previously created cloud runners, that have no dedicated folder
+            autoDiscoveredFolder = getGitMirrorFolder(entitiesService, workspaceId);
+        }
+
+        return autoDiscoveredFolder;
+    }
+
+    private Entity getRunnerDedicatedFolder(EntitiesService entitiesService, long workspaceId, long executorId) {
+        String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.TEST_RUNNER_FIELD, executorId);
+        String condition2 = QueryHelper.condition(EntityConstants.ModelFolder.SUBTYPE_FIELD, EntityConstants.ModelFolder.ENTITY_SUBTYPE);
+
+        List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Arrays.asList(condition1, condition2), Collections.emptyList());
+        return entities.stream().findFirst().orElse(null);
+    }
+
+    private Entity getGitMirrorFolder(EntitiesService entitiesService, long workspaceId) {
         String condition = QueryHelper.condition(EntityConstants.ModelFolder.LOGICAL_NAME, "mbt.discovery.unit.default_folder_name");
 
         List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Collections.singletonList(condition), Collections.emptyList());
-        return entities.get(0);
+        return entities.stream().findFirst().orElse(null);
     }
 
     private List<Entity> retrieveChildFolders(EntitiesService entitiesService, long workspaceId, long parentFolderId) {
