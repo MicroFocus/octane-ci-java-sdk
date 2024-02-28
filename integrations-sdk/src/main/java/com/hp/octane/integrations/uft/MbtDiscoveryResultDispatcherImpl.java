@@ -46,10 +46,18 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
         Entity autoDiscoveredFolder = null;
         if (CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.NEW)) || CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.MODIFIED))) {
-            if (runnerId.isEmpty()) {
+            Long lRunnerId;
+
+            try {
+                lRunnerId = Long.parseLong(runnerId);
+            } catch (NumberFormatException nfe) {
+                lRunnerId = null;
+            }
+
+            if (lRunnerId == null) {
                 autoDiscoveredFolder = getGitMirrorFolder(entitiesService, workspaceId);
             } else {
-                autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, Long.parseLong(runnerId));
+                autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, lRunnerId);
             }
         }
 
