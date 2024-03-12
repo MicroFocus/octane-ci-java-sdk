@@ -14,6 +14,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.isUnitToRunnerRelationDefined;
+
 /**
  * @author Itay Karo on 26/08/2021
  */
@@ -31,6 +33,8 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
     private static final Entity OUTPUT_PARAMETER_TYPE = createListNodeEntity("list_node.entity_parameter_type.output");
 
+    private boolean bUnitToRunner;
+
     @Override
     public void dispatchDiscoveryResults(EntitiesService entitiesService, UftTestDiscoveryResult result, JobRunContext jobRunContext, CustomLogger customLogger) {
         List<UftTestAction> allActions = result.getAllTests().stream()
@@ -43,8 +47,9 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         String scmRepositoryId = result.getScmRepositoryId();
 
         Map<OctaneStatus, List<UftTestAction>> actionsByStatusMap = allActions.stream().collect(Collectors.groupingBy(UftTestAction::getOctaneStatus));
-
         Entity autoDiscoveredFolder = null;
+
+        bUnitToRunner = isUnitToRunnerRelationDefined(entitiesService, workspaceId);
         if (CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.NEW)) || CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.MODIFIED))) {
             Long lRunnerId;
 
@@ -54,7 +59,7 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                 lRunnerId = null;
             }
 
-            if (lRunnerId == null) {
+            if (!bUnitToRunner || lRunnerId == null) {
                 autoDiscoveredFolder = getGitMirrorFolder(entitiesService, workspaceId);
             } else {
                 autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, lRunnerId);
@@ -182,14 +187,22 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         if (!actions.isEmpty()) {
             logger.info("dispatching {} deleted units", actions.size());
             // convert actions to dtos
-            List<Entity> unitsToUpdate = actions.stream().map(action -> dtoFactory.newDTO(Entity.class)
-                            .setId(action.getId())
-                            .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, null)
-                            .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, NOT_AUTOMATED_AUTOMATION_STATUS)
-                            .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, null)
-                            .setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, null)
-                            .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, null)
-                    )
+            List<Entity> unitsToUpdate = actions.stream().map(action -> {
+
+                        Entity unitToUpdate = dtoFactory.newDTO(Entity.class)
+                                .setId(action.getId())
+                                .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, null)
+                                .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, NOT_AUTOMATED_AUTOMATION_STATUS);
+
+                        if (bUnitToRunner) {
+                            unitToUpdate.setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, null)
+                                    .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, null);
+                        } else {
+                            unitToUpdate.setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, null);
+                        }
+
+                        return unitToUpdate;
+                    })
                     .collect(Collectors.toList());
 
             // update units
@@ -209,13 +222,18 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
             // convert actions to dtos
             List<Entity> unitsToUpdate = actions.stream().map(action -> {
                         String unitName = SdkStringUtils.isEmpty(action.getLogicalName()) || action.getLogicalName().startsWith("Action") ? action.getTestName() + ":" + action.getName() : action.getLogicalName();
-                        return dtoFactory.newDTO(Entity.class)
+                        Entity unitToUpdate =  dtoFactory.newDTO(Entity.class)
                                 .setId(action.getId())
                                 .setField(EntityConstants.MbtUnit.NAME_FIELD, unitName)
                                 .setField(EntityConstants.MbtUnit.DESCRIPTION_FIELD, action.getDescription())
-                                .setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, scmRepository)
-                                .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, testRunner)
                                 .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath());
+
+                        if (bUnitToRunner) {
+                            unitToUpdate.setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, scmRepository)
+                                    .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, testRunner);
+                        }
+
+                        return unitToUpdate;
                     })
                     .collect(Collectors.toList());
 
@@ -280,10 +298,14 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
                 .setField(EntityConstants.MbtUnit.DESCRIPTION_FIELD, action.getDescription())
                 .setField(EntityConstants.MbtUnit.PARENT, parentFolder)
                 .setField(EntityConstants.MbtUnit.AUTOMATION_STATUS_FIELD, AUTOMATED_AUTOMATION_STATUS)
-                .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath())
-                .setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, scmRepository)
-                .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, testRunner)
-                .setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, TESTING_TOOL_TYPE);
+                .setField(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, action.getRepositoryPath());
+
+        if (bUnitToRunner) {
+            unitEntity.setField(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, scmRepository)
+                    .setField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD, testRunner);
+        } else {
+            unitEntity.setField(EntityConstants.MbtUnit.TESTING_TOOL_TYPE_FIELD, TESTING_TOOL_TYPE);
+        }
 
         if (CollectionUtils.isNotEmpty(action.getParameters())) {
             List<Entity> parameters = action.getParameters().stream().map(parameter -> createUnitParameterEntity(parameter, unitEntity)).collect(Collectors.toList());

@@ -41,6 +41,7 @@ public class EntityConstants {
         public static final String LOGICAL_NAME_FIELD = "logical_name";
         public static final String DESCRIPTION_FIELD = "description";
         public static final String TYPE_FIELD_NAME = "type";
+        public static final String ENTITY_NAME_FIELD = "entity_name";
     }
 
     public static class Test extends Base {
