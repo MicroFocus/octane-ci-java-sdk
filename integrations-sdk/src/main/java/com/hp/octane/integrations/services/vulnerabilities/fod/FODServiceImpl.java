@@ -147,7 +147,7 @@ public class FODServiceImpl implements FODService {
                 return new PplnRunStatus(false, true);
             }
         }
-        if (getFailedTries(queueItem) > 10) {
+        if (getFailedTries(queueItem) > 100) {
             logger.error(
                     "scan Id was not found, validate that the release in the pipeline configuration is the same as the release in the Jenkins job.");
             return new PplnRunStatus(false, false);

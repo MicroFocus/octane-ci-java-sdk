@@ -34,17 +34,23 @@ package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 public class SecurityTool {
 
     private String toolUrl;
+    private String toolUrlApi;
     private String apiKey;
     private String secret;
 
-    public SecurityTool(String toolUrl, String apiKey, String secret) {
+    public SecurityTool(String toolUrl,String toolUrlApi, String apiKey, String secret) {
         this.toolUrl = toolUrl;
+        this.toolUrlApi = toolUrlApi;
         this.apiKey = apiKey;
         this.secret = secret;
     }
 
     public String getToolUrl() {
         return toolUrl;
+    }
+
+    public String getToolUrlApi() {
+        return toolUrlApi;
     }
 
     public String getApiKey() {

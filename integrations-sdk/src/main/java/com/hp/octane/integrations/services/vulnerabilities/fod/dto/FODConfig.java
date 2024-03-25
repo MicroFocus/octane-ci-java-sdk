@@ -36,18 +36,23 @@ package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 public abstract class FODConfig {
 
     public final String authURL;
+    public final String authURLApi;
     public final String entitiesURL;
     public abstract String getAuthBody();
 
-    protected FODConfig(String baseURL){
+    protected FODConfig(String baseURL, String authURLApi){
+        String normalizeURLApi = authURLApi;
+        if(!normalizeURLApi.endsWith("/")){
+            normalizeURLApi = normalizeURLApi + "/";
+        }
+        this.authURLApi = normalizeURLApi + "oauth/token";
 
         String normanlizedURL = baseURL;
         if(!normanlizedURL.endsWith("/")){
             normanlizedURL = normanlizedURL + "/";
         }
         this.authURL = normanlizedURL + "oauth/token";
-        this.entitiesURL = normanlizedURL + "api/v3";
-
+        this.entitiesURL = normalizeURLApi + "api/v3";
     }
 
 
@@ -57,11 +62,11 @@ public abstract class FODConfig {
         String password;
         String tenant;
 
-        static final String authPWDBodyFormat ="grant_type=password&scope=https://hpfod.com/tenant&username=%s\\%s&password=%s";
+        static final String authPWDBodyFormat ="grant_type=client_credentials&scope=api-tenant&client_id=%s&client_secret=%s";
 
-        public PasswordFODConfig(String baseUrl, String username, String password,String tenant) {
+        public PasswordFODConfig(String baseUrl, String authURLApi, String username, String password,String tenant) {
 
-            super(baseUrl);
+            super(baseUrl, authURLApi);
             this.password = password;
             this.username = username;
             this.tenant = tenant;
@@ -74,12 +79,12 @@ public abstract class FODConfig {
 
     public static class CredentialsFODConfig extends FODConfig{
 
-        static final String authBodyFormat ="grant_type=client_credentials&scope=https://hpfod.com/tenant&client_id=%s&client_secret=%s";
+        static final String authBodyFormat ="grant_type=client_credentials&scope=api-tenant&client_id=%s&client_secret=%s";
         String client_id;
         String secret;
-        public CredentialsFODConfig(String baseUrl, String clientID, String secret){
+        public CredentialsFODConfig(String baseUrl,String authURLApi, String clientID, String secret){
 
-            super(baseUrl);
+            super(baseUrl, authURLApi);
             this.client_id = clientID;
             this.secret = secret;
         }
