@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.isNewRunner;
 import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.isUnitToRunnerRelationDefined;
 
 /**
@@ -32,14 +33,14 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         String conditionRepositoryPathNotEmpty = QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
         List<Entity> unitsFromServer;
 
-        bUnitToRunner = isUnitToRunnerRelationDefined(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()));
+        bUnitToRunner = isUnitToRunnerRelationDefined(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId())) &&
+                isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), Long.parseLong(discoveryResult.getTestRunnerId()));
         if (bUnitToRunner) {
             String conditionHasScmRepository = QueryHelper.conditionRef(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, Long.parseLong(discoveryResult.getScmRepositoryId()));
             unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), conditionRepositoryPathNotEmpty, conditionHasScmRepository);
         } else {
             unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), conditionRepositoryPathNotEmpty);
         }
-
 
         Map<String, Entity> octaneUnitsMap = unitsFromServer.stream()
                 .collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(),
