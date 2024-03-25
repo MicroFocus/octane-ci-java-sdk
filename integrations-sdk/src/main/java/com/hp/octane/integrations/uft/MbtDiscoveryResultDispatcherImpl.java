@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.isUnitToRunnerRelationDefined;
+import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.*;
 
 /**
  * @author Itay Karo on 26/08/2021
@@ -48,18 +48,17 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
 
         Map<OctaneStatus, List<UftTestAction>> actionsByStatusMap = allActions.stream().collect(Collectors.groupingBy(UftTestAction::getOctaneStatus));
         Entity autoDiscoveredFolder = null;
+        Long lRunnerId;
 
-        bUnitToRunner = isUnitToRunnerRelationDefined(entitiesService, workspaceId);
+        try {
+            lRunnerId = Long.parseLong(runnerId);
+        } catch (NumberFormatException nfe) {
+            lRunnerId = null;
+        }
+
+        bUnitToRunner = lRunnerId != null && isUnitToRunnerRelationDefined(entitiesService, workspaceId) && isNewRunner(entitiesService, workspaceId, lRunnerId);
         if (CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.NEW)) || CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.MODIFIED))) {
-            Long lRunnerId;
-
-            try {
-                lRunnerId = Long.parseLong(runnerId);
-            } catch (NumberFormatException nfe) {
-                lRunnerId = null;
-            }
-
-            if (!bUnitToRunner || lRunnerId == null) {
+            if (!bUnitToRunner) {
                 autoDiscoveredFolder = getGitMirrorFolder(entitiesService, workspaceId);
             } else {
                 autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, lRunnerId);
@@ -253,14 +252,6 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         }
 
         return autoDiscoveredFolder;
-    }
-
-    private Entity getRunnerDedicatedFolder(EntitiesService entitiesService, long workspaceId, long executorId) {
-        String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.TEST_RUNNER_FIELD, executorId);
-        String condition2 = QueryHelper.condition(EntityConstants.ModelFolder.SUBTYPE_FIELD, EntityConstants.ModelFolder.ENTITY_SUBTYPE);
-
-        List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Arrays.asList(condition1, condition2), Collections.emptyList());
-        return entities.stream().findFirst().orElse(null);
     }
 
     private Entity getGitMirrorFolder(EntitiesService entitiesService, long workspaceId) {

@@ -32,4 +32,18 @@ public class MbtDiscoveryResultHelper {
         List<Entity> entities = entitiesService.getEntities(workspaceId, "metadata/fields", Arrays.asList(condition1, condition2), Collections.emptyList());
         return !entities.isEmpty();
     }
+
+    public static boolean isNewRunner(EntitiesService entitiesService, Long workspaceId, long executorId) {
+        return getRunnerDedicatedFolder(entitiesService, workspaceId, executorId) != null;
+    }
+
+    public static Entity getRunnerDedicatedFolder(EntitiesService entitiesService, long workspaceId, long executorId) {
+        String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.TEST_RUNNER_FIELD, executorId);
+        String condition2 = QueryHelper.condition(EntityConstants.ModelFolder.SUBTYPE_FIELD, EntityConstants.ModelFolder.ENTITY_SUBTYPE);
+
+        List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Arrays.asList(condition1, condition2), Collections.emptyList());
+        return entities.stream().findFirst().orElse(null);
+    }
+
+
 }
