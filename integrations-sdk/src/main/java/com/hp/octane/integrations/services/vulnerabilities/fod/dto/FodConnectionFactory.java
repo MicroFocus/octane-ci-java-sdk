@@ -75,6 +75,7 @@ public class FodConnectionFactory {
         FodServerConfiguration fodProjectConfiguration =
                 configurer.pluginServices.getFodServerConfiguration();
         return new SecurityTool(fodProjectConfiguration.getBaseUrl(),
+                fodProjectConfiguration.getApiUrl(),
                 fodProjectConfiguration.getClientId(),
                 fodProjectConfiguration.getClientSecret());
     }
@@ -86,6 +87,7 @@ public class FodConnectionFactory {
             return new FodMockSource();
         }else {
             FODConnector instance = new FODConnector(new FODConfig.CredentialsFODConfig(securityToolEntity.getToolUrl(),
+                    securityToolEntity.getToolUrlApi(),
                     securityToolEntity.getApiKey(),
                     securityToolEntity.getSecret()));
             instance.initConnection(configurer);

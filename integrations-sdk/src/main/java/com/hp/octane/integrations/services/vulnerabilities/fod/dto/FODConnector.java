@@ -215,7 +215,7 @@ public class FODConnector implements FODSource {
 
 	private void getAccessToken() {
 
-		HttpPost post = new HttpPost(fodConfig.authURL);
+		HttpPost post = new HttpPost(fodConfig.authURLApi);
 		HttpEntity content = new StringEntity(fodConfig.getAuthBody(), ContentType.APPLICATION_FORM_URLENCODED);
 
 		post.setEntity(content);
