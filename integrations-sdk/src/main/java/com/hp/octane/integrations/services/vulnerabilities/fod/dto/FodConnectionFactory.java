@@ -74,18 +74,18 @@ public class FodConnectionFactory {
     public static SecurityTool getFODSecTool() {
         FodServerConfiguration fodProjectConfiguration =
                 configurer.pluginServices.getFodServerConfiguration();
-        return new SecurityTool(fodProjectConfiguration.getBaseUrl(),
+        return new SecurityTool(fodProjectConfiguration.getApiUrl(),
                 fodProjectConfiguration.getClientId(),
                 fodProjectConfiguration.getClientSecret());
     }
 
     private static FODSource createFodConnector(SecurityTool securityToolEntity) {
 
-        if(securityToolEntity.getToolUrl().contains("MockURL")){
+        if(securityToolEntity.getToolUrlApi().contains("MockURL")){
             //TODO:
             return new FodMockSource();
         }else {
-            FODConnector instance = new FODConnector(new FODConfig.CredentialsFODConfig(securityToolEntity.getToolUrl(),
+            FODConnector instance = new FODConnector(new FODConfig.CredentialsFODConfig(securityToolEntity.getToolUrlApi(),
                     securityToolEntity.getApiKey(),
                     securityToolEntity.getSecret()));
             instance.initConnection(configurer);
