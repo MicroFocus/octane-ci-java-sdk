@@ -81,7 +81,7 @@ public class FODConnector implements FODSource {
 	public void initConnection(OctaneSDK.SDKServicesConfigurer configurer) {
 		logger.debug("init FOD connector");
 		try {
-			CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(new URL(this.fodConfig.authURL));
+			CIProxyConfiguration proxyConfiguration = configurer.pluginServices.getProxyConfiguration(new URL(this.fodConfig.authURLApi));
 			if (proxyConfiguration != null) {
 				logger.warn("FOD connection needs proxy");
 				HttpClientBuilder clientBuilder = HttpClients.custom();
@@ -215,7 +215,7 @@ public class FODConnector implements FODSource {
 
 	private void getAccessToken() {
 
-		HttpPost post = new HttpPost(fodConfig.authURL);
+		HttpPost post = new HttpPost(fodConfig.authURLApi);
 		HttpEntity content = new StringEntity(fodConfig.getAuthBody(), ContentType.APPLICATION_FORM_URLENCODED);
 
 		post.setEntity(content);

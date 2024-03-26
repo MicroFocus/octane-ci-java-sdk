@@ -33,18 +33,18 @@ package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 
 public class SecurityTool {
 
-    private String toolUrl;
+    private String toolUrlApi;
     private String apiKey;
     private String secret;
 
-    public SecurityTool(String toolUrl, String apiKey, String secret) {
-        this.toolUrl = toolUrl;
+    public SecurityTool(String toolUrlApi, String apiKey, String secret) {
+        this.toolUrlApi = toolUrlApi;
         this.apiKey = apiKey;
         this.secret = secret;
     }
 
-    public String getToolUrl() {
-        return toolUrl;
+    public String getToolUrlApi() {
+        return toolUrlApi;
     }
 
     public String getApiKey() {
@@ -64,7 +64,7 @@ public class SecurityTool {
         SecurityTool securityTool = (SecurityTool) obj;
         return genericEquals(apiKey, securityTool.apiKey) &&
                 genericEquals(secret, securityTool.secret) &&
-                genericEquals(toolUrl, securityTool.toolUrl);
+                genericEquals(toolUrlApi, securityTool.toolUrlApi);
     }
     @Override
     public int hashCode(){
