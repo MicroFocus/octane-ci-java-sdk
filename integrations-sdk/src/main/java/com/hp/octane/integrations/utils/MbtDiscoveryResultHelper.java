@@ -33,12 +33,12 @@ public class MbtDiscoveryResultHelper {
         return !entities.isEmpty();
     }
 
-    public static boolean isNewRunner(EntitiesService entitiesService, Long workspaceId, long executorId) {
-        return getRunnerDedicatedFolder(entitiesService, workspaceId, executorId) != null;
+    public static boolean isNewRunner(EntitiesService entitiesService, Long workspaceId, String runnerId) {
+        return getRunnerDedicatedFolder(entitiesService, workspaceId, runnerId) != null;
     }
 
-    public static Entity getRunnerDedicatedFolder(EntitiesService entitiesService, long workspaceId, long executorId) {
-        String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.TEST_RUNNER_FIELD, executorId);
+    public static Entity getRunnerDedicatedFolder(EntitiesService entitiesService, long workspaceId, String runnerId) {
+        String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.TEST_RUNNER_FIELD, Long.parseLong(runnerId));
         String condition2 = QueryHelper.condition(EntityConstants.ModelFolder.SUBTYPE_FIELD, EntityConstants.ModelFolder.ENTITY_SUBTYPE);
 
         List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Arrays.asList(condition1, condition2), Collections.emptyList());

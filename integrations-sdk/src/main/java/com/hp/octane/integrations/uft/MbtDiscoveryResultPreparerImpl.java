@@ -26,20 +26,19 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
 
     private static final Logger logger = LogManager.getLogger(MbtDiscoveryResultPreparerImpl.class);
 
-    private boolean bUnitToRunner;
-
     @Override
     public void prepareDiscoveryResultForDispatchInFullSyncMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
         String conditionRepositoryPathNotEmpty = QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
         List<Entity> unitsFromServer;
 
-        bUnitToRunner = isUnitToRunnerRelationDefined(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId())) &&
-                isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), Long.parseLong(discoveryResult.getTestRunnerId()));
-        if (bUnitToRunner) {
+        boolean unitToRunnerEnabled = isUnitToRunnerRelationDefined(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId())) &&
+                isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
+
+        if (unitToRunnerEnabled) {
             String conditionHasScmRepository = QueryHelper.conditionRef(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, Long.parseLong(discoveryResult.getScmRepositoryId()));
-            unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), conditionRepositoryPathNotEmpty, conditionHasScmRepository);
+            unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), unitToRunnerEnabled, conditionRepositoryPathNotEmpty, conditionHasScmRepository);
         } else {
-            unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), conditionRepositoryPathNotEmpty);
+            unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), unitToRunnerEnabled, conditionRepositoryPathNotEmpty);
         }
 
         Map<String, Entity> octaneUnitsMap = unitsFromServer.stream()
@@ -47,44 +46,48 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                         action -> action,
                         (action1, action2) -> action1)); // remove duplicates TODO (Itay)- remove when repository path uniqueness validation will be added in octane
 
-        removeExistingUnits(discoveryResult, octaneUnitsMap);
+        removeExistingUnits(discoveryResult, octaneUnitsMap, unitToRunnerEnabled);
     }
 
     @Override
     public void prepareDiscoveryResultForDispatchInScmChangesMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+
+        boolean unitToRunnerEnabled = isUnitToRunnerRelationDefined(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId())) &&
+                isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
+
         // prepare moved tests
         prepareMovedTests(discoveryResult);
 
         // handle deleted tests
-        handleDeletedTests(entitiesService, discoveryResult);
+        handleDeletedTests(entitiesService, discoveryResult, unitToRunnerEnabled);
 
         // handle added tests
-        handleAddedTests(entitiesService, discoveryResult);
+        handleAddedTests(entitiesService, discoveryResult, unitToRunnerEnabled);
 
         // handle updated tests
-        handleUpdatedTests(entitiesService, discoveryResult);
+        handleUpdatedTests(entitiesService, discoveryResult, unitToRunnerEnabled);
 
         // handle moved tests
-        handleMovedTests(entitiesService, discoveryResult);
+        handleMovedTests(entitiesService, discoveryResult, unitToRunnerEnabled);
 
     }
 
-    private List<Entity> getUnitsFromServer(EntitiesService entitiesService, String workspaceId, String... conditions) {
+    private List<Entity> getUnitsFromServer(EntitiesService entitiesService, String workspaceId, boolean unitToRunnerEnabled, String... conditions) {
         List<String> fields = new ArrayList<>(Arrays.asList(EntityConstants.MbtUnit.ID_FIELD, EntityConstants.MbtUnit.NAME_FIELD,
                 EntityConstants.MbtUnit.DESCRIPTION_FIELD, EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
-        if (bUnitToRunner) {
+        if (unitToRunnerEnabled) {
             fields.add(EntityConstants.MbtUnit.TEST_RUNNER_FIELD);
         }
 
         return entitiesService.getEntities(Long.parseLong(workspaceId), EntityConstants.MbtUnit.COLLECTION_NAME, Arrays.asList(conditions), fields);
     }
 
-    private void removeExistingUnits(UftTestDiscoveryResult discoveryResult, Map<String, Entity> octaneUnitsMap) {
+    private void removeExistingUnits(UftTestDiscoveryResult discoveryResult, Map<String, Entity> octaneUnitsMap, boolean unitToRunnerEnabled) {
         discoveryResult.getAllTests().forEach(automatedTest -> {
             automatedTest.getActions().forEach(action -> {
                 Entity octaneUnit = octaneUnitsMap.get(action.getRepositoryPath().toLowerCase());
                 if (Objects.nonNull(octaneUnit)) {
-                    if (bUnitToRunner && octaneUnit.getField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD) == null) {
+                    if (unitToRunnerEnabled && octaneUnit.getField(EntityConstants.MbtUnit.TEST_RUNNER_FIELD) == null) {
                         action.setOctaneStatus(OctaneStatus.MODIFIED);
                         action.setId(octaneUnit.getId());
                     } else {
@@ -124,7 +127,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
     }
 
     // for deleted tests, we will not delete the relevant units. instead, we will reset some of their attributes
-    private void handleDeletedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+    private void handleDeletedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult, boolean unitToRunnerEnabled) {
         List<AutomatedTest> deletedTests = discoveryResult.getDeletedTests();
 
         if (CollectionUtils.isEmpty(deletedTests)) {
@@ -138,7 +141,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                 .map(test -> getActionPathPrefixCondition(test, false))
                 .toArray(String[]::new));
 
-        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
+        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), unitToRunnerEnabled, condition);
 
         // since the test was already deleted from the scm, the automated test will not contain any uft actions. so, we
         // need to map each unit from octane to the automated test and create a marker uft action with only the unit id
@@ -165,7 +168,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         return QueryHelper.conditionStartWith(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, actionPathPrefix);
     }
 
-    private void handleAddedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+    private void handleAddedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult, boolean unitToRunnerEnabled) {
         List<AutomatedTest> newTests = discoveryResult.getNewTests();
 
         if (CollectionUtils.isEmpty(newTests)) {
@@ -182,17 +185,17 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                 .collect(Collectors.toSet());
 
         String condition = QueryHelper.conditionIn(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD, newActionsRepositoryPaths, false);
-        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
+        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), unitToRunnerEnabled, condition);
 
         Map<String, Entity> octaneUnitsMap = unitsFromServer.stream()
                 .collect(Collectors.toMap(entity -> entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD).toLowerCase(),
                         action -> action,
                         (action1, action2) -> action1)); // remove duplicates TODO (Itay)- remove when repository path uniqueness validation will be added in octane
 
-        removeExistingUnits(discoveryResult, octaneUnitsMap);
+        removeExistingUnits(discoveryResult, octaneUnitsMap, unitToRunnerEnabled);
     }
 
-    private void handleUpdatedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+    private void handleUpdatedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult, boolean unitToRunnerEnabled) {
         List<AutomatedTest> updatedTests = discoveryResult.getUpdatedTests().stream()
                 .filter(automatedTest -> !automatedTest.getIsMoved())
                 .collect(Collectors.toList());
@@ -219,7 +222,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                 .map(test -> getActionPathPrefixCondition(test, false))
                 .toArray(String[]::new));
 
-        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
+        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), unitToRunnerEnabled, condition);
         Map<String, Entity> scmPathToEntityMap = unitsFromServer.stream()
                 .collect(Collectors.toMap(entity -> extractScmPathFromActionPath(entity.getStringValue(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD)),
                         action -> action,
@@ -238,7 +241,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
 
     }
 
-    private void handleMovedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
+    private void handleMovedTests(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult, boolean unitToRunnerEnabled) {
         List<AutomatedTest> movedTests = discoveryResult.getUpdatedTests().stream()
                 .filter(AutomatedTest::getIsMoved)
                 .collect(Collectors.toList());
@@ -252,7 +255,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                 .map(test -> getActionPathPrefixCondition(test, true))
                 .toArray(String[]::new));
 
-        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), condition);
+        List<Entity> unitsFromServer = getUnitsFromServer(entitiesService, discoveryResult.getWorkspaceId(), unitToRunnerEnabled, condition);
 
         // now, we need to match between the original units and the automated test by the original action path prefix.
         // then, we will store a mapping between what the new action path should be and the unit id and update each unit
