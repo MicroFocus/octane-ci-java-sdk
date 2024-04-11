@@ -47,7 +47,7 @@ public class MbtDiscoveryResultDispatcherImpl extends DiscoveryResultDispatcher 
         Map<OctaneStatus, List<UftTestAction>> actionsByStatusMap = allActions.stream().collect(Collectors.groupingBy(UftTestAction::getOctaneStatus));
         Entity autoDiscoveredFolder = null;
 
-        boolean unitToRunnerEnabled = SdkStringUtils.isNotEmpty(runnerId) && isNewRunner(entitiesService, workspaceId, runnerId);
+        boolean unitToRunnerEnabled = newRunnerEnabled(entitiesService, workspaceId, runnerId);
         if (CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.NEW)) || CollectionUtils.isNotEmpty(actionsByStatusMap.get(OctaneStatus.MODIFIED))) {
             if (unitToRunnerEnabled) {
                 autoDiscoveredFolder = retrieveParentFolder(entitiesService, workspaceId, runnerId);

@@ -25,7 +25,7 @@ public class MbtDiscoveryResultHelper {
      * @param workspaceId - the current WS in Octane
      * @return - if required field properties are exists
      */
-    private static boolean isUnitToRunnerRelationDefined(EntitiesService entitiesService, Long workspaceId) {
+    private static boolean unitToRunnerRelationDefined(EntitiesService entitiesService, Long workspaceId) {
         String condition1 = QueryHelper.condition(EntityConstants.Base.ENTITY_NAME_FIELD, EntityConstants.ModelFolder.ENTITY_NAME);
         String condition2 = QueryHelper.condition(EntityConstants.Base.NAME_FIELD, EntityConstants.ModelFolder.TEST_RUNNER_FIELD);
 
@@ -33,8 +33,8 @@ public class MbtDiscoveryResultHelper {
         return !entities.isEmpty();
     }
 
-    public static boolean isNewRunner(EntitiesService entitiesService, Long workspaceId, String runnerId) {
-        if (isUnitToRunnerRelationDefined(entitiesService, workspaceId)) {
+    public static boolean newRunnerEnabled(EntitiesService entitiesService, Long workspaceId, String runnerId) {
+        if (SdkStringUtils.isNotEmpty(runnerId) && unitToRunnerRelationDefined(entitiesService, workspaceId)) {
             return getRunnerDedicatedFolder(entitiesService, workspaceId, runnerId) != null;
         } else {
             return false;

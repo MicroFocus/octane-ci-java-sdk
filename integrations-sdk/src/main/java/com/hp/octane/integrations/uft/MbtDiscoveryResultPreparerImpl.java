@@ -16,7 +16,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.isNewRunner;
+import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.newRunnerEnabled;
+
 
 /**
  * @author Itay Karo on 26/08/2021
@@ -30,8 +31,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         String conditionRepositoryPathNotEmpty = QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
         List<Entity> unitsFromServer;
 
-        boolean unitToRunnerEnabled = SdkStringUtils.isNotEmpty(discoveryResult.getTestRunnerId()) &&
-                isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
+        boolean unitToRunnerEnabled = newRunnerEnabled(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
 
         if (unitToRunnerEnabled) {
             String conditionHasScmRepository = QueryHelper.conditionRef(EntityConstants.MbtUnit.SCM_REPOSITORY_FIELD, Long.parseLong(discoveryResult.getScmRepositoryId()));
@@ -51,8 +51,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
     @Override
     public void prepareDiscoveryResultForDispatchInScmChangesMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
 
-        boolean unitToRunnerEnabled = SdkStringUtils.isNotEmpty(discoveryResult.getTestRunnerId()) &&
-                isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
+        boolean unitToRunnerEnabled = newRunnerEnabled(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
 
         // prepare moved tests
         prepareMovedTests(discoveryResult);
