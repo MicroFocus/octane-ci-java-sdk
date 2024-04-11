@@ -17,7 +17,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.isNewRunner;
-import static com.hp.octane.integrations.utils.MbtDiscoveryResultHelper.isUnitToRunnerRelationDefined;
 
 /**
  * @author Itay Karo on 26/08/2021
@@ -31,7 +30,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
         String conditionRepositoryPathNotEmpty = QueryHelper.conditionNot(QueryHelper.conditionEmpty(EntityConstants.MbtUnit.REPOSITORY_PATH_FIELD));
         List<Entity> unitsFromServer;
 
-        boolean unitToRunnerEnabled = isUnitToRunnerRelationDefined(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId())) &&
+        boolean unitToRunnerEnabled = SdkStringUtils.isNotEmpty(discoveryResult.getTestRunnerId()) &&
                 isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
 
         if (unitToRunnerEnabled) {
@@ -52,7 +51,7 @@ public class MbtDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
     @Override
     public void prepareDiscoveryResultForDispatchInScmChangesMode(EntitiesService entitiesService, UftTestDiscoveryResult discoveryResult) {
 
-        boolean unitToRunnerEnabled = isUnitToRunnerRelationDefined(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId())) &&
+        boolean unitToRunnerEnabled = SdkStringUtils.isNotEmpty(discoveryResult.getTestRunnerId()) &&
                 isNewRunner(entitiesService, Long.parseLong(discoveryResult.getWorkspaceId()), discoveryResult.getTestRunnerId());
 
         // prepare moved tests
