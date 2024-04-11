@@ -25,11 +25,29 @@ public class MbtDiscoveryResultHelper {
      * @param workspaceId - the current WS in Octane
      * @return - if required field properties are exists
      */
-    public static boolean isUnitToRunnerRelationDefined(EntitiesService entitiesService, Long workspaceId) {
+    private static boolean unitToRunnerRelationDefined(EntitiesService entitiesService, Long workspaceId) {
         String condition1 = QueryHelper.condition(EntityConstants.Base.ENTITY_NAME_FIELD, EntityConstants.ModelFolder.ENTITY_NAME);
         String condition2 = QueryHelper.condition(EntityConstants.Base.NAME_FIELD, EntityConstants.ModelFolder.TEST_RUNNER_FIELD);
 
         List<Entity> entities = entitiesService.getEntities(workspaceId, "metadata/fields", Arrays.asList(condition1, condition2), Collections.emptyList());
         return !entities.isEmpty();
     }
+
+    public static boolean newRunnerEnabled(EntitiesService entitiesService, Long workspaceId, String runnerId) {
+        if (SdkStringUtils.isNotEmpty(runnerId) && unitToRunnerRelationDefined(entitiesService, workspaceId)) {
+            return getRunnerDedicatedFolder(entitiesService, workspaceId, runnerId) != null;
+        } else {
+            return false;
+        }
+    }
+
+    public static Entity getRunnerDedicatedFolder(EntitiesService entitiesService, long workspaceId, String runnerId) {
+        String condition1 = QueryHelper.conditionRef(EntityConstants.ModelFolder.TEST_RUNNER_FIELD, Long.parseLong(runnerId));
+        String condition2 = QueryHelper.condition(EntityConstants.ModelFolder.SUBTYPE_FIELD, EntityConstants.ModelFolder.ENTITY_SUBTYPE);
+
+        List<Entity> entities = entitiesService.getEntities(workspaceId, EntityConstants.ModelFolder.COLLECTION_NAME, Arrays.asList(condition1, condition2), Collections.emptyList());
+        return entities.stream().findFirst().orElse(null);
+    }
+
+
 }
