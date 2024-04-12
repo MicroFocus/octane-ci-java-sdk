@@ -140,7 +140,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -150,7 +150,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -160,7 +160,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverage
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2) {
 					//  TODO: add deeper verification
 					return true;
@@ -195,7 +195,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			simulatePushCoverageAllClients();
 
 			//  validate events
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3 &&
 						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					//  client A
@@ -226,7 +226,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1 &&
 						testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
 					//  TODO: add deeper verification
@@ -237,7 +237,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1 &&
 						logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
 					//  TODO: add deeper verification
@@ -248,7 +248,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverages
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2 &&
 						coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
 					//  TODO: add deeper verification
@@ -278,7 +278,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			simulatePushCoverageAllClients();
 
 			//  validate events
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
 					eventsCollectors.get(spIdB).forEach(cil -> {
@@ -297,7 +297,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
 					Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
@@ -308,7 +308,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
 					Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
@@ -319,7 +319,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverages
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
 					Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
@@ -456,7 +456,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate tests
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdA) && testResultsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -466,7 +466,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate logs
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdA) && logsCollectors.get(spIdA).size() == 1) {
 					//  TODO: add deeper verification
 					return true;
@@ -476,7 +476,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			});
 
 			//  validate coverage
-			GeneralTestUtils.waitAtMostFor(20000, () -> {
+			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdA) && coverageCollectors.get(spIdA).size() == 2) {
 					//  TODO: add deeper verification
 					return true;
