@@ -64,6 +64,7 @@ public class SSCHandler {
         logger.debug("enter isScanProcessFinished");
 
         Artifacts artifacts = sscProjectConnector.getArtifactsOfProjectVersion(this.projectVersion.id, 10);
+        logger.debug("artifacts: " + artifacts.toString());
         Artifacts.Artifact closestArtifact = getClosestArtifact(artifacts);
         if (closestArtifact == null) {
             logger.debug("Cannot find artifact of the run");
@@ -83,14 +84,30 @@ public class SSCHandler {
 
     private Artifacts.Artifact getClosestArtifact(Artifacts artifacts) {
         Artifacts.Artifact theCloset = null;
-        if (artifacts == null ||
-                artifacts.getData() == null) {
+        if (artifacts == null){
+            logger.debug("getClosestArtifact artifacts is null");
+            return null;
+
+        }
+        if(artifacts.getData() == null) {
+            logger.debug("getClosestArtifact artifacts.getData() is null");
             return null;
         }
         Date startRunDate = new Date(this.runStartTime);
-
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(startRunDate);
+        cal.set(Calendar.SECOND, 0);
+        cal.add(Calendar.MINUTE, -1);
+        startRunDate = cal.getTime();
+        logger.debug("startRunDate:  " + startRunDate.toString());
         for (Artifacts.Artifact artifact : artifacts.getData()) {
             Date uploadDate = DateUtils.getDateFromUTCString(artifact.uploadDate, DateUtils.sscFormat);
+            if (uploadDate == null){
+                logger.debug(" uploadDate is null");
+            }else{
+                logger.debug(" uploadDate: " + uploadDate.toString());
+            }
+
             if (uploadDate != null && uploadDate.after(startRunDate)) {
                 theCloset = artifact;
             }
@@ -130,9 +147,11 @@ public class SSCHandler {
 
     public Optional<Issues> getIssuesIfScanCompleted() {
         if (!isScanProcessFinished()) {
+            logger.debug("getIssuesIfScanCompleted - isScanProcessFinished = false ");
             return Optional.empty();
         }
         Issues issues = sscProjectConnector.readIssues(projectVersion.id);
+        logger.debug("issues.count: "+ String.valueOf(issues.getCount()));
         return Optional.of(issues);
     }
 

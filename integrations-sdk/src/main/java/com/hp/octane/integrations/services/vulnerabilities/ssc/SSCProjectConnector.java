@@ -164,8 +164,12 @@ public class SSCProjectConnector {
 
 
     public Artifacts getArtifactsOfProjectVersion(Integer id, int limit) {
+        logger.debug("getArtifactsOfProjectVersion-id: " + String.valueOf(id)+ " getArtifactsOfProjectVersion-limit: " + String.valueOf(limit));
         String urlSuffix = getArtifactsURL(id, limit);
+        logger.debug("urlSuffix: " + urlSuffix);
         String rawResponse = sendGetEntity(urlSuffix);
+        logger.debug("rawResponse: " + rawResponse);
+
         return stringToObject(rawResponse, Artifacts.class);
     }
 
