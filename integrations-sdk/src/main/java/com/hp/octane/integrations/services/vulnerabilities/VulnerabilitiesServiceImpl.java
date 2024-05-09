@@ -185,7 +185,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 			VulnerabilitiesQueueItem queueItem = null;
 			try {
+				logger.debug("before vulnerabilitiesQueue.peek");
 				queueItem = vulnerabilitiesQueue.peek();
+				logger.debug("after vulnerabilitiesQueue.peek, queueItem: "+ queueItem.toString());
 				if (processPushVulnerabilitiesQueueItem(queueItem)) {
 					vulnerabilitiesQueueItemCleanUp(queueItem);
 					vulnerabilitiesQueue.remove();
@@ -217,8 +219,9 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 		try {
 			//  if this is the first time in the queue , check if vulnerabilities relevant to octane, and if not remove it from the queue.
 			if (!queueItem.isRelevant()) {
-
+				logger.debug("before vulnerabilitiesPreflightRequest");
 				Date relevant =  vulnerabilitiesPreflightRequest(queueItem.getJobId(), queueItem.getBuildId());
+				logger.debug("after vulnerabilitiesPreflightRequest");
 				if (relevant != null) {
 					logger.debug(configurer.octaneConfiguration.getLocationForLog() + queueItem.toString() + " , Relevant:" + relevant);
 					//  set queue item value relevancy to true and continue
@@ -228,16 +231,21 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 						queueItem.setBaselineDate(relevant);
 					}
 				} else {
+					logger.debug("before return with true to silently proceed to the next item");
+
 					//  return with true to silently proceed to the next item
 					return true;
 				}
 			}
+			logger.debug("before getVulnerabilitiesScanResultStream, queueItem.getJobId() : " + String.valueOf(queueItem.getJobId()) + " queueItem.getBuildId: " + String.valueOf(queueItem.getBuildId()));
 
 			InputStream vulnerabilitiesStream = getToolService(queueItem).getVulnerabilitiesScanResultStream(queueItem);
 
 			if (vulnerabilitiesStream == null) {
+				logger.debug("vulnerabilitiesStream is null queueItem.getJobId() :" + String.valueOf(queueItem.getJobId()) + " queueItem.getBuildId: " + String.valueOf(queueItem.getBuildId()));
 				return false;
 			} else {
+				logger.debug("before pushVulnerabilities, queueItem.getJobId() : " + String.valueOf(queueItem.getJobId()) + " queueItem.getBuildId: " + String.valueOf(queueItem.getBuildId()));
 				pushVulnerabilities(vulnerabilitiesStream, queueItem.getJobId(), queueItem.getBuildId());
 				return true;
 			}
@@ -266,7 +274,7 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 
 		String url = getVulnerabilitiesContextPath(configurer.octaneConfiguration.getUrl(), configurer.octaneConfiguration.getSharedSpace()) +
 				"?instance-id=" + configurer.octaneConfiguration.getInstanceId() + "&job-ci-id=" + encodedJobId + "&build-ci-id=" + encodedBuildId;
-
+		logger.debug("URL: "+ url);
 		if (base64) {
 			url = CIPluginSDKUtils.addParameterEncode64ToUrl(url);
 		}
@@ -277,6 +285,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 				.setHeaders(headers)
 				.setBody(vulnerabilities);
 
+		logger.debug("headers: " + headers);
+		logger.debug("vulnerabilities: request.getBody " + request.getBody());
 		OctaneResponse response = octaneRestClient.execute(request);
 		logger.info(configurer.octaneConfiguration.getLocationForLog() + "vulnerabilities pushed; status: " + response.getStatus() + ", response: " + response.getBody());
 		if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
