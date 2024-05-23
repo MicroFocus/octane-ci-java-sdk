@@ -44,7 +44,8 @@ public enum SCMType {
 	SVN("svn", 1),
 	STARTEAM("starteam", 3),
 	ACCUREV("accurev", 4),
-	DIMENSIONS_CM("dimensions_cm", 5);
+	DIMENSIONS_CM("dimensions_cm", 5),
+	EXTERNAL_STORAGE("external_storage", 6);
 
 	private String value;
 	private int octaneId;
