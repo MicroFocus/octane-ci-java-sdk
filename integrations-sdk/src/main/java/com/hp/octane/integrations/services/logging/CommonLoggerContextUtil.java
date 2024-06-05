@@ -18,6 +18,9 @@ public class CommonLoggerContextUtil {
         if (allowedStorage != null && (allowedStorage.isDirectory() || !allowedStorage.exists())) {
             synchronized (INIT_LOCKER) {
                 if (commonLoggerContext != null) {
+                    if (!commonLoggerContext.isStarted()) {
+                        commonLoggerContext.start();
+                    }
                     return commonLoggerContext;
                 }
                 commonLoggerContext = LoggerContext.getContext(false);
