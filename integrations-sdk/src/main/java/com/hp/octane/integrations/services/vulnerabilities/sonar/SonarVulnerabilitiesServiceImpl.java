@@ -64,7 +64,6 @@ import java.util.stream.Collectors;
 import static com.hp.octane.integrations.services.vulnerabilities.OctaneIssueConsts.ISSUE_STATE_CLOSED;
 
 public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesService {
-
     private static final String ISSUES_SEARCH_URI = "/api/issues/search";
     private static final String RULES_SEARCH_URI = "/api/rules/search";
 
@@ -104,6 +103,7 @@ public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesSer
 
     public InputStream getVulnerabilitiesScanResultStream(VulnerabilitiesQueueItem queueItem) throws IOException{
         List<OctaneIssue> octaneIssues = getNonCacheVulnerabilitiesScanResultStream(queueItem);
+        logger.info("The number of vulnerabilities that Sonar detected is: " + String.valueOf(octaneIssues.size()));
         return IssuesFileSerializer.serializeIssues(octaneIssues);
     }
 
