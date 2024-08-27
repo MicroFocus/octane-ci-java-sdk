@@ -126,6 +126,8 @@ public class FODConnector implements FODSource {
 				} catch (IOException e) {
 					e.printStackTrace();
 					break;
+				} catch (PermanentException e){
+					logger.error(e.getMessage());
 				}
 			}
 			return fetchedEnts;
@@ -150,7 +152,7 @@ public class FODConnector implements FODSource {
 
 			return entityFetched;
 		} catch (PermanentException e){
-			throw e;
+			logger.error(e.getMessage());
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
@@ -188,8 +190,11 @@ public class FODConnector implements FODSource {
 				if(response.getStatusLine().getStatusCode()==401){
 					throw new PermanentException("Cannot authenticate , the user is Unauthorized , make sure you are using the correct role for the user (): " +response.getStatusLine().getReasonPhrase());
 				}
-				if(response.getStatusLine().getStatusCode()==503){
+				if(response.getStatusLine().getStatusCode() == 503){
 					throw new TemporaryException("Service Unavailable ,  retry");
+				}
+				if(response.getStatusLine().getStatusCode() == 500){
+					throw new PermanentException("Internal FOD Server Error 500, failed to get vulnerability, httpGet: " + httpGet + "  unexpected return response : " +response.getStatusLine().getReasonPhrase());
 				}
 				throw new PermanentException("unexpected return response : " +response.getStatusLine().getReasonPhrase());
 			}
