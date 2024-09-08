@@ -46,10 +46,13 @@ import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.InputStream;
 
 public class SonarUtils {
+    private static final Logger logger = LogManager.getLogger(SonarUtils.class);
 
     public static InputStream getDataFromSonar(String projectKey, String token, URIBuilder uriQuery) {
         StringBuilder errorMessage = new StringBuilder()
@@ -65,6 +68,7 @@ public class SonarUtils {
             int statusCode = httpResponse.getStatusLine().getStatusCode();
 
             if (statusCode == HttpStatus.SC_OK) {
+                logger.info("SonarUtils success getDataFromSonar");
                 return httpResponse.getEntity().getContent();
             } else if (statusCode == HttpStatus.SC_BAD_REQUEST) {
                 errorMessage.append(" with status code: ").append(statusCode)

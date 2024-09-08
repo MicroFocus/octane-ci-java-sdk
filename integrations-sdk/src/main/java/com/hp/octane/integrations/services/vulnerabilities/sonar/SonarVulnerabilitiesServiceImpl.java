@@ -116,16 +116,48 @@ public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesSer
             throws IOException {
 
         List<SonarIssue> issuesFromSecurityTool = getIssuesFromSecurityTool(queueItem);
+        if (!issuesFromSecurityTool.isEmpty()) {
+            String toPrint = "";
+            for (SonarIssue issue : issuesFromSecurityTool) {
+                toPrint = toPrint + ",  " + issue.getKey();
+            }
+            logger.info("issuesFromSecurityTool: " + toPrint);
+        }
+
         Set<String> sonarRulesKeys = issuesFromSecurityTool.stream().map(SonarIssue::getRule).collect(Collectors.toSet());
         Map<String, SonarRule> rules = retrieveRulesFromSonar(sonarRulesKeys, queueItem);
 
         List<String> octaneExistsIssuesIdsList = getRemoteIdsOfExistIssuesFromOctane(queueItem, queueItem.getAdditionalProperties().get(REMOTE_TAG_KEY));
-
+        if (!octaneExistsIssuesIdsList.isEmpty()) {
+            String toPrint = "";
+            for (String issue : octaneExistsIssuesIdsList) {
+                toPrint = toPrint + ",  " + issue;
+            }
+            logger.info("octaneExistsIssuesIdsList: " + toPrint);
+        } else {
+            logger.info(" octaneExistsIssuesIdsList is Empty");
+        }
         List<SonarIssue> issuesRequiredExtendedData = issuesFromSecurityTool.stream()
                 .filter(issue -> !octaneExistsIssuesIdsList.contains(issue.getKey()))
                 .collect(Collectors.toList());
+        if (!issuesRequiredExtendedData.isEmpty()) {
+            String toPrint = "";
+            for (SonarIssue issue : issuesRequiredExtendedData) {
+                toPrint = toPrint + ",  " + issue.getKey();
+            }
+            logger.info("issuesRequiredExtendedData: " + toPrint);
+        }
 
         Set<String> issuesRequiredExtendedDataKeys = issuesRequiredExtendedData.stream().map(SonarIssue::getKey).collect(Collectors.toSet());
+        if (!issuesRequiredExtendedDataKeys.isEmpty()) {
+            String toPrint = "";
+            for (String issue : issuesRequiredExtendedDataKeys) {
+                toPrint = toPrint + ",  " + issue;
+            }
+            logger.info("issuesRequiredExtendedDataKeys: " + toPrint);
+        } else {
+            logger.info(" issuesRequiredExtendedDataKeys is Empty");
+        }
 
         return packAllIssues(issuesFromSecurityTool,
                 octaneExistsIssuesIdsList,
@@ -155,6 +187,12 @@ public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesSer
                 URIBuilder vulnerabilityQuery = createQueryForSonarVulnerability(pageIndex, queueItem);
                 InputStream reportStream = SonarUtils.getDataFromSonar(projectKey, sonarToken, vulnerabilityQuery);
                 jsonReport = CIPluginSDKUtils.getObjectMapper().readTree(reportStream);
+                if (jsonReport != null && jsonReport.has("total")) {
+                    logger.debug("createQueryForSonarVulnerability : " + jsonReport.toPrettyString());
+                    logger.info("vulnerabilities return from Sonar:" + jsonReport.get("total"));
+                } else {
+                    logger.info("Sonar query is null or empty");
+                }
                 sonarIssues.addAll(getSonarIssuesFromReport(jsonReport));
             } while (SonarUtils.sonarReportHasAnotherPage(pageIndex, jsonReport));
             return sonarIssues;
@@ -243,12 +281,14 @@ public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesSer
 
             if (queueItem.getBaselineDate() != null) {
                 uriBuilder.setParameter("createdAfter", DateUtils.convertDateToString(queueItem.getBaselineDate(), DateUtils.sonarFormat));
+                logger.info("createdAfter parameter - queueItem.getBaselineDate() : " + DateUtils.convertDateToString(queueItem.getBaselineDate(), DateUtils.sonarFormat));
             }
 
         } catch (URISyntaxException e) {
             logger.error(e);
             throw new PermanentException(e);
         }
+        logger.info("uriBuilder :" + uriBuilder);
         return uriBuilder;
     }
 
@@ -263,9 +303,28 @@ public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesSer
         List<String> remoteIssuesKeys =
                 sonarIssues.stream().map(SonarIssue::getKey).collect(Collectors.toList());
 
+        if (!remoteIssuesKeys.isEmpty()) {
+            String toPrint = "";
+            for (String issue : remoteIssuesKeys) {
+                toPrint = toPrint + ",  " + issue;
+            }
+            logger.info("remoteIssuesKeys: " + toPrint);
+        } else {
+            logger.info(" remoteIssuesKeys are Empty");
+        }
         List<String> remoteIdsToCloseInOctane = octaneIssues.stream()
                 .filter(oIssue -> !remoteIssuesKeys.contains(oIssue))
                 .collect(Collectors.toList());
+
+        if (!remoteIdsToCloseInOctane.isEmpty()) {
+            String toPrint = "";
+            for (String issue : remoteIdsToCloseInOctane) {
+                toPrint = toPrint + ",  " + issue;
+            }
+            logger.info("remoteIdsToCloseInOctane: " + toPrint);
+        } else {
+            logger.info(" remoteIdsToCloseInOctane are Empty");
+        }
 
         //Make Octane issue from remote id's.
         List<OctaneIssue> closedOctaneIssues = remoteIdsToCloseInOctane.stream()
@@ -275,11 +334,27 @@ public class SonarVulnerabilitiesServiceImpl implements  SonarVulnerabilitiesSer
         List<SonarIssue> issuesToUpdate = sonarIssues.stream()
                 .filter(sonarIssue -> !remoteIdsToCloseInOctane.contains(sonarIssue.getKey()))
                 .collect(Collectors.toList());
+
+        if (!issuesToUpdate.isEmpty()) {
+            String toPrint = "";
+            for (SonarIssue issue : issuesToUpdate) {
+                toPrint = toPrint + ",  " + issue.getKey();
+            }
+            logger.info("issuesToUpdate: " + toPrint);
+        }
         //Issues.Issue
         List<OctaneIssue> openOctaneIssues = SonarToOctaneIssueUtil.createOctaneIssues(issuesToUpdate,remoteTag, sonarURL, issuesRequiredExtendedDataKeys, rules);
+        if (!openOctaneIssues.isEmpty()) {
+            String toPrint = "";
+            for (OctaneIssue issue : openOctaneIssues) {
+                toPrint = toPrint + ",  " + issue.getRemoteId();
+            }
+            logger.info("issuesToUpdate: " + toPrint);
+        }
         List<OctaneIssue> total = new ArrayList<>();
         total.addAll(openOctaneIssues);
         total.addAll(closedOctaneIssues);
+        logger.info("total: " + total.size());
         return total;
     }
 
