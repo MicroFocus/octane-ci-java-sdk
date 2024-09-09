@@ -200,11 +200,11 @@ public class SonarVulnerabilitiesServiceImpl implements SonarVulnerabilitiesServ
                 URIBuilder vulnerabilityQuery = createQueryForSonarVulnerability(pageIndex, queueItem);
                 InputStream reportStream = SonarUtils.getDataFromSonar(projectKey, sonarToken, vulnerabilityQuery);
                 jsonReport = CIPluginSDKUtils.getObjectMapper().readTree(reportStream);
-                if (jsonReport != null && jsonReport.has("total")) {
+                if (jsonReport.has("total")) {
                     logger.debug("createQueryForSonarVulnerability : " + jsonReport.toPrettyString());
                     logger.info("vulnerabilities return from Sonar:" + jsonReport.get("total"));
                 } else {
-                    logger.info("Sonar query is null or empty");
+                    logger.info("Sonar query is empty");
                 }
                 sonarIssues.addAll(getSonarIssuesFromReport(jsonReport));
             } while (SonarUtils.sonarReportHasAnotherPage(pageIndex, jsonReport));
