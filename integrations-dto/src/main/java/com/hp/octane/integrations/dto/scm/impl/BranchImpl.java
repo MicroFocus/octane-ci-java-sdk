@@ -32,7 +32,6 @@
 package com.hp.octane.integrations.dto.scm.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.scm.Branch;
 
 /**
@@ -50,7 +49,6 @@ public class BranchImpl implements Branch {
     private Long lastCommitTime;
     private String lastCommiterName;
     private String lastCommiterEmail;
-    private Entity repository;
     private boolean isPartial = false;
 
     @Override
