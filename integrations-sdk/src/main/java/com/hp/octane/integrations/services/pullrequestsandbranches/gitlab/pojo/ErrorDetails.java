@@ -29,47 +29,37 @@
  * limitations under the License.
  */
 
-package com.hp.octane.integrations.services.pullrequestsandbranches.rest;
+package com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.pojo;
 
-import com.hp.octane.integrations.utils.SdkStringUtils;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.io.Serializable;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ErrorDetails {
+    private String message;
+    private String context;
+    private String exceptionName;
 
-public enum ScmTool implements Serializable {
-
-    BitbucketServer("bitbucket_server", "Bitbucket Server"),
-    GithubCloud("github_cloud", "Github Cloud"),
-    GithubServer("github_server", "Github Server"),
-    GitLabServer("gitlab", "GitLab");
-
-    private final String value;
-    private final String desc;
-
-    ScmTool(String value, String desc) {
-        this.value = value;
-        this.desc = desc;
+    public String getMessage() {
+        return message;
     }
 
-    public String getValue() {
-        return value;
+    public void setMessage(String message) {
+        this.message = message;
     }
 
-    public static ScmTool fromValue(String value) {
-        if (SdkStringUtils.isEmpty(value)) {
-            throw new IllegalArgumentException("value MUST NOT be null nor empty");
-        }
-
-        for (ScmTool v : values()) {
-            if (v.value.equals(value)) {
-                return v;
-            }
-        }
-
-        throw new IllegalStateException("ScmTool '" + value + "' is not supported");
+    public String getContext() {
+        return context;
     }
 
-    public String getDesc() {
-        return desc;
+    public void setContext(String context) {
+        this.context = context;
     }
 
+    public String getExceptionName() {
+        return exceptionName;
+    }
+
+    public void setExceptionName(String exceptionName) {
+        this.exceptionName = exceptionName;
+    }
 }

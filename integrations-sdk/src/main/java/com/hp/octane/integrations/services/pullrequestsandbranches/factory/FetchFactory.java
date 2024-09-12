@@ -34,12 +34,13 @@ package com.hp.octane.integrations.services.pullrequestsandbranches.factory;
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.BitbucketServerFetchHandler;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.GithubCloudFetchHandler;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.GithubServerFetchHandler;
+import com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.GitlabServerFetchHandler;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.ScmTool;
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
 
 public class FetchFactory {
 
-    public static FetchHandler getHandler(ScmTool scmTool, AuthenticationStrategy authenticationStrategy){
+    public static FetchHandler getHandler(ScmTool scmTool, AuthenticationStrategy authenticationStrategy, String secret){
         switch (scmTool){
             case BitbucketServer:
                 return new BitbucketServerFetchHandler(authenticationStrategy);
@@ -47,6 +48,8 @@ public class FetchFactory {
                 return new GithubCloudFetchHandler(authenticationStrategy);
             case GithubServer:
                 return new GithubServerFetchHandler(authenticationStrategy);
+            case GitLabServer:
+                return new GitlabServerFetchHandler(authenticationStrategy, secret);
         }
         return null;
     }

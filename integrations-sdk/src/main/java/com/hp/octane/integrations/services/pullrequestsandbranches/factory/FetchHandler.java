@@ -43,8 +43,10 @@ import com.hp.octane.integrations.services.pullrequestsandbranches.rest.GeneralR
 import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authentication.AuthenticationStrategy;
 import org.apache.http.HttpStatus;
 import org.apache.http.conn.HttpHostConnectException;
+import org.gitlab4j.api.GitLabApi;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;

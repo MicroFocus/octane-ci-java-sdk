@@ -41,6 +41,7 @@ public class PullRequestFetchParameters implements Serializable {
     private Integer pageSize;
     private Integer maxPRsToFetch;
     private Integer maxCommitsToFetch;
+    private Integer searchBranchOctaneRootRepositoryId;
     private Long minUpdateTime;
     private boolean useSSHFormat;
 
@@ -143,6 +144,15 @@ public class PullRequestFetchParameters implements Serializable {
 
     public PullRequestFetchParameters setUseSSHFormat(boolean useSSHFormat) {
         this.useSSHFormat = useSSHFormat;
+        return this;
+    }
+
+    public int getSearchBranchOctaneRootRepositoryId() {
+        return this.searchBranchOctaneRootRepositoryId == null ? 0 : this.searchBranchOctaneRootRepositoryId;
+    }
+
+    public PullRequestFetchParameters setSearchBranchOctaneRootRepositoryId(Integer searchBranchOctaneRootRepositoryId) {
+        this.searchBranchOctaneRootRepositoryId = searchBranchOctaneRootRepositoryId;
         return this;
     }
 }

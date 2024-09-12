@@ -29,47 +29,50 @@
  * limitations under the License.
  */
 
-package com.hp.octane.integrations.services.pullrequestsandbranches.rest;
+package com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.pojo;
 
-import com.hp.octane.integrations.utils.SdkStringUtils;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.io.Serializable;
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Repository extends Entity {
 
-public enum ScmTool implements Serializable {
+    private String name;
+    private String web_url;
+    private String http_url_to_repo;
+    private String ssh_url_to_repo;
 
-    BitbucketServer("bitbucket_server", "Bitbucket Server"),
-    GithubCloud("github_cloud", "Github Cloud"),
-    GithubServer("github_server", "Github Server"),
-    GitLabServer("gitlab", "GitLab");
-
-    private final String value;
-    private final String desc;
-
-    ScmTool(String value, String desc) {
-        this.value = value;
-        this.desc = desc;
+    public String getName() {
+        return name;
     }
 
-    public String getValue() {
-        return value;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public static ScmTool fromValue(String value) {
-        if (SdkStringUtils.isEmpty(value)) {
-            throw new IllegalArgumentException("value MUST NOT be null nor empty");
-        }
-
-        for (ScmTool v : values()) {
-            if (v.value.equals(value)) {
-                return v;
-            }
-        }
-
-        throw new IllegalStateException("ScmTool '" + value + "' is not supported");
+    public String getWeb_url() {
+        return web_url;
     }
 
-    public String getDesc() {
-        return desc;
+    public void setWeb_url(String web_url) {
+        this.web_url = web_url;
     }
+
+    public String getHttp_url_to_repo() {
+        return http_url_to_repo;
+    }
+
+    public void setHttp_url_to_repo(String http_url_to_repo) {
+        this.http_url_to_repo = http_url_to_repo;
+    }
+
+    public String getSsh_url_to_repo() {
+        return ssh_url_to_repo;
+    }
+
+    public void setSsh_url_to_repo(String ssh_url_to_repo) {
+        this.ssh_url_to_repo = ssh_url_to_repo;
+    }
+
+
 
 }
