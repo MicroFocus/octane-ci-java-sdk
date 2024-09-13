@@ -114,7 +114,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
             mergeRequests = this.gitLabApi.getMergeRequestApi()
                     .getMergeRequests(this.gitLabProject.getId(), parameters.getPageSize()).all()
                     .stream()
-                    .filter(mr -> getUpdatedTime(String.valueOf(mr.getUpdatedAt().getTime())) > parameters.getMinUpdateTime())
+                    .filter(mr -> mr.getUpdatedAt().getTime() > parameters.getMinUpdateTime())
                     .sorted(
                             Comparator.comparing(MergeRequest::getUpdatedAt)).collect(
                             Collectors.toList());
@@ -167,6 +167,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
                     SCMRepository sourceRepository = buildScmRepository(parameters.getRepoUrl(),mergeRequest.getSourceBranch());
                     SCMRepository targetRepository = buildScmRepository(parameters.getRepoUrl(),mergeRequest.getTargetBranch());
 
+                    String userId = getUserName(commitUserIdPicker, mergeRequest.getAuthor().getEmail(), mergeRequest.getAuthor().getName());
                     com.hp.octane.integrations.dto.scm.PullRequest dtoPullRequest = dtoFactory.newDTO(com.hp.octane.integrations.dto.scm.PullRequest.class)
                             .setId(Long.toString(mergeRequest.getIid()))
                             .setTitle(mergeRequest.getTitle())
@@ -179,7 +180,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
                             .setMergedTime(
                                     Objects.isNull(mergeRequest.getMergedAt()) ? null : mergeRequest.getMergedAt().getTime())
                             .setIsMerged(Objects.nonNull(mergeRequest.getMergedAt()))
-                            .setAuthorName(Objects.isNull(mergeRequest.getAuthor()) ? null : mergeRequest.getAuthor().getName())
+                            .setAuthorName(userId)
                             .setAuthorEmail(Objects.isNull(mergeRequest.getAuthor()) ? null : mergeRequest.getAuthor().getEmail())
                             .setClosedTime(Objects.isNull(mergeRequest.getClosedAt()) ? null : mergeRequest.getClosedAt().getTime())
                             .setSelfUrl(mergeRequest.getWebUrl())
@@ -332,11 +333,6 @@ public class GitlabServerFetchHandler extends FetchHandler {
                 .setUrl(repoUrl)
                 .setBranch(branch)
                 .setType(SCMType.GIT);
-    }
-
-    public long getUpdatedTime(String updatedAt) {
-        Long l = FetchUtils.convertISO8601DateStringToLong(updatedAt);
-        return l == null ? 0 : l;
     }
 
 }

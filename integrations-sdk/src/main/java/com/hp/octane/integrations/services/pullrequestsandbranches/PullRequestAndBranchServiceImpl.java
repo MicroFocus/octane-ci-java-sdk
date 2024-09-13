@@ -144,6 +144,33 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                 RestService.SHARED_SPACE_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
                 "/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART + "pull-requests/";
 
+        List<Entity> repositoryRootsList =
+                getRepositoryRootsById(pullRequestFetchParameters.getSearchBranchOctaneRootRepositoryId(),
+                        Long.valueOf(workspaceId));
+
+        if (!repositoryRootsList.isEmpty()) {
+
+            Entity rootRepoForSearch = repositoryRootsList.get(0);
+            String rootRepoURL = rootRepoForSearch.getField(EntityConstants.ScmRepositoryRoot.URL_FIELD).toString();
+            logConsumer.accept(
+                    String.format("Checking branches that already exist in the root repository with the configured id: %s",
+                            rootRepoForSearch.getId()));
+            Set<String> octaneRepositoryBranches =
+                    getRepositoryBranches(rootRepoForSearch.getId(), Long.valueOf(workspaceId), false).stream()
+                            .map(b -> b.getField(EntityConstants.ScmRepository.NAME_FIELD).toString())
+                            .collect(Collectors.toSet());
+            pullRequests.forEach(pullRequest -> {
+                if (octaneRepositoryBranches.contains(pullRequest.getSourceRepository().getBranch())) {
+                    pullRequest.getSourceRepository().setUrl(rootRepoURL);
+                }
+                if (octaneRepositoryBranches.contains(pullRequest.getTargetRepository().getBranch())) {
+                    pullRequest.getTargetRepository().setUrl(rootRepoURL);
+                }
+            });
+
+        }
+
+
         int sentCounter = 0;
         List<List<PullRequest>> subSets = ListUtils.partition(pullRequests, 200);
         for (List<PullRequest> list : subSets) {
@@ -505,7 +532,8 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                         EntityConstants.ScmRepositoryRoot.BRANCH_TEMPLATE,
                         EntityConstants.ScmRepositoryRoot.DIFF_TEMPLATE,
                         EntityConstants.ScmRepositoryRoot.SOURCE_VIEW_TEMPLATE,
-                        EntityConstants.ScmRepositoryRoot.NAME_FIELD));
+                        EntityConstants.ScmRepositoryRoot.NAME_FIELD,
+                        EntityConstants.ScmRepositoryRoot.URL_FIELD));
         return foundRoots;
     }
 
