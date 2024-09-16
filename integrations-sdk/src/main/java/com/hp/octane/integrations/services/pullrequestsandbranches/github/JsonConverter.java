@@ -35,10 +35,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.pojo.RequestError;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
 public class JsonConverter {
+    private static final Logger logger = LogManager.getLogger(JsonConverter.class);
     private static ObjectMapper objectMapper = new ObjectMapper();
 
     public static <T> List<T> convertCollection(String str, Class<T> entityType) throws JsonProcessingException {
@@ -56,7 +59,7 @@ public class JsonConverter {
             return requestError.getMessage() + (requestError.getDocumentation_url() != null ? ", See documentation " + requestError.getDocumentation_url() : "");
 
         } catch (JsonProcessingException e) {
-            //do nothing
+            logger.error(e.getMessage(), e);
         }
         return jsonString;
     }

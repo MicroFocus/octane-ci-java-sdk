@@ -40,6 +40,7 @@ public class BranchFetchParameters implements Serializable {
     private Integer pageSize;
     private Integer activeBranchDays;
     private Integer maxBranchesToFill;
+    private Integer searchBranchOctaneRootRepositoryId;
     private boolean useSSHFormat;
 
     public static final int DEFAULT_PAGE_SIZE = 1000;
@@ -117,6 +118,15 @@ public class BranchFetchParameters implements Serializable {
 
     public BranchFetchParameters setUseSSHFormat(boolean useSSHFormat) {
         this.useSSHFormat = useSSHFormat;
+        return this;
+    }
+
+    public int getSearchBranchOctaneRootRepositoryId() {
+        return this.searchBranchOctaneRootRepositoryId == null ? 0 : this.searchBranchOctaneRootRepositoryId;
+    }
+
+    public BranchFetchParameters setSearchBranchOctaneRootRepositoryId(Integer searchBranchOctaneRootRepositoryId) {
+        this.searchBranchOctaneRootRepositoryId = searchBranchOctaneRootRepositoryId;
         return this;
     }
 }

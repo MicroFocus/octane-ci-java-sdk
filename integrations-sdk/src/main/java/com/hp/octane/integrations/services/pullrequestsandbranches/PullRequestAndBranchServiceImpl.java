@@ -53,6 +53,7 @@ import com.hp.octane.integrations.services.entities.EntitiesService;
 import com.hp.octane.integrations.services.entities.QueryHelper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.factory.*;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.GithubV3FetchHandler;
+import com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.GitlabServerFetchHandler;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import com.hp.octane.integrations.utils.SdkStringUtils;
@@ -67,6 +68,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -142,6 +144,33 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                 RestService.SHARED_SPACE_API_PATH_PART + configurer.octaneConfiguration.getSharedSpace() +
                 "/workspaces/" + workspaceId + RestService.ANALYTICS_CI_PATH_PART + "pull-requests/";
 
+        List<Entity> repositoryRootsList =
+                getRepositoryRootsById(pullRequestFetchParameters.getSearchBranchOctaneRootRepositoryId(),
+                        Long.valueOf(workspaceId));
+
+        if (!repositoryRootsList.isEmpty()) {
+
+            Entity rootRepoForSearch = repositoryRootsList.get(0);
+            String rootRepoURL = rootRepoForSearch.getField(EntityConstants.ScmRepositoryRoot.URL_FIELD).toString();
+            logConsumer.accept(
+                    String.format("Checking branches that already exist in the root repository with the configured id: %s",
+                            rootRepoForSearch.getId()));
+            Set<String> octaneRepositoryBranches =
+                    getRepositoryBranches(rootRepoForSearch.getId(), Long.valueOf(workspaceId), false).stream()
+                            .map(b -> b.getField(EntityConstants.ScmRepository.NAME_FIELD).toString())
+                            .collect(Collectors.toSet());
+            pullRequests.forEach(pullRequest -> {
+                if (octaneRepositoryBranches.contains(pullRequest.getSourceRepository().getBranch())) {
+                    pullRequest.getSourceRepository().setUrl(rootRepoURL);
+                }
+                if (octaneRepositoryBranches.contains(pullRequest.getTargetRepository().getBranch())) {
+                    pullRequest.getTargetRepository().setUrl(rootRepoURL);
+                }
+            });
+
+        }
+
+
         int sentCounter = 0;
         List<List<PullRequest>> subSets = ListUtils.partition(pullRequests, 200);
         for (List<PullRequest> list : subSets) {
@@ -182,7 +211,10 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         //update ssh url
         String baseUrl = fetcherHandler.getRepoApiPath(fp.getRepoUrl());
-        logConsumer.accept(fetcherHandler.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
+        if (!(fetcherHandler instanceof GitlabServerFetchHandler)) {
+            logConsumer.accept(fetcherHandler.getClass().getSimpleName() + " handler, Base url : " + baseUrl);
+        }
+
         SCMRepositoryLinks links = fetcherHandler.pingRepository(baseUrl, logConsumer);
         fp.setRepoUrlSsh(links.getSshUrl());
         if (fp.isUseSSHFormat()) {
@@ -200,6 +232,28 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         //FETCH FROM CI SERVER
         List<Branch> ciServerBranches = fetcherHandler.fetchBranches(fp, sha2DateMapCache, logConsumer);
+
+        List<Entity> rootRepositoryForSearchList = getRepositoryRootsById(fp.getSearchBranchOctaneRootRepositoryId(), workspaceId);
+        if(!rootRepositoryForSearchList.isEmpty()){
+
+            Entity rootRepoForSearch = rootRepositoryForSearchList.get(0);
+            logConsumer.accept(String.format(
+                    "Filtering out the branches that already exist in the root repository with the configured id: %s",
+                    rootRepoForSearch.getId()));
+            List<Entity> octaneRepositoryBranches = getRepositoryBranches(rootRepoForSearch.getId(), workspaceId, false);
+
+            Set<String> octaneBranchesNames = octaneRepositoryBranches.stream()
+                            .map(b -> b.getField(EntityConstants.ScmRepository.NAME_FIELD).toString())
+                            .collect(Collectors.toSet());
+            ciServerBranches = ciServerBranches
+                    .stream()
+                    .filter(branch -> !(octaneBranchesNames.contains(branch.getName())))
+                    .collect(Collectors.toList());
+        }
+        else{
+            logConsumer.accept("The root repository id is not configured or no root repository exists with the configured id in ALM Octane.");
+        }
+
         Map<String, Branch> ciServerBranchMap = ciServerBranches.stream().collect(Collectors.toMap(Branch::getName, Function.identity()));
 
         //SAVE TO  CACHE
@@ -209,17 +263,16 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         //GET BRANCHES FROM OCTANE
         String repoShortName = FetchUtils.getRepoShortName(fp.getRepoUrl());
-        List<Entity> roots = getRepositoryRoots(repoUrlForOctane, workspaceId);
-        List<Entity> octaneBranches = null;
-        String rootId;
-        if (roots != null && !roots.isEmpty()) {
+
+        List<Entity> roots = new ArrayList<>(getRepositoryRoots(repoUrlForOctane, workspaceId));
+
+        List<Entity> octaneBranches = new ArrayList<>();
+
+        String rootId = "";
+        if (!roots.isEmpty()) {
             rootId = roots.get(0).getId();
             octaneBranches = getRepositoryBranches(rootId, workspaceId, false);
             logConsumer.accept("Found repository root with id " + rootId);
-        } else {
-            Entity createdRoot = createRepositoryRoot(repoUrlForOctane, repoShortName, workspaceId);
-            rootId = createdRoot.getId();
-            logConsumer.accept("Repository root is created with id " + rootId);
         }
 
         if (octaneBranches == null) {
@@ -233,7 +286,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         logConsumer.accept("Found " + octaneBranches.size() + " branches in ALM Octane related to defined filter.");
 
         //GENERATE UPDATES
-        String finalRootId = rootId;
+
         BranchSyncResult result = new BranchSyncResult();
 
         //DELETED
@@ -278,7 +331,11 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             logConsumer.accept("Updated branches : " + toUpdate.size());
         }
         if (!result.getCreated().isEmpty()) {
-            List<Entity> toCreate = result.getCreated().stream().map(b -> buildOctaneBranchForCreate(finalRootId, b, idPicker)).collect(Collectors.toList());
+            Entity createdRoot = createRepositoryRoot(repoUrlForOctane, repoShortName, workspaceId);
+            String createdRootId = createdRoot.getId();
+            logConsumer.accept("Repository root is created with id " + rootId);
+
+            List<Entity> toCreate = result.getCreated().stream().map(b -> buildOctaneBranchForCreate(createdRootId, b, idPicker)).collect(Collectors.toList());
             try {
                 entitiesService.postEntities(workspaceId, EntityConstants.ScmRepository.COLLECTION_NAME, toCreate);
                 logConsumer.accept("New branches : " + toCreate.size());
@@ -460,6 +517,19 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                         EntityConstants.ScmRepositoryRoot.BRANCH_TEMPLATE,
                         EntityConstants.ScmRepositoryRoot.DIFF_TEMPLATE,
                         EntityConstants.ScmRepositoryRoot.SOURCE_VIEW_TEMPLATE));
+        return foundRoots;
+    }
+    private List<Entity> getRepositoryRootsById(Integer id, Long workspaceId) {
+        String rootByUrlCondition = QueryHelper.condition(EntityConstants.ScmRepositoryRoot.ID_FIELD, id);
+        List<Entity> foundRoots = entitiesService.getEntities(workspaceId,
+                EntityConstants.ScmRepositoryRoot.COLLECTION_NAME,
+                Collections.singleton(rootByUrlCondition),
+                Arrays.asList(EntityConstants.Base.ID_FIELD,
+                        EntityConstants.ScmRepositoryRoot.BRANCH_TEMPLATE,
+                        EntityConstants.ScmRepositoryRoot.DIFF_TEMPLATE,
+                        EntityConstants.ScmRepositoryRoot.SOURCE_VIEW_TEMPLATE,
+                        EntityConstants.ScmRepositoryRoot.NAME_FIELD,
+                        EntityConstants.ScmRepositoryRoot.URL_FIELD));
         return foundRoots;
     }
 

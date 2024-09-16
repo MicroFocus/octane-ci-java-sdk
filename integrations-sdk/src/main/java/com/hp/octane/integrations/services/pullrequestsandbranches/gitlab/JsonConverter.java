@@ -29,15 +29,15 @@
  * limitations under the License.
  */
 
-package com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver;
+package com.hp.octane.integrations.services.pullrequestsandbranches.gitlab;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.Entity;
-import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.EntityCollection;
-import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.ErrorDetails;
-import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.RequestErrors;
+import com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.pojo.Entity;
+import com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.pojo.EntityCollection;
+import com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.pojo.RequestErrors;
+import com.hp.octane.integrations.services.pullrequestsandbranches.gitlab.pojo.ErrorDetails;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
