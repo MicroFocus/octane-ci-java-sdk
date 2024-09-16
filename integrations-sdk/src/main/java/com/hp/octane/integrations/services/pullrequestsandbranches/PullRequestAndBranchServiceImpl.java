@@ -242,12 +242,12 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                     rootRepoForSearch.getId()));
             List<Entity> octaneRepositoryBranches = getRepositoryBranches(rootRepoForSearch.getId(), workspaceId, false);
 
+            Set<String> octaneBranchesNames = octaneRepositoryBranches.stream()
+                            .map(b -> b.getField(EntityConstants.ScmRepository.NAME_FIELD).toString())
+                            .collect(Collectors.toSet());
             ciServerBranches = ciServerBranches
                     .stream()
-                    .filter(branch -> !(octaneRepositoryBranches
-                                                .stream().map(b->b.getField(EntityConstants.ScmRepository.NAME_FIELD).toString())
-                                                .collect(Collectors.toSet())
-                                                .contains(branch.getName())))
+                    .filter(branch -> !(octaneBranchesNames.contains(branch.getName())))
                     .collect(Collectors.toList());
         }
         else{
