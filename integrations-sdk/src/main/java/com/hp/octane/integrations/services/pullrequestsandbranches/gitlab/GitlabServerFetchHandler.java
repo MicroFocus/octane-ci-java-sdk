@@ -308,7 +308,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
 
     @Override
     protected String parseRequestError(OctaneResponse response) {
-        return "";
+        return JsonConverter.getErrorMessage(response.getBody());
     }
 
     @Override
