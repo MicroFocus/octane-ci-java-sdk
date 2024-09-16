@@ -38,10 +38,13 @@ import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserv
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.EntityCollection;
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.ErrorDetails;
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.RequestErrors;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.stream.Collectors;
 
 public class JsonConverter {
+    private static final Logger logger = LogManager.getLogger(JsonConverter.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
     public static <T extends Entity> EntityCollection<T> convertCollection(String str, Class<T> entityType) throws JsonProcessingException {
@@ -61,7 +64,7 @@ public class JsonConverter {
                 return requestErrors.getErrors().stream().map(ErrorDetails::getMessage).collect(Collectors.joining("; "));
             }
         } catch (JsonProcessingException e) {
-            //do nothing
+            logger.error(e.getMessage(), e);
         }
         return jsonString;
     }
