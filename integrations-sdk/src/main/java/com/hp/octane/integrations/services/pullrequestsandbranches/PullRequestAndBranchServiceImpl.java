@@ -247,11 +247,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                     .filter(branch -> !(octaneRepositoryBranches
                                                 .stream().map(b->b.getField(EntityConstants.ScmRepository.NAME_FIELD).toString())
                                                 .collect(Collectors.toSet())
-                                                .contains(branch.getName())
-                                        && octaneRepositoryBranches
-                                                .stream().map(b->b.getField(EntityConstants.ScmRepository.LAST_COMMIT_SHA_FIELD).toString())
-                                                .collect(Collectors.toSet())
-                                                .contains(branch.getLastCommitSHA())))
+                                                .contains(branch.getName())))
                     .collect(Collectors.toList());
         }
         else{
