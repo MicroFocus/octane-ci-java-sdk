@@ -331,11 +331,14 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             logConsumer.accept("Updated branches : " + toUpdate.size());
         }
         if (!result.getCreated().isEmpty()) {
-            Entity createdRoot = createRepositoryRoot(repoUrlForOctane, repoShortName, workspaceId);
-            String createdRootId = createdRoot.getId();
-            logConsumer.accept("Repository root is created with id " + rootId);
+            if (rootId.isEmpty()) {
+                Entity createdRoot = createRepositoryRoot(repoUrlForOctane, repoShortName, workspaceId);
+                rootId = createdRoot.getId();
+                logConsumer.accept("Repository root is created with id " + rootId);
+            }
+            String finalRootId=rootId;
 
-            List<Entity> toCreate = result.getCreated().stream().map(b -> buildOctaneBranchForCreate(createdRootId, b, idPicker)).collect(Collectors.toList());
+            List<Entity> toCreate = result.getCreated().stream().map(b -> buildOctaneBranchForCreate(finalRootId, b, idPicker)).collect(Collectors.toList());
             try {
                 entitiesService.postEntities(workspaceId, EntityConstants.ScmRepository.COLLECTION_NAME, toCreate);
                 logConsumer.accept("New branches : " + toCreate.size());
