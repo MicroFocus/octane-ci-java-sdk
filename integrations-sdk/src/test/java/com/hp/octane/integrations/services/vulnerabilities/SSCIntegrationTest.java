@@ -113,7 +113,7 @@ public class SSCIntegrationTest {
                 });
             }
 
-            Assert.assertEquals(clientAInstanceId + "|jobSSC1|1", preFlightRequestCollectors.get(spIdA).get(0));
+            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preFlightRequestCollectors.get(spIdA).get(0));
 
             //
             //  III
