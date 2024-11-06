@@ -403,6 +403,7 @@ public class OctaneSDKBasicFunctionalityTest {
 					"secret_SP_A");
 
 			ConfigurationParameterFactory.addParameter(tempConf, "OCTANE_ROOTS_CACHE_ALLOWED", "true");
+			ConfigurationParameterFactory.addParameter(tempConf, "ENCODE_CI_JOB_BASE64", "false");
 			clientA = OctaneSDK.addClient(tempConf, PluginServicesBasicFunctionalityTest.class);
 			clientA.getConfigurationService().getOctaneConnectivityStatus();
 
