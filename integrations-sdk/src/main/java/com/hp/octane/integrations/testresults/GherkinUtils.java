@@ -104,7 +104,7 @@ public class GherkinUtils {
     private static class FeatureInfo {
         private String name;
         private List<String> scenarioNames = new ArrayList<>();
-        private TestRunResult status = TestRunResult.PASSED;
+        private TestRunResult status = TestRunResult.SKIPPED;
         private boolean statusDetermined = false;
         private long duration = 0;
 
@@ -123,10 +123,9 @@ public class GherkinUtils {
                 scenarioNames.add(scenarioName);
 
                 duration += scenarioInfo.getDuration();
-                if (!statusDetermined && TestRunResult.SKIPPED.equals(scenarioInfo.getStatus())) {
-                    status = TestRunResult.SKIPPED;
-                    statusDetermined = true;
-                } else if (!statusDetermined && TestRunResult.FAILED.equals(scenarioInfo.getStatus())) {
+                if (!statusDetermined && TestRunResult.PASSED.equals(scenarioInfo.getStatus()) && !status.equals(TestRunResult.PASSED)) {
+                    status = TestRunResult.PASSED;
+                } else if (TestRunResult.FAILED.equals(scenarioInfo.getStatus()) && !status.equals(TestRunResult.FAILED)) {
                     status = TestRunResult.FAILED;
                     statusDetermined = true;
                 }
