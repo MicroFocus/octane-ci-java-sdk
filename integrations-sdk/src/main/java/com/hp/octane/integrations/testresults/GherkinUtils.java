@@ -125,11 +125,12 @@ public class GherkinUtils {
                 duration += scenarioInfo.getDuration();
                 if (!statusDetermined && TestRunResult.PASSED.equals(scenarioInfo.getStatus()) && !status.equals(TestRunResult.PASSED)) {
                     status = TestRunResult.PASSED;
-                } else if (TestRunResult.FAILED.equals(scenarioInfo.getStatus()) && !status.equals(TestRunResult.FAILED)) {
+                } else if (!statusDetermined && TestRunResult.FAILED.equals(scenarioInfo.getStatus())) {
                     status = TestRunResult.FAILED;
                     statusDetermined = true;
                 }
             }
+            statusDetermined = true;
         }
 
         public String getName() {
