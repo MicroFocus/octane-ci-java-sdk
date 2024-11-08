@@ -122,10 +122,10 @@ public class VulnerabilitiesServiceFunctionalityTest {
                     return null;
                 }
             });
-            Assert.assertEquals(clientAInstanceId + "|job-preflight-true|1", preflightRequestCollectors.get(spIdA).get(0));
-            Assert.assertEquals(clientAInstanceId + "|job-preflight-false|1", preflightRequestCollectors.get(spIdA).get(1));
-            Assert.assertEquals(clientBInstanceId + "|job-preflight-true|1", preflightRequestCollectors.get(spIdB).get(0));
-            Assert.assertEquals(clientBInstanceId + "|job-preflight-false|1", preflightRequestCollectors.get(spIdB).get(1));
+            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdA).get(0));
+            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdA).get(1));
+            Assert.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdB).get(0));
+            Assert.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdB).get(1));
 
             //
             //  III
@@ -186,7 +186,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
                 }
             });
 
-            Assert.assertEquals(clientAInstanceId + "|jobSSC1|1", preflightRequestCollectors.get(spIdA).get(0));
+            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preflightRequestCollectors.get(spIdA).get(0));
 
             OctaneSDK.removeClient(clientA);
 
