@@ -92,6 +92,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Thread.sleep;
+
 /**
  * REST Client default implementation
  */
@@ -201,7 +203,11 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		OctaneResponse loginResponse;
 		if (LWSSO_TOKEN == null) {
 			logger.info(configurer.octaneConfiguration.getLocationForLog() + "initial login");
-			loginResponse = login(configuration);
+			try {
+				loginResponse = login(configuration);
+			} catch (InterruptedException e) {
+				throw new RuntimeException(e);
+			}
 			if (loginResponse.getStatus() != 200) {
 				logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed on initial login, status " + loginResponse.getStatus());
 				return loginResponse;
@@ -242,7 +248,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		} catch (IOException ioe) {
 			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed executing " + request, ioe);
 			throw ioe;
-		} finally {
+		} catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
 			if (uriRequest != null && ongoingRequests2Started.containsKey(uriRequest)) {
 				synchronized (REQUESTS_LIST_LOCK) {
 					ongoingRequests2Started.remove(uriRequest);
@@ -302,7 +310,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		return request;
 	}
 
-	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest) {
+	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest) throws InterruptedException {
 		HttpClientContext context = HttpClientContext.create();
 		context.setCookieStore(new BasicCookieStore());
 
@@ -334,6 +342,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		// set timeout if needed
 		if (requestTimeoutSec > 0) {
 			int timeoutMs = requestTimeoutSec * 1000;
+			sleep(20000);
 			requestConfigBuilder
 					.setConnectTimeout(timeoutMs)
 					.setConnectionRequestTimeout(timeoutMs)
@@ -382,7 +391,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		return octaneResponse;
 	}
 
-	private OctaneResponse login(OctaneConfiguration config) throws IOException {
+	private OctaneResponse login(OctaneConfiguration config) throws IOException, InterruptedException {
 		OctaneResponse result;
 		HttpResponse response = null;
 
@@ -397,7 +406,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 				logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to login; response status: " + response.getStatusLine().getStatusCode());
 			}
 			result = createNGAResponse(null, response);
-		} catch (IOException ioe) {
+		} catch (IOException | InterruptedException ioe) {
 			logger.debug(configurer.octaneConfiguration.getLocationForLog() + "failed to login", ioe);
 			throw ioe;
 		} finally {
