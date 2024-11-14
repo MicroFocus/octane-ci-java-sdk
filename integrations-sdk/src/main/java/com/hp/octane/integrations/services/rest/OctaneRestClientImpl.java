@@ -342,7 +342,6 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		// set timeout if needed
 		if (requestTimeoutSec > 0) {
 			int timeoutMs = requestTimeoutSec * 1000;
-			sleep(20000);
 			requestConfigBuilder
 					.setConnectTimeout(timeoutMs)
 					.setConnectionRequestTimeout(timeoutMs)

@@ -318,7 +318,7 @@ final class BridgeServiceImpl implements BridgeService {
                     int submitStatus = putAbridgedResult(
                             configurer.octaneConfiguration.getInstanceId(),
                             result.getId(),
-                            result, false);
+                            result);
                     logger.info(configurer.octaneConfiguration.getLocationForLog() + "result for task '" + result.getId() + "' submitted with status " + submitStatus);
                 });
             }
@@ -327,11 +327,16 @@ final class BridgeServiceImpl implements BridgeService {
         }
     }
 
-    private int putAbridgedResult(String selfIdentity, String taskId, OctaneResultAbridged result, boolean rerun) {
+    private static final int INITIAL_BACKOFF_MS = 1000; // 1 second
+    private static final int MAX_RETRY_ATTEMPTS = 5;
+    private static final long MAX_ALLOWED_DURATION = 20000; // 20 seconds
+
+    private int putAbridgedResult(String selfIdentity, String taskId, OctaneResultAbridged result) {
         InputStream contentJSON = dtoFactory.dtoToJsonStream(result);
         OctaneRestClient octaneRestClientImpl = restService.obtainOctaneRestClient();
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put(RestService.CONTENT_TYPE_HEADER, ContentType.APPLICATION_JSON.getMimeType());
+
         OctaneRequest octaneRequest = dtoFactory.newDTO(OctaneRequest.class)
                 .setMethod(HttpMethod.PUT)
                 .setUrl(configurer.octaneConfiguration.getUrl() +
@@ -339,26 +344,43 @@ final class BridgeServiceImpl implements BridgeService {
                         RestService.ANALYTICS_CI_PATH_PART + "servers/" + selfIdentity + "/tasks/" + taskId + "/result")
                 .setHeaders(headers)
                 .setBody(contentJSON)
-                .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT);// timeout on Octane side is 30 sec so enable timeout that one retry will be executed
+                .setTimeoutSec(PUT_ABRIDGE_RESULT_TIMEOUT); // Timeout per attempt
+
         long start = System.currentTimeMillis();
-        try {
-            OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
-            return octaneResponse.getStatus();
-        } catch (IOException ioe) {
-            long end = System.currentTimeMillis();
-            long duration = end - start;
-            System.out.println("DURATION OF THE RUN -----------------" + duration);
-            logger.error("{}failed to submit abridged task's result {}, rerun = {}, start = {} ,timeout = {} sec, took = {} ms",taskId, configurer.octaneConfiguration.getLocationForLog(),
-                    rerun,new SimpleDateFormat("dd/MM/yyyy HH:mm:ss,SSS").format(new Date(start)),PUT_ABRIDGE_RESULT_TIMEOUT,System.currentTimeMillis() - start, ioe);
-            if(!rerun) {
-                logger.info("Retrying to submit abridged task's result for taskId: {}", taskId);
-                CIPluginSDKUtils.doWait(1000);
-                return putAbridgedResult(selfIdentity, taskId, result, true);
-            } else {
-                return 0;
+        int retryCount = 0;
+
+        while (System.currentTimeMillis() - start <= MAX_ALLOWED_DURATION) {
+            try {
+                OctaneResponse octaneResponse = octaneRestClientImpl.execute(octaneRequest);
+                return octaneResponse.getStatus();  // Success, return the status
+            } catch (IOException ioe) {
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.error("{} failed to submit abridged task's result {}, start = {}, timeout = {} sec, took = {} ms",
+                        taskId, configurer.octaneConfiguration.getLocationForLog(),
+                        new SimpleDateFormat("dd/MM/yyyy HH:mm:ss,SSS").format(new Date(start)),
+                        PUT_ABRIDGE_RESULT_TIMEOUT, elapsedTime, ioe);
+
+                if (retryCount >= MAX_RETRY_ATTEMPTS || System.currentTimeMillis() - start + INITIAL_BACKOFF_MS * (1L << retryCount) > MAX_ALLOWED_DURATION) {
+                    logger.warn("Exceeded max allowed duration of {} ms or max retry attempts for taskId: {}", MAX_ALLOWED_DURATION, taskId);
+                    return 0;  // Return failure due to timeout or max retries
+                }
+
+                try {
+                    long backoffTime = INITIAL_BACKOFF_MS * (1L << retryCount);
+                    logger.info("Retrying to submit abridged task's result for taskId: {} after {} ms", taskId, backoffTime);
+                    Thread.sleep(backoffTime);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return 0;
+                }
+
+                retryCount++;
             }
         }
+
+        return 0;  // If the loop exits, return failure
     }
+
 
     private static final class AbridgedConnectivityExecutorsFactory implements ThreadFactory {
         public Thread newThread(Runnable runnable) {
