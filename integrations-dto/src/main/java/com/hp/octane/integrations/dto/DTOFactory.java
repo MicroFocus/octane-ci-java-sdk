@@ -1,8 +1,9 @@
-/**
- * Copyright 2017-2023 Open Text
+/*
+ * Copyright 2017-2025 Open Text
  *
+ * OpenText is a trademark of Open Text.
  * The only warranties for products and services of Open Text and
- * its affiliates and licensors (“Open Text”) are as may be set forth
+ * its affiliates and licensors ("Open Text") are as may be set forth
  * in the express warranty statements accompanying such products and services.
  * Nothing herein should be construed as constituting an additional warranty.
  * Open Text shall not be liable for technical or editorial errors or
@@ -28,7 +29,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.hp.octane.integrations.dto;
 
 import com.fasterxml.jackson.core.JsonProcessingException;

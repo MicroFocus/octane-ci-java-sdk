@@ -1,8 +1,9 @@
-/**
- * Copyright 2017-2023 Open Text
+/*
+ * Copyright 2017-2025 Open Text
  *
+ * OpenText is a trademark of Open Text.
  * The only warranties for products and services of Open Text and
- * its affiliates and licensors (“Open Text”) are as may be set forth
+ * its affiliates and licensors ("Open Text") are as may be set forth
  * in the express warranty statements accompanying such products and services.
  * Nothing herein should be construed as constituting an additional warranty.
  * Open Text shall not be liable for technical or editorial errors or
@@ -20,7 +21,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
