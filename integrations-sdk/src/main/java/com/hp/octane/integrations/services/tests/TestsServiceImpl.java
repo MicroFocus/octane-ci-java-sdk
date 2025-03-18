@@ -157,7 +157,7 @@ final class TestsServiceImpl implements TestsService {
 			OctaneResponse response = restService.obtainOctaneRestClient().execute(preflightRequest);
 			if (response.getStatus() == HttpStatus.SC_OK) {
 				return String.valueOf(true).equals(response.getBody());
-			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+			} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY || response.getStatus() == 429) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() == HttpStatus.SC_UNAUTHORIZED || response.getStatus() == HttpStatus.SC_FORBIDDEN) {
 				CIPluginSDKUtils.doWait(30000);
@@ -343,7 +343,7 @@ final class TestsServiceImpl implements TestsService {
 				if (response.getStatus() == HttpStatus.SC_ACCEPTED) {
 					logger.info(configurer.octaneConfiguration.getLocationForLog() + "successfully pushed test results for " + queueItem + "; status: " + response.getStatus() +
 							", response: " + response.getBody() + ", CorrelationId - " + response.getCorrelationId());
-				} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+				} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY || response.getStatus() == 429) {
 					throw new TemporaryException("push request TEMPORARILY failed with status " + response.getStatus());
 				} else {
 					throw new PermanentException("push request PERMANENTLY failed with status " + response.getStatus());

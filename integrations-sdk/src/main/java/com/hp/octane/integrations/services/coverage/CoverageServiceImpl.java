@@ -163,7 +163,7 @@ class CoverageServiceImpl implements CoverageService {
 			OctaneRequest preflightRequest = dtoFactory.newDTO(OctaneRequest.class).setMethod(HttpMethod.GET).setUrl(url);
 
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
-			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY || response.getStatus() == 429) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() != HttpStatus.SC_OK && response.getStatus() != HttpStatus.SC_NO_CONTENT) {
 				throw new PermanentException("preflight request failed with status " + response.getStatus());
@@ -292,7 +292,7 @@ class CoverageServiceImpl implements CoverageService {
 		OctaneResponse response = pushCoverage(queueItem.jobId, queueItem.buildId, queueItem.reportType, coverageReport);
 		if (response.getStatus() == HttpStatus.SC_OK) {
 			logger.info(configurer.octaneConfiguration.getLocationForLog() + "successfully pushed coverage of " + queueItem + ", CorrelationId - " + response.getCorrelationId());
-		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY || response.getStatus() == 429) {
 			throw new TemporaryException("temporary failed to push coverage of " + queueItem + ", status: " + HttpStatus.SC_SERVICE_UNAVAILABLE);
 		} else {
 			throw new PermanentException("permanently failed to push coverage of " + queueItem + ", status: " + response.getStatus());
