@@ -294,7 +294,7 @@ final class EventsServiceImpl implements EventsService {
 		} catch (IOException ioe) {
 			throw new TemporaryException(ioe);
 		}
-		if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+		if (octaneResponse.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || octaneResponse.getStatus() == HttpStatus.SC_BAD_GATEWAY || octaneResponse.getStatus() == 429) {
 			throw new TemporaryException("PUT events failed with status " + octaneResponse.getStatus());
 		} else if (octaneResponse.getStatus() == HttpStatus.SC_UNAUTHORIZED || octaneResponse.getStatus() == HttpStatus.SC_FORBIDDEN) {
 			CIPluginSDKUtils.doWait(30000);

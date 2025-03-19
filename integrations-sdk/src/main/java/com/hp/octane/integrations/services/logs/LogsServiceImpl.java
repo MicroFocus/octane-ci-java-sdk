@@ -263,7 +263,7 @@ final class LogsServiceImpl implements LogsService {
 					.setUrl(url);
 
 			response = restService.obtainOctaneRestClient().execute(preflightRequest);
-			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY) {
+			if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE || response.getStatus() == HttpStatus.SC_BAD_GATEWAY || response.getStatus() == 429) {
 				throw new TemporaryException("preflight request failed with status " + response.getStatus());
 			} else if (response.getStatus() == HttpStatus.SC_UNAUTHORIZED || response.getStatus() == HttpStatus.SC_FORBIDDEN) {
 				CIPluginSDKUtils.doWait(30000);

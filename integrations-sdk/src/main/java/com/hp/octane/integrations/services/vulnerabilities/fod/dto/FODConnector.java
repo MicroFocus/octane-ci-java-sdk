@@ -193,6 +193,9 @@ public class FODConnector implements FODSource {
 				if(response.getStatusLine().getStatusCode() == 503){
 					throw new TemporaryException("Service Unavailable ,  retry");
 				}
+				if(response.getStatusLine().getStatusCode() == 429){
+					throw new TemporaryException("Too Many Requests,  retry");
+				}
 				if(response.getStatusLine().getStatusCode() == 500){
 					throw new PermanentException("Internal FOD Server Error 500, failed to get vulnerability, httpGet: " + httpGet + "  unexpected return response : " +response.getStatusLine().getReasonPhrase());
 				}

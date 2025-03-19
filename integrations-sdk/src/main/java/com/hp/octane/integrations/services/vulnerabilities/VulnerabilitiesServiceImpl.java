@@ -293,6 +293,8 @@ public class VulnerabilitiesServiceImpl implements VulnerabilitiesService {
 			logger.info(configurer.octaneConfiguration.getLocationForLog() + "vulnerabilities push SUCCEED for " + jobId + " #" + buildId);
 		} else if (response.getStatus() == HttpStatus.SC_SERVICE_UNAVAILABLE) {
 			throw new TemporaryException("vulnerabilities push FAILED, service unavailable");
+		} else if (response.getStatus() == 429) {
+			throw new TemporaryException("vulnerabilities push FAILED, to many requests");
 		} else {
 			throw new PermanentException("vulnerabilities push FAILED, status " + response.getStatus() + "; dropping this item from the queue \n" + response.getBody());
 		}
