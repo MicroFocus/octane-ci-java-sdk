@@ -291,6 +291,11 @@ public class CIPluginSDKUtils {
 		//Service Temporarily Unavailable"
 	}
 
+	public static boolean isSharedSpaceIllegal(String body) {
+		return body != null && body.contains("illegal sharedspace");
+		//Received requests with illegal sharedspace ID
+	}
+
 	/**
 	 *
 	 * @param jobId current job id

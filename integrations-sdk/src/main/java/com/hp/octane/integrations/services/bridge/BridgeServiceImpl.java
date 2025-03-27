@@ -54,11 +54,11 @@ import java.io.InterruptedIOException;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.*;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Bridge Service meant to provide an abridged connection functionality
@@ -69,6 +69,7 @@ import java.util.concurrent.*;
 final class BridgeServiceImpl implements BridgeService {
     private static final Logger logger = LogManager.getLogger(BridgeServiceImpl.class);
     private static final DTOFactory dtoFactory = DTOFactory.getInstance();
+    private final Set<String> failedSharedSpaces = new HashSet<>();
 
     private final ExecutorService connectivityExecutors = Executors.newFixedThreadPool(5, new AbridgedConnectivityExecutorsFactory());
     private final ExecutorService taskProcessingExecutors = Executors.newFixedThreadPool(10, new AbridgedTasksExecutorsFactory());
@@ -219,6 +220,10 @@ final class BridgeServiceImpl implements BridgeService {
     }
 
     private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, String pluginVersion, String octaneUser, String ciServerUser) {
+        if (failedSharedSpaces.contains(configurer.octaneConfiguration.getSharedSpace())) {
+            return null;
+        }
+
         String responseBody = null;
         OctaneRestClient octaneRestClient = restService.obtainOctaneRestClient();
         Map<String, String> headers = new HashMap<>();
@@ -252,6 +257,8 @@ final class BridgeServiceImpl implements BridgeService {
                 if (octaneResponse.getStatus() == HttpStatus.SC_NO_CONTENT) {
                     logger.debug(configurer.octaneConfiguration.getLocationForLog() + "no tasks found on server");
                     setConnectionSuccessful();
+                } else if (CIPluginSDKUtils.isSharedSpaceIllegal(octaneResponse.getBody())) {
+                    failedSharedSpaces.add(configurer.octaneConfiguration.getSharedSpace());
                 } else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
                     logger.debug(configurer.octaneConfiguration.getLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
                     setConnectionSuccessful();
