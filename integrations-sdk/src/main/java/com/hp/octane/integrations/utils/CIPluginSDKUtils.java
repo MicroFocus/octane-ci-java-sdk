@@ -292,7 +292,7 @@ public class CIPluginSDKUtils {
 	}
 
 	public static boolean isSharedSpaceIllegal(String body) {
-		return body != null && body.contains("illegal sharedspace");
+		return body != null && body.contains("requests with illegal sharedspace ID");
 		//Received requests with illegal sharedspace ID
 	}
 

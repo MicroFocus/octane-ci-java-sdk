@@ -220,7 +220,7 @@ final class BridgeServiceImpl implements BridgeService {
     }
 
     private String getAbridgedTasks(String selfIdentity, String selfType, String selfUrl, String pluginVersion, String octaneUser, String ciServerUser) {
-        if (failedSharedSpaces.contains(configurer.octaneConfiguration.getSharedSpace())) {
+        if (failedSharedSpaces.contains(configurer.octaneConfiguration.getSharedSpace() + configurer.octaneConfiguration.getInstanceId())) {
             return null;
         }
 
@@ -258,7 +258,7 @@ final class BridgeServiceImpl implements BridgeService {
                     logger.debug(configurer.octaneConfiguration.getLocationForLog() + "no tasks found on server");
                     setConnectionSuccessful();
                 } else if (CIPluginSDKUtils.isSharedSpaceIllegal(octaneResponse.getBody())) {
-                    failedSharedSpaces.add(configurer.octaneConfiguration.getSharedSpace());
+                    failedSharedSpaces.add(configurer.octaneConfiguration.getSharedSpace() + configurer.octaneConfiguration.getInstanceId());
                 } else if (octaneResponse.getStatus() == HttpStatus.SC_REQUEST_TIMEOUT) {
                     logger.debug(configurer.octaneConfiguration.getLocationForLog() + "expected timeout disconnection on retrieval of abridged tasks, reconnecting immediately...");
                     setConnectionSuccessful();
