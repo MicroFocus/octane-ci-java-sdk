@@ -34,8 +34,10 @@ package com.hp.octane.integrations.executor.converters;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 public class CucumberJVMConverter extends TestsToRunConverter {
@@ -48,15 +50,16 @@ public class CucumberJVMConverter extends TestsToRunConverter {
 
         StringBuilder sb = new StringBuilder();
         String classJoiner = "";
-
+        Set<String> featureFilePaths = new HashSet<>();
         for (TestToRunData testData : data) {
             String featureFilePath = getFeatureFilePath(testData);
-            if (featureFilePath != null && !featureFilePath.isEmpty()) {
+            if (featureFilePath != null && !featureFilePath.isEmpty() && !featureFilePaths.contains(featureFilePath)) {
                 sb.append(classJoiner);
                 sb.append("'");
                 sb.append(featureFilePath);
                 sb.append("'");
                 classJoiner = " ";
+                featureFilePaths.add(featureFilePath);
             }
 
         }
