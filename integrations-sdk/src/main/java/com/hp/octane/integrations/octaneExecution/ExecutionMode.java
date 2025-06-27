@@ -40,7 +40,7 @@ import java.io.Serializable;
 
 public enum ExecutionMode implements Serializable {
 
-    SUITE_RUNS_IN_OCTANE("suite_runs_in_octane", "Execute suite runs in ALM Octane"),
+    SUITE_RUNS_IN_OCTANE("suite_runs_in_octane", "Execute suite runs in Software Delivery Management"),
     SUITE_IN_CI("suites_in_ci", "Get tests from suites and trigger execution jobs");
     //FAVORITES_IN_CI("favorites_in_ci", "Get tests from favorites and trigger execution jobs");
 
