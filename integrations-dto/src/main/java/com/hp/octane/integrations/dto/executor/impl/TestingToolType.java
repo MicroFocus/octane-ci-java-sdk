@@ -40,7 +40,8 @@ public enum TestingToolType {
 	CODELESS("codeless"),
 	MBT("mbt"),
 	MBT_TESTNG("mbt_testng"),
-	TESTNG("testng");
+	TESTNG("testng"),
+	MI_AGENT("mi_agent");
 
 	private final String value;
 
