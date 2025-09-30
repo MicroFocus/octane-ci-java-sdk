@@ -42,6 +42,8 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
+    <name>MicroFocus ALM Octane Common libraries for CI plugins SDK</name>
+
 	<artifactId>integrations-sdk</artifactId>
 
 	<properties>

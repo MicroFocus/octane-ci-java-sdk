@@ -42,6 +42,7 @@
 		<version>2.25.3-SNAPSHOT</version>
 	</parent>
 
+    <name>MicroFocus ALM Octane Common libraries for CI plugins DTO</name>
 	<artifactId>integrations-dto</artifactId>
 
 	<properties>
