@@ -358,7 +358,7 @@
 						<extensions>true</extensions>
 						<configuration>
 							<serverId>release-repository</serverId>
-							<nexusUrl>https://oss.sonatype.org/</nexusUrl>
+							<nexusUrl>https://central.sonatype.com/</nexusUrl>
 							<autoReleaseAfterClose>true</autoReleaseAfterClose>
 						</configuration>
 					</plugin>
