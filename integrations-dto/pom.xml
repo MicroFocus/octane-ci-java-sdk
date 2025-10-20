@@ -46,7 +46,7 @@
 	<artifactId>integrations-dto</artifactId>
 
 	<properties>
-		<jackson.version>2.19.2</jackson.version>
+		<jackson.version>2.18.3</jackson.version>
 	</properties>
 
 	<dependencies>
