@@ -112,7 +112,9 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	private long requestMonitorExecutorsAbortedCount = 0;
 	private long lastRequestMonitorWorkerTime = 0;
 	private final Map<HttpUriRequest, Long> ongoingRequests2Started = new HashMap();
-	private final long REQUEST_ABORT_TIMEOUT_MS = TimeUnit.SECONDS.toMillis(120);//120 sec in ms
+	private final long REQUEST_ABORT_TIMEOUT_MS =System.getProperty("octane.sdk.request.abort.timeout") != null ?
+                                                 TimeUnit.SECONDS.toMillis(Long.parseLong(System.getProperty("octane.sdk.request.abort.timeout")))  :
+                                                 TimeUnit.SECONDS.toMillis(120);//120 sec in ms
 	private final Object REQUESTS_LIST_LOCK = new Object();
 	private final Object RESET_LWSSO_TOKEN_LOCK = new Object();
 	private boolean shutdownActivated = false;
