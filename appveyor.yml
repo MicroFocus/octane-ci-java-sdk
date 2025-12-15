@@ -1,5 +1,5 @@
 install:
-- ps: choco install temurin17 -y
+- ps: choco install temurin11 -y
 - ps: |
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     if (!(Test-Path -Path "C:\maven" )) {
@@ -10,7 +10,7 @@ install:
       [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
     }
 - cmd: |
-    FOR /D %%F IN ("C:\Program Files\Eclipse Adoptium\jdk-17*") DO SET JAVA_HOME=%%F
+    FOR /D %%F IN ("C:\Program Files\Eclipse Adoptium\jdk-11*") DO SET JAVA_HOME=%%F
     SET PATH=C:\maven\apache-maven-3.9.11\bin;%JAVA_HOME%\bin;%PATH%
     java -version
 
