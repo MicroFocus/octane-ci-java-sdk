@@ -82,8 +82,8 @@
 			<version>${log4j.version}</version>
 		</dependency>
 		<dependency>
-            <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
+            <groupId>org.apache.httpcomponents</groupId>
 			<version>${httpclient.version}</version>
 			<exclusions>
 				<exclusion>
