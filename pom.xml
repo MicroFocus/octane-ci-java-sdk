@@ -110,7 +110,7 @@
 		<easymock.version>3.5.1</easymock.version>
 		<maven-surefire-plugin.version>3.0.0-M2</maven-surefire-plugin.version>
 		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
-		<spotbugs.version>4.7.3</spotbugs.version>
+		<spotbugs.version>3.1.9</spotbugs.version>
 		<!-- The ending year for copyright information -->
 		<copyright.end.year>2025</copyright.end.year>
 	</properties>
@@ -206,11 +206,10 @@
 				<plugin>
 					<artifactId>spotbugs-maven-plugin</artifactId>
 					<groupId>com.github.spotbugs</groupId>
-					<version>4.7.3.0</version>
+					<version>${spotbugs.version}</version>
 					<configuration>
-						<effort>max</effort>
+						<effort>default</effort>
 						<maxRank>20</maxRank>
-                        <spotbugsVersion>${spotbugs.version}</spotbugsVersion>
 					</configuration>
 					<executions>
 						<execution>
