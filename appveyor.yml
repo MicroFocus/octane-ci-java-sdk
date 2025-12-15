@@ -15,10 +15,10 @@ install:
     java -version
 
 build_script:
-- mvn compile spotbugs:check -T1
+- mvn compile spotbugs:check -T8
 
 test_script:
-- mvn test -T1 -P jacoco-coverage
+- mvn test -T8 -P jacoco-coverage
 
 
 cache:
