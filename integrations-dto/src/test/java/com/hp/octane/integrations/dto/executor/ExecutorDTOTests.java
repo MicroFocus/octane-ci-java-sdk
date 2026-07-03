@@ -35,8 +35,8 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.dto.scm.SCMRepository;
 import com.hp.octane.integrations.dto.scm.SCMType;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -64,7 +64,7 @@ public class ExecutorDTOTests {
                 .setScmRepository(scm);
 
         String json = dtoFactory.dtoToJson(discInfo);
-        Assert.assertNotNull(json);
+        Assertions.assertNotNull(json);
     }
 
 }

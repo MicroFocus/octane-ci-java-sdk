@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.pipelines;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PipelineContextServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new PipelineContextServiceImpl(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new PipelineContextServiceImpl(null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new PipelineContextServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new PipelineContextServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		PipelineContextService.newInstance(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            PipelineContextService.newInstance(null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		PipelineContextService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            PipelineContextService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null));
+    }
 }

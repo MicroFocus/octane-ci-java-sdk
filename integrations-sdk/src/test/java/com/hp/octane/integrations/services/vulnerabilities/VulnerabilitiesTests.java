@@ -38,8 +38,8 @@ import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCHandler;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCProjectConnector;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,10 +68,10 @@ public class VulnerabilitiesTests {
         String artifactsURL = sscProjectConnector.getArtifactsURL(100, 1000);
         String urlForProjectVersion = sscProjectConnector.getURLForProjectVersion(500);
 
-        Assert.assertEquals(projectIdURL, "projects?q=name:project");
-        Assert.assertEquals(newIssuesURL, "projectVersions/1/issues?showhidden=false&showremoved=false&showsuppressed=false");
-        Assert.assertEquals(artifactsURL, "projectVersions/100/artifacts?limit=1000");
-        Assert.assertEquals(urlForProjectVersion, "projects/500/versions?q=name:version");
+        Assertions.assertEquals(projectIdURL, "projects?q=name:project");
+        Assertions.assertEquals(newIssuesURL, "projectVersions/1/issues?showhidden=false&showremoved=false&showsuppressed=false");
+        Assertions.assertEquals(artifactsURL, "projectVersions/100/artifacts?limit=1000");
+        Assertions.assertEquals(urlForProjectVersion, "projects/500/versions?q=name:version");
     }
 
     @Test
@@ -94,9 +94,9 @@ public class VulnerabilitiesTests {
         List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag", new HashMap<>());
         for (int i = 0; i < 4; i++) {
             if (i != 3) {
-                Assert.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
+                Assertions.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
             } else {
-                Assert.assertNull(octaneIssues.get(i).getAnalysis());
+                Assertions.assertNull(octaneIssues.get(i).getAnalysis());
             }
         }
     }
@@ -127,9 +127,9 @@ public class VulnerabilitiesTests {
 
         for (int i = 0; i < 5; i++) {
             if (i != 4) {
-                Assert.assertEquals(expectedValues[i], octaneIssues.get(i).getState().getId());
+                Assertions.assertEquals(expectedValues[i], octaneIssues.get(i).getState().getId());
             } else {
-                Assert.assertNull(octaneIssues.get(i).getState());
+                Assertions.assertNull(octaneIssues.get(i).getState());
             }
         }
     }
@@ -149,12 +149,12 @@ public class VulnerabilitiesTests {
         SSCHandler sscHandler = new SSCHandler();
         List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(), "Tag", new HashMap<>());
 
-        Assert.assertEquals("name", octaneIssues.getFirst().getExtendedData().get("issueName"));
-        Assert.assertEquals("2.5", octaneIssues.getFirst().getExtendedData().get("likelihood"));
-        Assert.assertEquals("kingdom", octaneIssues.getFirst().getExtendedData().get("kingdom"));
-        Assert.assertEquals("2.5", octaneIssues.getFirst().getExtendedData().get("impact"));
-        Assert.assertEquals("confidence", octaneIssues.getFirst().getExtendedData().get("confidence"));
-        Assert.assertEquals("removedDate", octaneIssues.getFirst().getExtendedData().get("removedDate"));
+        Assertions.assertEquals("name", octaneIssues.getFirst().getExtendedData().get("issueName"));
+        Assertions.assertEquals("2.5", octaneIssues.getFirst().getExtendedData().get("likelihood"));
+        Assertions.assertEquals("kingdom", octaneIssues.getFirst().getExtendedData().get("kingdom"));
+        Assertions.assertEquals("2.5", octaneIssues.getFirst().getExtendedData().get("impact"));
+        Assertions.assertEquals("confidence", octaneIssues.getFirst().getExtendedData().get("confidence"));
+        Assertions.assertEquals("removedDate", octaneIssues.getFirst().getExtendedData().get("removedDate"));
     }
 
     @Test
@@ -171,20 +171,20 @@ public class VulnerabilitiesTests {
         SSCHandler sscHandler = new SSCHandler();
         List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag", new HashMap<>());
 
-        Assert.assertEquals(octaneIssues.getFirst().getPrimaryLocationFull(), "fullFileName");
-        Assert.assertEquals(String.valueOf(octaneIssues.getFirst().getLine()), String.valueOf(100));
-        Assert.assertEquals(octaneIssues.getFirst().getRemoteId(), "ID_ID_ID");
-        Assert.assertNotNull(octaneIssues.getFirst().getIntroducedDate());
-        Assert.assertEquals(octaneIssues.getFirst().getExternalLink(), "hRef");
+        Assertions.assertEquals(octaneIssues.getFirst().getPrimaryLocationFull(), "fullFileName");
+        Assertions.assertEquals(String.valueOf(octaneIssues.getFirst().getLine()), String.valueOf(100));
+        Assertions.assertEquals(octaneIssues.getFirst().getRemoteId(), "ID_ID_ID");
+        Assertions.assertNotNull(octaneIssues.getFirst().getIntroducedDate());
+        Assertions.assertEquals(octaneIssues.getFirst().getExternalLink(), "hRef");
     }
 
     @Test
     public void deserializeIssues(){
 
         Issues issues = SSCProjectConnector.stringToObject(sampleSSCIssues, Issues.class);
-        Assert.assertEquals(1,issues.getCount());
-        Assert.assertEquals(1,issues.getData().size());
-        Assert.assertEquals("pom.xml",issues.getData().getFirst().fullFileName);
+        Assertions.assertEquals(1,issues.getCount());
+        Assertions.assertEquals(1,issues.getData().size());
+        Assertions.assertEquals("pom.xml",issues.getData().getFirst().fullFileName);
 
     }
     private final String sampleSSCIssues = """

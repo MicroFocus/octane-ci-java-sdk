@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.bridge;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class BridgeServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new BridgeServiceImpl(null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new BridgeServiceImpl(null, null, null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new BridgeServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new BridgeServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		BridgeService.newInstance(null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            BridgeService.newInstance(null, null, null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		BridgeService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            BridgeService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null));
+    }
 }

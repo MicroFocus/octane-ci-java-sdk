@@ -49,8 +49,9 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.util.Callback;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -65,6 +66,7 @@ import java.util.zip.GZIPInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -78,7 +80,8 @@ import java.util.stream.Stream;
 public class VulnerabilitiesServiceFunctionalityTest {
     private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceFunctionalityTest.class);
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testVulnerabilitiesFunctional() {
         Map<String, OctaneSPEndpointSimulator> simulators = null;
 
@@ -103,8 +106,8 @@ public class VulnerabilitiesServiceFunctionalityTest {
             OctaneConfiguration configA = new OctaneConfigurationIntern(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
             OctaneClient clientA = OctaneSDK.addClient(configA, VulnerabilitiesServicePluginServicesTest.class);
             VulnerabilitiesService vulnerabilitiesServiceA = clientA.getVulnerabilitiesService();
-            Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
-            Assert.assertFalse(preflightRequestCollectors.containsKey(spIdB));
+            Assertions.assertFalse(preflightRequestCollectors.containsKey(spIdA));
+            Assertions.assertFalse(preflightRequestCollectors.containsKey(spIdB));
 
             //
             //  II
@@ -126,10 +129,10 @@ public class VulnerabilitiesServiceFunctionalityTest {
                     return null;
                 }
             });
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdA).getFirst());
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdA).get(1));
-            Assert.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdB).getFirst());
-            Assert.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdB).get(1));
+            Assertions.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdA).getFirst());
+            Assertions.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdA).get(1));
+            Assertions.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdB).getFirst());
+            Assertions.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdB).get(1));
 
             //
             //  III
@@ -153,7 +156,8 @@ public class VulnerabilitiesServiceFunctionalityTest {
         }
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testVulnerabilitiesFunctionalSSC() {
         Map<String, OctaneSPEndpointSimulator> simulators = null;
 
@@ -190,7 +194,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
                 }
             });
 
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preflightRequestCollectors.get(spIdA).getFirst());
+            Assertions.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preflightRequestCollectors.get(spIdA).getFirst());
 
             OctaneSDK.removeClient(clientA);
 
@@ -204,7 +208,8 @@ public class VulnerabilitiesServiceFunctionalityTest {
         }
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABUpdatedCClosedDMissingENewNoBaseline() throws IOException {
 
         Issues.Issue issueA = new Issues.Issue();
@@ -247,10 +252,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
                 expectedPushToOctane);
 
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABUpdatedCClosedDMissingENewFGBeforeBaseline() throws IOException {
 
 
@@ -315,10 +321,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
                 expectedPushToOctane);
 
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABDMissingENewFGBeforeBaseline() throws IOException {
 
 
@@ -381,10 +388,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
         SSCIntegrationTest sscIntegrationTest = new SSCIntegrationTest(octaneInput,
                 sscInput, expectedPushToOctane);
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABCClosedENEW() throws IOException {
 
 
@@ -411,10 +419,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
         SSCIntegrationTest sscIntegrationTest = new SSCIntegrationTest(octaneInput,
                 sscInput, expectedPushToOctane);
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testNoPushToOctane() throws IOException {
 
 
@@ -430,7 +439,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
         SSCIntegrationTest sscIntegrationTest = new SSCIntegrationTest(octaneInput,
                 sscInput, expectedPushToOctane);
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
     private Map<String, OctaneSPEndpointSimulator> initSPEPSimulators(

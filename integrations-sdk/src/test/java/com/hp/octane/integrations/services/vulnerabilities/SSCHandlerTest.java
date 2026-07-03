@@ -37,9 +37,9 @@ import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCHandler;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.DummyContents;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.MockSSCRestClient;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -47,13 +47,14 @@ import java.util.Optional;
 
 import static com.hp.octane.integrations.services.vulnerabilities.SSCTestUtils.*;
 import static org.easymock.EasyMock.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SSCHandlerTest {
 
     VulnerabilitiesQueueItem queueItem;
     SSCProjectConfiguration configMock;
 
-    @Before
+    @BeforeEach
     public void prepareMembers(){
         queueItem = new
                 VulnerabilitiesQueueItem();
@@ -74,7 +75,7 @@ public class SSCHandlerTest {
                 artifactResponse));
 
         SSCHandler sscHandler = new SSCHandler(queueItem, configMock, mockSSCRestClient);
-        Assert.assertFalse(sscHandler.isScanProcessFinished());
+        Assertions.assertFalse(sscHandler.isScanProcessFinished());
     }
 
     @Test
@@ -91,24 +92,26 @@ public class SSCHandlerTest {
 
         SSCHandler sscHandler = new SSCHandler(queueItem, configMock, mockSSCRestClient);
         Optional<Issues> issuesIfScanCompleted = sscHandler.getIssuesIfScanCompleted();
-        Assert.assertTrue(issuesIfScanCompleted.isPresent());
-        Assert.assertEquals(0, issuesIfScanCompleted.get().getData().size());
+        Assertions.assertTrue(issuesIfScanCompleted.isPresent());
+        Assertions.assertEquals(0, issuesIfScanCompleted.get().getData().size());
 
     }
 
-    @Test(expected = PermanentException.class)
+    @Test
     public void errorInScanTest() throws IOException {
+        assertThrows(PermanentException.class, () -> {
 
-        String projectResponse = getDummyProjectResponse();
-        String projectVersionsResponse = getProjectVersionResponse();
-        String artifactResponse = getArtificatResponse("ERROR_PROCESSING");
+            String projectResponse = getDummyProjectResponse();
+            String projectVersionsResponse = getProjectVersionResponse();
+            String artifactResponse = getArtificatResponse("ERROR_PROCESSING");
 
-        MockSSCRestClient mockSSCRestClient = new MockSSCRestClient(Arrays.asList(projectResponse,
-                projectVersionsResponse,
-                artifactResponse));
+            MockSSCRestClient mockSSCRestClient = new MockSSCRestClient(Arrays.asList(projectResponse,
+                    projectVersionsResponse,
+                    artifactResponse));
 
-        SSCHandler sscHandler = new SSCHandler(queueItem, configMock, mockSSCRestClient);
-        sscHandler.isScanProcessFinished();
+            SSCHandler sscHandler = new SSCHandler(queueItem, configMock, mockSSCRestClient);
+            sscHandler.isScanProcessFinished();
+        });
     }
 
     @Test
@@ -127,8 +130,8 @@ public class SSCHandlerTest {
 
         SSCHandler sscHandler = new SSCHandler(queueItem, configMock, mockSSCRestClient);
         Optional<Issues> issuesIfScanCompleted = sscHandler.getIssuesIfScanCompleted();
-        Assert.assertTrue(issuesIfScanCompleted.isPresent());
-        Assert.assertEquals(3, issuesIfScanCompleted.get().getData().size());
+        Assertions.assertTrue(issuesIfScanCompleted.isPresent());
+        Assertions.assertEquals(3, issuesIfScanCompleted.get().getData().size());
     }
 
 

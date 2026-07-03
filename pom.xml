@@ -124,11 +124,6 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<artifactId>junit</artifactId>
-				<groupId>junit</groupId>
-				<version>${junit.version}</version>
-			</dependency>
-			<dependency>
 				<artifactId>easymock</artifactId>
 				<groupId>org.easymock</groupId>
 				<version>${easymock.version}</version>

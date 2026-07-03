@@ -33,8 +33,8 @@ package uftTest;
 
 import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
@@ -46,7 +46,7 @@ public class RunResultsTestGetAggregatedError {
     public void testOneError() {
         String err = getAggregatedError("run_results.xml");
         String expected = "Cannot identify the object \"rabbit\" (of class WebElement).";
-        Assert.assertEquals(expected, err);
+        Assertions.assertEquals(expected, err);
     }
 
     @Test
@@ -56,7 +56,7 @@ public class RunResultsTestGetAggregatedError {
                 The following add-in(s) were associated with your test, but are not currently loaded: WinForms, WPF. (Warning).\s
                 ActiveX component can't create object: 'WpfWindow'.\s\
                 """;
-        Assert.assertEquals(expected, err);
+        Assertions.assertEquals(expected, err);
     }
 
     @Test
@@ -66,7 +66,7 @@ public class RunResultsTestGetAggregatedError {
                 This step always fail.\s
                 This step always warn (Warning).\s\
                 """;
-        Assert.assertEquals(expected, err);
+        Assertions.assertEquals(expected, err);
     }
 
     @Test
@@ -76,14 +76,14 @@ public class RunResultsTestGetAggregatedError {
                 This step is always ends with warning (Warning).\s
                 This step is also  always ends with warning (Warning).\s\
                 """;
-        Assert.assertEquals(expected, err);
+        Assertions.assertEquals(expected, err);
     }
 
     @Test
     public void testResultForComputerLocked() {
         String err = getAggregatedError("run_results_computer_locked.xml");
         String expected = "The Micro Focus Unified Functional Testing computer is locked or logged off.";
-        Assert.assertEquals(expected, err);
+        Assertions.assertEquals(expected, err);
     }
 
 

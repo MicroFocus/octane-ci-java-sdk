@@ -36,8 +36,8 @@ import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCProjectConnect
 import com.hp.octane.integrations.services.vulnerabilities.mocks.DummyContents;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.MockSSCRestClient;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
@@ -57,10 +57,10 @@ public class SSCProjectConnectorPagingTest {
                         DummyContents.issuesPart2,
                         DummyContents.issuesPart3)));
         Issues issues = sscProjectConnector.readIssues(1);
-        Assert.assertEquals(3,issues.getCount());
-        Assert.assertEquals("Issue 1",issues.getData().getFirst().issueName);
-        Assert.assertEquals("Issue 2",issues.getData().get(1).issueName);
-        Assert.assertEquals("Issue 3",issues.getData().get(2).issueName);
+        Assertions.assertEquals(3,issues.getCount());
+        Assertions.assertEquals("Issue 1",issues.getData().getFirst().issueName);
+        Assertions.assertEquals("Issue 2",issues.getData().get(1).issueName);
+        Assertions.assertEquals("Issue 3",issues.getData().get(2).issueName);
 
     }
 

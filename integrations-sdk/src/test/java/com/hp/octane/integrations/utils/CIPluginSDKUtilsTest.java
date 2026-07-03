@@ -32,20 +32,23 @@
 package com.hp.octane.integrations.utils;
 
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class CIPluginSDKUtilsTest {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testDoWaitBadParameter() {
-		CIPluginSDKUtils.doWait(0);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.doWait(0));
+    }
 
 	@Test
 	public void testDoWaitNoInterrupt() {
@@ -54,7 +57,7 @@ public class CIPluginSDKUtilsTest {
 
 		CIPluginSDKUtils.doWait(timeToWait);
 		long ended = System.currentTimeMillis();
-		Assert.assertTrue(ended - started >= timeToWait);
+		Assertions.assertTrue(ended - started >= timeToWait);
 	}
 
 	@Test
@@ -69,18 +72,20 @@ public class CIPluginSDKUtilsTest {
 		}).start();
 		CIPluginSDKUtils.doWait(timeToWait);
 		long ended = System.currentTimeMillis();
-		Assert.assertTrue(ended - started >= timeToWait);
+		Assertions.assertTrue(ended - started >= timeToWait);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testDoBreakableWaitBadParameterA() {
-		CIPluginSDKUtils.doBreakableWait(0, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.doBreakableWait(0, null));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testDoBreakableWaitBadParameterB() {
-		CIPluginSDKUtils.doBreakableWait(1, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.doBreakableWait(1, null));
+    }
 
 	@Test
 	public void testDoBreakableWaitNoInterrupt() {
@@ -90,7 +95,7 @@ public class CIPluginSDKUtilsTest {
 
 		CIPluginSDKUtils.doBreakableWait(timeToWait, monitor);
 		long ended = System.currentTimeMillis();
-		Assert.assertTrue(ended - started >= timeToWait);
+		Assertions.assertTrue(ended - started >= timeToWait);
 	}
 
 	@Test
@@ -108,7 +113,7 @@ public class CIPluginSDKUtilsTest {
 		}).start();
 		CIPluginSDKUtils.doBreakableWait(timeToWait, monitor);
 		long ended = System.currentTimeMillis();
-		Assert.assertTrue(ended - started >= timeToWait);
+		Assertions.assertTrue(ended - started >= timeToWait);
 	}
 
 	@Test
@@ -125,34 +130,37 @@ public class CIPluginSDKUtilsTest {
 		}).start();
 		CIPluginSDKUtils.doBreakableWait(timeToWait, monitor);
 		long ended = System.currentTimeMillis();
-		Assert.assertTrue(ended - started > timeToWait / 2);
-		Assert.assertTrue(ended - started < timeToWait);
+		Assertions.assertTrue(ended - started > timeToWait / 2);
+		Assertions.assertTrue(ended - started < timeToWait);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testInputStreamToStringA() throws IOException {
-		CIPluginSDKUtils.inputStreamToUTF8String(null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.inputStreamToUTF8String(null));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testInputStreamToStringB() throws IOException {
-		CIPluginSDKUtils.inputStreamToString(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.inputStreamToString(null, null));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testInputStreamToStringC() throws IOException {
-		CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream("some text".getBytes()), null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream("some text".getBytes()), null));
+    }
 
 	@Test
 	public void testInputStreamToStringD() throws IOException {
 		String text = "some text to test";
 
 		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())), StandardCharsets.UTF_8);
-		Assert.assertEquals(text, test);
+		Assertions.assertEquals(text, test);
 
 		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()), StandardCharsets.UTF_8);
-		Assert.assertEquals(text, test);
+		Assertions.assertEquals(text, test);
 	}
 
 	@Test
@@ -160,7 +168,7 @@ public class CIPluginSDKUtilsTest {
 		String text = "some text to test וגם בעברית и по русски чуток";
 
 		String test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())), StandardCharsets.UTF_8);
-		Assert.assertEquals(text, test);
+		Assertions.assertEquals(text, test);
 
 		//  the case below may fail on unpredictable default charset in different environments, temporary disabled
 //		test = CIPluginSDKUtils.inputStreamToString(new ByteArrayInputStream(text.getBytes()), Charset.defaultCharset());
@@ -171,140 +179,143 @@ public class CIPluginSDKUtilsTest {
 	public void testInputStreamToStringF() throws IOException {
 		String text = "some text to test וגם בעברית и по русски чуток";
 		String test = CIPluginSDKUtils.inputStreamToUTF8String(new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8.name())));
-		Assert.assertEquals(text, test);
+		Assertions.assertEquals(text, test);
 	}
 
 	@Test
 	public void testsParseURLPos() {
 		URL url = CIPluginSDKUtils.parseURL("http://localhost:8080");
-		Assert.assertNotNull(url);
+		Assertions.assertNotNull(url);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testsParseURLNeg1() {
-		CIPluginSDKUtils.parseURL("something-wrong-here");
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.parseURL("something-wrong-here"));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testsParseURLNeg2() {
-		CIPluginSDKUtils.parseURL(null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.parseURL(null));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testsParseURLNeg3() {
-		CIPluginSDKUtils.parseURL("");
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CIPluginSDKUtils.parseURL(""));
+    }
 
 	@Test
 	public void testURLEncodePathParamsPos() {
 		String encoded = CIPluginSDKUtils.urlEncodePathParam("some string to . be in path");
-		Assert.assertEquals("some%20string%20to%20.%20be%20in%20path", encoded);
+		Assertions.assertEquals("some%20string%20to%20.%20be%20in%20path", encoded);
 	}
 
 	@Test
 	public void testURLEncodePathParamsNeg1() {
 		String encoded = CIPluginSDKUtils.urlEncodePathParam(null);
-		Assert.assertNull(encoded);
+		Assertions.assertNull(encoded);
 	}
 
 	@Test
 	public void testURLEncodePathParamsPos2() {
 		String encoded = CIPluginSDKUtils.urlEncodePathParam("");
-		Assert.assertEquals("", encoded);
+		Assertions.assertEquals("", encoded);
 	}
 
 	@Test
 	public void testURLEncodeQueryParamsPos() {
 		String encoded = CIPluginSDKUtils.urlEncodeQueryParam("some string to . be in path");
-		Assert.assertEquals("some+string+to+.+be+in+path", encoded);
+		Assertions.assertEquals("some+string+to+.+be+in+path", encoded);
 	}
 
 	@Test
 	public void testURLEncodeQueryParamsNeg1() {
 		String encoded = CIPluginSDKUtils.urlEncodeQueryParam(null);
-		Assert.assertNull(encoded);
+		Assertions.assertNull(encoded);
 	}
 
 	@Test
 	public void testURLEncodeQueryParamsPos2() {
 		String encoded = CIPluginSDKUtils.urlEncodeQueryParam("");
-		Assert.assertEquals("", encoded);
+		Assertions.assertEquals("", encoded);
 	}
 
 	//  is non-proxy host tests
 	@Test
 	public void testIsNotProxyHostNeg() {
 		boolean result = CIPluginSDKUtils.isNonProxyHost(null, null);
-		Assert.assertFalse(result);
+		Assertions.assertFalse(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("", null);
-		Assert.assertFalse(result);
+		Assertions.assertFalse(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", null);
-		Assert.assertFalse(result);
+		Assertions.assertFalse(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "");
-		Assert.assertFalse(result);
+		Assertions.assertFalse(result);
 	}
 
 	@Test
 	public void testIsNotProxyHost() {
 		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "some");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some.host", "some");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "some.host");
-		Assert.assertFalse(result);
+		Assertions.assertFalse(result);
 	}
 
 	@Test
 	public void testIsNotProxyHostWildcard() {
 		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "some*");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some.host", "*me.ho*");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "s*e");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 	}
 
 	@Test
 	public void testIsNotProxyHostWildcardMulti() {
 		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "localhost|some*");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some.host", "*me.ho*|localhost");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "first|s*e|last");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "first|s*e||||last");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "first  |s*e|||    |la,st");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 	}
 
 	@Test
 	public void testIsNotProxyHostWildcardMultiWithQuotations() {
 		boolean result = CIPluginSDKUtils.isNonProxyHost("some", "'localhost|some*'");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some.host", "\"*me.ho*|localhost\"");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "\"first|s*e|last\"");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "\"first|s*e||||last\"");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 
 		result = CIPluginSDKUtils.isNonProxyHost("some", "'first  |s*e|||    |la,st'");
-		Assert.assertTrue(result);
+		Assertions.assertTrue(result);
 	}
 
 	private Object objectFromForeignThread() {

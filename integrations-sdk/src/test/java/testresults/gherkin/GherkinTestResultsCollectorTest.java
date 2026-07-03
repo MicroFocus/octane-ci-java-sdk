@@ -34,8 +34,8 @@ package testresults.gherkin;
 import com.hp.octane.integrations.testresults.GherkinUtils;
 import com.hp.octane.integrations.testresults.GherkinXmlWritableTestResult;
 import com.hp.octane.integrations.testresults.XmlWritableTestResult;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -45,6 +45,8 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class GherkinTestResultsCollectorTest {
 
@@ -77,39 +79,41 @@ public class GherkinTestResultsCollectorTest {
     @Test
     public void testGetResults() throws ParserConfigurationException, IOException, SAXException {
         List<XmlWritableTestResult> gherkinTestsResults = GherkinUtils.parseFiles(getFilesFromFolder("f1"));
-        Assert.assertEquals(3, gherkinTestsResults.size());
+        Assertions.assertEquals(3, gherkinTestsResults.size());
         validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.getFirst(), "test Feature1", 21, "Failed");
         validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(1), "test Feature10", 21, "Failed");
         validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(2), "test Feature2", 21, "Passed");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testXmlHasNoVersion() throws ParserConfigurationException, IOException, SAXException {
-        GherkinUtils.parseFiles(Arrays.asList(new File(getRootResource("f2", file0))));
+        assertThrows(IllegalArgumentException.class, () ->
+            GherkinUtils.parseFiles(Arrays.asList(new File(getRootResource("f2", file0)))));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testXmlHasHigherVersion() throws ParserConfigurationException, IOException, SAXException {
-        GherkinUtils.parseFiles(Arrays.asList(new File(getRootResource("f3", file1))));
+        assertThrows(IllegalArgumentException.class, () ->
+            GherkinUtils.parseFiles(Arrays.asList(new File(getRootResource("f3", file1)))));
     }
 
     @Test
     public void testTemplateWithCounter() {
         String folder = new File(getRootResource("f3", file0)).getParent();
         List<File> files = GherkinUtils.findGherkinFilesByTemplateWithCounter(folder, "OctaneGherkinResults%s.xml", 0);
-        Assert.assertEquals(file0, files.getFirst().getName());
-        Assert.assertEquals(file1, files.get(1).getName());
+        Assertions.assertEquals(file0, files.getFirst().getName());
+        Assertions.assertEquals(file1, files.get(1).getName());
     }
 
     private void validateGherkinTestResult(GherkinXmlWritableTestResult gherkinTestResult, String name, long duration, String status) {
         validateAttributes(gherkinTestResult, name, duration, status);
-        Assert.assertNotNull(gherkinTestResult.getXmlElement());
+        Assertions.assertNotNull(gherkinTestResult.getXmlElement());
     }
 
     private void validateAttributes(GherkinXmlWritableTestResult gherkinTestResult, String name, long duration, String status) {
         Map<String, String> attributes = gherkinTestResult.getAttributes();
-        Assert.assertEquals(name, attributes.get("name"));
-        Assert.assertEquals(String.valueOf(duration), attributes.get("duration"));
-        Assert.assertEquals(status, attributes.get("status"));
+        Assertions.assertEquals(name, attributes.get("name"));
+        Assertions.assertEquals(String.valueOf(duration), attributes.get("duration"));
+        Assertions.assertEquals(status, attributes.get("status"));
     }
 }

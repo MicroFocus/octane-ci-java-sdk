@@ -33,18 +33,24 @@ package com.hp.octane.integrations.services.tasking;
 
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.services.configuration.ConfigurationService;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TaskingServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new TasksProcessorImpl(null,null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new TasksProcessorImpl(null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new TasksProcessorImpl((OctaneSDK.SDKServicesConfigurer) new Object(),(ConfigurationService) new Object());
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new TasksProcessorImpl((OctaneSDK.SDKServicesConfigurer) new Object(), (ConfigurationService) new Object());
+        });
+    }
 
 }

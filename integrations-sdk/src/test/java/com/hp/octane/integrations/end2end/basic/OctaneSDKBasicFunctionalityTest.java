@@ -55,11 +55,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.server.Request;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -74,8 +76,9 @@ public class OctaneSDKBasicFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(OctaneSDKBasicFunctionalityTest.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(timeout = 600000)
-	public void testE2EFunctional() throws ExecutionException, InterruptedException {
+    @Test
+    @Timeout(value = 600000, unit = TimeUnit.MILLISECONDS)
+    public void testE2EFunctional() throws ExecutionException, InterruptedException {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
 		Map<String, List<TestsResult>> testResultsCollectors = new LinkedHashMap<>();
@@ -123,12 +126,12 @@ public class OctaneSDKBasicFunctionalityTest {
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					eventsCollectors.get(spIdA).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 					//  TODO: add deeper verification
 					return true;
@@ -198,22 +201,22 @@ public class OctaneSDKBasicFunctionalityTest {
 						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					//  client A
 					eventsCollectors.get(spIdA).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 
 					//  client B
 					eventsCollectors.get(spIdB).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 
 					//  TODO: add deeper verification
@@ -278,14 +281,14 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
-					Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
 					eventsCollectors.get(spIdB).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 					//  TODO: add deeper verification
 					return true;
@@ -297,7 +300,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate tests
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
-					Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -308,7 +311,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate logs
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
-					Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -319,7 +322,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate coverages
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
-					Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -346,14 +349,14 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			CIPluginSDKUtils.doWait(4000);
 
-			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 
 			//
 			//  V
@@ -378,14 +381,14 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			CIPluginSDKUtils.doWait(4000);
 
-			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 			OctaneSDK.removeClient(clientA);
 
 			//
@@ -412,14 +415,14 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			CIPluginSDKUtils.doWait(4000);
 
-			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 
 
 			//
@@ -440,12 +443,12 @@ public class OctaneSDKBasicFunctionalityTest {
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					eventsCollectors.get(spIdA).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 					//  TODO: add deeper verification
 					return true;
@@ -539,10 +542,10 @@ public class OctaneSDKBasicFunctionalityTest {
 					String instanceId = Request.getParameters(request).getValue("instance-id");
 					String jobCiId = Request.getParameters(request).getValue("job-ci-id");
 					String buildCiId = Request.getParameters(request).getValue("build-ci-id");
-					Assert.assertEquals(instanceId, testsResult.getBuildContext().getServerId());
-					Assert.assertTrue(jobCiId.equals(CIPluginSDKUtils.urlEncodeBase64(testsResult.getBuildContext().getJobId())) ||
+					Assertions.assertEquals(instanceId, testsResult.getBuildContext().getServerId());
+					Assertions.assertTrue(jobCiId.equals(CIPluginSDKUtils.urlEncodeBase64(testsResult.getBuildContext().getJobId())) ||
 									  jobCiId.equals(testsResult.getBuildContext().getJobId()));
-					Assert.assertEquals(buildCiId, testsResult.getBuildContext().getBuildId());
+					Assertions.assertEquals(buildCiId, testsResult.getBuildContext().getBuildId());
 					testResultsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(testsResult);

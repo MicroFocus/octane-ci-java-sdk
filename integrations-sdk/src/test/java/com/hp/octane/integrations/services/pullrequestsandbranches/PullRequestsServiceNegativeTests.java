@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.pullrequestsandbranches;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class PullRequestsServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new PullRequestAndBranchServiceImpl(null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new PullRequestAndBranchServiceImpl(null, null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new PullRequestAndBranchServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new PullRequestAndBranchServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		PullRequestAndBranchService.newInstance(null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            PullRequestAndBranchService.newInstance(null, null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		PullRequestAndBranchService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            PullRequestAndBranchService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null));
+    }
 }

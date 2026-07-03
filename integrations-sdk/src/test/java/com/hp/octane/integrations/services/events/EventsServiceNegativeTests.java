@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.events;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class EventsServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new EventsServiceImpl(null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new EventsServiceImpl(null, null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new EventsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new EventsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		EventsService.newInstance(null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            EventsService.newInstance(null, null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		EventsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            EventsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null));
+    }
 }

@@ -32,8 +32,8 @@
 package com.hp.octane.integrations.utils;
 
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -49,22 +49,22 @@ public class OctaneUrlParserTest {
     @Test
     public void test1() {
         OctaneUrlParser parser = OctaneUrlParser.parse("https://center.almoctane.com/ui/?p=1001%2F1002#/team-backlog/stories");
-        Assert.assertEquals("https://center.almoctane.com", parser.getLocation());
-        Assert.assertEquals("1001", parser.getSharedSpace());
+        Assertions.assertEquals("https://center.almoctane.com", parser.getLocation());
+        Assertions.assertEquals("1001", parser.getSharedSpace());
     }
 
     @Test
     public void test2() {
         OctaneUrlParser parser = OctaneUrlParser.parse("http://localhost:8080/ui/?admin&p=1001/1002#/settings/workspace/devops/build-servers");
-        Assert.assertEquals("http://localhost:8080", parser.getLocation());
-        Assert.assertEquals("1001", parser.getSharedSpace());
+        Assertions.assertEquals("http://localhost:8080", parser.getLocation());
+        Assertions.assertEquals("1001", parser.getSharedSpace());
     }
 
     @Test
     public void testWithContext1() {
         OctaneUrlParser parser = OctaneUrlParser.parse("https://myd-hvm01967.swinfra.net:8447/web-context/ui/?admin&p=1002/500#/settings/shared-space/applications");
-        Assert.assertEquals("https://myd-hvm01967.swinfra.net:8447/web-context", parser.getLocation());
-        Assert.assertEquals("1002", parser.getSharedSpace());
+        Assertions.assertEquals("https://myd-hvm01967.swinfra.net:8447/web-context", parser.getLocation());
+        Assertions.assertEquals("1002", parser.getSharedSpace());
     }
 
 

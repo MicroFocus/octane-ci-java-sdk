@@ -34,8 +34,8 @@ package uftTest;
 import com.hp.octane.integrations.dto.executor.impl.TestingToolType;
 import com.hp.octane.integrations.uft.UftTestDiscoveryUtils;
 import com.hp.octane.integrations.uft.items.*;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -60,7 +60,7 @@ public class UftTestDiscoveryUtilsTests {
     public void scanTest(){
         File root = new File("c:\\dev\\plugins\\_uft\\UftTests\\");
         UftTestDiscoveryResult result = UftTestDiscoveryUtils.doFullDiscovery(root, TestingToolType.MBT);
-        Assert.assertNotNull(result);
+        Assertions.assertNotNull(result);
     }
 
     @Test
@@ -72,7 +72,7 @@ public class UftTestDiscoveryUtilsTests {
         File folderPath = new File(getClass().getResource("description").getFile());
         Document document = getDocument(folderPath, UftTestType.GUI);
         String description = com.hp.octane.integrations.uft.UftTestDiscoveryUtils.getTestDescription(document, UftTestType.GUI);
-        Assert.assertEquals("myDesc333", description);
+        Assertions.assertEquals("myDesc333", description);
     }
 
 
@@ -112,21 +112,21 @@ public class UftTestDiscoveryUtilsTests {
         File mbtTestRootPath = new File(getClass().getClassLoader().getResource("mbt-tests").getFile());
 
         UftTestDiscoveryResult result = UftTestDiscoveryUtils.doFullDiscovery(mbtTestRootPath, TestingToolType.MBT);
-        Assert.assertNotNull("null discovery result", result);
+        Assertions.assertNotNull(result, "null discovery result");
 
         List<UftTestAction> actions = result.getAllTests().stream()
                 .map(AutomatedTest::getActions)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-        Assert.assertFalse("no actions were found", actions.isEmpty());
-        Assert.assertEquals("wrong number of actions were found", 14, actions.size());
+        Assertions.assertFalse(actions.isEmpty(), "no actions were found");
+        Assertions.assertEquals(14, actions.size(), "wrong number of actions were found");
 
         List<UftTestParameter> parameters = actions.stream()
                 .map(UftTestAction::getParameters)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
-        Assert.assertFalse("no parameters were found", parameters.isEmpty());
-        Assert.assertEquals("wrong number of parameters were found", 13, parameters.size());
+        Assertions.assertFalse(parameters.isEmpty(), "no parameters were found");
+        Assertions.assertEquals(13, parameters.size(), "wrong number of parameters were found");
     }
 
 }

@@ -138,13 +138,6 @@
 			<artifactId>commons-csv</artifactId>
 			<version>${commons-csv.version}</version>
 		</dependency>
-
-		<!-- TESTING -->
-		<dependency>
-			<artifactId>junit</artifactId>
-			<groupId>junit</groupId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<artifactId>easymock</artifactId>
 			<groupId>org.easymock</groupId>
@@ -156,6 +149,12 @@
 			<version>${jetty-server.version}</version>
 			<scope>test</scope>
 		</dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.14.4</version>
+            <scope>test</scope>
+        </dependency>
 
 		<!-- GITLAB API-->
 		<dependency>

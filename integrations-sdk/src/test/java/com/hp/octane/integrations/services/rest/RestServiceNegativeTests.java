@@ -32,53 +32,69 @@
 package com.hp.octane.integrations.services.rest;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class RestServiceNegativeTests {
 
 	//  REST Service
 	//
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new RestServiceImpl(null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new RestServiceImpl(null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new RestServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new RestServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		RestService.newInstance(null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            RestService.newInstance(null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		RestService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () ->
+            RestService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object()));
+    }
 
 	//  Octane REST Client
 	//
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE() {
-		new OctaneRestClientImpl(null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new OctaneRestClientImpl(null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testF() {
-		new OctaneRestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new OctaneRestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+        });
+    }
 
 	//  SSC (Fortify OP) REST Client
 	//
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG() {
-		new SSCRestClientImpl(null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new SSCRestClientImpl(null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testH() {
-		new SSCRestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new SSCRestClientImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+        });
+    }
 }

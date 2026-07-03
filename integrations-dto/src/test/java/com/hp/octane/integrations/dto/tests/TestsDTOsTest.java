@@ -32,11 +32,14 @@
 package com.hp.octane.integrations.dto.tests;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Testing Tests DTOs
@@ -65,8 +68,8 @@ public class TestsDTOsTest {
 
         String xml = dtoFactory.dtoToXml(tr);
         assertNotNull(xml);
-        assertTrue("external_run_id should not be in xml", !xml.contains("external_run_id"));
-        assertTrue("external_test_id should not be in xml", !xml.contains("external_test_id"));
+        assertTrue(!xml.contains("external_run_id"), "external_run_id should not be in xml");
+        assertTrue(!xml.contains("external_test_id"), "external_test_id should not be in xml");
         TestRun backO = dtoFactory.dtoFromXml(xml, TestRun.class);
         assertNotNull(backO);
         assertEquals(moduleName, backO.getModuleName());

@@ -47,7 +47,7 @@ import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.util.Callback;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -117,7 +117,7 @@ public class SSCIntegrationTest {
                 });
             }
 
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preFlightRequestCollectors.get(spIdA).getFirst());
+            Assertions.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preFlightRequestCollectors.get(spIdA).getFirst());
 
             //
             //  III

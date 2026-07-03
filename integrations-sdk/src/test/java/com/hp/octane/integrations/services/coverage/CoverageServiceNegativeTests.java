@@ -38,240 +38,280 @@ import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.services.sonar.SonarService;
 import com.hp.octane.integrations.services.sonar.SonarServiceImpl;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class CoverageServiceNegativeTests {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
 	//  Coverage service
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA1() {
-		new CoverageServiceImpl(null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new CoverageServiceImpl(null, null, null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testA2() {
-		new CoverageServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new CoverageServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA3() {
-		CoverageService.newInstance(null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            CoverageService.newInstance(null, null, null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testA4() {
-		CoverageService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            CoverageService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null));
+    }
 
 	//  Sonar service
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testB1() {
-		new SonarServiceImpl(null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new SonarServiceImpl(null, null, null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB2() {
-		new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new SonarServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testB3() {
-		SonarService.newInstance(null, null, null,null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            SonarService.newInstance(null, null, null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB4() {
-		SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            SonarService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null));
+    }
 
 	//  enqueue API negative testing validation
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE1() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.enqueuePushCoverage(null, null, null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.enqueuePushCoverage(null, null, null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE2() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.enqueuePushCoverage("", null, null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.enqueuePushCoverage("", null, null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE3() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.enqueuePushCoverage("job-id", null, null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.enqueuePushCoverage("job-id", null, null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE4() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.enqueuePushCoverage("job-id", "", null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.enqueuePushCoverage("job-id", "", null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE5() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.enqueuePushCoverage("job-id", "build-id", null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.enqueuePushCoverage("job-id", "build-id", null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
 	//  push API negative testing validation
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF1() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.pushCoverage(null, null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.pushCoverage(null, null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF2() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.pushCoverage("", null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.pushCoverage("", null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF3() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.pushCoverage("job-id", null, null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.pushCoverage("job-id", null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF4() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.pushCoverage("job-id", "", null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.pushCoverage("job-id", "", null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF5() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.pushCoverage("job-id", "build-id", null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.pushCoverage("job-id", "build-id", null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF6() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.pushCoverage("job-id", "build-id", CoverageReportType.JACOCOXML, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.pushCoverage("job-id", "build-id", CoverageReportType.JACOCOXML, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
 	//  is relevant API negative test
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG1() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.isSonarReportRelevant(null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.isSonarReportRelevant(null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG2() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		CoverageService coverageService = client.getCoverageService();
-		try {
-			coverageService.isSonarReportRelevant("");
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            CoverageService coverageService = client.getCoverageService();
+            try {
+                coverageService.isSonarReportRelevant("");
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
 	public static final class PluginServices extends CIPluginServices {
 

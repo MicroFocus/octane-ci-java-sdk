@@ -34,8 +34,8 @@ package com.hp.octane.integrations.services.vulnerabilities;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneConfigurationIntern;
 import com.hp.octane.integrations.services.vulnerabilities.mocks.MockOctaneRestClient;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class ExistingIssuesInOctaneTest {
     public void emptyList() throws IOException {
         ExistingIssuesInOctane existingIssuesInOctane = buildExistingIssuesInOctane("[]");
         List<String> remoteIdsOpenVulnsFromOctane = existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane("Job1", "1", "Tag1");
-        Assert.assertEquals(0, remoteIdsOpenVulnsFromOctane.size());
+        Assertions.assertEquals(0, remoteIdsOpenVulnsFromOctane.size());
     }
 
 
@@ -70,9 +70,9 @@ public class ExistingIssuesInOctaneTest {
         ExistingIssuesInOctane existingIssuesInOctane = buildExistingIssuesInOctane(jsonVal);
         List<String> remoteIdsOpenVulnsFromOctane = existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane("Job2", "2","Tag2");
 
-        Assert.assertEquals("Id1",remoteIdsOpenVulnsFromOctane.getFirst());
-        Assert.assertEquals("Id2",remoteIdsOpenVulnsFromOctane.get(1));
-        Assert.assertEquals("Id3",remoteIdsOpenVulnsFromOctane.get(2));
+        Assertions.assertEquals("Id1",remoteIdsOpenVulnsFromOctane.getFirst());
+        Assertions.assertEquals("Id2",remoteIdsOpenVulnsFromOctane.get(1));
+        Assertions.assertEquals("Id3",remoteIdsOpenVulnsFromOctane.get(2));
     }
 
 
