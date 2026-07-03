@@ -59,7 +59,7 @@ public class GithubCloudFetchHandler extends GithubV3FetchHandler {
         }
 
         String user = parts.get(parts.size() - 2);
-        String repoName = parts.get(parts.size() - 1);
+        String repoName = parts.getLast();
         repoName = repoName.substring(0, repoName.length() - ".git".length());
         return String.format("https://api.github.com/repos/%s/%s", user, repoName);
     }

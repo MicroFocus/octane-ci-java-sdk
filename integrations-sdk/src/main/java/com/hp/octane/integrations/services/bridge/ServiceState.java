@@ -32,5 +32,5 @@
 package com.hp.octane.integrations.services.bridge;
 
 public enum ServiceState {
-    Initial, WaitingToOctane, AfterWaitingToOctane, Closed, PostponingOnException, StopTaskPolling, Disabled;
+    Initial, WaitingToOctane, AfterWaitingToOctane, Closed, PostponingOnException, StopTaskPolling, Disabled
 }

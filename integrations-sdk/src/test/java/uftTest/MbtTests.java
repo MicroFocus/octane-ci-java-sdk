@@ -76,7 +76,7 @@ public class MbtTests {
         File file = new File(getClass().getResource("run_mbt_results_with_errors.xml").getFile());
         List<UftResultIterationData> resultData = UftTestResultsUtils.getMBTData(file);
         Assert.assertEquals(1, resultData.size());
-        UftResultStepData data1 = resultData.get(0).getSteps().get(0);
+        UftResultStepData data1 = resultData.getFirst().getSteps().getFirst();
         String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's                                    physical description:<br>wpftypename = window<br>regexpwndtitle = Micro                                    Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample                                    Application<br> (Warning). ";
         validateAction(23, "Passed", errorMessage, "Action1 [Two test_same function 2]", data1, Collections.EMPTY_LIST, null);
     }
@@ -85,11 +85,11 @@ public class MbtTests {
     public void readActionResults2() {
         File file = new File(getClass().getResource("run_mbt_results_8_successful.xml").getFile());
         List<UftResultIterationData> iterations = UftTestResultsUtils.getMBTData(file);
-        List<UftResultStepData> resultData = iterations.get(0).getSteps();
+        List<UftResultStepData> resultData = iterations.getFirst().getSteps();
         Assert.assertEquals(8, resultData.size());
 
         List<UftResultStepParameter> inputParameters = Arrays.asList(new UftResultStepParameter("username", "john", "System.String"), new UftResultStepParameter("password", "HP", "System.String"));
-        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.get(0), Collections.EMPTY_LIST, null);
+        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.getFirst(), Collections.EMPTY_LIST, null);
         validateAction(3, "Done", "", "Login [FlightGUIBU2]", resultData.get(1), inputParameters, null);
         validateAction(1, "Done", "", "Search Order Tab [FlightGUIBU2]", resultData.get(2),  Collections.EMPTY_LIST, null);
         inputParameters = Arrays.asList(new UftResultStepParameter("Name", "john", "System.String"));
@@ -107,15 +107,15 @@ public class MbtTests {
         File file = new File(getClass().getResource("run_mbt_results_with2_runs.xml").getFile());
         List<UftResultIterationData> iterations = UftTestResultsUtils.getMBTData(file);
         Assert.assertEquals(2, iterations.size());
-        List<UftResultStepData> resultData1 = iterations.get(0).getSteps();
+        List<UftResultStepData> resultData1 = iterations.getFirst().getSteps();
         List<UftResultStepData> resultData2 = iterations.get(1).getSteps();
         Assert.assertEquals(1, resultData1.size());
         Assert.assertEquals(1, resultData2.size());
 
         List<UftResultStepParameter> inputParameters = Arrays.asList(new UftResultStepParameter("parameter1", "4", "System.Double"), new UftResultStepParameter("parameter2", "2", "System.Double"));
-        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData1.get(0), inputParameters, null);
+        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData1.getFirst(), inputParameters, null);
         inputParameters = Arrays.asList(new UftResultStepParameter("parameter1", "3", "System.Double"), new UftResultStepParameter("parameter2", "1", "System.Double"));
-        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData2.get(0), inputParameters, null);
+        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData2.getFirst(), inputParameters, null);
     }
 
     private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultStepData data, List<UftResultStepParameter> inputParameters, List<UftResultStepParameter> outputParameters) {

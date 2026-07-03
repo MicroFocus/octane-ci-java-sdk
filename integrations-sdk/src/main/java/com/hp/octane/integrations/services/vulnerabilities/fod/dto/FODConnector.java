@@ -143,7 +143,7 @@ public class FODConnector implements FODSource {
 	public <T> T getSpeceficFODEntity(String rawURL, Class<T> targetClass) {
 
 		try {
-			T fetchedEntityInstance = targetClass.newInstance();
+			T fetchedEntityInstance = targetClass.getDeclaredConstructor().newInstance();
 
 			String rawResponse = getRawResponseFromFOD(rawURL);
 			//Deserialize.

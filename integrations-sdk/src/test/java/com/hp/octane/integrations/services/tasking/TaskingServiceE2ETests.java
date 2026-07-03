@@ -40,12 +40,10 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
-import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.server.Response;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -58,7 +56,6 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPInputStream;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
@@ -141,16 +138,14 @@ public class TaskingServiceE2ETests {
 		result.removeApiHandler(HttpMethod.GET, "^.*tasks$");
 
 		//  install GET tasks API handler
-		result.installApiHandler(HttpMethod.GET, "^.*tasks$", request -> {
+		result.installApiHandler(HttpMethod.GET, "^.*tasks$", (request, response) -> {
 			try {
-				Response response = request.getResponse();
 				OctaneTaskAbridged task = tasks.poll(500, TimeUnit.MILLISECONDS);
 				if (task != null) {
 					logger.info("got task to dispatch to CI Server - " + task.getUrl() + " - " + task.getId() + "...");
 					response.setStatus(HttpStatus.SC_OK);
-					response.addHeader(CONTENT_TYPE, "application/json");
-					response.getWriter().write(dtoFactory.dtoCollectionToJson(Collections.singletonList(task)));
-					response.flushBuffer();
+					response.getHeaders().put(CONTENT_TYPE, "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, dtoFactory.dtoCollectionToJson(Collections.singletonList(task)));
 					logger.info("... task dispatched");
 				} else {
 					results.put("timeout_flow_verification_part", null);
@@ -162,9 +157,9 @@ public class TaskingServiceE2ETests {
 		});
 
 		//  install PUT results API handler
-		result.installApiHandler(HttpMethod.PUT, "^.*result$", request -> {
+		result.installApiHandler(HttpMethod.PUT, "^.*result$", (request, response) -> {
 			try {
-				String rawBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+				String rawBody = OctaneSPEndpointSimulator.readRequestBody(request);
 				OctaneResultAbridged taskResult = dtoFactory.dtoFromJson(rawBody, OctaneResultAbridged.class);
 				logger.info("received and parsed result for task " + taskResult.getId());
 				Assert.assertNotNull(taskResult);

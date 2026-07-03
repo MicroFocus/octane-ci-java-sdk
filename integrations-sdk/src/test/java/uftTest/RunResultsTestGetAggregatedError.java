@@ -52,24 +52,30 @@ public class RunResultsTestGetAggregatedError {
     @Test
     public void testDuplicatedErrors() {
         String err = getAggregatedError("run_results_duplicatedErrors.xml");
-        String expected = "The following add-in(s) were associated with your test, but are not currently loaded: WinForms, WPF. (Warning). \n" +
-                "ActiveX component can't create object: 'WpfWindow'. ";
+        String expected = """
+                The following add-in(s) were associated with your test, but are not currently loaded: WinForms, WPF. (Warning).\s
+                ActiveX component can't create object: 'WpfWindow'.\s\
+                """;
         Assert.assertEquals(expected, err);
     }
 
     @Test
     public void testResultForGUITestWithFail() {
         String err = getAggregatedError("run_results_GUITestWithFail.xml");
-        String expected = "This step always fail. \n" +
-                "This step always warn (Warning). ";
+        String expected = """
+                This step always fail.\s
+                This step always warn (Warning).\s\
+                """;
         Assert.assertEquals(expected, err);
     }
 
     @Test
     public void testResultForGUITestWithWarning() {
         String err = getAggregatedError("run_results_GUITestWithWarning.xml");
-        String expected = "This step is always ends with warning (Warning). \n" +
-                "This step is also  always ends with warning (Warning). ";
+        String expected = """
+                This step is always ends with warning (Warning).\s
+                This step is also  always ends with warning (Warning).\s\
+                """;
         Assert.assertEquals(expected, err);
     }
 

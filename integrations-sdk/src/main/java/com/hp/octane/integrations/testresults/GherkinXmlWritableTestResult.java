@@ -84,8 +84,8 @@ public class GherkinXmlWritableTestResult implements XmlWritableTestResult {
             NodeList childNodes = rootElement.getChildNodes();
             for (int c = 0; c < childNodes.getLength(); c++) {
                 Node child = childNodes.item(c);
-                if (child instanceof Element) {
-                    writeXmlElement(writer, (Element) child);
+                if (child instanceof Element element) {
+                    writeXmlElement(writer, element);
                 } else if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
                     if(child.getParentNode() != null && "error_message".equals(child.getParentNode().getNodeName())){
                         String errorMassage = child.getNodeValue();

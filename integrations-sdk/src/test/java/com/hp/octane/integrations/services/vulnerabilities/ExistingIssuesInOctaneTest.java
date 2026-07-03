@@ -70,7 +70,7 @@ public class ExistingIssuesInOctaneTest {
         ExistingIssuesInOctane existingIssuesInOctane = buildExistingIssuesInOctane(jsonVal);
         List<String> remoteIdsOpenVulnsFromOctane = existingIssuesInOctane.getRemoteIdsOpenVulnsFromOctane("Job2", "2","Tag2");
 
-        Assert.assertEquals("Id1",remoteIdsOpenVulnsFromOctane.get(0));
+        Assert.assertEquals("Id1",remoteIdsOpenVulnsFromOctane.getFirst());
         Assert.assertEquals("Id2",remoteIdsOpenVulnsFromOctane.get(1));
         Assert.assertEquals("Id3",remoteIdsOpenVulnsFromOctane.get(2));
     }

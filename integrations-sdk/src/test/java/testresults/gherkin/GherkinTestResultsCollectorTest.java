@@ -78,7 +78,7 @@ public class GherkinTestResultsCollectorTest {
     public void testGetResults() throws ParserConfigurationException, IOException, SAXException {
         List<XmlWritableTestResult> gherkinTestsResults = GherkinUtils.parseFiles(getFilesFromFolder("f1"));
         Assert.assertEquals(3, gherkinTestsResults.size());
-        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(0), "test Feature1", 21, "Failed");
+        validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.getFirst(), "test Feature1", 21, "Failed");
         validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(1), "test Feature10", 21, "Failed");
         validateGherkinTestResult((GherkinXmlWritableTestResult) gherkinTestsResults.get(2), "test Feature2", 21, "Passed");
     }
@@ -97,7 +97,7 @@ public class GherkinTestResultsCollectorTest {
     public void testTemplateWithCounter() {
         String folder = new File(getRootResource("f3", file0)).getParent();
         List<File> files = GherkinUtils.findGherkinFilesByTemplateWithCounter(folder, "OctaneGherkinResults%s.xml", 0);
-        Assert.assertEquals(file0, files.get(0).getName());
+        Assert.assertEquals(file0, files.getFirst().getName());
         Assert.assertEquals(file1, files.get(1).getName());
     }
 

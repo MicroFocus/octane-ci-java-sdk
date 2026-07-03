@@ -311,7 +311,7 @@ final class TestsServiceImpl implements TestsService {
 			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "test result of " + queueItem + " resolved to be NULL, skipping");
 			return;
 		}
-		try {
+		try (testsResultA) {
 			//  preflight
 			InputStream testsResultB;
 			boolean isRelevant = isTestsResultRelevant(queueItem.jobId, queueItem.rootJobId);
@@ -357,12 +357,8 @@ final class TestsServiceImpl implements TestsService {
 					logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to close test result file after push test for " + queueItem);
 				}
 			}
-		} finally {
-			try {
-				testsResultA.close();
-			} catch (IOException e) {
-				logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to close test result file after push test for " + queueItem);
-			}
+		} catch (IOException e) {
+			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "failed to close test result file for " + queueItem);
 		}
 	}
 

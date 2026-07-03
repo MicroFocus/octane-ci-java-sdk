@@ -36,19 +36,22 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.util.Callback;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 /**
  * Each Octane Shared Space Endpoint simulator instance will function as an isolated context for tests targeting specific shared space
@@ -56,7 +59,7 @@ import java.util.regex.Pattern;
  * Each instance is thread and scope safe
  */
 
-public class OctaneSPEndpointSimulator extends AbstractHandler {
+public class OctaneSPEndpointSimulator extends Handler.Abstract {
 	private static final Logger logger = LogManager.getLogger(OctaneSPEndpointSimulator.class);
 
 	//  simulator's factory static content
@@ -64,7 +67,7 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	private static final int DEFAULT_PORT = 3333;
 	private static final Map<String, OctaneSPEndpointSimulator> serverSimulators = new LinkedHashMap<>();
 	private static Server server;
-	private static HandlerCollection handlers;
+	private static Handler.Sequence handlers;
 	private static Integer selectedPort;
 
 	/**
@@ -120,7 +123,7 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 		String rawPort = System.getProperty("octane.server.simulator.port");
 		server = new Server(rawPort == null ? (selectedPort = DEFAULT_PORT) : (selectedPort = Integer.parseInt(rawPort)));
 		try {
-			handlers = new HandlerCollection(true);
+			handlers = new Handler.Sequence();
 			server.setHandler(handlers);
 			server.start();
 			logger.info("SUCCESSFULLY started, listening on port " + selectedPort);
@@ -134,9 +137,14 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	//
 	private final String API_HANDLER_KEY_JOINER = " # ";
 	private final Pattern signInApiPattern = Pattern.compile("/authentication/sign_in");
-	private final Map<String, Consumer<Request>> apiHandlersRegistry = new LinkedHashMap<>();
+	private final Map<String, BiConsumer<Request, Response>> apiHandlersRegistry = new LinkedHashMap<>();
 	private final String sp;
 	private String octaneVersion = "15.1.1";
+
+	//  Jetty 12: the request callback must be passed to the async body write, otherwise the response
+	//  is finalized before the body is flushed. We expose it to the (callback-less) API handlers via ThreadLocal.
+	private static final ThreadLocal<Callback> CURRENT_CALLBACK = new ThreadLocal<>();
+	private static final ThreadLocal<Boolean> RESPONSE_WRITTEN = new ThreadLocal<>();
 
 	private OctaneSPEndpointSimulator(String sp) {
 		this.sp = sp;
@@ -153,42 +161,84 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	}
 
 	@Override
-	public void handle(String s, Request request, HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws IOException {
-		if (request.isHandled()) {
-			return;
+	public boolean handle(Request request, Response response, Callback callback) throws Exception {
+		String pathInfo = Request.getPathInContext(request);
+		String method = request.getMethod();
+
+		if (signInApiPattern.matcher(pathInfo).matches()) {
+			OctaneSecuritySimulationUtils.signIn(request, response);
+			callback.succeeded();
+			return true;
 		}
 
-		if (signInApiPattern.matcher(request.getPathInfo()).matches()) {
-			OctaneSecuritySimulationUtils.signIn(request);
-			return;
+		if (!OctaneSecuritySimulationUtils.authenticate(request, response)) {
+			callback.succeeded();
+			return true;
 		}
 
-		if (!OctaneSecuritySimulationUtils.authenticate(request)) {
-			return;
+		if (!pathInfo.startsWith("/api/shared_spaces/" + sp + "/") && !pathInfo.startsWith("/internal-api/shared_spaces/" + sp + "/")) {
+			return false;
 		}
 
-		if (!request.getPathInfo().startsWith("/api/shared_spaces/" + sp + "/") && !s.startsWith("/internal-api/shared_spaces/" + sp + "/")) {
-			return;
-		}
-
-		apiHandlersRegistry.keySet().stream()
-				.filter(apiHandlerKey -> {
-					String[] keyParts = apiHandlerKey.split(API_HANDLER_KEY_JOINER);
-					return request.getMethod().compareTo(keyParts[0]) == 0 && Pattern.compile(keyParts[1]).matcher(request.getPathInfo()).matches();
+		BiConsumer<Request, Response> apiHandler = apiHandlersRegistry.entrySet().stream()
+				.filter(entry -> {
+					String[] keyParts = entry.getKey().split(API_HANDLER_KEY_JOINER);
+					return method.compareTo(keyParts[0]) == 0 && Pattern.compile(keyParts[1]).matcher(pathInfo).matches();
 				})
+				.map(Map.Entry::getValue)
 				.findFirst()
-				.ifPresent(apiPattern -> {
-					apiHandlersRegistry.get(apiPattern).accept(request);
-					request.setHandled(true);
-				});
+				.orElse(null);
 
-		if (!request.isHandled()) {
-			request.getResponse().setStatus(HttpStatus.SC_NOT_FOUND);
-			request.setHandled(true);
+		if (apiHandler != null) {
+			CURRENT_CALLBACK.set(callback);
+			RESPONSE_WRITTEN.set(Boolean.FALSE);
+			try {
+				apiHandler.accept(request, response);
+			} finally {
+				boolean written = Boolean.TRUE.equals(RESPONSE_WRITTEN.get());
+				CURRENT_CALLBACK.remove();
+				RESPONSE_WRITTEN.remove();
+				//  if the handler wrote a body, the write already owns the callback; otherwise complete it here
+				if (!written) {
+					callback.succeeded();
+				}
+			}
+			return true;
+		}
+
+		response.setStatus(HttpStatus.SC_NOT_FOUND);
+		callback.succeeded();
+		return true;
+	}
+
+	/**
+	 * Writes a response body and completes the current request callback (Jetty 12 async-safe).
+	 * API handlers MUST use this instead of {@code Content.Sink.write(..., Callback.NOOP)} when returning a body.
+	 */
+	public static void writeResponseBody(Response response, String content) {
+		Callback cb = CURRENT_CALLBACK.get();
+		RESPONSE_WRITTEN.set(Boolean.TRUE);
+		Content.Sink.write(response, true, content, cb != null ? cb : Callback.NOOP);
+	}
+
+	/**
+	 * Reads the full request body as a UTF-8 string, transparently gunzipping when Content-Encoding is gzip.
+	 * Jetty 12's {@code Content.Source.asString(UTF_8)} strictly validates UTF-8 and fails on binary (gzip) bodies,
+	 * so we read raw bytes first.
+	 */
+	public static String readRequestBody(Request request) {
+		try (InputStream is = Content.Source.asInputStream(request)) {
+			byte[] bytes = is.readAllBytes();
+			if ("gzip".equalsIgnoreCase(request.getHeaders().get("Content-Encoding"))) {
+				return CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(new ByteArrayInputStream(bytes)));
+			}
+			return new String(bytes, StandardCharsets.UTF_8);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
-	public void installApiHandler(HttpMethod method, String pattern, Consumer<Request> apiHandler) {
+	public void installApiHandler(HttpMethod method, String pattern, BiConsumer<Request, Response> apiHandler) {
 		String handlerKey = method + API_HANDLER_KEY_JOINER + pattern;
 		if (apiHandlersRegistry.containsKey(handlerKey)) {
 			logger.warn("api handler for '" + handlerKey + "' already installed and will be replaced");
@@ -201,23 +251,18 @@ public class OctaneSPEndpointSimulator extends AbstractHandler {
 	}
 
 	private void installDefaultConnectivityStatusApiHandler() {
-		installApiHandler(HttpMethod.GET, "^.*/analytics/ci/servers/connectivity/status$", request -> {
-			request.getResponse().setStatus(HttpStatus.SC_OK);
-			try {
-				String msg = "{\"supportedSdkVersion\": \"1.0.0\", \"octaneVersion\": \"" + octaneVersion + "\"}";
-				request.getResponse().getWriter().write(msg);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			request.setHandled(true);
+		installApiHandler(HttpMethod.GET, "^.*/analytics/ci/servers/connectivity/status$", (request, response) -> {
+			response.setStatus(HttpStatus.SC_OK);
+			String msg = "{\"supportedSdkVersion\": \"1.0.0\", \"octaneVersion\": \"" + octaneVersion + "\"}";
+			response.getHeaders().put("Content-Type", "application/json");
+			writeResponseBody(response, msg);
 		});
 	}
 
 	private void installNOOPTasksApiHandler() {
-		installApiHandler(HttpMethod.GET, "^.*tasks$", request -> {
+		installApiHandler(HttpMethod.GET, "^.*tasks$", (request, response) -> {
 			CIPluginSDKUtils.doWait(3000);
-			request.getResponse().setStatus(HttpStatus.SC_NO_CONTENT);
-			request.setHandled(true);
+			response.setStatus(HttpStatus.SC_NO_CONTENT);
 		});
 	}
 

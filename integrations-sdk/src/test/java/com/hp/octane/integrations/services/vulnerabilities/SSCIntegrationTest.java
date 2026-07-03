@@ -44,9 +44,13 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.util.Callback;
 import org.junit.Assert;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -113,7 +117,7 @@ public class SSCIntegrationTest {
                 });
             }
 
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preFlightRequestCollectors.get(spIdA).get(0));
+            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preFlightRequestCollectors.get(spIdA).getFirst());
 
             //
             //  III
@@ -154,7 +158,7 @@ public class SSCIntegrationTest {
                 throw new RuntimeException("Unexpected push to octane was performed");
             }
         }else {
-            String octaneIssues = this.pushVulnerabilitiesCollectors.get(spIdA).get(0);
+            String octaneIssues = this.pushVulnerabilitiesCollectors.get(spIdA).getFirst();
             IssuesValidate validate = new IssuesValidate();
             validate.validateOutput(octaneIssues, this.expectedOutput);
         }
@@ -170,50 +174,52 @@ public class SSCIntegrationTest {
             OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
 
             //  vulnerabilities preflight API
-            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", request -> {
+            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", (request, response) -> {
                 try {
                     //  retrieve query parameters
-                    request.mergeQueryParameters("", request.getQueryString());
+                    String instanceId = Request.getParameters(request).getValue("instance-id");
+                    String jobCiId = Request.getParameters(request).getValue("job-ci-id");
+                    String buildCiId = Request.getParameters(request).getValue("build-ci-id");
                     preflightRequestsCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
-                            .add(request.getQueryParameters().getString("instance-id") + "|" +
-                                    request.getQueryParameters().getString("job-ci-id") + "|" +
-                                    request.getQueryParameters().getString("build-ci-id"));
-                    request.getResponse().setStatus(HttpStatus.SC_OK);
+                            .add(instanceId + "|" + jobCiId + "|" + buildCiId);
+                    response.setStatus(HttpStatus.SC_OK);
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DateUtils.octaneFormat);
 
-                    request.getResponse().getWriter().write(getOctaneInput().baseline == null ? "true" :
-                             simpleDateFormat.format(getOctaneInput().baseline));
-                    request.getResponse().getWriter().flush();
-                } catch (IOException ioe) {
-                    throw new OctaneSDKGeneralException("failed to write response", ioe);
+                    String responseBody = getOctaneInput().baseline == null ? "true" :
+                             simpleDateFormat.format(getOctaneInput().baseline);
+                    response.getHeaders().put("Content-Type", "text/plain");
+                    System.out.println("PREFLTDBG writing body=" + responseBody);
+                    OctaneSPEndpointSimulator.writeResponseBody(response, responseBody);
+                    System.out.println("PREFLTDBG wrote body");
+                } catch (Exception e) {
+                    System.out.println("PREFLTDBG EXCEPTION " + e);
+                    throw new OctaneSDKGeneralException("failed to write response", e);
                 }
             });
 
             //  vulnerabilities push API
-            simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", request -> {
+            simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", (request, response) -> {
                 try {
-                    String rawVulnerabilitiesBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+                    String rawVulnerabilitiesBody = OctaneSPEndpointSimulator.readRequestBody(request);
                     pushRequestCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
                             .add(rawVulnerabilitiesBody);
-                    request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
-                    request.getResponse().getWriter().write("{\"status\": \"queued\"}");
-                    request.getResponse().getWriter().flush();
-                } catch (IOException ioe) {
+                    response.setStatus(HttpStatus.SC_ACCEPTED);
+                    response.getHeaders().put("Content-Type", "application/json");
+                    OctaneSPEndpointSimulator.writeResponseBody(response, "{\"status\": \"queued\"}");
+                } catch (Exception ioe) {
                     throw new OctaneSDKGeneralException("failed to write response", ioe);
                 }
             });
 
             //  vulnerabilities push API
-            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/remote-issue-ids.*", request -> {
+            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/remote-issue-ids.*", (request, response) -> {
                 try {
-
-                    request.getResponse().setStatus(HttpStatus.SC_OK);
-
-                    request.getResponse().getWriter().write(SSCTestUtils.getJson(this.getOctaneInput().remoteIds));
-                    request.getResponse().getWriter().flush();
-                } catch (IOException ioe) {
+                    response.setStatus(HttpStatus.SC_OK);
+                    response.getHeaders().put("Content-Type", "application/json");
+                    OctaneSPEndpointSimulator.writeResponseBody(response, SSCTestUtils.getJson(this.getOctaneInput().remoteIds));
+                } catch (Exception ioe) {
                     throw new OctaneSDKGeneralException("failed to write response", ioe);
                 }
             });

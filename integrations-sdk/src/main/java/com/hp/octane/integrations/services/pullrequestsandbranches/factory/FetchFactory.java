@@ -41,30 +41,20 @@ import com.hp.octane.integrations.services.pullrequestsandbranches.rest.authenti
 public class FetchFactory {
 
     public static FetchHandler getHandler(ScmTool scmTool, AuthenticationStrategy authenticationStrategy){
-        switch (scmTool){
-            case BitbucketServer:
-                return new BitbucketServerFetchHandler(authenticationStrategy);
-            case GithubCloud:
-                return new GithubCloudFetchHandler(authenticationStrategy);
-            case GithubServer:
-                return new GithubServerFetchHandler(authenticationStrategy);
-            case GitLabServer:
-                return null;
-        }
-        return null;
+        return switch (scmTool){
+            case BitbucketServer -> new BitbucketServerFetchHandler(authenticationStrategy);
+            case GithubCloud -> new GithubCloudFetchHandler(authenticationStrategy);
+            case GithubServer -> new GithubServerFetchHandler(authenticationStrategy);
+            case GitLabServer -> null;
+        };
     }
 
     public static FetchHandler getHandler(ScmTool scmTool, AuthenticationStrategy authenticationStrategy, String secret){
-        switch (scmTool){
-            case BitbucketServer:
-                return new BitbucketServerFetchHandler(authenticationStrategy);
-            case GithubCloud:
-                return new GithubCloudFetchHandler(authenticationStrategy);
-            case GithubServer:
-                return new GithubServerFetchHandler(authenticationStrategy);
-            case GitLabServer:
-                return new GitlabServerFetchHandler(authenticationStrategy, secret);
-        }
-        return null;
+        return switch (scmTool){
+            case BitbucketServer -> new BitbucketServerFetchHandler(authenticationStrategy);
+            case GithubCloud -> new GithubCloudFetchHandler(authenticationStrategy);
+            case GithubServer -> new GithubServerFetchHandler(authenticationStrategy);
+            case GitLabServer -> new GitlabServerFetchHandler(authenticationStrategy, secret);
+        };
     }
 }

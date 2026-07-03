@@ -47,12 +47,19 @@
 	<artifactId>integrations-sdk</artifactId>
 
 	<properties>
-		<log4j.version>2.17.2</log4j.version>
-		<httpclient.version>4.5.14</httpclient.version>
-		<squareup-tape.version>1.2.3</squareup-tape.version>
-    
-		<jetty-server.version>10.0.14</jetty-server.version>
-		<poi.version>4.1.1</poi.version>
+        <java.level>21</java.level>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+
+		<log4j.version>2.26.0</log4j.version>
+        <httpclient.version>4.5.14</httpclient.version>
+        <squareup-tape.version>1.2.3</squareup-tape.version>
+        <commons-lang3.version>3.20.0</commons-lang3.version>
+		<jetty-server.version>12.1.10</jetty-server.version>
+		<poi.version>5.5.1</poi.version>
+        <commons-csv.version>1.14.1</commons-csv.version>
+        <gitlab4j-api.version>6.3.0</gitlab4j-api.version>
 	</properties>
 
 	<dependencies>
@@ -95,7 +102,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.12.0</version>
+			<version>${commons-lang3.version}</version>
 		</dependency>
 		<!-- queue -->
 		<dependency>
@@ -109,13 +116,27 @@
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi</artifactId>
 			<version>${poi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-io</groupId>
+                    <artifactId>commons-io</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>commons-codec</groupId>
+                    <artifactId>commons-codec</artifactId>
+                </exclusion>
+            </exclusions>
 		</dependency>
 
 		<!-- mbt csv file writing -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
-			<version>1.8</version>
+			<version>${commons-csv.version}</version>
 		</dependency>
 
 		<!-- TESTING -->
@@ -140,7 +161,7 @@
 		<dependency>
 			<groupId>org.gitlab4j</groupId>
 			<artifactId>gitlab4j-api</artifactId>
-			<version>6.1.0</version>
+			<version>${gitlab4j-api.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.fasterxml.jackson.core</groupId>
@@ -172,6 +193,17 @@
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<groupId>com.github.spotbugs</groupId>
+					<configuration>
+						<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<artifactId>maven-jar-plugin</artifactId>
@@ -197,7 +229,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<configuration>
 					<sourcepath>${basedir}/src/main/java/com/hp/octane/integrations</sourcepath>
-					<source>8</source>
+					<source>21</source>
 				</configuration>
 			</plugin>
 		</plugins>

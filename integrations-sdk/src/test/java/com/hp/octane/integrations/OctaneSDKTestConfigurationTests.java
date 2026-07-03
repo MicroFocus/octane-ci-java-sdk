@@ -35,12 +35,14 @@ import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.util.Callback;
 import org.junit.Test;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class OctaneSDKTestConfigurationTests {
@@ -51,22 +53,22 @@ public class OctaneSDKTestConfigurationTests {
 	public void testA1() throws IOException {
 		String spId = "1001";
 		OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spId);
-		simulator.installApiHandler(HttpMethod.GET, "^.*/analytics/ci/servers/connectivity/status$", request -> {
-			request.getResponse().setStatus(HttpServletResponse.SC_OK);
+		simulator.installApiHandler(HttpMethod.GET, "^.*/analytics/ci/servers/connectivity/status$", (request, response) -> {
+			response.setStatus(HttpStatus.SC_OK);
 			try {
-				request.getResponse().getWriter().write("{}");
-				request.getResponse().flushBuffer();
-			} catch (IOException ioe) {
-				logger.error("failed to process status request in MOCK server", ioe);
+				response.getHeaders().put("Content-Type", "application/json");
+				Content.Sink.write(response, true, "{}", Callback.NOOP);
+			} catch (Exception e) {
+				logger.error("failed to process status request in MOCK server", e);
 			}
 		});
-		simulator.installApiHandler(HttpMethod.GET, "^.*/workspaces?.*$", request -> {
-			request.getResponse().setStatus(HttpServletResponse.SC_OK);
+		simulator.installApiHandler(HttpMethod.GET, "^.*/workspaces?.*$", (request, response) -> {
+			response.setStatus(HttpStatus.SC_OK);
 			try {
-				request.getResponse().getWriter().write("{\"total_count\":1,\"data\":[{\"type\":\"workspace\",\"id\":\"1002\"}],\"exceeds_total_count\":false}");
-				request.getResponse().flushBuffer();
-			} catch (IOException ioe) {
-				logger.error("failed to process status request in MOCK server", ioe);
+				response.getHeaders().put("Content-Type", "application/json");
+				Content.Sink.write(response, true, "{\"total_count\":1,\"data\":[{\"type\":\"workspace\",\"id\":\"1002\"}],\"exceeds_total_count\":false}", Callback.NOOP);
+			} catch (Exception e) {
+				logger.error("failed to process status request in MOCK server", e);
 			}
 		});
 

@@ -329,8 +329,8 @@ public class UftTestDiscoveryUtils {
             if ("ComponentInfo".equals(name)) {
                 if (entry instanceof DirectoryEntry) {
                     System.out.println(entry);
-                } else if (entry instanceof DocumentEntry) {
-                    byte[] content = new byte[((DocumentEntry) entry).getSize()];
+                } else if (entry instanceof DocumentEntry documentEntry) {
+                    byte[] content = new byte[documentEntry.getSize()];
                     int readBytes = poiFS.createDocumentInputStream("ComponentInfo").read(content);
                     if (readBytes < content.length) {
                         //  [YG] probably should handle this case and continue to read

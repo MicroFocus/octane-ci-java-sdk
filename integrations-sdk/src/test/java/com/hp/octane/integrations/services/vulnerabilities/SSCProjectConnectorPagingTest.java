@@ -58,7 +58,7 @@ public class SSCProjectConnectorPagingTest {
                         DummyContents.issuesPart3)));
         Issues issues = sscProjectConnector.readIssues(1);
         Assert.assertEquals(3,issues.getCount());
-        Assert.assertEquals("Issue 1",issues.getData().get(0).issueName);
+        Assert.assertEquals("Issue 1",issues.getData().getFirst().issueName);
         Assert.assertEquals("Issue 2",issues.getData().get(1).issueName);
         Assert.assertEquals("Issue 3",issues.getData().get(2).issueName);
 

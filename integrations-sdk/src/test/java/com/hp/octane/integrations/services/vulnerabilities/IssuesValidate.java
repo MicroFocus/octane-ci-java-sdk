@@ -148,7 +148,7 @@ public class IssuesValidate {
             if(octaneIssues.size()!= 1){
                 throw new SSCTestFailure("Closed Issue was not pushed to Octane.");
             }
-            validateState(octaneIssues.get(0), "list_node.issue_state_node.closed",
+            validateState(octaneIssues.getFirst(), "list_node.issue_state_node.closed",
                     "Close Issue was pushed to Octane but not with the right state.");
         }
     }
@@ -171,11 +171,11 @@ public class IssuesValidate {
                 throw new SSCTestFailure("New Issue was not pushed to Octane.");
             }
 
-            validateState(newOctaneIssue.get(0),
+            validateState(newOctaneIssue.getFirst(),
                     "list_node.issue_state_node.new",
                     "New Issue was pushed to Octane but not with the right state.");
 
-            validateExtendedDataContainsAllData(newOctaneIssue.get(0));
+            validateExtendedDataContainsAllData(newOctaneIssue.getFirst());
         }
     }
 
@@ -213,10 +213,10 @@ public class IssuesValidate {
                 throw new SSCTestFailure("Existing Issue was not pushed to Octane.");
             }
 
-            validateState(existingOctaneIssue.get(0),
+            validateState(existingOctaneIssue.getFirst(),
                     "list_node.issue_state_node.existing",
                     "Existing Issue was pushed to Octane but not with the right state.");
-            validateIssueDoesNotContainsIssueDetails(existingOctaneIssue.get(0));
+            validateIssueDoesNotContainsIssueDetails(existingOctaneIssue.getFirst());
 
         }
     }
@@ -244,12 +244,12 @@ public class IssuesValidate {
                 throw new SSCTestFailure("Missing Updated Issue was not pushed to Octane.");
             }
 
-            validateState(missingOctaneIssue.get(0),
+            validateState(missingOctaneIssue.getFirst(),
                     "list_node.issue_state_node.existing",
                     "Missing Updated Issue was pushed to Octane but not with the right state.");
 
             if(checkExtenedData) {
-                validateExtendedDataContainsAllData(missingOctaneIssue.get(0));
+                validateExtendedDataContainsAllData(missingOctaneIssue.getFirst());
             }
         }
 

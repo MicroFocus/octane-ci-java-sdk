@@ -84,10 +84,10 @@ public class PackIssuesToSendToOctaneTest {
 				toCloseInOctane,  true);
 
 		Assert.assertEquals(2, issueSortedIssues.issuesToClose.size());
-		Entity issueState1 = issueSortedIssues.issuesToClose.get(0).getState();
+		Entity issueState1 = issueSortedIssues.issuesToClose.getFirst().getState();
 		Assert.assertEquals("list_node.issue_state_node.closed", issueState1.getId());
 		Assert.assertEquals("list_node", issueState1.getType());
-		Assert.assertEquals("Id1", issueSortedIssues.issuesToClose.get(0).getRemoteId());
+		Assert.assertEquals("Id1", issueSortedIssues.issuesToClose.getFirst().getRemoteId());
 
 		Entity issueState2 = issueSortedIssues.issuesToClose.get(1).getState();
 		Assert.assertEquals("list_node.issue_state_node.closed", issueState2.getId());
@@ -110,7 +110,7 @@ public class PackIssuesToSendToOctaneTest {
 
 		List<OctaneIssue> openOctaneIssues = createOctaneIssues(issueSortedIssues.issuesToUpdate, "Tag",idToDetails);
 
-		validateIssueMap(openOctaneIssues.get(0),
+		validateIssueMap(openOctaneIssues.getFirst(),
 				"list_node.issue_state_node.new",
 				"\\ABC\\DEF\\GHIJ.java",
 				"1",
@@ -126,7 +126,7 @@ public class PackIssuesToSendToOctaneTest {
 				"Issue2");
 
 
-		validateRemoteIdAndExtendedIssues(openOctaneIssues.get(0),"RemoteId1",idToDetails.get(1));
+		validateRemoteIdAndExtendedIssues(openOctaneIssues.getFirst(),"RemoteId1",idToDetails.get(1));
 		validateRemoteIdAndExtendedIssues(openOctaneIssues.get(1),"RemoteId2",idToDetails.get(2));
 
 	}
@@ -159,7 +159,7 @@ public class PackIssuesToSendToOctaneTest {
 		Assert.assertEquals(2,octaneIssues.size());
 		Assert.assertEquals(2,issueSortedIssues.issuesToClose.size());
 
-		validateIssueMap(octaneIssues.get(0),
+		validateIssueMap(octaneIssues.getFirst(),
 				"list_node.issue_state_node.new",
 				"\\ABC\\DEF\\GHIJ.java",
 				"1",
@@ -176,13 +176,13 @@ public class PackIssuesToSendToOctaneTest {
 
 
 
-		validateIssueMap(issueSortedIssues.issuesToClose.get(0),
+		validateIssueMap(issueSortedIssues.issuesToClose.getFirst(),
 				"list_node.issue_state_node.closed",
 				null,
 				"-1",
 				null,
 				null);
-		Assert.assertEquals(issueSortedIssues.issuesToClose.get(0).getRemoteId(), "XYZ");
+		Assert.assertEquals(issueSortedIssues.issuesToClose.getFirst().getRemoteId(), "XYZ");
 
 
 		validateIssueMap(issueSortedIssues.issuesToClose.get(1),

@@ -160,26 +160,26 @@ public class TestsDTOsTest {
         assertEquals(result.getBuildContext().getBuildId(), "284");
 
         assertEquals(result.getTestFields().size(), 2);
-        assertEquals(result.getTestFields().get(0).getValue(), "End to End");
-        assertEquals(result.getTestFields().get(0).getType(), "Test_Type");
+        assertEquals(result.getTestFields().getFirst().getValue(), "End to End");
+        assertEquals(result.getTestFields().getFirst().getType(), "Test_Type");
 
         assertEquals(result.getTestFields().get(1).getValue(), "Selenium");
         assertEquals(result.getTestFields().get(1).getType(), "Testing_Tool_Type");
 
-        assertEquals(result.getTestRuns().get(0).getModuleName(), "/helloWorld");
-        assertEquals(result.getTestRuns().get(0).getPackageName(), "hello");
-        assertEquals(result.getTestRuns().get(0).getClassName(), "HelloWorldTest");
-        assertEquals(result.getTestRuns().get(0).getTestName(), "testTwo");
-        assertEquals(result.getTestRuns().get(0).getResult(), TestRunResult.FAILED);
-        assertEquals(result.getTestRuns().get(0).getDuration(), 2);
-        assertEquals(result.getTestRuns().get(0).getStarted(), 1430919316223l);
+        assertEquals(result.getTestRuns().getFirst().getModuleName(), "/helloWorld");
+        assertEquals(result.getTestRuns().getFirst().getPackageName(), "hello");
+        assertEquals(result.getTestRuns().getFirst().getClassName(), "HelloWorldTest");
+        assertEquals(result.getTestRuns().getFirst().getTestName(), "testTwo");
+        assertEquals(result.getTestRuns().getFirst().getResult(), TestRunResult.FAILED);
+        assertEquals(result.getTestRuns().getFirst().getDuration(), 2);
+        assertEquals(result.getTestRuns().getFirst().getStarted(), 1430919316223l);
 
-        assertEquals(result.getTestRuns().get(0).getError().getErrorType(), "java.lang.AssertionError");
-        assertEquals(result.getTestRuns().get(0).getError().getErrorType(), "java.lang.AssertionError");
-        assertEquals(result.getTestRuns().get(0).getError().getErrorMessage(), "expected:'111' but was:'222'");
-        assertEquals(result.getTestRuns().get(0).getError().getStackTrace(), "java.lang.AssertionError :aaa");
+        assertEquals(result.getTestRuns().getFirst().getError().getErrorType(), "java.lang.AssertionError");
+        assertEquals(result.getTestRuns().getFirst().getError().getErrorType(), "java.lang.AssertionError");
+        assertEquals(result.getTestRuns().getFirst().getError().getErrorMessage(), "expected:'111' but was:'222'");
+        assertEquals(result.getTestRuns().getFirst().getError().getStackTrace(), "java.lang.AssertionError :aaa");
 
-        assertEquals(result.getTestRuns().get(0).getDescription(), "My run description");
+        assertEquals(result.getTestRuns().getFirst().getDescription(), "My run description");
         String converted = dtoFactory.dtoToXml(result);
         assertEquals(payload, converted);
 
@@ -191,19 +191,19 @@ public class TestsDTOsTest {
         TestSuite result = dtoFactory.dtoFromXml(payload, TestSuite.class);
 
         assertEquals(2, result.getProperties().size());
-        assertEquals("nameAAA", result.getProperties().get(0).getPropertyName());
-        assertEquals("valueAAA", result.getProperties().get(0).getPropertyValue());
+        assertEquals("nameAAA", result.getProperties().getFirst().getPropertyName());
+        assertEquals("valueAAA", result.getProperties().getFirst().getPropertyValue());
         assertEquals("nameBBB", result.getProperties().get(1).getPropertyName());
         assertEquals("valueBBB", result.getProperties().get(1).getPropertyValue());
 
         assertEquals(4, result.getTestCases().size());
 
-        assertEquals("testAppErr", result.getTestCases().get(0).getName());
-        assertEquals("MF.simple.tests.AppTest", result.getTestCases().get(0).getClassName());
-        assertEquals("0.002", result.getTestCases().get(0).getTime());
-        assertNotNull(result.getTestCases().get(0).getFailure());
-        assertEquals("junit.framework.AssertionFailedError", result.getTestCases().get(0).getFailure().getType());
-        assertEquals("junit.framework.AssertionFailedError at MF.simple.tests.AppTest.testAppC2(AppTest.java:56)", result.getTestCases().get(0).getFailure().getStackTrace());
+        assertEquals("testAppErr", result.getTestCases().getFirst().getName());
+        assertEquals("MF.simple.tests.AppTest", result.getTestCases().getFirst().getClassName());
+        assertEquals("0.002", result.getTestCases().getFirst().getTime());
+        assertNotNull(result.getTestCases().getFirst().getFailure());
+        assertEquals("junit.framework.AssertionFailedError", result.getTestCases().getFirst().getFailure().getType());
+        assertEquals("junit.framework.AssertionFailedError at MF.simple.tests.AppTest.testAppC2(AppTest.java:56)", result.getTestCases().getFirst().getFailure().getStackTrace());
 
         assertEquals("testAppA", result.getTestCases().get(1).getName());
         assertEquals("MF.simple.tests.AppTest", result.getTestCases().get(1).getClassName());

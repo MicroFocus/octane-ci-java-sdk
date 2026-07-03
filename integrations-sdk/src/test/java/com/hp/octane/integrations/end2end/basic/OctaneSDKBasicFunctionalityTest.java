@@ -54,16 +54,14 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
+import org.eclipse.jetty.server.Request;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
 
 /**
  * Octane SDK functional sanity test
@@ -507,73 +505,75 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
 			simulator.setOctaneVersion("15.1.8");//for octane roots
 			//  events API
-			simulator.installApiHandler(HttpMethod.PUT, "^.*events$", request -> {
+			simulator.installApiHandler(HttpMethod.PUT, "^.*events$", (request, response) -> {
 				try {
-					String rawEventsBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawEventsBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					CIEventsList eventsList = dtoFactory.dtoFromJson(rawEventsBody, CIEventsList.class);
 					eventsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(eventsList);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
+					response.setStatus(HttpStatus.SC_OK);
+				} catch (Exception ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
 
 			//  test results preflight API
-			simulator.installApiHandler(HttpMethod.GET, "^.*tests-result-preflight$", request -> {
+			simulator.installApiHandler(HttpMethod.GET, "^.*tests-result-preflight$", (request, response) -> {
 				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("true");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_OK);
+					response.getHeaders().put("Content-Type", "text/plain");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "true");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
 			//  test results push API
-			simulator.installApiHandler(HttpMethod.POST, "^.*test-results$", request -> {
+			simulator.installApiHandler(HttpMethod.POST, "^.*test-results$", (request, response) -> {
 				try {
-					String rawTestResultBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawTestResultBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					TestsResult testsResult = dtoFactory.dtoFromXml(rawTestResultBody, TestsResult.class);
 					//  [YG] below validations are done to ensure NEW API (via query params) aligned with an OLD API (data within XML)
 					//  [YG] in the future we'll remove OLD API and this validation should be done differently
-					request.mergeQueryParameters("", request.getQueryString());
-					Assert.assertEquals(request.getQueryParameters().getString("instance-id"), testsResult.getBuildContext().getServerId());
-					Assert.assertTrue(request.getQueryParameters().getString("job-ci-id").equals(CIPluginSDKUtils.urlEncodeBase64(testsResult.getBuildContext().getJobId())) ||
-									  request.getQueryParameters().getString("job-ci-id").equals(testsResult.getBuildContext().getJobId()));
-					Assert.assertEquals(request.getQueryParameters().getString("build-ci-id"), testsResult.getBuildContext().getBuildId());
+					String instanceId = Request.getParameters(request).getValue("instance-id");
+					String jobCiId = Request.getParameters(request).getValue("job-ci-id");
+					String buildCiId = Request.getParameters(request).getValue("build-ci-id");
+					Assert.assertEquals(instanceId, testsResult.getBuildContext().getServerId());
+					Assert.assertTrue(jobCiId.equals(CIPluginSDKUtils.urlEncodeBase64(testsResult.getBuildContext().getJobId())) ||
+									  jobCiId.equals(testsResult.getBuildContext().getJobId()));
+					Assert.assertEquals(buildCiId, testsResult.getBuildContext().getBuildId());
 					testResultsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(testsResult);
-					request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
-					request.getResponse().getWriter().write("{\"status\": \"queued\"}");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_ACCEPTED);
+					response.getHeaders().put("Content-Type", "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "{\"status\": \"queued\"}");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
 			//  logs/coverage preflight API
-			simulator.installApiHandler(HttpMethod.GET, "^.*workspaceId$", request -> {
+			simulator.installApiHandler(HttpMethod.GET, "^.*workspaceId$", (request, response) -> {
 				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("[\"1001\"]");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_OK);
+					response.getHeaders().put("Content-Type", "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "[\"1001\"]");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
 			//  logs push API
-			simulator.installApiHandler(HttpMethod.POST, "^.*logs$", request -> {
+			simulator.installApiHandler(HttpMethod.POST, "^.*logs$", (request, response) -> {
 				try {
-					String rawLogBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawLogBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					logsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(rawLogBody);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
+					response.setStatus(HttpStatus.SC_OK);
+				} catch (Exception ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
@@ -582,26 +582,26 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  no need to configure, since it's the same API as for logs, see above
 
 			//  coverage push API
-			simulator.installApiHandler(HttpMethod.PUT, "^.*coverage$", request -> {
+			simulator.installApiHandler(HttpMethod.PUT, "^.*coverage$", (request, response) -> {
 				try {
-					String rawCoverageBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawCoverageBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					coverageCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(rawCoverageBody);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
+					response.setStatus(HttpStatus.SC_OK);
+				} catch (Exception ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
 
 			//  get roots
-			simulator.installApiHandler(HttpMethod.GET, "^.*pipeline-roots$", request -> {
+			simulator.installApiHandler(HttpMethod.GET, "^.*pipeline-roots$", (request, response) -> {
 				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("[]");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_OK);
+					response.getHeaders().put("Content-Type", "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "[]");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
@@ -671,3 +671,4 @@ public class OctaneSDKBasicFunctionalityTest {
 		}
 	}
 }
+

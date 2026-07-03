@@ -38,11 +38,13 @@ import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.IssueDetails;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.ProjectVersions;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Projects;
 import org.apache.http.HttpStatus;
+import org.eclipse.jetty.io.Content;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.util.Callback;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public class SSCServerSimulator extends RestServerSimulator{
 
@@ -69,7 +71,7 @@ public class SSCServerSimulator extends RestServerSimulator{
     }
 
     public void setDefaultAuth() {
-        setAuthHanler(request -> {
+        setAuthHanler((request, response) -> {
             try {
                 AuthToken.AuthTokenData authTokenData = new AuthToken.AuthTokenData();
                 authTokenData.token = "DUMMY TOKEN";
@@ -77,15 +79,15 @@ public class SSCServerSimulator extends RestServerSimulator{
                 AuthToken authToken = new AuthToken();
                 authToken.setData(authTokenData);
 
-                request.getResponse().setStatus(HttpStatus.SC_OK);
-                request.getResponse().getWriter().write(SSCTestUtils.getJson(authToken));
-                request.getResponse().getWriter().flush();
-            } catch (IOException e) {
-                e.printStackTrace();
+                response.setStatus(HttpStatus.SC_OK);
+                response.getHeaders().put("Content-Type", "application/json");
+                Content.Sink.write(response, true, SSCTestUtils.getJson(authToken), Callback.NOOP);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to set auth", e);
             }
         });
     }
-    public void setAuthHanler(Consumer<Request> authHandler) {
+    public void setAuthHanler(BiConsumer<Request, Response> authHandler) {
         SSCServerSimulator.instance().addRule("^.*/api/v1/tokens.*",
                 t->t.getMethod().equalsIgnoreCase("post"),
                 authHandler);
@@ -102,11 +104,11 @@ public class SSCServerSimulator extends RestServerSimulator{
 
         addRule("^.*/api/v1/issueDetails/.*",
                 t -> t.getMethod().equalsIgnoreCase("get"),
-                request -> {
+                (request, response) -> {
                     try {
-                        request.getResponse().setStatus(HttpStatus.SC_OK);
-                        String originalURI = request.getOriginalURI();
-                        String issueId = originalURI.substring(originalURI.lastIndexOf("/"));
+                        response.setStatus(HttpStatus.SC_OK);
+                        String pathInContext = Request.getPathInContext(request);
+                        String issueId = pathInContext.substring(pathInContext.lastIndexOf("/"));
                         IssueDetails issueDetails = new IssueDetails();
                         IssueDetails.IssueDetailsData issueDetailsData = new IssueDetails.IssueDetailsData();
                         issueDetailsData.tips = "tips:" + issueId;
@@ -115,10 +117,10 @@ public class SSCServerSimulator extends RestServerSimulator{
                         issueDetailsData.brief = "brief:" + issueId;
                         issueDetails.setData(issueDetailsData);
                         String json = SSCTestUtils.getJson(issueDetails);
-                        request.getResponse().getWriter().write(json);
-                        request.getResponse().getWriter().flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        response.getHeaders().put("Content-Type", "application/json");
+                        Content.Sink.write(response, true, json, Callback.NOOP);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to set issue details", e);
                     }
                 });
     }
@@ -127,14 +129,14 @@ public class SSCServerSimulator extends RestServerSimulator{
 
         addRule("^.*/api/v1/projectVersions/" + sequence.projectVersionId + "/issues.*",
                 t -> t.getMethod().equalsIgnoreCase("get"),
-                request -> {
+                (request, response) -> {
                     try {
-                        request.getResponse().setStatus(HttpStatus.SC_OK);
+                        response.setStatus(HttpStatus.SC_OK);
                         String json = SSCTestUtils.getJson(sequence.getIssuesToReturn());
-                        request.getResponse().getWriter().write(json);
-                        request.getResponse().getWriter().flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        response.getHeaders().put("Content-Type", "application/json");
+                        Content.Sink.write(response, true, json, Callback.NOOP);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to set issues", e);
                     }
                 });
     }
@@ -143,14 +145,14 @@ public class SSCServerSimulator extends RestServerSimulator{
 
        addRule("^.*/api/v1/projectVersions/" + sequence.projectVersionId + "/artifacts.*",
                 t -> t.getMethod().equalsIgnoreCase("get"),
-                request -> {
+                (request, response) -> {
                     try {
-                        request.getResponse().setStatus(HttpStatus.SC_OK);
+                        response.setStatus(HttpStatus.SC_OK);
                         String json = SSCTestUtils.getJson(sequence.artifacts);
-                        request.getResponse().getWriter().write(json);
-                        request.getResponse().getWriter().flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        response.getHeaders().put("Content-Type", "application/json");
+                        Content.Sink.write(response, true, json, Callback.NOOP);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to set artifacts", e);
                     }
                 });
 
@@ -160,32 +162,35 @@ public class SSCServerSimulator extends RestServerSimulator{
         instance().addRule("^.*/api/v1/projects/"+sequence.projectId+"/versions\\?q=name:.*",
                 t->t.getMethod().equalsIgnoreCase("get") &&
                         queryIsAboutProjectName("name",sequence.projectVersionName,t),
-                request-> {
+                (request, response) -> {
                     try {
                         ProjectVersions projectVersions = new ProjectVersions();
                         projectVersions.setCount(1);
                         ProjectVersions.ProjectVersion projectVersion = new ProjectVersions.ProjectVersion();
                         projectVersion.id = sequence.projectVersionId;
                         projectVersions.setData(Arrays.asList(projectVersion));
-                        request.getResponse().setStatus(HttpStatus.SC_OK);
-                        request.getResponse().getWriter().write(SSCTestUtils.getJson(projectVersions));
-                        request.getResponse().getWriter().flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        response.setStatus(HttpStatus.SC_OK);
+                        response.getHeaders().put("Content-Type", "application/json");
+                        Content.Sink.write(response, true, SSCTestUtils.getJson(projectVersions), Callback.NOOP);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to set project version", e);
                     }
                 });
     }
     public boolean queryIsAboutProjectName(String paramName, String paramValue, Request request) {
-        request.mergeQueryParameters("", request.getQueryString());
-        String queryString = request.getQueryParameters().getString("q");
-        return queryString != null && queryString.substring((paramName + ":").length()).startsWith(paramValue);
+        try {
+            String queryString = Request.getParameters(request).getValue("q");
+            return queryString != null && queryString.substring((paramName + ":").length()).startsWith(paramValue);
+        } catch (Exception e) {
+            return false;
+        }
     }
     public void setProject(SSCInput sequence) {
 
         addRule("^.*/api/v1/projects\\?q=name:.*",
                 t->t.getMethod().equalsIgnoreCase("get") &&
                         queryIsAboutProjectName("name",sequence.projectName, t),
-                request-> {
+                (request, response) -> {
                     try {
                         Projects projects = new Projects();
                         projects.setCount(1);
@@ -193,12 +198,13 @@ public class SSCServerSimulator extends RestServerSimulator{
                         project.id = sequence.projectId;
                         project.name = sequence.projectName;
                         projects.setData(Arrays.asList(project));
-                        request.getResponse().setStatus(HttpStatus.SC_OK);
-                        request.getResponse().getWriter().write(SSCTestUtils.getJson(projects));
-                        request.getResponse().getWriter().flush();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+                        response.setStatus(HttpStatus.SC_OK);
+                        response.getHeaders().put("Content-Type", "application/json");
+                        RestServerSimulator.writeResponseBody(response, SSCTestUtils.getJson(projects));
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to set project", e);
                     }
                 });
     }
 }
+
