@@ -1,6 +1,6 @@
 <!--
 
-    Copyright 2017-2025 Open Text
+    Copyright 2017-2026 Open Text
 
     OpenText is a trademark of Open Text.
     The only warranties for products and services of Open Text and
@@ -37,7 +37,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.hpe.adm.octane.ciplugins</groupId>
 	<artifactId>java-sdk</artifactId>
-	<version>2.26.1-SNAPSHOT</version>
+	<version>2.26.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>MicroFocus ALM Octane Common libraries for CI plugins</name>
@@ -112,7 +112,7 @@
 		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
 		<spotbugs.version>3.1.9</spotbugs.version>
 		<!-- The ending year for copyright information -->
-		<copyright.end.year>2025</copyright.end.year>
+		<copyright.end.year>2026</copyright.end.year>
 	</properties>
 
 	<dependencyManagement>
