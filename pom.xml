@@ -1,6 +1,6 @@
 <!--
 
-    Copyright 2017-2025 Open Text
+    Copyright 2017-2026 Open Text
 
     OpenText is a trademark of Open Text.
     The only warranties for products and services of Open Text and
@@ -37,7 +37,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.hpe.adm.octane.ciplugins</groupId>
 	<artifactId>java-sdk</artifactId>
-	<version>2.26.4</version>
+	<version>2.26.4-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>MicroFocus ALM Octane Common libraries for CI plugins</name>
@@ -117,7 +117,7 @@
         <commons-codec.version>1.22.0</commons-codec.version>
         <license-maven-plugin.version>5.0.0</license-maven-plugin.version>
 		<!-- The ending year for copyright information -->
-		<copyright.end.year>2025</copyright.end.year>
+		<copyright.end.year>2026</copyright.end.year>
 	</properties>
 
 	<dependencyManagement>
@@ -375,7 +375,7 @@
 				<snapshotRepository>
 					<id>snapshot-repository</id>
 					<name>Maven2 Snapshot Repository</name>
-					<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+					<url>https://central.sonatype.com/repository/maven-snapshots/</url>
 					<uniqueVersion>false</uniqueVersion>
 				</snapshotRepository>
 			</distributionManagement>
