@@ -51,6 +51,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
 		<jackson.version>2.22.0</jackson.version>
+        <junit-jupiter.version>6.1.0</junit-jupiter.version>
 	</properties>
 
 	<dependencies>
@@ -68,7 +69,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>6.1.0</version>
+            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
 
@@ -82,7 +83,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<configuration>
 						<sourcepath>${basedir}/src/main/java/com/hp/octane/integrations/dto</sourcepath>
-						<source>21</source>
+						<source>${java.level}</source>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -110,7 +111,7 @@
 						<artifactId>maven-javadoc-plugin</artifactId>
 						<groupId>org.apache.maven.plugins</groupId>
 						<configuration>
-							<source>21</source>
+							<source>${java.level}</source>
 						</configuration>
 					</plugin>
 				</plugins>

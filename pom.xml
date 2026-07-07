@@ -159,7 +159,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven-compiler-plugin.version}</version>
 					<configuration>
-                        <release>21</release>
+                        <release>${java.level}</release>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -186,7 +186,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven-javadoc-plugin.version}</version>
 					<configuration>
-						<source>21</source>
+						<source>${java.level}</source>
 					</configuration>
 				</plugin>
 				<plugin>
