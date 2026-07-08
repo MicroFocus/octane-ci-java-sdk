@@ -1,5 +1,5 @@
 install:
-- ps: choco install temurin11 -y
+- ps: choco install temurin21 -y
 - ps: |
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     if (!(Test-Path -Path "C:\maven" )) {
