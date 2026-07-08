@@ -13,7 +13,8 @@ install:
     FOR /D %%F IN ("C:\Program Files\Eclipse Adoptium\jdk-11*") DO SET JAVA_HOME=%%F
     SET PATH=C:\maven\apache-maven-3.9.11\bin;%JAVA_HOME%\bin;%PATH%
     java -version
-
+    mvn -version
+      
 build_script:
 - mvn compile spotbugs:check -T8
 
