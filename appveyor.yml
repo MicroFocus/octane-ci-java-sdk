@@ -1,20 +1,22 @@
 install:
 - ps: choco install temurin21 -y
-- ps: |
+- ps: |  
     Add-Type -AssemblyName System.IO.Compression.FileSystem
+    Remove-Item -Recurse -Force "C:\maven" -ErrorAction SilentlyContinue
+    Remove-Item -Force "C:\maven-bin.zip" -ErrorAction SilentlyContinue
     if (!(Test-Path -Path "C:\maven" )) {
       (new-object System.Net.WebClient).DownloadFile(
-        'https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.zip',
+        'https://dlcdn.apache.org/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.zip',
         'C:\maven-bin.zip'
       )
       [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
     }
 - cmd: |
-    FOR /D %%F IN ("C:\Program Files\Eclipse Adoptium\jdk-11*") DO SET JAVA_HOME=%%F
-    SET PATH=C:\maven\apache-maven-3.9.11\bin;%JAVA_HOME%\bin;%PATH%
+    FOR /D %%F IN ("C:\Program Files\Eclipse Adoptium\jdk-21*") DO SET JAVA_HOME=%%F
+    SET PATH=C:\maven\apache-maven-3.9.16\bin;%JAVA_HOME%\bin;%PATH%
     java -version
     mvn -version
-      
+
 build_script:
 - mvn compile spotbugs:check -T8
 
