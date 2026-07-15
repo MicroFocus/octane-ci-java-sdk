@@ -1,26 +1,43 @@
 install:
-- ps: choco install temurin11 -y
-- ps: |
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    if (!(Test-Path -Path "C:\maven" )) {
-      (new-object System.Net.WebClient).DownloadFile(
-        'https://dlcdn.apache.org/maven/maven-3/3.9.11/binaries/apache-maven-3.9.11-bin.zip',
-        'C:\maven-bin.zip'
-      )
-      [System.IO.Compression.ZipFile]::ExtractToDirectory("C:\maven-bin.zip", "C:\maven")
-    }
-- cmd: |
-    FOR /D %%F IN ("C:\Program Files\Eclipse Adoptium\jdk-11*") DO SET JAVA_HOME=%%F
-    SET PATH=C:\maven\apache-maven-3.9.11\bin;%JAVA_HOME%\bin;%PATH%
-    java -version
+    - ps: |
+          # Install JDK 21 only if it is not already installed
+          $jdk = Get-ChildItem "C:\Program Files\Eclipse Adoptium" -Directory -Filter "jdk-21*" -ErrorAction SilentlyContinue
+          
+          if (-not $jdk) {
+            choco install temurin21 -y
+          }
+
+    - ps: |
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          
+          # Install Maven only if it is not already present
+          if (!(Test-Path "C:\maven\apache-maven-3.9.16\bin\mvn.cmd")) {
+            Remove-Item "C:\maven" -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item "C:\maven-bin.zip" -Force -ErrorAction SilentlyContinue
+          
+            (New-Object System.Net.WebClient).DownloadFile(
+              "https://dlcdn.apache.org/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.zip",
+              "C:\maven-bin.zip"
+            )
+          
+            [System.IO.Compression.ZipFile]::ExtractToDirectory(
+              "C:\maven-bin.zip",
+              "C:\maven"
+            )
+          }
+
+    - cmd: |
+          FOR /D %%F IN ("C:\Program Files\Eclipse Adoptium\jdk-21*") DO SET JAVA_HOME=%%F
+          SET PATH=C:\maven\apache-maven-3.9.16\bin;%JAVA_HOME%\bin;%PATH%
+          java -version
+          mvn -version
 
 build_script:
-- mvn compile spotbugs:check -T8
+    - mvn compile spotbugs:check -T8
 
 test_script:
-- mvn test -T8 -P jacoco-coverage
-
+    - mvn test -T8 -P jacoco-coverage
 
 cache:
-- C:\maven\
-- C:\Users\appveyor\.m2
+    - C:\maven\
+    - C:\Users\appveyor\.m2
