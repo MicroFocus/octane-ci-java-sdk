@@ -16,11 +16,13 @@ import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.services.rest.OctaneRestClient;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +41,13 @@ public class MfMIAgentConverter extends TestsToRunConverter {
 
     private static final String MANUAL_RUN_DATA_PARAMETER = "manualRunData";
 
-    private static final String GET_MANUAL_RUN_STEPS_URL_TEMPLATE = "/api/shared_spaces/%s/workspaces/%s/runs?fields=run_steps{actual,description,result,run,step_type,attachments,from_call_to_test,index_in_script,index_in_report},id,has_attachments,order_in_suite_run,test,run_by,name,test_name,duration,subtype,native_status,parent_suite,run_by{full_name},test{subtype}&limit=30&offset=0&order_by=order_in_suite_run,id&query=\"(parent_suite={id=%s};subtype IN 'run_manual')\"";
+    private static final String RUNS_PATH_TEMPLATE = "/api/shared_spaces/%s/workspaces/%s/runs";
 
-    private static final String GET_MANUAL_RUN_STEPS_URL_TEMPLATE_WITH_AU_TESTER_CONFIG = "/api/shared_spaces/%s/workspaces/%s/runs?fields=run_steps{actual,description,result,run,step_type,attachments,from_call_to_test,index_in_script,index_in_report},id,has_attachments,order_in_suite_run,test,run_by,name,test_name,duration,subtype,native_status,parent_suite,au_tester_configuration,run_by{full_name},test{subtype}&limit=30&offset=0&order_by=order_in_suite_run,id&query=\"(parent_suite={id=%s};subtype IN 'run_manual')\"";
+    private static final String RUNS_FIELDS = "run_steps{actual,description,result,run,step_type,attachments,from_call_to_test,index_in_script,index_in_report},id,has_attachments,order_in_suite_run,test,run_by,name,test_name,duration,subtype,native_status,parent_suite,run_by{full_name},test{subtype}";
 
-    private static final String GET_MANUAL_RUN_METADATA = "/api/shared_spaces/%s/workspaces/%s/metadata/fields?query=\"entity_name='run';name='au_tester_configuration'\"";
+    private static final String RUNS_FIELDS_WITH_AU_TESTER_CONFIG = "run_steps{actual,description,result,run,step_type,attachments,from_call_to_test,index_in_script,index_in_report},id,has_attachments,order_in_suite_run,test,run_by,name,test_name,duration,subtype,native_status,parent_suite,au_tester_configuration,run_by{full_name},test{subtype}";
+
+    private static final String METADATA_PATH_TEMPLATE = "/api/shared_spaces/%s/workspaces/%s/metadata/fields";
 
     @Override
     protected String convertInternal(List<TestToRunData> data, String executionDirectory, Map<String, String> globalParameters) {
@@ -109,11 +113,10 @@ public class MfMIAgentConverter extends TestsToRunConverter {
     }
 
     private String fetchManualRuns(OctaneClient octaneClient, OctaneConfiguration octaneConfig, String workspaceId, String suiteRunId) {
-        String sharedSpaceId = octaneConfig.getSharedSpace();
-        String oldUrl = octaneConfig.getUrl() + String.format(GET_MANUAL_RUN_STEPS_URL_TEMPLATE, sharedSpaceId, workspaceId, suiteRunId);
-        String newUrl = octaneConfig.getUrl() + String.format(GET_MANUAL_RUN_STEPS_URL_TEMPLATE_WITH_AU_TESTER_CONFIG, sharedSpaceId, workspaceId, suiteRunId);
+        String query = "\"(parent_suite={id=" + suiteRunId + "};subtype IN 'run_manual')\"";
 
         if (hasAutonomousTesterConfiguration(octaneClient, octaneConfig, workspaceId)) {
+            String newUrl = buildRunsUrl(octaneConfig, workspaceId, RUNS_FIELDS_WITH_AU_TESTER_CONFIG, query);
             OctaneResponse response = executeGet(octaneClient, newUrl);
             if (response.getStatus() == HttpStatus.SC_OK && response.getBody() != null) {
                 return response.getBody();
@@ -121,6 +124,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
             logger.warn("Failed to retrieve MI Agent runs with au_tester_configuration, falling back to legacy runs query. Status: {}", response.getStatus());
         }
 
+        String oldUrl = buildRunsUrl(octaneConfig, workspaceId, RUNS_FIELDS, query);
         OctaneResponse response = executeGet(octaneClient, oldUrl);
         if (response.getStatus() == HttpStatus.SC_OK && response.getBody() != null) {
             return response.getBody();
@@ -130,9 +134,35 @@ public class MfMIAgentConverter extends TestsToRunConverter {
     }
 
     private boolean hasAutonomousTesterConfiguration(OctaneClient octaneClient, OctaneConfiguration octaneConfig, String workspaceId) {
-        String metadataUrl = octaneConfig.getUrl() + String.format(GET_MANUAL_RUN_METADATA, octaneConfig.getSharedSpace(), workspaceId);
+        String metadataUrl = buildMetadataUrl(octaneConfig, workspaceId);
         OctaneResponse response = executeGet(octaneClient, metadataUrl);
         return response.getStatus() == HttpStatus.SC_OK && response.getBody() != null && response.getBody().contains("au_tester_configuration");
+    }
+
+    private String buildMetadataUrl(OctaneConfiguration cfg, String workspaceId) {
+        try {
+            return new URIBuilder(cfg.getUrl() + String.format(METADATA_PATH_TEMPLATE, cfg.getSharedSpace(), workspaceId))
+                    .addParameter("query", "\"entity_name='run';name='au_tester_configuration'\"")
+                    .build()
+                    .toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Failed to build metadata URL", e);
+        }
+    }
+
+    private String buildRunsUrl(OctaneConfiguration cfg, String workspaceId, String fields, String query) {
+        try {
+            return new URIBuilder(cfg.getUrl() + String.format(RUNS_PATH_TEMPLATE, cfg.getSharedSpace(), workspaceId))
+                    .addParameter("fields", fields)
+                    .addParameter("limit", "30")
+                    .addParameter("offset", "0")
+                    .addParameter("order_by", "order_in_suite_run,id")
+                    .addParameter("query", query)
+                    .build()
+                    .toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Failed to build runs URL", e);
+        }
     }
 
     private OctaneResponse executeGet(OctaneClient octaneClient, String url) {
