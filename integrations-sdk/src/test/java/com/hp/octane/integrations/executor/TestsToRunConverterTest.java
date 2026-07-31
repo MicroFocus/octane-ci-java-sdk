@@ -31,10 +31,14 @@
  */
 package com.hp.octane.integrations.executor;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static com.hp.octane.integrations.executor.TestsToRunFramework.JUnit4;
+import static com.hp.octane.integrations.executor.TestsToRunFramework.MF_MI_AGENT;
 import static com.hp.octane.integrations.executor.TestsToRunFramework.MF_UFT;
 
 public class TestsToRunConverterTest {
@@ -107,4 +111,24 @@ public class TestsToRunConverterTest {
         Assert.assertEquals(outputUFTResult, actual);
     }
 
+    @Test
+    public void miAgentConverterManifestTest() throws Exception {
+        TestToRunData first = new TestToRunData()
+                .setTestName("Login flow")
+                .addParameters("runId", "1042")
+                .addParameters("manualRunData", "{\"type\":\"run\",\"id\":\"1042\",\"test_name\":\"Login flow\",\"subtype\":\"run_manual\",\"order_in_suite_run\":1,\"native_status\":{\"type\":\"list_node\",\"id\":\"status_ready\",\"name\":\"Ready\"},\"test\":{\"subtype\":\"test_manual\"},\"run_steps\":{\"total_count\":1,\"data\":[{\"id\":\"s1\",\"step_type\":{\"name\":\"Normal\"},\"description\":\"Open login page\"}]},\"au_tester_configuration\":{\"BROWSER_NAME\":\"chrome\"}}");
+        TestToRunData second = new TestToRunData()
+                .setTestName("Checkout flow")
+                .addParameters("runId", "1043")
+                .addParameters("manualRunData", "{\"type\":\"run\",\"id\":\"1043\",\"test_name\":\"Checkout flow\",\"subtype\":\"run_manual\",\"order_in_suite_run\":2,\"native_status\":{\"type\":\"list_node\",\"id\":\"status_ready\",\"name\":\"Ready\"},\"test\":{\"subtype\":\"test_manual\"},\"run_steps\":{\"total_count\":2,\"data\":[{\"id\":\"s2\",\"step_type\":{\"name\":\"Normal\"},\"description\":\"Add item\"},{\"id\":\"s3\",\"step_type\":{\"name\":\"Validate\"},\"description\":\"Verify total\"}]}}");
+
+        String actual = TestsToRunConvertersFactory.createConverter(MF_MI_AGENT)
+                .convert(Arrays.asList(first, second), "", null)
+                .getConvertedTestsString();
+
+        String expected = "{\"data\":[{\"type\":\"run\",\"id\":\"1042\",\"test_name\":\"Login flow\",\"subtype\":\"run_manual\",\"order_in_suite_run\":1,\"native_status\":{\"type\":\"list_node\",\"id\":\"status_ready\",\"name\":\"Ready\"},\"test\":{\"subtype\":\"test_manual\"},\"run_steps\":{\"total_count\":1,\"data\":[{\"id\":\"s1\",\"step_type\":{\"name\":\"Normal\"},\"description\":\"Open login page\"}]},\"au_tester_configuration\":{\"BROWSER_NAME\":\"chrome\"}},{\"type\":\"run\",\"id\":\"1043\",\"test_name\":\"Checkout flow\",\"subtype\":\"run_manual\",\"order_in_suite_run\":2,\"native_status\":{\"type\":\"list_node\",\"id\":\"status_ready\",\"name\":\"Ready\"},\"test\":{\"subtype\":\"test_manual\"},\"run_steps\":{\"total_count\":2,\"data\":[{\"id\":\"s2\",\"step_type\":{\"name\":\"Normal\"},\"description\":\"Add item\"},{\"id\":\"s3\",\"step_type\":{\"name\":\"Validate\"},\"description\":\"Verify total\"}]}}],\"total_count\":2}";
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        Assert.assertEquals(objectMapper.readTree(expected), objectMapper.readTree(actual));
+    }
 }

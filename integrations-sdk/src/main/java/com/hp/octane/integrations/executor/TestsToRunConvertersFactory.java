@@ -54,6 +54,8 @@ public class TestsToRunConvertersFactory {
                 return new ProtractorConverter();
             case Gradle:
                 return new GradleConverter();
+            case MF_MI_AGENT:
+                return new MfMIAgentConverter();
             case Custom:
                 return new CustomConverter();
             default:
