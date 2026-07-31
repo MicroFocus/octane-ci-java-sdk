@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.hp.octane.integrations.services.rest.RestService.ACCEPT_HEADER;
 import static com.hp.octane.integrations.utils.SdkConstants.JobParameters.*;
@@ -104,11 +105,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
 
     private OctaneClient getOctaneClient(Map<String, String> globalParameters) {
         String octaneConfigId = getRequiredParameter(globalParameters, OCTANE_CONFIG_ID_PARAMETER_NAME);
-        OctaneClient octaneClient = OctaneSDK.getClientByInstanceId(octaneConfigId);
-        if (octaneClient == null) {
-            throw new IllegalStateException("Failed to resolve Octane client for config id '" + octaneConfigId + "'");
-        }
-        return octaneClient;
+        return OctaneSDK.getClientByInstanceId(octaneConfigId);
     }
 
     private String fetchManualRuns(OctaneClient octaneClient, OctaneConfiguration octaneConfig, String workspaceId, String suiteRunId) {
@@ -118,24 +115,24 @@ public class MfMIAgentConverter extends TestsToRunConverter {
 
         if (hasAutonomousTesterConfiguration(octaneClient, octaneConfig, workspaceId)) {
             OctaneResponse response = executeGet(octaneClient, newUrl);
-            if (response != null && response.getStatus() == HttpStatus.SC_OK) {
+            if (response.getStatus() == HttpStatus.SC_OK && response.getBody() != null) {
                 return response.getBody();
             }
-            logger.warn("Failed to retrieve MI Agent runs with au_tester_configuration, falling back to legacy runs query. Status: {}", response != null ? response.getStatus() : "(null)");
+            logger.warn("Failed to retrieve MI Agent runs with au_tester_configuration, falling back to legacy runs query. Status: {}", response.getStatus());
         }
 
         OctaneResponse response = executeGet(octaneClient, oldUrl);
-        if (response != null && response.getStatus() == HttpStatus.SC_OK) {
+        if (response.getStatus() == HttpStatus.SC_OK && response.getBody() != null) {
             return response.getBody();
         }
 
-        throw new IllegalStateException("Failed to retrieve MI Agent manual runs from Octane. Status: " + (response != null ? response.getStatus() : "(null)"));
+        throw new IllegalStateException("Failed to retrieve MI Agent manual runs from Octane. Status: " + response.getStatus());
     }
 
     private boolean hasAutonomousTesterConfiguration(OctaneClient octaneClient, OctaneConfiguration octaneConfig, String workspaceId) {
         String metadataUrl = octaneConfig.getUrl() + String.format(GET_MANUAL_RUN_METADATA, octaneConfig.getSharedSpace(), workspaceId);
         OctaneResponse response = executeGet(octaneClient, metadataUrl);
-        return response != null && response.getStatus() == HttpStatus.SC_OK && response.getBody() != null && response.getBody().contains("au_tester_configuration");
+        return response.getStatus() == HttpStatus.SC_OK && response.getBody() != null && response.getBody().contains("au_tester_configuration");
     }
 
     private OctaneResponse executeGet(OctaneClient octaneClient, String url) {
@@ -150,7 +147,8 @@ public class MfMIAgentConverter extends TestsToRunConverter {
                 .setUrl(url);
 
         try {
-            return octaneClient.getRestService().obtainOctaneRestClient().execute(request);
+            OctaneResponse response = octaneClient.getRestService().obtainOctaneRestClient().execute(request);
+            return Objects.requireNonNull(response, "Octane REST client returned null response");
         } catch (IOException e) {
             throw new IllegalStateException("Failed to execute Octane request: " + url, e);
         }
