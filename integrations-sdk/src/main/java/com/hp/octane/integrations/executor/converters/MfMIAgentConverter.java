@@ -58,13 +58,13 @@ public class MfMIAgentConverter extends TestsToRunConverter {
             for (TestToRunData test : data) {
                 String manualRunData = test.getParameter(MANUAL_RUN_DATA_PARAMETER);
                 if (SdkStringUtils.isEmpty(manualRunData)) {
-                    throw new IllegalStateException("Missing MI Agent run data for test '" + test.getTestName() + "'");
+                    throw new IllegalArgumentException("Missing MI Agent run data for test '" + test.getTestName() + "'");
                 }
 
                 try {
                     runs.add(OBJECT_MAPPER.readTree(manualRunData));
                 } catch (IOException e) {
-                    throw new IllegalStateException("Invalid MI Agent run data for test '" + test.getTestName() + "'", e);
+                    throw new IllegalArgumentException("Invalid MI Agent run data for test '" + test.getTestName() + "'", e);
                 }
             }
         }
@@ -74,7 +74,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
         try {
             return OBJECT_MAPPER.writeValueAsString(manifest);
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to serialize MI Agent execution manifest", e);
+            throw new IllegalArgumentException("Failed to serialize MI Agent execution manifest", e);
         }
     }
 
@@ -96,13 +96,13 @@ public class MfMIAgentConverter extends TestsToRunConverter {
             String runId = getRequiredRunId(test);
             JsonNode runNode = runsById.get(runId);
             if (runNode == null) {
-                throw new IllegalStateException("Failed to find MI Agent manual run '" + runId + "' for test '" + test.getTestName() + "'");
+                throw new IllegalArgumentException("Failed to find MI Agent manual run '" + runId + "' for test '" + test.getTestName() + "'");
             }
 
             try {
                 test.addParameters(MANUAL_RUN_DATA_PARAMETER, OBJECT_MAPPER.writeValueAsString(runNode));
             } catch (IOException e) {
-                throw new IllegalStateException("Failed to store MI Agent run data for test '" + test.getTestName() + "'", e);
+                throw new IllegalArgumentException("Failed to store MI Agent run data for test '" + test.getTestName() + "'", e);
             }
         }
     }
@@ -130,7 +130,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
             return response.getBody();
         }
 
-        throw new IllegalStateException("Failed to retrieve MI Agent manual runs from Octane. Status: " + response.getStatus());
+        throw new IllegalArgumentException("Failed to retrieve MI Agent manual runs from Octane. Status: " + response.getStatus());
     }
 
     private boolean hasAutonomousTesterConfiguration(OctaneClient octaneClient, OctaneConfiguration octaneConfig, String workspaceId) {
@@ -146,7 +146,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
                     .build()
                     .toString();
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("Failed to build metadata URL", e);
+            throw new IllegalArgumentException("Failed to build metadata URL", e);
         }
     }
 
@@ -161,7 +161,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
                     .build()
                     .toString();
         } catch (URISyntaxException e) {
-            throw new IllegalStateException("Failed to build runs URL", e);
+            throw new IllegalArgumentException("Failed to build runs URL", e);
         }
     }
 
@@ -180,7 +180,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
             OctaneResponse response = octaneClient.getRestService().obtainOctaneRestClient().execute(request);
             return Objects.requireNonNull(response, "Octane REST client returned null response");
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to execute Octane request: " + url, e);
+            throw new IllegalArgumentException("Failed to execute Octane request: " + url, e);
         }
     }
 
@@ -189,7 +189,7 @@ public class MfMIAgentConverter extends TestsToRunConverter {
             JsonNode root = OBJECT_MAPPER.readTree(responseBody);
             JsonNode runs = root.path("data");
             if (!runs.isArray()) {
-                throw new IllegalStateException("Unexpected MI Agent runs response: missing data array");
+                throw new IllegalArgumentException("Unexpected MI Agent runs response: missing data array");
             }
 
             Map<String, JsonNode> runsById = new HashMap<>();
@@ -201,26 +201,26 @@ public class MfMIAgentConverter extends TestsToRunConverter {
             }
             return runsById;
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to parse MI Agent runs response", e);
+            throw new IllegalArgumentException("Failed to parse MI Agent runs response", e);
         }
     }
 
     private String getRequiredRunId(TestToRunData test) {
         String runId = test.getParameter(RUN_ID_PARAMETER);
         if (SdkStringUtils.isEmpty(runId)) {
-            throw new IllegalStateException("Missing runId parameter for MI Agent test '" + test.getTestName() + "'");
+            throw new IllegalArgumentException("Missing runId parameter for MI Agent test '" + test.getTestName() + "'");
         }
         return runId;
     }
 
     private String getRequiredParameter(Map<String, String> globalParameters, String key) {
         if (globalParameters == null) {
-            throw new IllegalStateException("Missing global parameters required for MI Agent enrichment");
+            throw new IllegalArgumentException("Missing global parameters required for MI Agent enrichment");
         }
 
         String value = globalParameters.get(key);
         if (SdkStringUtils.isEmpty(value)) {
-            throw new IllegalStateException("Missing global parameter '" + key + "' required for MI Agent enrichment");
+            throw new IllegalArgumentException("Missing global parameter '" + key + "' required for MI Agent enrichment");
         }
         return value;
     }

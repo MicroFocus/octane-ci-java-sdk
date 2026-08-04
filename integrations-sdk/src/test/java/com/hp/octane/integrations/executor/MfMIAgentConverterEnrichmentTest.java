@@ -168,8 +168,8 @@ public class MfMIAgentConverterEnrichmentTest {
         replay(mockClient, mockRestClient, mockRestService, mockConfigService);
         sdkClientsMap.put(realConfig, mockClient);
 
-        IllegalStateException ex = Assert.assertThrows(
-                IllegalStateException.class,
+        IllegalArgumentException ex = Assert.assertThrows(
+                IllegalArgumentException.class,
                 () -> new MfMIAgentConverter().enrichTestsData(Collections.singletonList(test), globalParams())
         );
 
