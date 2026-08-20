@@ -96,7 +96,7 @@
 	<properties>
 		<maven-clean-plugin.verion>3.1.0</maven-clean-plugin.verion>
 		<maven-install-plugin.verion>3.0.0-M1</maven-install-plugin.verion>
-		<maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
+		<maven-enforcer-plugin.version>3.0.0-M2</maven-enforcer-plugin.version>
 		<maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
 		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
 		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
@@ -247,7 +247,7 @@
 						<dependency>
 							<artifactId>spotbugs</artifactId>
 							<groupId>com.github.spotbugs</groupId>
-							<version>${spotbugs.version}</version>
+							<version>${spotbugs.core.version}</version>
 						</dependency>
 					</dependencies>
 				</plugin>
