@@ -144,6 +144,7 @@ public class EntityConstants {
 		public static final String ENTITY_NAME = "executor";
         public static final String TEST_RUNNER_SUBTYPE_ENTITY_NAME = "test_runner";
         public static final String UFT_TEST_RUNNER_SUBTYPE_ENTITY_NAME = "uft_test_runner";
+        public static final String AUTE_TEST_RUNNER_SUBTYPE_ENTITY_NAME = "aute_test_runner";
     }
 
     public static class CIServer extends Base {

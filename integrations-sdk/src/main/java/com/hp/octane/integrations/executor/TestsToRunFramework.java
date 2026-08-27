@@ -48,6 +48,7 @@ public enum TestsToRunFramework implements Serializable {
     JBehave("jbehave", "JBehave over Maven", JBehaveConverter.FORMAT),
     Protractor("protractor", "Protractor", ProtractorConverter.FORMAT),
     Gradle("gradle", "Gradle", GradleConverter.FORMAT),
+    MF_MI_AGENT("mi_agent", "Open Text Autonomous Tester", ""),
     Custom("custom", "Custom", "");
 
 
