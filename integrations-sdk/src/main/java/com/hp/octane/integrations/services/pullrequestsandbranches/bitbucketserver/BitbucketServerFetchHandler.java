@@ -102,7 +102,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
                             .setUser(getUserName(commit.getCommitter().getEmailAddress(), commit.getCommitter().getName()))
                             .setUserEmail(commit.getCommitter().getEmailAddress())
                             .setTime(commit.getCommitterTimestamp())
-                            .setParentRevId(commit.getParents().get(0).getId());
+                            .setParentRevId(commit.getParents().getFirst().getId());
                     dtoCommits.add(dtoCommit);
                     }
 
@@ -122,7 +122,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
                         .setAuthorName(userId)
                         .setAuthorEmail(pr.getAuthor().getUser().getEmailAddress())
                         .setClosedTime(pr.getClosedDate())
-                        .setSelfUrl(pr.getLinks().getSelf().get(0).getHref())
+                        .setSelfUrl(pr.getLinks().getSelf().getFirst().getHref())
                         .setSourceRepository(sourceRepository)
                         .setTargetRepository(targetRepository)
                         .setCommits(dtoCommits)
@@ -185,7 +185,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
         Stream<Link> links = ref.getRepository().getLinks().getClone().stream();
         Optional<Link> optLink = useSSHFormat ? links.filter(l -> l.getName().equalsIgnoreCase("ssh")).findFirst() :
                 links.filter(l -> !l.getName().equalsIgnoreCase("ssh")).findFirst();
-        String url = optLink.isPresent() ? optLink.get().getHref() : ref.getRepository().getLinks().getClone().get(0).getHref();
+        String url = optLink.isPresent() ? optLink.get().getHref() : ref.getRepository().getLinks().getClone().getFirst().getHref();
         return dtoFactory.newDTO(SCMRepository.class)
                 .setUrl(url)
                 .setBranch(ref.getDisplayId())
@@ -227,7 +227,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
 
             //remove exceeded items
             while (result.size() > maxTotal) {
-                result.remove(result.size() - 1);
+                result.removeLast();
             }
             return result;
         } catch (RuntimeException e) {
@@ -265,7 +265,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
             }
 
             //add repo name without .git
-            String repoPart = parts.get(parts.size() - 1);
+            String repoPart = parts.getLast();
             if (repoPart.toLowerCase().endsWith(".git")) {
                 repoPart = repoPart.substring(0, repoPart.length() - 4);//remove ".git"
             }
@@ -301,7 +301,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
         }
 
         //add repo name without .git
-        String repoPart = parts.get(parts.size() - 1);
+        String repoPart = parts.getLast();
         if (repoPart.toLowerCase().endsWith(".git")) {
             repoPart = repoPart.substring(0, repoPart.length() - 4);//remove ".git"
         }

@@ -274,7 +274,7 @@ public class UftDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
 
         List<Entity> entities = entitiesService.getEntities(null, "server_version", null, null);
         if (entities.size() == 1) {
-            Entity entity = entities.get(0);
+            Entity entity = entities.getFirst();
             octaneVersion = entity.getStringValue("version");
             logger.debug("Received Octane version - " + octaneVersion);
 
@@ -369,7 +369,7 @@ public class UftDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
                     String key = deletedTest.getChangeSetDst();
                     if (dst2Test.containsKey(key)) {
                         if (dst2Test.get(key).size() == 1) {
-                            AutomatedTest newTest = dst2Test.get(key).get(0);
+                            AutomatedTest newTest = dst2Test.get(key).getFirst();
                             deleted2newMovedTests.add(new AbstractMap.SimpleEntry(deletedTest, newTest));
                         } else {
                             AbstractMap.SimpleEntry<AutomatedTest, AutomatedTest> pairsDeletedNew = createPairsDeletedNew(dst2Test.get(key), deletedTest, result);
@@ -466,7 +466,7 @@ public class UftDiscoveryResultPreparerImpl implements DiscoveryResultPreparer {
 
         });
         if (deletedTestsList.size() == 1 && newTestsList.size() == 1) {
-            return new AbstractMap.SimpleEntry<>(deletedTestsList.get(0), newTestsList.get(0));
+            return new AbstractMap.SimpleEntry<>(deletedTestsList.getFirst(), newTestsList.getFirst());
         } else {
             return null;
         }

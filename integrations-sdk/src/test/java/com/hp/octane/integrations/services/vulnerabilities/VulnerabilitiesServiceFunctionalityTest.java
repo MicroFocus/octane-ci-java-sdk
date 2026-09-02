@@ -46,10 +46,15 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
-import org.junit.Assert;
-import org.junit.Test;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.util.Callback;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -57,12 +62,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
 
 /**
  * Octane SDK functional sanity test
@@ -74,7 +80,8 @@ import java.util.zip.GZIPInputStream;
 public class VulnerabilitiesServiceFunctionalityTest {
     private static final Logger logger = LogManager.getLogger(VulnerabilitiesServiceFunctionalityTest.class);
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testVulnerabilitiesFunctional() {
         Map<String, OctaneSPEndpointSimulator> simulators = null;
 
@@ -99,8 +106,8 @@ public class VulnerabilitiesServiceFunctionalityTest {
             OctaneConfiguration configA = new OctaneConfigurationIntern(clientAInstanceId, OctaneSPEndpointSimulator.getSimulatorUrl(), spIdA);
             OctaneClient clientA = OctaneSDK.addClient(configA, VulnerabilitiesServicePluginServicesTest.class);
             VulnerabilitiesService vulnerabilitiesServiceA = clientA.getVulnerabilitiesService();
-            Assert.assertFalse(preflightRequestCollectors.containsKey(spIdA));
-            Assert.assertFalse(preflightRequestCollectors.containsKey(spIdB));
+            Assertions.assertFalse(preflightRequestCollectors.containsKey(spIdA));
+            Assertions.assertFalse(preflightRequestCollectors.containsKey(spIdB));
 
             //
             //  II
@@ -122,10 +129,10 @@ public class VulnerabilitiesServiceFunctionalityTest {
                     return null;
                 }
             });
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdA).get(0));
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdA).get(1));
-            Assert.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdB).get(0));
-            Assert.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdB).get(1));
+            Assertions.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdA).getFirst());
+            Assertions.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdA).get(1));
+            Assertions.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-true") + "|1", preflightRequestCollectors.get(spIdB).getFirst());
+            Assertions.assertEquals(clientBInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("job-preflight-false") + "|1", preflightRequestCollectors.get(spIdB).get(1));
 
             //
             //  III
@@ -149,7 +156,8 @@ public class VulnerabilitiesServiceFunctionalityTest {
         }
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testVulnerabilitiesFunctionalSSC() {
         Map<String, OctaneSPEndpointSimulator> simulators = null;
 
@@ -186,7 +194,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
                 }
             });
 
-            Assert.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preflightRequestCollectors.get(spIdA).get(0));
+            Assertions.assertEquals(clientAInstanceId + "|" + CIPluginSDKUtils.urlEncodeBase64("jobSSC1") + "|1", preflightRequestCollectors.get(spIdA).getFirst());
 
             OctaneSDK.removeClient(clientA);
 
@@ -200,7 +208,8 @@ public class VulnerabilitiesServiceFunctionalityTest {
         }
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABUpdatedCClosedDMissingENewNoBaseline() throws IOException {
 
         Issues.Issue issueA = new Issues.Issue();
@@ -243,10 +252,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
                 expectedPushToOctane);
 
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABUpdatedCClosedDMissingENewFGBeforeBaseline() throws IOException {
 
 
@@ -311,10 +321,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
                 expectedPushToOctane);
 
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABDMissingENewFGBeforeBaseline() throws IOException {
 
 
@@ -377,10 +388,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
         SSCIntegrationTest sscIntegrationTest = new SSCIntegrationTest(octaneInput,
                 sscInput, expectedPushToOctane);
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testABCClosedENEW() throws IOException {
 
 
@@ -407,10 +419,11 @@ public class VulnerabilitiesServiceFunctionalityTest {
         SSCIntegrationTest sscIntegrationTest = new SSCIntegrationTest(octaneInput,
                 sscInput, expectedPushToOctane);
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
-    @Test(timeout = 20000)
+    @Test
+    @Timeout(value = 20000, unit = TimeUnit.MILLISECONDS)
     public void testNoPushToOctane() throws IOException {
 
 
@@ -426,7 +439,7 @@ public class VulnerabilitiesServiceFunctionalityTest {
         SSCIntegrationTest sscIntegrationTest = new SSCIntegrationTest(octaneInput,
                 sscInput, expectedPushToOctane);
         String errorMsg = sscIntegrationTest.runAndGetErrorMsg();
-        Assert.assertNull(errorMsg);
+        Assertions.assertNull(errorMsg);
     }
 
     private Map<String, OctaneSPEndpointSimulator> initSPEPSimulators(
@@ -439,33 +452,38 @@ public class VulnerabilitiesServiceFunctionalityTest {
             OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
 
             //  vulnerabilities preflight API
-            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", request -> {
+            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", (request, response) -> {
                 try {
                     //  retrieve query parameters
-                    request.mergeQueryParameters("", request.getQueryString());
+                    String instanceId = Request.getParameters(request).getValue("instance-id");
+                    String jobCiId = Request.getParameters(request).getValue("job-ci-id");
+                    String buildCiId = Request.getParameters(request).getValue("build-ci-id");
                     preflightRequestsCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
-                            .add(request.getQueryParameters().getString("instance-id") + "|" +
-                                    request.getQueryParameters().getString("job-ci-id") + "|" +
-                                    request.getQueryParameters().getString("build-ci-id"));
-                    request.getResponse().setStatus(HttpStatus.SC_OK);
-                    request.getResponse().getWriter().write(request.getQueryParameters().getString("job-ci-id").contains("true") ? "true" : "false");
-                    request.getResponse().getWriter().flush();
-                } catch (IOException ioe) {
-                    throw new OctaneSDKGeneralException("failed to write response", ioe);
+                            .add(instanceId + "|" + jobCiId + "|" + buildCiId);
+                    response.setStatus(HttpStatus.SC_OK);
+                    response.getHeaders().put("Content-Type", "text/plain");
+                    Content.Sink.write(response, true, jobCiId.contains("true") ? "true" : "false", Callback.NOOP);
+                } catch (Exception e) {
+                    throw new OctaneSDKGeneralException("failed to write response", e);
                 }
             });
 
             //  vulnerabilities push API
-            simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", request -> {
+            simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", (request, response) -> {
                 try {
-                    String rawVulnerabilitiesBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+                    String rawVulnerabilitiesBody = Content.Source.asString(request, StandardCharsets.UTF_8);
+                    // Decompress if needed (if Content-Encoding is gzip)
+                    if ("gzip".equalsIgnoreCase(request.getHeaders().get("Content-Encoding"))) {
+                        byte[] compressed = rawVulnerabilitiesBody.getBytes(StandardCharsets.ISO_8859_1);
+                        rawVulnerabilitiesBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(new java.io.ByteArrayInputStream(compressed)));
+                    }
                     pushRequestCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
                             .add(rawVulnerabilitiesBody);
-                    request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
-                    request.getResponse().getWriter().write("{\"status\": \"queued\"}");
-                    request.getResponse().getWriter().flush();
+                    response.setStatus(HttpStatus.SC_ACCEPTED);
+                    response.getHeaders().put("Content-Type", "application/json");
+                    Content.Sink.write(response, true, "{\"status\": \"queued\"}", Callback.NOOP);
                 } catch (IOException ioe) {
                     throw new OctaneSDKGeneralException("failed to write response", ioe);
                 }
@@ -487,34 +505,34 @@ public class VulnerabilitiesServiceFunctionalityTest {
             OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
 
             //  vulnerabilities preflight API
-            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", request -> {
+            simulator.installApiHandler(HttpMethod.GET, "^.*/vulnerabilities/preflight$", (request, response) -> {
                 try {
                     //  retrieve query parameters
-                    request.mergeQueryParameters("", request.getQueryString());
+                    String instanceId = Request.getParameters(request).getValue("instance-id");
+                    String jobCiId = Request.getParameters(request).getValue("job-ci-id");
+                    String buildCiId = Request.getParameters(request).getValue("build-ci-id");
                     preflightRequestsCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
-                            .add(request.getQueryParameters().getString("instance-id") + "|" +
-                                    request.getQueryParameters().getString("job-ci-id") + "|" +
-                                    request.getQueryParameters().getString("build-ci-id"));
-                    request.getResponse().setStatus(HttpStatus.SC_OK);
-                    request.getResponse().getWriter().write("true");
-                    request.getResponse().getWriter().flush();
-                } catch (IOException ioe) {
-                    throw new OctaneSDKGeneralException("failed to write response", ioe);
+                            .add(instanceId + "|" + jobCiId + "|" + buildCiId);
+                    response.setStatus(HttpStatus.SC_OK);
+                    response.getHeaders().put("Content-Type", "text/plain");
+                    OctaneSPEndpointSimulator.writeResponseBody(response, "true");
+                } catch (Exception e) {
+                    throw new OctaneSDKGeneralException("failed to write response", e);
                 }
             });
 
             //  vulnerabilities push API
-            simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", request -> {
+            simulator.installApiHandler(HttpMethod.POST, "^.*/vulnerabilities$", (request, response) -> {
                 try {
-                    String rawVulnerabilitiesBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+                    String rawVulnerabilitiesBody = OctaneSPEndpointSimulator.readRequestBody(request);
                     pushRequestCollectors
                             .computeIfAbsent(spID, sid -> new LinkedList<>())
                             .add(rawVulnerabilitiesBody);
-                    request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
-                    request.getResponse().getWriter().write("{\"status\": \"queued\"}");
-                    request.getResponse().getWriter().flush();
-                } catch (IOException ioe) {
+                    response.setStatus(HttpStatus.SC_ACCEPTED);
+                    response.getHeaders().put("Content-Type", "application/json");
+                    OctaneSPEndpointSimulator.writeResponseBody(response, "{\"status\": \"queued\"}");
+                } catch (Exception ioe) {
                     throw new OctaneSDKGeneralException("failed to write response", ioe);
                 }
             });
@@ -555,4 +573,3 @@ public class VulnerabilitiesServiceFunctionalityTest {
         }
     }
 }
-

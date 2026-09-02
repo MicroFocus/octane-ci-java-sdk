@@ -75,7 +75,7 @@ public class MbtDataImpl implements MbtData {
         if (getUnits() == null || getUnits().isEmpty()) {
             return TestingToolType.UNKNOWN;
         }
-        return getUnits().get(0).getTestingToolType();
+        return getUnits().getFirst().getTestingToolType();
     }
 
 }

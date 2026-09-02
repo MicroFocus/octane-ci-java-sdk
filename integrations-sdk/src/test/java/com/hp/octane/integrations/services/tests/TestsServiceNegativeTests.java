@@ -38,20 +38,23 @@ import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.tests.TestsResult;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 public class TestsServiceNegativeTests {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static OctaneClient client;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupClient() {
 		String inId = UUID.randomUUID().toString();
 		String sspId = UUID.randomUUID().toString();
@@ -59,127 +62,173 @@ public class TestsServiceNegativeTests {
 		client = OctaneSDK.addClient(configuration, TestsServicePluginServicesTest.class);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void removeClient() {
 		OctaneSDK.removeClient(client);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new TestsServiceImpl(null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new TestsServiceImpl(null, null, null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new TestsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new TestsServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		TestsService.newInstance(null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            TestsService.newInstance(null, null, null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		TestsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            TestsService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE1() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).isTestsResultRelevant(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            ((TestsServiceImpl) testsService).isTestsResultRelevant(null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE2() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).isTestsResultRelevant("", null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            ((TestsServiceImpl) testsService).isTestsResultRelevant("", null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF1() throws IOException {
-		TestsService testsService = client.getTestsService();
-		TestsResult tr = null;
-		((TestsServiceImpl)testsService).pushTestsResult(tr, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            TestsResult tr = null;
+            ((TestsServiceImpl) testsService).pushTestsResult(tr, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF2() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(dtoFactory.newDTO(TestsResult.class), null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            TestsResult newDTO = dtoFactory.newDTO(TestsResult.class);
+            ((TestsServiceImpl) testsService).pushTestsResult(newDTO, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF3() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(dtoFactory.newDTO(TestsResult.class), "", null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            TestsResult newDTO = dtoFactory.newDTO(TestsResult.class);
+            ((TestsServiceImpl) testsService).pushTestsResult(newDTO, "", null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF4() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(dtoFactory.newDTO(TestsResult.class), "some", null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            TestsResult newDTO = dtoFactory.newDTO(TestsResult.class);
+            ((TestsServiceImpl) testsService).pushTestsResult(newDTO, "some", null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testF5() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(dtoFactory.newDTO(TestsResult.class), "some", "");
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            TestsResult newDTO = dtoFactory.newDTO(TestsResult.class);
+            ((TestsServiceImpl) testsService).pushTestsResult(newDTO, "some", "");
+        });
+    }
 
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG1() throws IOException {
-		TestsService testsService = client.getTestsService();
-		InputStream is = null;
-		((TestsServiceImpl)testsService).pushTestsResult(is, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            InputStream is = null;
+            ((TestsServiceImpl) testsService).pushTestsResult(is, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG2() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(new ByteArrayInputStream(new byte[]{}), null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            InputStream is = new ByteArrayInputStream(new byte[]{});
+            ((TestsServiceImpl) testsService).pushTestsResult(is, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG3() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(new ByteArrayInputStream(new byte[]{}), "", null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            InputStream is = new ByteArrayInputStream(new byte[]{});
+            ((TestsServiceImpl) testsService).pushTestsResult(is, "", null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG4() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(new ByteArrayInputStream(new byte[]{}), "some", null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            InputStream is = new ByteArrayInputStream(new byte[]{});
+            ((TestsServiceImpl) testsService).pushTestsResult(is, "some", null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testG5() throws IOException {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).pushTestsResult(new ByteArrayInputStream(new byte[]{}), "some", "");
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            InputStream is = new ByteArrayInputStream(new byte[]{});
+            ((TestsServiceImpl) testsService).pushTestsResult(is, "some", "");
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testH1() {
-		TestsService testsService = client.getTestsService();
-		((TestsServiceImpl)testsService).enqueuePushTestsResult(null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            ((TestsServiceImpl) testsService).enqueuePushTestsResult(null, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testH2() {
-		TestsService testsService = client.getTestsService();
-		testsService.enqueuePushTestsResult("", null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            testsService.enqueuePushTestsResult("", null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testH3() {
-		TestsService testsService = client.getTestsService();
-		testsService.enqueuePushTestsResult("some", null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            testsService.enqueuePushTestsResult("some", null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testH4() {
-		TestsService testsService = client.getTestsService();
-		testsService.enqueuePushTestsResult("some", "", null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            TestsService testsService = client.getTestsService();
+            testsService.enqueuePushTestsResult("some", "", null);
+        });
+    }
 }

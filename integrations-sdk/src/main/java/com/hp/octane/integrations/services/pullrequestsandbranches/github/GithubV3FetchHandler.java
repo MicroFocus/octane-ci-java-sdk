@@ -218,7 +218,7 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
                             .setUser(getUserName(commit.getCommit().getCommitter().getEmail(), commit.getCommit().getCommitter().getName()))
                             .setUserEmail(commit.getCommit().getCommitter().getEmail())
                             .setTime(FetchUtils.convertISO8601DateStringToLong(commit.getCommit().getCommitter().getDate()))
-                            .setParentRevId(commit.getParents().get(0).getSha());
+                            .setParentRevId(commit.getParents().getFirst().getSha());
                     dtoCommits.add(dtoCommit);
                 }
 
@@ -365,7 +365,7 @@ public abstract class GithubV3FetchHandler extends FetchHandler {
 
                 //remove exceeding items
                 while (result.size() > maxTotal) {
-                    result.remove(result.size() - 1);
+                    result.removeLast();
                     finished = true;
                 }
             } while (!finished);

@@ -40,16 +40,14 @@ import com.hp.octane.integrations.dto.connectivity.OctaneResultAbridged;
 import com.hp.octane.integrations.dto.connectivity.OctaneTaskAbridged;
 import com.hp.octane.integrations.testhelpers.GeneralTestUtils;
 import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
-import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.server.Response;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,7 +56,6 @@ import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.GZIPInputStream;
 
 import static org.apache.http.HttpHeaders.CONTENT_TYPE;
 
@@ -73,18 +70,18 @@ public class TaskingServiceE2ETests {
 	private static final BlockingQueue<OctaneTaskAbridged> tasks = new ArrayBlockingQueue<>(10);
 	private static final Map<String, OctaneResultAbridged> results = new HashMap<>();
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupEnvironment() {
 		//  setup Octane simulator
 		OctaneSPEndpointSimulator octaneSPEndpointSimulator = setupOctaneEPSimulator(sspId);
-		Assert.assertNotNull(octaneSPEndpointSimulator);
+		Assertions.assertNotNull(octaneSPEndpointSimulator);
 
 		//  setup Octane client
 		OctaneConfiguration configuration = new OctaneConfigurationIntern(inId, OctaneSPEndpointSimulator.getSimulatorUrl(), sspId);
 		client = OctaneSDK.addClient(configuration, TaskingTestPluginServicesTest.class);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void cleanupEnvironment() {
 		OctaneSDK.removeClient(client);
 		OctaneSPEndpointSimulator.removeInstance(sspId);
@@ -120,18 +117,18 @@ public class TaskingServiceE2ETests {
 		});
 
 		//  verify status task cycle
-		Assert.assertTrue(results.containsKey(statusTaskId));
+		Assertions.assertTrue(results.containsKey(statusTaskId));
 		OctaneResultAbridged statusResult = results.get(statusTaskId);
-		Assert.assertNotNull(statusResult);
-		Assert.assertEquals(inId, statusResult.getServiceId());
-		Assert.assertEquals(HttpStatus.SC_OK, statusResult.getStatus());
+		Assertions.assertNotNull(statusResult);
+		Assertions.assertEquals(inId, statusResult.getServiceId());
+		Assertions.assertEquals(HttpStatus.SC_OK, statusResult.getStatus());
 
 		//  verify jobs task cycle
-		Assert.assertTrue(results.containsKey(jobsTaskId));
+		Assertions.assertTrue(results.containsKey(jobsTaskId));
 		OctaneResultAbridged jobsResult = results.get(jobsTaskId);
-		Assert.assertNotNull(jobsResult);
-		Assert.assertEquals(inId, jobsResult.getServiceId());
-		Assert.assertEquals(HttpStatus.SC_OK, jobsResult.getStatus());
+		Assertions.assertNotNull(jobsResult);
+		Assertions.assertEquals(inId, jobsResult.getServiceId());
+		Assertions.assertEquals(HttpStatus.SC_OK, jobsResult.getStatus());
 	}
 
 	private static OctaneSPEndpointSimulator setupOctaneEPSimulator(String sspId) {
@@ -141,16 +138,14 @@ public class TaskingServiceE2ETests {
 		result.removeApiHandler(HttpMethod.GET, "^.*tasks$");
 
 		//  install GET tasks API handler
-		result.installApiHandler(HttpMethod.GET, "^.*tasks$", request -> {
+		result.installApiHandler(HttpMethod.GET, "^.*tasks$", (request, response) -> {
 			try {
-				Response response = request.getResponse();
 				OctaneTaskAbridged task = tasks.poll(500, TimeUnit.MILLISECONDS);
 				if (task != null) {
 					logger.info("got task to dispatch to CI Server - " + task.getUrl() + " - " + task.getId() + "...");
 					response.setStatus(HttpStatus.SC_OK);
-					response.addHeader(CONTENT_TYPE, "application/json");
-					response.getWriter().write(dtoFactory.dtoCollectionToJson(Collections.singletonList(task)));
-					response.flushBuffer();
+					response.getHeaders().put(CONTENT_TYPE, "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, dtoFactory.dtoCollectionToJson(Collections.singletonList(task)));
 					logger.info("... task dispatched");
 				} else {
 					results.put("timeout_flow_verification_part", null);
@@ -162,13 +157,13 @@ public class TaskingServiceE2ETests {
 		});
 
 		//  install PUT results API handler
-		result.installApiHandler(HttpMethod.PUT, "^.*result$", request -> {
+		result.installApiHandler(HttpMethod.PUT, "^.*result$", (request, response) -> {
 			try {
-				String rawBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+				String rawBody = OctaneSPEndpointSimulator.readRequestBody(request);
 				OctaneResultAbridged taskResult = dtoFactory.dtoFromJson(rawBody, OctaneResultAbridged.class);
 				logger.info("received and parsed result for task " + taskResult.getId());
-				Assert.assertNotNull(taskResult);
-				Assert.assertNotNull(taskResult.getId());
+				Assertions.assertNotNull(taskResult);
+				Assertions.assertNotNull(taskResult.getId());
 				results.put(taskResult.getId(), taskResult);
 			} catch (Exception e) {
 				logger.error("failed during simulation of Octane EP - PUT results", e);

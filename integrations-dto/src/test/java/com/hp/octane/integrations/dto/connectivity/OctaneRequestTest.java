@@ -32,14 +32,15 @@
 package com.hp.octane.integrations.dto.connectivity;
 
 import com.hp.octane.integrations.dto.DTOFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * OctaneTaskAbridged test
@@ -48,20 +49,23 @@ import static org.junit.Assert.assertEquals;
 public class OctaneRequestTest {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		dtoFactory.newDTO(OctaneRequest.class).setUrl(null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            dtoFactory.newDTO(OctaneRequest.class).setUrl(null));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testB() {
-		dtoFactory.newDTO(OctaneRequest.class).setUrl("");
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            dtoFactory.newDTO(OctaneRequest.class).setUrl(""));
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		dtoFactory.newDTO(OctaneRequest.class).setUrl("some non valid url");
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            dtoFactory.newDTO(OctaneRequest.class).setUrl("some non valid url"));
+    }
 
 	@Test
 	public void testD() {
@@ -70,10 +74,11 @@ public class OctaneRequestTest {
 		assertEquals(validURL, request.getUrl());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE() {
-		dtoFactory.newDTO(OctaneRequest.class).setMethod(null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            dtoFactory.newDTO(OctaneRequest.class).setMethod(null));
+    }
 
 	@Test
 	public void testF1() throws IOException {

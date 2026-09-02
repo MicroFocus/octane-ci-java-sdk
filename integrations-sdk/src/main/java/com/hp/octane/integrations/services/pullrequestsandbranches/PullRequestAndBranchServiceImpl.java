@@ -150,7 +150,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         if (!repositoryRootsList.isEmpty()) {
 
-            Entity rootRepoForSearch = repositoryRootsList.get(0);
+            Entity rootRepoForSearch = repositoryRootsList.getFirst();
             String rootRepoURL = rootRepoForSearch.getField(EntityConstants.ScmRepositoryRoot.URL_FIELD).toString();
             logConsumer.accept(
                     String.format("Checking branches that already exist in the root repository with the configured id: %s",
@@ -236,7 +236,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         List<Entity> rootRepositoryForSearchList = getRepositoryRootsById(fp.getSearchBranchOctaneRootRepositoryId(), workspaceId);
         if(!rootRepositoryForSearchList.isEmpty()){
 
-            Entity rootRepoForSearch = rootRepositoryForSearchList.get(0);
+            Entity rootRepoForSearch = rootRepositoryForSearchList.getFirst();
             logConsumer.accept(String.format(
                     "Filtering out the branches that already exist in the root repository with the configured id: %s",
                     rootRepoForSearch.getId()));
@@ -270,7 +270,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
 
         String rootId = "";
         if (!roots.isEmpty()) {
-            rootId = roots.get(0).getId();
+            rootId = roots.getFirst().getId();
             octaneBranches = getRepositoryBranches(rootId, workspaceId, false);
             logConsumer.accept("Found repository root with id " + rootId);
         }
@@ -432,7 +432,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         entity.setField(EntityConstants.ScmRepositoryRoot.SCM_TYPE_FIELD, SCMType.GIT.getOctaneId());
         List<Entity> results = entitiesService.postEntities(workspaceId, EntityConstants.ScmRepositoryRoot.COLLECTION_NAME, Arrays.asList(entity));
 
-        return results.get(0);
+        return results.getFirst();
     }
 
     @Override
@@ -450,7 +450,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
             return false;
         }
 
-        Entity repo = roots.get(0);
+        Entity repo = roots.getFirst();
         Entity entity = DTOFactory.getInstance().newDTO(Entity.class);
         entity.setField(EntityConstants.ScmRepositoryRoot.ID_FIELD, repo.getId());
 

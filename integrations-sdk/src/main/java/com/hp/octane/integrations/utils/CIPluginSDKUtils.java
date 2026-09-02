@@ -165,7 +165,7 @@ public class CIPluginSDKUtils {
 		if (configurer != null) {
 			proxySupplier = configurer.pluginServices::getProxyConfiguration;
 		} else if (OctaneSDK.hasClients()) {
-			proxySupplier = OctaneSDK.getClients().get(0).getRestService().getProxySupplier();
+			proxySupplier = OctaneSDK.getClients().getFirst().getRestService().getProxySupplier();
 		} else {
 			return null;
 		}

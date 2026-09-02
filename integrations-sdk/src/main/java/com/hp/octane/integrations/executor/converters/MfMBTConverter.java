@@ -114,7 +114,7 @@ public class MfMBTConverter extends MfUftConverter {
     }
 
     private static boolean shouldRetrieveMbtData(List<TestToRunData> tests) {
-        return tests.get(0).getParameters().get(MBT_DATA).equals(MBT_DATA_NOT_INCLUDED);
+        return tests.getFirst().getParameters().get(MBT_DATA).equals(MBT_DATA_NOT_INCLUDED);
     }
 
     private static Map<String, String> parseSuiteRunDataJson(String responseJson) {

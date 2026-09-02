@@ -94,23 +94,28 @@
 	<ciManagement/>
 
 	<properties>
-		<maven-clean-plugin.verion>3.1.0</maven-clean-plugin.verion>
-		<maven-install-plugin.verion>3.0.0-M1</maven-install-plugin.verion>
+        <java.level>21</java.level>
+        <maven.compiler.release>21</maven.compiler.release>
+
+		<maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+		<maven-install-plugin.version>3.1.4</maven-install-plugin.version>
 		<maven-enforcer-plugin.version>3.6.3</maven-enforcer-plugin.version>
-		<maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
-		<maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
-		<maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-		<maven-javadoc-plugin.version>3.3.0</maven-javadoc-plugin.version> <!--mvn javadoc:aggregate -->
-		<maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-		<nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
+		<maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
+		<maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+		<maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+		<maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+		<maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version> <!--mvn javadoc:aggregate -->
+		<maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+		<nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<junit.version>4.13.1</junit.version>
-		<easymock.version>3.5.1</easymock.version>
-		<maven-surefire-plugin.version>3.0.0-M2</maven-surefire-plugin.version>
-		<jacoco-maven-plugin.version>0.8.2</jacoco-maven-plugin.version>
-		<spotbugs.version>3.1.9</spotbugs.version>
+		<easymock.version>5.6.0</easymock.version>
+		<maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
+		<jacoco-maven-plugin.version>0.8.15</jacoco-maven-plugin.version>
+		<spotbugs-maven-plugin.version>4.9.8.5</spotbugs-maven-plugin.version>
+        <commons-io.version>2.22.0</commons-io.version>
+        <commons-codec.version>1.22.0</commons-codec.version>
+        <license-maven-plugin.version>5.0.0</license-maven-plugin.version>
 		<!-- The ending year for copyright information -->
 		<copyright.end.year>2026</copyright.end.year>
 	</properties>
@@ -118,14 +123,20 @@
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
-				<artifactId>junit</artifactId>
-				<groupId>junit</groupId>
-				<version>${junit.version}</version>
-			</dependency>
-			<dependency>
 				<artifactId>easymock</artifactId>
 				<groupId>org.easymock</groupId>
 				<version>${easymock.version}</version>
+			</dependency>
+			<!-- Converge transitive versions shared by poi (older) and commons-csv (newer) -->
+			<dependency>
+				<groupId>commons-io</groupId>
+				<artifactId>commons-io</artifactId>
+				<version>${commons-io.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-codec</groupId>
+				<artifactId>commons-codec</artifactId>
+				<version>${commons-codec.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -136,7 +147,7 @@
 				<plugin>
 					<artifactId>maven-clean-plugin</artifactId>
 					<groupId>org.apache.maven.plugins</groupId>
-					<version>${maven-clean-plugin.verion}</version>
+					<version>${maven-clean-plugin.version}</version>
 				</plugin>
 				<plugin>
 					<artifactId>maven-resources-plugin</artifactId>
@@ -148,8 +159,7 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven-compiler-plugin.version}</version>
 					<configuration>
-						<source>1.8</source>
-						<target>1.8</target>
+                        <release>${java.level}</release>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -176,13 +186,13 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<version>${maven-javadoc-plugin.version}</version>
 					<configuration>
-						<source>8</source>
+						<source>${java.level}</source>
 					</configuration>
 				</plugin>
 				<plugin>
 					<artifactId>maven-install-plugin</artifactId>
 					<groupId>org.apache.maven.plugins</groupId>
-					<version>${maven-install-plugin.verion}</version>
+					<version>${maven-install-plugin.version}</version>
 				</plugin>
 
 				<plugin>
@@ -231,7 +241,7 @@
 				<plugin>
 					<artifactId>spotbugs-maven-plugin</artifactId>
 					<groupId>com.github.spotbugs</groupId>
-					<version>${spotbugs.version}</version>
+					<version>${spotbugs-maven-plugin.version}</version>
 					<configuration>
 						<effort>max</effort>
 						<maxRank>20</maxRank>
@@ -243,13 +253,6 @@
 							</goals>
 						</execution>
 					</executions>
-					<dependencies>
-						<dependency>
-							<artifactId>spotbugs</artifactId>
-							<groupId>com.github.spotbugs</groupId>
-							<version>${spotbugs.version}</version>
-						</dependency>
-					</dependencies>
 				</plugin>
 				<plugin>
 					<artifactId>maven-surefire-plugin</artifactId>
@@ -272,7 +275,7 @@
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
-				<version>4.6</version>
+				<version>${license-maven-plugin.version}</version>
 				<configuration>
 					<!-- Path to your license header -->
 					<!--suppress UnresolvedMavenProperty -->

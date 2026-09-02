@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.queueing;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class QueueingServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new QueueingServiceImpl(null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new QueueingServiceImpl(null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new QueueingServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new QueueingServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		QueueingService.newInstance(null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            QueueingService.newInstance(null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		QueueingService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () ->
+            QueueingService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object()));
+    }
 }

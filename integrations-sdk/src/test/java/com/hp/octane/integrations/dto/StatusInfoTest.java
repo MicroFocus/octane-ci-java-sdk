@@ -33,14 +33,14 @@ package com.hp.octane.integrations.dto;
 
 import com.hp.octane.integrations.dto.general.CIProviderSummaryInfo;
 import com.hp.octane.integrations.dto.general.CIServerTypes;
+import org.junit.jupiter.api.Test;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import org.junit.Test;
 
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Status Info tests.

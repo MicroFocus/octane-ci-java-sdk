@@ -46,7 +46,12 @@
 	<artifactId>integrations-dto</artifactId>
 
 	<properties>
-		<jackson.version>2.14.2</jackson.version>
+        <java.level>21</java.level>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <maven.compiler.release>21</maven.compiler.release>
+		<jackson.version>2.22.0</jackson.version>
+        <junit-jupiter.version>6.1.0</junit-jupiter.version>
 	</properties>
 
 	<dependencies>
@@ -61,13 +66,12 @@
 			<artifactId>jackson-dataformat-xml</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
-
-		<!-- TESTING -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
 
 	</dependencies>
 
@@ -79,7 +83,14 @@
 					<groupId>org.apache.maven.plugins</groupId>
 					<configuration>
 						<sourcepath>${basedir}/src/main/java/com/hp/octane/integrations/dto</sourcepath>
-						<source>8</source>
+						<source>${java.level}</source>
+					</configuration>
+				</plugin>
+				<plugin>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<groupId>com.github.spotbugs</groupId>
+					<configuration>
+						<excludeFilterFile>spotbugs-exclude.xml</excludeFilterFile>
 					</configuration>
 				</plugin>
 			</plugins>
@@ -94,12 +105,13 @@
 					<plugin>
 						<artifactId>maven-source-plugin</artifactId>
 						<groupId>org.apache.maven.plugins</groupId>
+                        <version>${maven-source-plugin.version}</version>
 					</plugin>
 					<plugin>
 						<artifactId>maven-javadoc-plugin</artifactId>
 						<groupId>org.apache.maven.plugins</groupId>
 						<configuration>
-							<source>8</source>
+							<source>${java.level}</source>
 						</configuration>
 					</plugin>
 				</plugins>

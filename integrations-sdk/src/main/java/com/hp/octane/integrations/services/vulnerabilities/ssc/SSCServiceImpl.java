@@ -172,7 +172,7 @@ public class SSCServiceImpl implements SSCService{
     private List<Issues.Issue> getIssuesFromSSC(SSCHandler sscHandler, VulnerabilitiesQueueItem vulnerabilitiesQueueItem) {
 
         Optional<Issues> allIssues = sscHandler.getIssuesIfScanCompleted();
-        if (!allIssues.isPresent()) {
+        if (allIssues.isEmpty()) {
             logger.debug( vulnerabilitiesQueueItem.toString() + " not completed yet");
             return null;
         }

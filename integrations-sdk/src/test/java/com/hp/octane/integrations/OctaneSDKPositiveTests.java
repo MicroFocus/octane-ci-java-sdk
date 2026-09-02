@@ -34,8 +34,8 @@ package com.hp.octane.integrations;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.List;
@@ -51,7 +51,7 @@ public class OctaneSDKPositiveTests {
     @Test
     public void sdkTestA() {
         List<OctaneClient> octaneClients = OctaneSDK.getClients();
-        Assert.assertNotNull(octaneClients);
+        Assertions.assertNotNull(octaneClients);
         String instance1 = UUID.randomUUID().toString();
         String instance2 = UUID.randomUUID().toString();
         OctaneConfiguration oc1 = new OctaneConfigurationIntern(instance1, "http://localhost", "1001", null, null);
@@ -61,18 +61,18 @@ public class OctaneSDKPositiveTests {
         OctaneSDK.addClient(oc2, PluginServices.class);
 
         octaneClients = OctaneSDK.getClients();
-        Assert.assertNotNull(octaneClients);
-        Assert.assertFalse(octaneClients.isEmpty());
+        Assertions.assertNotNull(octaneClients);
+        Assertions.assertFalse(octaneClients.isEmpty());
 
         OctaneClient client = OctaneSDK.getClientByInstanceId(oc1.getInstanceId());
-        Assert.assertNotNull(client);
-        Assert.assertEquals(instance1, client.getInstanceId());
-        Assert.assertEquals(oc1, client.getConfigurationService().getConfiguration());
+        Assertions.assertNotNull(client);
+        Assertions.assertEquals(instance1, client.getInstanceId());
+        Assertions.assertEquals(oc1, client.getConfigurationService().getConfiguration());
 
         client = OctaneSDK.getClientByInstanceId(oc2.getInstanceId());
-        Assert.assertNotNull(client);
-        Assert.assertEquals(instance2, client.getInstanceId());
-        Assert.assertEquals(oc2, client.getConfigurationService().getConfiguration());
+        Assertions.assertNotNull(client);
+        Assertions.assertEquals(instance2, client.getInstanceId());
+        Assertions.assertEquals(oc2, client.getConfigurationService().getConfiguration());
 
         OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
     }
@@ -87,22 +87,22 @@ public class OctaneSDKPositiveTests {
         OctaneSDK.addClient(oc, PluginServices.class);
 
         OctaneClient client = OctaneSDK.getClientByInstanceId(oc.getInstanceId());
-        Assert.assertNotNull(client);
-        Assert.assertEquals(instance, client.getInstanceId());
-        Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
-        Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
+        Assertions.assertNotNull(client);
+        Assertions.assertEquals(instance, client.getInstanceId());
+        Assertions.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
+        Assertions.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
         //  same values should work smooth
         oc.setUrlAndSpace(url, sp);
-        Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
-        Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
+        Assertions.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
+        Assertions.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
         //  new unique values should work as well
         url = "http://localhost:8081";
         sp = UUID.randomUUID().toString();
         oc.setUrlAndSpace(url, sp);
-        Assert.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
-        Assert.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
+        Assertions.assertEquals(url, client.getConfigurationService().getConfiguration().getUrl());
+        Assertions.assertEquals(sp, client.getConfigurationService().getConfiguration().getSharedSpace());
 
         OctaneSDK.getClients().forEach(OctaneSDK::removeClient);
     }
@@ -115,50 +115,50 @@ public class OctaneSDKPositiveTests {
         OctaneClient clientB = OctaneSDK.addClient(oc2, PluginServices.class);
 
         try {
-            Assert.assertNotNull(clientA);
-            Assert.assertNotNull(clientB);
+            Assertions.assertNotNull(clientA);
+            Assertions.assertNotNull(clientB);
 
-            Assert.assertNotNull(clientA.getConfigurationService());
-            Assert.assertNotNull(clientA.getCoverageService());
-            Assert.assertNotNull(clientA.getSonarService());
-            Assert.assertNotNull(clientA.getEntitiesService());
-            Assert.assertNotNull(clientA.getEventsService());
-            Assert.assertNotNull(clientA.getLogsService());
-            Assert.assertNotNull(clientA.getPipelineContextService());
-            Assert.assertNotNull(clientA.getRestService());
-            Assert.assertNotNull(clientA.getTasksProcessor());
-            Assert.assertNotNull(clientA.getTestsService());
-            Assert.assertNotNull(clientA.getRestService());
-            Assert.assertNotNull(clientA.getVulnerabilitiesService());
+            Assertions.assertNotNull(clientA.getConfigurationService());
+            Assertions.assertNotNull(clientA.getCoverageService());
+            Assertions.assertNotNull(clientA.getSonarService());
+            Assertions.assertNotNull(clientA.getEntitiesService());
+            Assertions.assertNotNull(clientA.getEventsService());
+            Assertions.assertNotNull(clientA.getLogsService());
+            Assertions.assertNotNull(clientA.getPipelineContextService());
+            Assertions.assertNotNull(clientA.getRestService());
+            Assertions.assertNotNull(clientA.getTasksProcessor());
+            Assertions.assertNotNull(clientA.getTestsService());
+            Assertions.assertNotNull(clientA.getRestService());
+            Assertions.assertNotNull(clientA.getVulnerabilitiesService());
 
-            Assert.assertNotNull(clientB.getConfigurationService());
-            Assert.assertNotNull(clientB.getCoverageService());
-            Assert.assertNotNull(clientB.getSonarService());
-            Assert.assertNotNull(clientB.getEntitiesService());
-            Assert.assertNotNull(clientB.getEventsService());
-            Assert.assertNotNull(clientB.getLogsService());
-            Assert.assertNotNull(clientB.getPipelineContextService());
-            Assert.assertNotNull(clientB.getRestService());
-            Assert.assertNotNull(clientB.getTasksProcessor());
-            Assert.assertNotNull(clientB.getTestsService());
-            Assert.assertNotNull(clientB.getRestService());
-            Assert.assertNotNull(clientB.getVulnerabilitiesService());
+            Assertions.assertNotNull(clientB.getConfigurationService());
+            Assertions.assertNotNull(clientB.getCoverageService());
+            Assertions.assertNotNull(clientB.getSonarService());
+            Assertions.assertNotNull(clientB.getEntitiesService());
+            Assertions.assertNotNull(clientB.getEventsService());
+            Assertions.assertNotNull(clientB.getLogsService());
+            Assertions.assertNotNull(clientB.getPipelineContextService());
+            Assertions.assertNotNull(clientB.getRestService());
+            Assertions.assertNotNull(clientB.getTasksProcessor());
+            Assertions.assertNotNull(clientB.getTestsService());
+            Assertions.assertNotNull(clientB.getRestService());
+            Assertions.assertNotNull(clientB.getVulnerabilitiesService());
 
-            Assert.assertNotEquals(clientA.getConfigurationService(), clientB.getConfigurationService());
-            Assert.assertNotEquals(clientA.getCoverageService(), clientB.getCoverageService());
-            Assert.assertNotEquals(clientA.getSonarService(), clientB.getSonarService());
-            Assert.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
-            Assert.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
-            Assert.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());
-            Assert.assertNotEquals(clientA.getPipelineContextService(), clientB.getPipelineContextService());
-            Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
-            Assert.assertNotEquals(clientA.getTasksProcessor(), clientB.getTasksProcessor());
-            Assert.assertNotEquals(clientA.getTestsService(), clientB.getTestsService());
-            Assert.assertNotEquals(clientA.getRestService(), clientB.getRestService());
-            Assert.assertNotEquals(clientA.getVulnerabilitiesService(), clientB.getVulnerabilitiesService());
+            Assertions.assertNotEquals(clientA.getConfigurationService(), clientB.getConfigurationService());
+            Assertions.assertNotEquals(clientA.getCoverageService(), clientB.getCoverageService());
+            Assertions.assertNotEquals(clientA.getSonarService(), clientB.getSonarService());
+            Assertions.assertNotEquals(clientA.getEntitiesService(), clientB.getEntitiesService());
+            Assertions.assertNotEquals(clientA.getEventsService(), clientB.getEventsService());
+            Assertions.assertNotEquals(clientA.getLogsService(), clientB.getLogsService());
+            Assertions.assertNotEquals(clientA.getPipelineContextService(), clientB.getPipelineContextService());
+            Assertions.assertNotEquals(clientA.getRestService(), clientB.getRestService());
+            Assertions.assertNotEquals(clientA.getTasksProcessor(), clientB.getTasksProcessor());
+            Assertions.assertNotEquals(clientA.getTestsService(), clientB.getTestsService());
+            Assertions.assertNotEquals(clientA.getRestService(), clientB.getRestService());
+            Assertions.assertNotEquals(clientA.getVulnerabilitiesService(), clientB.getVulnerabilitiesService());
         } finally {
-            Assert.assertNotNull(OctaneSDK.removeClient(clientA));
-            Assert.assertNotNull(OctaneSDK.removeClient(clientB));
+            Assertions.assertNotNull(OctaneSDK.removeClient(clientA));
+            Assertions.assertNotNull(OctaneSDK.removeClient(clientB));
         }
     }
 
@@ -167,9 +167,9 @@ public class OctaneSDKPositiveTests {
         OctaneConfiguration oc = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1001", null, null);
         OctaneClient client = OctaneSDK.addClient(oc, PluginServices.class);
 
-        Assert.assertEquals("OctaneClientImpl{ instanceId: " + oc.getInstanceId() + " }", client.toString());
+        Assertions.assertEquals("OctaneClientImpl{ instanceId: " + oc.getInstanceId() + " }", client.toString());
 
-        Assert.assertNotNull(OctaneSDK.removeClient(client));
+        Assertions.assertNotNull(OctaneSDK.removeClient(client));
     }
 
     @Test
@@ -178,10 +178,10 @@ public class OctaneSDKPositiveTests {
         OctaneConfiguration oc2 = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost", "1002", null, null);
         OctaneClient clientA = OctaneSDK.addClient(oc1, OctaneSDKNegativeTests.PluginServices.class);
         OctaneClient clientB = OctaneSDK.addClient(oc2, OctaneSDKNegativeTests.PluginServices.class);
-        Assert.assertNotNull(clientA);
-        Assert.assertNotNull(clientB);
+        Assertions.assertNotNull(clientA);
+        Assertions.assertNotNull(clientB);
 
-        Assert.assertNotNull(OctaneSDK.removeClient(clientB));
+        Assertions.assertNotNull(OctaneSDK.removeClient(clientB));
         oc2.setUrlAndSpace(oc2.getUrl(), oc1.getSharedSpace());
     }
 

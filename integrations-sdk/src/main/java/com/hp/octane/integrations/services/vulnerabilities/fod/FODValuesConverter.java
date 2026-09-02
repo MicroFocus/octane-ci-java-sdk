@@ -228,31 +228,22 @@ public class FODValuesConverter {
     }
 
     private String mapFODStatusToLogicalName(String status) {
-        switch (status) {
-            case "New":
-                return ISSUE_STATE_NEW;
-            case "Existing":
-                return ISSUE_STATE_EXISTING;
-            case "close":
-                return ISSUE_STATE_CLOSED;
-            default:
-                return null;
-        }
+        return switch (status) {
+            case "New" -> ISSUE_STATE_NEW;
+            case "Existing" -> ISSUE_STATE_EXISTING;
+            case "close" -> ISSUE_STATE_CLOSED;
+            default -> null;
+        };
     }
 
     private String mapFODAnalysisToLogicalName(String analysis) {
-        switch (analysis) {
-            case "Waiting for review":
-                return MAYBE_AN_ISSUE;
-            case "Reviewed":
-                return REVIEWED;
-            case "bug submitted":
-                return BUG_SUBMITTED;
-            case "Not an issue":
-                return NOT_AN_ISSUE;
-            default:
-                return null;
-        }
+        return switch (analysis) {
+            case "Waiting for review" -> MAYBE_AN_ISSUE;
+            case "Reviewed" -> REVIEWED;
+            case "bug submitted" -> BUG_SUBMITTED;
+            case "Not an issue" -> NOT_AN_ISSUE;
+            default -> null;
+        };
     }
 
     private String mapAuditorStatusToAnalysis(String auditorStatus) {

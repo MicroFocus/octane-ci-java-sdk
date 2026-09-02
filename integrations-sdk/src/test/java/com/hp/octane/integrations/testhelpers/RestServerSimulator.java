@@ -31,34 +31,68 @@
  */
 package com.hp.octane.integrations.testhelpers;
 
+import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.HttpStatus;
+import org.eclipse.jetty.io.Content;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.server.Response;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.util.Callback;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
-public class RestServerSimulator extends AbstractHandler {
+public class RestServerSimulator extends Handler.Abstract {
 
     private int selectedPort;
     private Server server;
     private List<RequestHandlingRule> handlingRules = new ArrayList<>();
     private List<Request> receivedRequests = new ArrayList<>();
 
+    //  Jetty 12: the request callback must be passed to the async body write, otherwise the response
+    //  is finalized before the body is flushed. We expose it to the (callback-less) rule handlers via ThreadLocal.
+    private static final ThreadLocal<Callback> CURRENT_CALLBACK = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> RESPONSE_WRITTEN = new ThreadLocal<>();
+
+    /**
+     * Writes a response body and completes the current request callback (Jetty 12 async-safe).
+     * Rule handlers MUST use this instead of {@code Content.Sink.write(..., Callback.NOOP)} when returning a body.
+     */
+    public static void writeResponseBody(Response response, String content) {
+        Callback cb = CURRENT_CALLBACK.get();
+        RESPONSE_WRITTEN.set(Boolean.TRUE);
+        Content.Sink.write(response, true, content, cb != null ? cb : Callback.NOOP);
+    }
+
+    /**
+     * Reads the full request body as a UTF-8 string, transparently gunzipping when Content-Encoding is gzip.
+     */
+    public static String readRequestBody(Request request) {
+        try (InputStream is = Content.Source.asInputStream(request)) {
+            byte[] bytes = is.readAllBytes();
+            if ("gzip".equalsIgnoreCase(request.getHeaders().get("Content-Encoding"))) {
+                return CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(new ByteArrayInputStream(bytes)));
+            }
+            return new String(bytes, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static class RequestHandlingRule{
         public String urlPattern;
         public Predicate<Request> condition;
-        public Consumer<Request> operationOnRequest;
-        public RequestHandlingRule(String urlPattern, Predicate<Request> cond, Consumer<Request> op){
+        public BiConsumer<Request, Response> operationOnRequest;
+        public RequestHandlingRule(String urlPattern, Predicate<Request> cond, BiConsumer<Request, Response> op){
             this.urlPattern = urlPattern;
             this.condition = cond;
             this.operationOnRequest = op;
@@ -71,7 +105,7 @@ public class RestServerSimulator extends AbstractHandler {
 
 
     public void startServer() {
-        HandlerCollection handlers = new HandlerCollection(true);
+        Handler.Sequence handlers = new Handler.Sequence();
         handlers.addHandler(this);
         server = new Server(selectedPort);
         server.setHandler(handlers);
@@ -83,7 +117,7 @@ public class RestServerSimulator extends AbstractHandler {
     }
 
     public void addRule(String urlPatter,  Predicate<Request> condition,
-            Consumer<Request> operationOnRequest) {
+            BiConsumer<Request, Response> operationOnRequest) {
 
         handlingRules.add(new RequestHandlingRule(urlPatter, condition, operationOnRequest));
     }
@@ -101,16 +135,19 @@ public class RestServerSimulator extends AbstractHandler {
     }
 
     @Override
-    public void handle(String s, Request request,
-                       HttpServletRequest httpServletRequest,
-                       HttpServletResponse httpServletResponse) throws IOException, ServletException {
+    public boolean handle(Request request, Response response, Callback callback) throws Exception {
 
         try {
+            //  Jetty 12: getPathInContext() returns the path WITHOUT the query string. Several rule patterns
+            //  (e.g. SSC ".../projects?q=name:...") rely on the query, so match against path + "?" + query.
+            String pathInContext = Request.getPathInContext(request);
+            String rawQuery = request.getHttpURI().getQuery();
+            String matchTarget = rawQuery == null ? pathInContext : pathInContext + "?" + rawQuery;
             for (RequestHandlingRule handlingRule : handlingRules) {
                 boolean urlMatch = true,
                         requestMatch = true;
                 if (handlingRule.urlPattern != null &&
-                        !Pattern.compile(handlingRule.urlPattern).matcher(request.getOriginalURI()).matches()) {
+                        !Pattern.compile(handlingRule.urlPattern).matcher(matchTarget).matches()) {
                     urlMatch = false;
                 }
                 if (handlingRule.condition != null &&
@@ -118,15 +155,26 @@ public class RestServerSimulator extends AbstractHandler {
                     requestMatch = false;
                 }
                 if (urlMatch && requestMatch) {
-                    handlingRule.operationOnRequest.accept(request);
-                    request.setHandled(true);
-                    break;
+                    CURRENT_CALLBACK.set(callback);
+                    RESPONSE_WRITTEN.set(Boolean.FALSE);
+                    try {
+                        handlingRule.operationOnRequest.accept(request, response);
+                    } finally {
+                        boolean written = Boolean.TRUE.equals(RESPONSE_WRITTEN.get());
+                        CURRENT_CALLBACK.remove();
+                        RESPONSE_WRITTEN.remove();
+                        //  if the handler wrote a body, the write already owns the callback; otherwise complete it here
+                        if (!written) {
+                            callback.succeeded();
+                        }
+                    }
+                    return true;
                 }
             }
-            if (!request.isHandled()) {
-                request.setHandled(true);
-                request.getResponse().setStatus(HttpStatus.SC_NOT_FOUND);
-            }
+            
+            response.setStatus(HttpStatus.SC_NOT_FOUND);
+            callback.succeeded();
+            return true;
 
         }finally {
             addRequestAsReceived(request);

@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.logging;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class LoggingNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new LoggingServiceImpl(null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new LoggingServiceImpl(null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new LoggingServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new LoggingServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object());
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		LoggingService.newInstance(null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            LoggingService.newInstance(null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		LoggingService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object());
-	}
+        assertThrows(ClassCastException.class, () ->
+            LoggingService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object()));
+    }
 }

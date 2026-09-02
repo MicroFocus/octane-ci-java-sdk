@@ -31,8 +31,8 @@
  */
 package com.hp.octane.integrations.executor;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static com.hp.octane.integrations.executor.TestsToRunFramework.JUnit4;
 import static com.hp.octane.integrations.executor.TestsToRunFramework.MF_UFT;
@@ -83,28 +83,28 @@ public class TestsToRunConverterTest {
     public void customConverterJsonTest() {
         String actual = converterTest(JUnit4, v2MavenFormatRawData);
 
-        Assert.assertEquals(outputMavenResult, actual);
+        Assertions.assertEquals(outputMavenResult, actual);
     }
 
     @Test
     public void customConverterStringTest() {
         String actual = converterTest(JUnit4, v1MavenFormatRawData);
 
-        Assert.assertEquals(outputMavenResult, actual);
+        Assertions.assertEquals(outputMavenResult, actual);
     }
 
     @Test
     public void uftConverterJsonTest() {
         String actual = converterTest(MF_UFT, v2UFTFormatRawData);
 
-        Assert.assertEquals(outputUFTResult, actual);
+        Assertions.assertEquals(outputUFTResult, actual);
     }
 
     @Test
     public void uftConverterStringTest() {
         String actual = converterTest(MF_UFT, v1UFTFormatRawData);
 
-        Assert.assertEquals(outputUFTResult, actual);
+        Assertions.assertEquals(outputUFTResult, actual);
     }
 
 }

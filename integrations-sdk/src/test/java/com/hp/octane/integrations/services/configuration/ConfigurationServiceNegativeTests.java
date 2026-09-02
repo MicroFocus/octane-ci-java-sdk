@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.configuration;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ConfigurationServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new ConfigurationServiceImpl(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new ConfigurationServiceImpl(null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new ConfigurationServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new ConfigurationServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		ConfigurationService.newInstance(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            ConfigurationService.newInstance(null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		ConfigurationService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            ConfigurationService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null));
+    }
 }

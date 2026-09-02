@@ -88,8 +88,8 @@ public class UftTestResultsUtils {
                         .trim();
 
                 //last parent name might be as error message - in this case - don't show last parent
-                if (!parents.isEmpty() && error.startsWith(parents.get(parents.size() - 1))) {
-                    parents.remove(parents.size() - 1);
+                if (!parents.isEmpty() && error.startsWith(parents.getLast())) {
+                    parents.removeLast();
                 }
                 errors.add(new UftResultStepData(parents, node.getType(), node.getData().getResult(), error, node.getData().getDuration()));
             }

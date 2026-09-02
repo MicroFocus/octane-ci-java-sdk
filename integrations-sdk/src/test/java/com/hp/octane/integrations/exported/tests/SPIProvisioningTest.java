@@ -31,7 +31,7 @@
  */
 package com.hp.octane.integrations.exported.tests;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  * SPI Provisioning tests.

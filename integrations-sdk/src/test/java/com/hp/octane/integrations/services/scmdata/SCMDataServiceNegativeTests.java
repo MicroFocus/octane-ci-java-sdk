@@ -35,97 +35,113 @@ import com.hp.octane.integrations.*;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.general.CIPluginInfo;
 import com.hp.octane.integrations.dto.general.CIServerInfo;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class SCMDataServiceNegativeTests {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new SCMDataServiceImpl(null, null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new SCMDataServiceImpl(null, null, null, null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new SCMDataServiceImpl(null, (OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new SCMDataServiceImpl(null, (OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		SCMDataService.newInstance(null, null, null, null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            SCMDataService.newInstance(null, null, null, null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		SCMDataService.newInstance(null, (OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            SCMDataService.newInstance(null, (OctaneSDK.SDKServicesConfigurer) new Object(), null, null, null));
+    }
 
 	//  enqueue API negative testing validation
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE1() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		SCMDataService scmDataService = client.getSCMDataService();
-		try {
-			scmDataService.enqueueSCMData(null, null,null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            SCMDataService scmDataService = client.getSCMDataService();
+            try {
+                scmDataService.enqueueSCMData(null, null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE2() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		SCMDataService scmDataService = client.getSCMDataService();
-		try {
-			scmDataService.enqueueSCMData("", null,null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            SCMDataService scmDataService = client.getSCMDataService();
+            try {
+                scmDataService.enqueueSCMData("", null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE3() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		SCMDataService scmDataService = client.getSCMDataService();
-		try {
-			scmDataService.enqueueSCMData("job-id", null,null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            SCMDataService scmDataService = client.getSCMDataService();
+            try {
+                scmDataService.enqueueSCMData("job-id", null, null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testE4() {
-		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
-		OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
-		Assert.assertNotNull(client);
+        assertThrows(IllegalArgumentException.class, () -> {
+            OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
+            OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
+            Assertions.assertNotNull(client);
 
-		SCMDataService scmDataService = client.getSCMDataService();
-		try {
-			scmDataService.enqueueSCMData("job-id", "",null, null);
-		} finally {
-			OctaneSDK.removeClient(client);
-		}
-	}
+            SCMDataService scmDataService = client.getSCMDataService();
+            try {
+                scmDataService.enqueueSCMData("job-id", "", null, null);
+            } finally {
+                OctaneSDK.removeClient(client);
+            }
+        });
+    }
 
 	//  this one is the OK one
 	@Test
 	public void testE5() {
 		OctaneConfiguration configuration = new OctaneConfigurationIntern(UUID.randomUUID().toString(), "http://localhost:8080", UUID.randomUUID().toString());
 		OctaneClient client = OctaneSDK.addClient(configuration, SCMDataServiceNegativeTests.PluginServices.class);
-		Assert.assertNotNull(client);
+		Assertions.assertNotNull(client);
 
 		SCMDataService scmDataService = client.getSCMDataService();
 		try {

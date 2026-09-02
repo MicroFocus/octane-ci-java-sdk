@@ -91,7 +91,7 @@ public class SSCProjectConnector {
         if (projectVersions.getCount() == 0) {
             return null;
         }
-        return projectVersions.getData().get(0);
+        return projectVersions.getData().getFirst();
     }
 
     private Integer getProjectId() {
@@ -101,7 +101,7 @@ public class SSCProjectConnector {
         if (projects.getCount() == 0) {
             return null;
         }
-        return projects.getData().get(0).id;
+        return projects.getData().getFirst().id;
     }
 
     public static <T> T stringToObject(String response, Class<T> type) {

@@ -47,10 +47,10 @@ import com.hp.octane.integrations.testhelpers.OctaneSPEndpointSimulator;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
@@ -59,13 +59,14 @@ import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServi
 import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_SERVER_TYPE;
 import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_SERVER_URL;
 import static com.hp.octane.integrations.services.tasking.TaskingTestPluginServicesTest.TEST_SERVER_VERSION;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TaskingServiceTests {
 	private static final DTOFactory dtoFactory = DTOFactory.getInstance();
 	private static final String APIPrefix = "/nga/api/v1";
 	private static OctaneClient client;
 
-	@BeforeClass
+	@BeforeAll
 	public static void setupClient() {
 		String inId = UUID.randomUUID().toString();
 		String sspId = UUID.randomUUID().toString();
@@ -73,71 +74,79 @@ public class TaskingServiceTests {
 		client = OctaneSDK.addClient(configuration, TaskingTestPluginServicesTest.class);
 	}
 
-	@AfterClass
+	@AfterAll
 	public static void removeClient() {
 		OctaneSDK.removeClient(client);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void negativeTestA() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+        assertThrows(IllegalArgumentException.class, () -> {
+            TasksProcessor tasksProcessor = client.getTasksProcessor();
+            Assertions.assertNotNull(tasksProcessor);
 
-		tasksProcessor.execute(null);
-	}
+            tasksProcessor.execute(null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void negativeTestB() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+        assertThrows(IllegalArgumentException.class, () -> {
+            TasksProcessor tasksProcessor = client.getTasksProcessor();
+            Assertions.assertNotNull(tasksProcessor);
 
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class);
-		tasksProcessor.execute(taskAbridged);
-	}
+            OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class);
+            tasksProcessor.execute(taskAbridged);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void negativeTestC() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+        assertThrows(IllegalArgumentException.class, () -> {
+            TasksProcessor tasksProcessor = client.getTasksProcessor();
+            Assertions.assertNotNull(tasksProcessor);
 
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setUrl("");
-		tasksProcessor.execute(taskAbridged);
-	}
+            OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
+                    .setUrl("");
+            tasksProcessor.execute(taskAbridged);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void negativeTestD() {
-		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+        assertThrows(IllegalArgumentException.class, () -> {
+            TasksProcessor tasksProcessor = client.getTasksProcessor();
+            Assertions.assertNotNull(tasksProcessor);
 
-		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
-				.setUrl("some_wrong_url");
-		tasksProcessor.execute(taskAbridged);
-	}
+            OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
+                    .setUrl("some_wrong_url");
+            tasksProcessor.execute(taskAbridged);
+        });
+    }
 
 	@Test
 	public void testNonExistingAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
 				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/some/non/existing/url");
 		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
 
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_NOT_FOUND, resultAbridged.getStatus());
-		Assert.assertNotNull(resultAbridged.getHeaders());
-		Assert.assertTrue(resultAbridged.getHeaders().isEmpty());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
+		Assertions.assertNotNull(resultAbridged);
+		Assertions.assertEquals(HttpStatus.SC_NOT_FOUND, resultAbridged.getStatus());
+		Assertions.assertNotNull(resultAbridged.getHeaders());
+		Assertions.assertTrue(resultAbridged.getHeaders().isEmpty());
+		Assertions.assertEquals(taskAbridged.getId(), resultAbridged.getId());
+		Assertions.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
+		Assertions.assertNull(resultAbridged.getBody());
 	}
 
 	@Test
 	public void testJobNoImplementedAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
@@ -153,7 +162,7 @@ public class TaskingServiceTests {
 	@Test
 	public void testJobsWithParamsAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
@@ -163,20 +172,20 @@ public class TaskingServiceTests {
 		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
 
 		CIJobsList ciJobsList = dtoFactory.dtoFromJson(resultAbridged.getBody(), CIJobsList.class);
-		Assert.assertNotNull(ciJobsList);
-		Assert.assertNotNull(ciJobsList.getJobs());
-		Assert.assertEquals(3, ciJobsList.getJobs().length);
+		Assertions.assertNotNull(ciJobsList);
+		Assertions.assertNotNull(ciJobsList.getJobs());
+		Assertions.assertEquals(3, ciJobsList.getJobs().length);
 		for (PipelineNode ciJob : ciJobsList.getJobs()) {
-			Assert.assertNotNull(ciJob);
-			Assert.assertTrue(ciJob.getName().startsWith("Job "));
-			Assert.assertTrue(ciJob.getJobCiId().startsWith("job-"));
-			Assert.assertNotNull(ciJob.getParameters());
-			Assert.assertEquals(3, ciJob.getParameters().size());
+			Assertions.assertNotNull(ciJob);
+			Assertions.assertTrue(ciJob.getName().startsWith("Job "));
+			Assertions.assertTrue(ciJob.getJobCiId().startsWith("job-"));
+			Assertions.assertNotNull(ciJob.getParameters());
+			Assertions.assertEquals(3, ciJob.getParameters().size());
 			for (CIParameter ciParameter : ciJob.getParameters()) {
-				Assert.assertNotNull(ciParameter);
-				Assert.assertNotNull(ciParameter.getName());
-				Assert.assertNotNull(ciParameter.getType());
-				Assert.assertNotNull(ciParameter.getValue());
+				Assertions.assertNotNull(ciParameter);
+				Assertions.assertNotNull(ciParameter.getName());
+				Assertions.assertNotNull(ciParameter.getType());
+				Assertions.assertNotNull(ciParameter.getValue());
 			}
 		}
 	}
@@ -184,7 +193,7 @@ public class TaskingServiceTests {
 	@Test
 	public void testJobsNoParamsAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
@@ -194,41 +203,41 @@ public class TaskingServiceTests {
 		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
 
 		CIJobsList ciJobsList = dtoFactory.dtoFromJson(resultAbridged.getBody(), CIJobsList.class);
-		Assert.assertNotNull(ciJobsList);
-		Assert.assertNotNull(ciJobsList.getJobs());
-		Assert.assertEquals(3, ciJobsList.getJobs().length);
+		Assertions.assertNotNull(ciJobsList);
+		Assertions.assertNotNull(ciJobsList.getJobs());
+		Assertions.assertEquals(3, ciJobsList.getJobs().length);
 		for (PipelineNode ciJob : ciJobsList.getJobs()) {
-			Assert.assertNotNull(ciJob);
-			Assert.assertTrue(ciJob.getName().startsWith("Job "));
-			Assert.assertTrue(ciJob.getJobCiId().startsWith("job-"));
-			Assert.assertNotNull(ciJob.getParameters());
-			Assert.assertTrue(ciJob.getParameters().isEmpty());
+			Assertions.assertNotNull(ciJob);
+			Assertions.assertTrue(ciJob.getName().startsWith("Job "));
+			Assertions.assertTrue(ciJob.getJobCiId().startsWith("job-"));
+			Assertions.assertNotNull(ciJob.getParameters());
+			Assertions.assertTrue(ciJob.getParameters().isEmpty());
 		}
 	}
 
 	@Test
 	public void testJobNotExistsAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
 				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs/job-not-exists");
 		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
 
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_NOT_FOUND, resultAbridged.getStatus());
-		Assert.assertNotNull(resultAbridged.getHeaders());
-		Assert.assertTrue(resultAbridged.getHeaders().isEmpty());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
+		Assertions.assertNotNull(resultAbridged);
+		Assertions.assertEquals(HttpStatus.SC_NOT_FOUND, resultAbridged.getStatus());
+		Assertions.assertNotNull(resultAbridged.getHeaders());
+		Assertions.assertTrue(resultAbridged.getHeaders().isEmpty());
+		Assertions.assertEquals(taskAbridged.getId(), resultAbridged.getId());
+		Assertions.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
+		Assertions.assertNull(resultAbridged.getBody());
 	}
 
 	@Test
 	public void testJobSpecificAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
@@ -238,22 +247,22 @@ public class TaskingServiceTests {
 		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_OK);
 
 		PipelineNode pipeline = dtoFactory.dtoFromJson(resultAbridged.getBody(), PipelineNode.class);
-		Assert.assertNotNull(pipeline);
-		Assert.assertEquals("job-a", pipeline.getJobCiId());
-		Assert.assertEquals("Job A", pipeline.getName());
-		Assert.assertNotNull(pipeline.getPhasesInternal());
-		Assert.assertTrue(pipeline.getPhasesInternal().isEmpty());
-		Assert.assertNotNull(pipeline.getPhasesPostBuild());
-		Assert.assertTrue(pipeline.getPhasesPostBuild().isEmpty());
-		Assert.assertNotNull(pipeline.getParameters());
-		Assert.assertTrue(pipeline.getParameters().isEmpty());
-		Assert.assertNull(pipeline.getMultiBranchType());
+		Assertions.assertNotNull(pipeline);
+		Assertions.assertEquals("job-a", pipeline.getJobCiId());
+		Assertions.assertEquals("Job A", pipeline.getName());
+		Assertions.assertNotNull(pipeline.getPhasesInternal());
+		Assertions.assertTrue(pipeline.getPhasesInternal().isEmpty());
+		Assertions.assertNotNull(pipeline.getPhasesPostBuild());
+		Assertions.assertTrue(pipeline.getPhasesPostBuild().isEmpty());
+		Assertions.assertNotNull(pipeline.getParameters());
+		Assertions.assertTrue(pipeline.getParameters().isEmpty());
+		Assertions.assertNull(pipeline.getMultiBranchType());
 	}
 
 	@Test
 	public void testRunNotImplementedAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
@@ -263,17 +272,17 @@ public class TaskingServiceTests {
 		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
 		TaskingTestPluginServicesTest.runAPINotImplemented = false;
 
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_NOT_IMPLEMENTED, resultAbridged.getStatus());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
+		Assertions.assertNotNull(resultAbridged);
+		Assertions.assertEquals(HttpStatus.SC_NOT_IMPLEMENTED, resultAbridged.getStatus());
+		Assertions.assertEquals(taskAbridged.getId(), resultAbridged.getId());
+		Assertions.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
+		Assertions.assertNull(resultAbridged.getBody());
 	}
 
 	@Test
 	public void testRunThrowsExceptionAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
@@ -286,34 +295,34 @@ public class TaskingServiceTests {
 		runCommonAsserts(resultAbridged, taskAbridged.getId(), HttpStatus.SC_INTERNAL_SERVER_ERROR);
 
 		TaskProcessingErrorBody errorBody = dtoFactory.dtoFromJson(resultAbridged.getBody(), TaskProcessingErrorBody.class);
-		Assert.assertNotNull(errorBody);
-		Assert.assertNotNull(errorBody.getErrorMessage());
-		Assert.assertTrue(errorBody.getErrorMessage().contains("runtime exception"));
+		Assertions.assertNotNull(errorBody);
+		Assertions.assertNotNull(errorBody.getErrorMessage());
+		Assertions.assertTrue(errorBody.getErrorMessage().contains("runtime exception"));
 	}
 
 	@Test
 	public void testRunAPI() {
 		TasksProcessor tasksProcessor = client.getTasksProcessor();
-		Assert.assertNotNull(tasksProcessor);
+		Assertions.assertNotNull(tasksProcessor);
 
 		OctaneTaskAbridged taskAbridged = dtoFactory.newDTO(OctaneTaskAbridged.class)
 				.setId(UUID.randomUUID().toString())
 				.setUrl(OctaneSPEndpointSimulator.getSimulatorUrl() + APIPrefix + "/jobs/job-a/run");
 		OctaneResultAbridged resultAbridged = tasksProcessor.execute(taskAbridged);
 
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(HttpStatus.SC_CREATED, resultAbridged.getStatus());
-		Assert.assertEquals(taskAbridged.getId(), resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNull(resultAbridged.getBody());
+		Assertions.assertNotNull(resultAbridged);
+		Assertions.assertEquals(HttpStatus.SC_CREATED, resultAbridged.getStatus());
+		Assertions.assertEquals(taskAbridged.getId(), resultAbridged.getId());
+		Assertions.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
+		Assertions.assertNull(resultAbridged.getBody());
 	}
 
 	private void runCommonAsserts(OctaneResultAbridged resultAbridged, String taskId, int expectedStatus) {
-		Assert.assertNotNull(resultAbridged);
-		Assert.assertEquals(expectedStatus, resultAbridged.getStatus());
-		Assert.assertEquals(ContentType.APPLICATION_JSON.getMimeType(), resultAbridged.getHeaders().get(HttpHeaders.CONTENT_TYPE));
-		Assert.assertEquals(taskId, resultAbridged.getId());
-		Assert.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
-		Assert.assertNotNull(resultAbridged.getBody());
+		Assertions.assertNotNull(resultAbridged);
+		Assertions.assertEquals(expectedStatus, resultAbridged.getStatus());
+		Assertions.assertEquals(ContentType.APPLICATION_JSON.getMimeType(), resultAbridged.getHeaders().get(HttpHeaders.CONTENT_TYPE));
+		Assertions.assertEquals(taskId, resultAbridged.getId());
+		Assertions.assertEquals(client.getInstanceId(), resultAbridged.getServiceId());
+		Assertions.assertNotNull(resultAbridged.getBody());
 	}
 }

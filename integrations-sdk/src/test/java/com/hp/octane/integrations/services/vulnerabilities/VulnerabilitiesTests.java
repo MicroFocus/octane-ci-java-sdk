@@ -38,8 +38,8 @@ import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCHandler;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.SSCProjectConnector;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -68,10 +68,10 @@ public class VulnerabilitiesTests {
         String artifactsURL = sscProjectConnector.getArtifactsURL(100, 1000);
         String urlForProjectVersion = sscProjectConnector.getURLForProjectVersion(500);
 
-        Assert.assertEquals(projectIdURL, "projects?q=name:project");
-        Assert.assertEquals(newIssuesURL, "projectVersions/1/issues?showhidden=false&showremoved=false&showsuppressed=false");
-        Assert.assertEquals(artifactsURL, "projectVersions/100/artifacts?limit=1000");
-        Assert.assertEquals(urlForProjectVersion, "projects/500/versions?q=name:version");
+        Assertions.assertEquals(projectIdURL, "projects?q=name:project");
+        Assertions.assertEquals(newIssuesURL, "projectVersions/1/issues?showhidden=false&showremoved=false&showsuppressed=false");
+        Assertions.assertEquals(artifactsURL, "projectVersions/100/artifacts?limit=1000");
+        Assertions.assertEquals(urlForProjectVersion, "projects/500/versions?q=name:version");
     }
 
     @Test
@@ -94,9 +94,9 @@ public class VulnerabilitiesTests {
         List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag", new HashMap<>());
         for (int i = 0; i < 4; i++) {
             if (i != 3) {
-                Assert.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
+                Assertions.assertEquals("list_node.issue_analysis_node.reviewed", octaneIssues.get(i).getAnalysis().getId());
             } else {
-                Assert.assertNull(octaneIssues.get(i).getAnalysis());
+                Assertions.assertNull(octaneIssues.get(i).getAnalysis());
             }
         }
     }
@@ -127,9 +127,9 @@ public class VulnerabilitiesTests {
 
         for (int i = 0; i < 5; i++) {
             if (i != 4) {
-                Assert.assertEquals(expectedValues[i], octaneIssues.get(i).getState().getId());
+                Assertions.assertEquals(expectedValues[i], octaneIssues.get(i).getState().getId());
             } else {
-                Assert.assertNull(octaneIssues.get(i).getState());
+                Assertions.assertNull(octaneIssues.get(i).getState());
             }
         }
     }
@@ -145,16 +145,16 @@ public class VulnerabilitiesTests {
         issue.removedDate = "removedDate";
 
         Issues sscIssues = new Issues();
-        sscIssues.setData(Arrays.asList(issue));
+        sscIssues.setData(List.of(issue));
         SSCHandler sscHandler = new SSCHandler();
         List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(), "Tag", new HashMap<>());
 
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("issueName"), "name");
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("likelihood"), "2.5");
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("kingdom"), "kingdom");
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("impact"), "2.5");
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("confidence"), "confidence");
-        Assert.assertEquals(octaneIssues.get(0).getExtendedData().get("removedDate"), "removedDate");
+        Assertions.assertEquals("name", octaneIssues.getFirst().getExtendedData().get("issueName"));
+        Assertions.assertEquals("2.5", octaneIssues.getFirst().getExtendedData().get("likelihood"));
+        Assertions.assertEquals("kingdom", octaneIssues.getFirst().getExtendedData().get("kingdom"));
+        Assertions.assertEquals("2.5", octaneIssues.getFirst().getExtendedData().get("impact"));
+        Assertions.assertEquals("confidence", octaneIssues.getFirst().getExtendedData().get("confidence"));
+        Assertions.assertEquals("removedDate", octaneIssues.getFirst().getExtendedData().get("removedDate"));
     }
 
     @Test
@@ -171,75 +171,77 @@ public class VulnerabilitiesTests {
         SSCHandler sscHandler = new SSCHandler();
         List<OctaneIssue> octaneIssues = createOctaneIssues(sscIssues.getData(),"Tag", new HashMap<>());
 
-        Assert.assertEquals(octaneIssues.get(0).getPrimaryLocationFull(), "fullFileName");
-        Assert.assertEquals(String.valueOf(octaneIssues.get(0).getLine()), String.valueOf(100));
-        Assert.assertEquals(octaneIssues.get(0).getRemoteId(), "ID_ID_ID");
-        Assert.assertNotNull(octaneIssues.get(0).getIntroducedDate());
-        Assert.assertEquals(octaneIssues.get(0).getExternalLink(), "hRef");
+        Assertions.assertEquals(octaneIssues.getFirst().getPrimaryLocationFull(), "fullFileName");
+        Assertions.assertEquals(String.valueOf(octaneIssues.getFirst().getLine()), String.valueOf(100));
+        Assertions.assertEquals(octaneIssues.getFirst().getRemoteId(), "ID_ID_ID");
+        Assertions.assertNotNull(octaneIssues.getFirst().getIntroducedDate());
+        Assertions.assertEquals(octaneIssues.getFirst().getExternalLink(), "hRef");
     }
 
     @Test
     public void deserializeIssues(){
 
         Issues issues = SSCProjectConnector.stringToObject(sampleSSCIssues, Issues.class);
-        Assert.assertEquals(1,issues.getCount());
-        Assert.assertEquals(1,issues.getData().size());
-        Assert.assertEquals("pom.xml",issues.getData().get(0).fullFileName);
+        Assertions.assertEquals(1,issues.getCount());
+        Assertions.assertEquals(1,issues.getData().size());
+        Assertions.assertEquals("pom.xml",issues.getData().getFirst().fullFileName);
 
     }
-    private final String sampleSSCIssues = "{\n"+
-            "  \"data\": [\n"+
-            "    {\n"+
-            "      \"bugURL\": null,\n"+
-            "      \"hidden\": false,\n"+
-            "      \"issueName\": \"Build Misconfiguration: External Maven Dependency Repository\",\n"+
-            "      \"folderGuid\": \"bb824e8d-b401-40be-13bd-5d156696a685\",\n"+
-            "      \"lastScanId\": 155,\n"+
-            "      \"engineType\": \"SCA\",\n"+
-            "      \"issueStatus\": \"Unreviewed\",\n"+
-            "      \"friority\": \"Low\",\n"+
-            "      \"analyzer\": \"Configuration\",\n"+
-            "      \"primaryLocation\": \"pom.xml\",\n"+
-            "      \"reviewed\": null,\n"+
-            "      \"id\": 3708,\n"+
-            "      \"suppressed\": false,\n"+
-            "      \"hasAttachments\": false,\n"+
-            "      \"engineCategory\": \"STATIC\",\n"+
-            "      \"projectVersionName\": null,\n"+
-            "      \"removedDate\": null,\n"+
-            "      \"severity\": 2.0,\n"+
-            "      \"_href\": \"http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/116/issues/3708\",\n"+
-            "      \"displayEngineType\": \"SCA\",\n"+
-            "      \"foundDate\": \"2018-10-09T07:43:16.000+0000\",\n"+
-            "      \"confidence\": 5.0,\n"+
-            "      \"impact\": 2.0,\n"+
-            "      \"primaryRuleGuid\": \"FF57412F-DD28-44DE-8F4F-0AD39620768C\",\n"+
-            "      \"projectVersionId\": 116,\n"+
-            "      \"scanStatus\": \"UPDATED\",\n"+
-            "      \"audited\": false,\n"+
-            "      \"kingdom\": \"Environment\",\n"+
-            "      \"folderId\": 215,\n"+
-            "      \"revision\": 0,\n"+
-            "      \"likelihood\": 0.8,\n"+
-            "      \"removed\": false,\n"+
-            "      \"issueInstanceId\": \"87E3EC5CC8154C006783CC461A6DDEEB\",\n"+
-            "      \"hasCorrelatedIssues\": false,\n"+
-            "      \"primaryTag\": null,\n"+
-            "      \"lineNumber\": 3,\n"+
-            "      \"projectName\": null,\n"+
-            "      \"fullFileName\": \"pom.xml\",\n"+
-            "      \"primaryTagValueAutoApplied\": false\n"+
-            "    }\n"+
-            "  ],\n"+
-            "  \"count\": 1,\n"+
-            "  \"responseCode\": 200,\n"+
-            "  \"links\": {\n"+
-            "    \"last\": {\n"+
-            "      \"href\": \"http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/116/issues?q=[issue_age]:updated&qm=issues&showhidden=false&showremoved=false&showsuppressed=false&start=0\"\n"+
-            "    },\n"+
-            "    \"first\": {\n"+
-            "      \"href\": \"http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/116/issues?q=[issue_age]:updated&qm=issues&showhidden=false&showremoved=false&showsuppressed=false&start=0\"\n"+
-            "    }\n"+
-            "  }\n"+
-            "}";
+    private final String sampleSSCIssues = """
+            {
+              "data": [
+                {
+                  "bugURL": null,
+                  "hidden": false,
+                  "issueName": "Build Misconfiguration: External Maven Dependency Repository",
+                  "folderGuid": "bb824e8d-b401-40be-13bd-5d156696a685",
+                  "lastScanId": 155,
+                  "engineType": "SCA",
+                  "issueStatus": "Unreviewed",
+                  "friority": "Low",
+                  "analyzer": "Configuration",
+                  "primaryLocation": "pom.xml",
+                  "reviewed": null,
+                  "id": 3708,
+                  "suppressed": false,
+                  "hasAttachments": false,
+                  "engineCategory": "STATIC",
+                  "projectVersionName": null,
+                  "removedDate": null,
+                  "severity": 2.0,
+                  "_href": "http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/116/issues/3708",
+                  "displayEngineType": "SCA",
+                  "foundDate": "2018-10-09T07:43:16.000+0000",
+                  "confidence": 5.0,
+                  "impact": 2.0,
+                  "primaryRuleGuid": "FF57412F-DD28-44DE-8F4F-0AD39620768C",
+                  "projectVersionId": 116,
+                  "scanStatus": "UPDATED",
+                  "audited": false,
+                  "kingdom": "Environment",
+                  "folderId": 215,
+                  "revision": 0,
+                  "likelihood": 0.8,
+                  "removed": false,
+                  "issueInstanceId": "87E3EC5CC8154C006783CC461A6DDEEB",
+                  "hasCorrelatedIssues": false,
+                  "primaryTag": null,
+                  "lineNumber": 3,
+                  "projectName": null,
+                  "fullFileName": "pom.xml",
+                  "primaryTagValueAutoApplied": false
+                }
+              ],
+              "count": 1,
+              "responseCode": 200,
+              "links": {
+                "last": {
+                  "href": "http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/116/issues?q=[issue_age]:updated&qm=issues&showhidden=false&showremoved=false&showsuppressed=false&start=0"
+                },
+                "first": {
+                  "href": "http://myd-vma00564.swinfra.net:8180/ssc/api/v1/projectVersions/116/issues?q=[issue_age]:updated&qm=issues&showhidden=false&showremoved=false&showsuppressed=false&start=0"
+                }
+              }
+            }\
+            """;
 }

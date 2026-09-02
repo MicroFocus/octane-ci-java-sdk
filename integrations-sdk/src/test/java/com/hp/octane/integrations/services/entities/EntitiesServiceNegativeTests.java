@@ -32,27 +32,35 @@
 package com.hp.octane.integrations.services.entities;
 
 import com.hp.octane.integrations.OctaneSDK;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class EntitiesServiceNegativeTests {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testA() {
-		new EntitiesServiceImpl(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () -> {
+            new EntitiesServiceImpl(null, null);
+        });
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testB() {
-		new EntitiesServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
-	}
+        assertThrows(ClassCastException.class, () -> {
+            new EntitiesServiceImpl((OctaneSDK.SDKServicesConfigurer) new Object(), null);
+        });
+    }
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void testC() {
-		EntitiesService.newInstance(null, null);
-	}
+        assertThrows(IllegalArgumentException.class, () ->
+            EntitiesService.newInstance(null, null));
+    }
 
-	@Test(expected = ClassCastException.class)
+	@Test
 	public void testD() {
-		EntitiesService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null);
-	}
+        assertThrows(ClassCastException.class, () ->
+            EntitiesService.newInstance((OctaneSDK.SDKServicesConfigurer) new Object(), null));
+    }
 }

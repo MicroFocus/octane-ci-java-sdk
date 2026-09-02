@@ -39,8 +39,8 @@ import com.hp.octane.integrations.uft.ufttestresults.UftTestResultsUtils;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultIterationData;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepData;
 import com.hp.octane.integrations.uft.ufttestresults.schema.UftResultStepParameter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.net.URL;
@@ -52,10 +52,10 @@ public class MbtTests {
     public void parseConfiguration() {
         URL url = getClass().getResource("mbtExample1.json");
         MbtData mbtData = DTOFactory.getInstance().dtoFromJsonFile(new File(url.getFile()), MbtData.class);
-        Assert.assertEquals(4, mbtData.getUnits().size());
-        Assert.assertEquals(6, mbtData.getData().getParameters().size());
-        Assert.assertEquals(2, mbtData.getData().getIterations().size());
-        mbtData.getData().getIterations().forEach(strings -> Assert.assertEquals(6, strings.size()));
+        Assertions.assertEquals(4, mbtData.getUnits().size());
+        Assertions.assertEquals(6, mbtData.getData().getParameters().size());
+        Assertions.assertEquals(2, mbtData.getData().getIterations().size());
+        mbtData.getData().getIterations().forEach(strings -> Assertions.assertEquals(6, strings.size()));
         mbtData.getUnits().forEach(mbtUnit -> System.out.println(mbtUnit.getName() + ", parameters: " +
                 Optional.ofNullable(mbtUnit.getParameters()).orElse(Collections.emptyList()).stream().map(MbtUnitParameter::getParameterId).collect(Collectors.joining(", "))));
         mbtData.getData().getParameters().forEach(System.out::println);
@@ -67,7 +67,7 @@ public class MbtTests {
         String osName = System.getProperty("os.name");
         if (osName.toLowerCase(Locale.ROOT).contains("windows")) {
             String path = MfMBTConverter.computeResourcePath("..\\ss", "c:\\aa\\bb");
-            Assert.assertEquals("c:\\aa\\ss", path.toLowerCase(Locale.ROOT));
+            Assertions.assertEquals("c:\\aa\\ss", path.toLowerCase(Locale.ROOT));
         }
     }
 
@@ -75,8 +75,8 @@ public class MbtTests {
     public void readActionResults1() {
         File file = new File(getClass().getResource("run_mbt_results_with_errors.xml").getFile());
         List<UftResultIterationData> resultData = UftTestResultsUtils.getMBTData(file);
-        Assert.assertEquals(1, resultData.size());
-        UftResultStepData data1 = resultData.get(0).getSteps().get(0);
+        Assertions.assertEquals(1, resultData.size());
+        UftResultStepData data1 = resultData.getFirst().getSteps().getFirst();
         String errorMessage = "Cannot find the \"password\" object's parent \"Micro Focus MyFlight Sample\" (class WpfWindow).<br/>Verify that parent properties match an object currently displayed in your application.<br/><br/>Object's                                    physical description:<br>wpftypename = window<br>regexpwndtitle = Micro                                    Focus MyFlight Sample Application<br>devname = Micro Focus MyFlight Sample                                    Application<br> (Warning). ";
         validateAction(23, "Passed", errorMessage, "Action1 [Two test_same function 2]", data1, Collections.EMPTY_LIST, null);
     }
@@ -85,11 +85,11 @@ public class MbtTests {
     public void readActionResults2() {
         File file = new File(getClass().getResource("run_mbt_results_8_successful.xml").getFile());
         List<UftResultIterationData> iterations = UftTestResultsUtils.getMBTData(file);
-        List<UftResultStepData> resultData = iterations.get(0).getSteps();
-        Assert.assertEquals(8, resultData.size());
+        List<UftResultStepData> resultData = iterations.getFirst().getSteps();
+        Assertions.assertEquals(8, resultData.size());
 
         List<UftResultStepParameter> inputParameters = Arrays.asList(new UftResultStepParameter("username", "john", "System.String"), new UftResultStepParameter("password", "HP", "System.String"));
-        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.get(0), Collections.EMPTY_LIST, null);
+        validateAction(1, "Done", "", "Launch App [FlightGUIBU2]", resultData.getFirst(), Collections.EMPTY_LIST, null);
         validateAction(3, "Done", "", "Login [FlightGUIBU2]", resultData.get(1), inputParameters, null);
         validateAction(1, "Done", "", "Search Order Tab [FlightGUIBU2]", resultData.get(2),  Collections.EMPTY_LIST, null);
         inputParameters = Arrays.asList(new UftResultStepParameter("Name", "john", "System.String"));
@@ -106,27 +106,27 @@ public class MbtTests {
     public void readActionResults3() {
         File file = new File(getClass().getResource("run_mbt_results_with2_runs.xml").getFile());
         List<UftResultIterationData> iterations = UftTestResultsUtils.getMBTData(file);
-        Assert.assertEquals(2, iterations.size());
-        List<UftResultStepData> resultData1 = iterations.get(0).getSteps();
+        Assertions.assertEquals(2, iterations.size());
+        List<UftResultStepData> resultData1 = iterations.getFirst().getSteps();
         List<UftResultStepData> resultData2 = iterations.get(1).getSteps();
-        Assert.assertEquals(1, resultData1.size());
-        Assert.assertEquals(1, resultData2.size());
+        Assertions.assertEquals(1, resultData1.size());
+        Assertions.assertEquals(1, resultData2.size());
 
         List<UftResultStepParameter> inputParameters = Arrays.asList(new UftResultStepParameter("parameter1", "4", "System.Double"), new UftResultStepParameter("parameter2", "2", "System.Double"));
-        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData1.get(0), inputParameters, null);
+        validateAction(11, "Done", "", "Action1 [FUNCTION-TEST1]", resultData1.getFirst(), inputParameters, null);
         inputParameters = Arrays.asList(new UftResultStepParameter("parameter1", "3", "System.Double"), new UftResultStepParameter("parameter2", "1", "System.Double"));
-        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData2.get(0), inputParameters, null);
+        validateAction(9, "Done", "", "Action1 [FUNCTION-TEST1]", resultData2.getFirst(), inputParameters, null);
     }
 
     private void validateAction(long duration, String result, String errorMessage, String lastParent, UftResultStepData data, List<UftResultStepParameter> inputParameters, List<UftResultStepParameter> outputParameters) {
-        Assert.assertEquals(errorMessage, data.getMessage());
-        Assert.assertEquals("Action", data.getType());
-        Assert.assertEquals(duration, data.getDuration());
-        Assert.assertEquals(result, data.getResult());
-        Assert.assertEquals(3, data.getParents().size());
-        Assert.assertEquals(lastParent, data.getParents().get(2));
-        Assert.assertEquals(inputParameters, data.getInputParameters());
-        Assert.assertEquals(outputParameters, data.getOutputParameters());
+        Assertions.assertEquals(errorMessage, data.getMessage());
+        Assertions.assertEquals("Action", data.getType());
+        Assertions.assertEquals(duration, data.getDuration());
+        Assertions.assertEquals(result, data.getResult());
+        Assertions.assertEquals(3, data.getParents().size());
+        Assertions.assertEquals(lastParent, data.getParents().get(2));
+        Assertions.assertEquals(inputParameters, data.getInputParameters());
+        Assertions.assertEquals(outputParameters, data.getOutputParameters());
     }
 
     @Test
@@ -134,8 +134,8 @@ public class MbtTests {
         String name = "my name";
         String encoded = MfMBTConverter.encodeTestNameIfRequired(name);
         String decoded = MfMBTConverter.decodeTestNameIfRequired(encoded);
-        Assert.assertEquals(name, decoded);
-        Assert.assertEquals(name, encoded);
+        Assertions.assertEquals(name, decoded);
+        Assertions.assertEquals(name, encoded);
     }
 
     @Test
@@ -143,8 +143,8 @@ public class MbtTests {
         String name = "my name^*";
         String encoded = MfMBTConverter.encodeTestNameIfRequired(name);
         String decoded = MfMBTConverter.decodeTestNameIfRequired(encoded);
-        Assert.assertEquals(name, decoded);
-        Assert.assertNotEquals(name, encoded);
+        Assertions.assertEquals(name, decoded);
+        Assertions.assertNotEquals(name, encoded);
     }
 
     @Test
@@ -152,8 +152,8 @@ public class MbtTests {
         String name = "my name ";
         String encoded = MfMBTConverter.encodeTestNameIfRequired(name);
         String decoded = MfMBTConverter.decodeTestNameIfRequired(encoded);
-        Assert.assertEquals(name, decoded);
-        Assert.assertNotEquals(name, encoded);
+        Assertions.assertEquals(name, decoded);
+        Assertions.assertNotEquals(name, encoded);
     }
 
 

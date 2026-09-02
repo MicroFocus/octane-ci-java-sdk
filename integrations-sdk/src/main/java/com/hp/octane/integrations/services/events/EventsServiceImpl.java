@@ -143,7 +143,7 @@ final class EventsServiceImpl implements EventsService {
 		if (eventsSize > MAX_EVENTS_TO_KEEP) {
 			logger.warn(configurer.octaneConfiguration.getLocationForLog() + "reached MAX amount of events to keep in queue (max - " + MAX_EVENTS_TO_KEEP + ", found - " + eventsSize + "), capping the head");
 			while (events.size() > MAX_EVENTS_TO_KEEP) {        //  in this case we need to read the real-time size of the list
-				events.remove(0);
+				events.removeFirst();
 			}
 		}
 		workerPreflight.itemAddedToQueue();

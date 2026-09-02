@@ -35,8 +35,8 @@ import com.hp.octane.integrations.executor.converters.BDDConverter;
 import com.hp.octane.integrations.executor.converters.CustomConverter;
 import com.hp.octane.integrations.executor.converters.GradleConverter;
 import com.hp.octane.integrations.executor.converters.ProtractorConverter;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 /**
  * Octane SDK tests
@@ -59,7 +59,7 @@ public class CustomConverterTest {
         CustomConverter converter = new CustomConverter(buildCustomFormat("$package.$class#$testName", ","));
         String actual = converter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals("MF.simple.tests.AppTest#testAlwaysFail,MF.simple.tests.App2Test#testSendGet", actual);
+        Assertions.assertEquals("MF.simple.tests.AppTest#testAlwaysFail,MF.simple.tests.App2Test#testSendGet", actual);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class CustomConverterTest {
         ProtractorConverter protractorConverter = new ProtractorConverter();
         String actual = protractorConverter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+        Assertions.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
     }
 
     @Test
@@ -75,7 +75,7 @@ public class CustomConverterTest {
         ProtractorConverter protractorConverter = new ProtractorConverter();
         String actual = protractorConverter.convert(noPackageRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+        Assertions.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class CustomConverterTest {
         ProtractorConverter protractorConverter = new ProtractorConverter();
         String actual = protractorConverter.setFormat("{\"testPattern\":\"bubub\",\"testDelimiter\":\"---\"}").convert(fullFormatRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
+        Assertions.assertEquals("AppTest testAlwaysFail|App2Test testSendGet", actual);
     }
 
     @Test
@@ -91,7 +91,7 @@ public class CustomConverterTest {
         ProtractorConverter protractorConverter = new ProtractorConverter();
         String actual = protractorConverter.convert(singleRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals("AppTest testAlwaysFail", actual);
+        Assertions.assertEquals("AppTest testAlwaysFail", actual);
     }
 
     @Test
@@ -99,7 +99,7 @@ public class CustomConverterTest {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(fullFormatRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail --tests MF.simple.tests.App2Test.testSendGet", actual);
+        Assertions.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail --tests MF.simple.tests.App2Test.testSendGet", actual);
     }
 
     @Test
@@ -107,7 +107,7 @@ public class CustomConverterTest {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noPackageRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals(" --tests AppTest.testAlwaysFail --tests App2Test.testSendGet", actual);
+        Assertions.assertEquals(" --tests AppTest.testAlwaysFail --tests App2Test.testSendGet", actual);
     }
 
     @Test
@@ -115,7 +115,7 @@ public class CustomConverterTest {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(noClassRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals(" --tests testAlwaysFail --tests testSendGet", actual);
+        Assertions.assertEquals(" --tests testAlwaysFail --tests testSendGet", actual);
     }
 
     @Test
@@ -123,7 +123,7 @@ public class CustomConverterTest {
         GradleConverter gradleConverter = new GradleConverter();
         String actual = gradleConverter.convert(singleRawData, "", null).getConvertedTestsString();
 
-        Assert.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail", actual);
+        Assertions.assertEquals(" --tests MF.simple.tests.AppTest.testAlwaysFail", actual);
     }
 
     @Test
@@ -132,6 +132,6 @@ public class CustomConverterTest {
         BDDConverter converter = new BDDConverter();
         String actual = converter.convert(data, "", null).getConvertedTestsString();
         String expected = "'src\\test\\resources\\dan\\Dan_1021.feature' 'src\\test\\resources\\elisheva\\ES_1024 a.feature' --name '^feature name 1021$' --name '^feature name .1024 #1024  bbb$'";
-        Assert.assertEquals(expected, actual);
+        Assertions.assertEquals(expected, actual);
     }
 }

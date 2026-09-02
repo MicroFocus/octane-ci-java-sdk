@@ -185,7 +185,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         Entity release;
         if (optionalReleaseId == null) {
             Optional<Entity> defaultRelease = this.getDefaultRelease(workspaceId);
-            if (!defaultRelease.isPresent()) {
+            if (defaultRelease.isEmpty()) {
                 throw new RuntimeException("Failed to find default release ");
             }
             release = defaultRelease.get();

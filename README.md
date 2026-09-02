@@ -189,7 +189,7 @@ The preferred flow is somewhat asynchronous and it is crucial to understand it, 
 >_Pay attention, that usually executing time consuming actions within the CI event call effectively means holding the main CI system execution thread, since most of the CI system's events are executing on the main thread.
 Don't do that._
 
-
+ 
 ## Disclamer update
 Certain versions of software accessible here may contain branding from Hewlett-Packard Company (now HP Inc.) and Hewlett Packard Enterprise Company.
 This software was acquired by Micro Focus on September 1, 2017, and is now offered by OpenText. 

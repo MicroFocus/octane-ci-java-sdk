@@ -54,16 +54,16 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.jetty.http.HttpMethod;
-import org.junit.Assert;
-import org.junit.Test;
+import org.eclipse.jetty.server.Request;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.zip.GZIPInputStream;
 
 /**
  * Octane SDK functional sanity test
@@ -76,8 +76,9 @@ public class OctaneSDKBasicFunctionalityTest {
 	private static final Logger logger = LogManager.getLogger(OctaneSDKBasicFunctionalityTest.class);
 	private static DTOFactory dtoFactory = DTOFactory.getInstance();
 
-	@Test(timeout = 600000)
-	public void testE2EFunctional() throws ExecutionException, InterruptedException {
+    @Test
+    @Timeout(value = 600000, unit = TimeUnit.MILLISECONDS)
+    public void testE2EFunctional() throws ExecutionException, InterruptedException {
 		Map<String, OctaneSPEndpointSimulator> simulators = null;
 		Map<String, List<CIEventsList>> eventsCollectors = new LinkedHashMap<>();
 		Map<String, List<TestsResult>> testResultsCollectors = new LinkedHashMap<>();
@@ -125,12 +126,12 @@ public class OctaneSDKBasicFunctionalityTest {
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					eventsCollectors.get(spIdA).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 					//  TODO: add deeper verification
 					return true;
@@ -200,22 +201,22 @@ public class OctaneSDKBasicFunctionalityTest {
 						eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					//  client A
 					eventsCollectors.get(spIdA).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 
 					//  client B
 					eventsCollectors.get(spIdB).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 
 					//  TODO: add deeper verification
@@ -280,14 +281,14 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate events
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (eventsCollectors.containsKey(spIdB) && eventsCollectors.get(spIdB).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
-					Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
 					eventsCollectors.get(spIdB).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientBInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 					//  TODO: add deeper verification
 					return true;
@@ -299,7 +300,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate tests
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (testResultsCollectors.containsKey(spIdB) && testResultsCollectors.get(spIdB).size() == 1) {
-					Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -310,7 +311,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate logs
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (logsCollectors.containsKey(spIdB) && logsCollectors.get(spIdB).size() == 1) {
-					Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -321,7 +322,7 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  validate coverages
 			GeneralTestUtils.waitAtMostFor(10000, () -> {
 				if (coverageCollectors.containsKey(spIdB) && coverageCollectors.get(spIdB).size() == 2) {
-					Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+					Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
 					//  TODO: add deeper verification
 					return true;
 				} else {
@@ -348,14 +349,14 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			CIPluginSDKUtils.doWait(4000);
 
-			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 
 			//
 			//  V
@@ -380,14 +381,14 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			CIPluginSDKUtils.doWait(4000);
 
-			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 			OctaneSDK.removeClient(clientA);
 
 			//
@@ -414,14 +415,14 @@ public class OctaneSDKBasicFunctionalityTest {
 
 			CIPluginSDKUtils.doWait(4000);
 
-			Assert.assertTrue(eventsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(eventsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(logsCollectors.get(spIdB).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdA).isEmpty());
-			Assert.assertTrue(coverageCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(eventsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(testResultsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(logsCollectors.get(spIdB).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdA).isEmpty());
+			Assertions.assertTrue(coverageCollectors.get(spIdB).isEmpty());
 
 
 			//
@@ -442,12 +443,12 @@ public class OctaneSDKBasicFunctionalityTest {
 			GeneralTestUtils.waitAtMostFor(5000, () -> {
 				if (eventsCollectors.containsKey(spIdA) && eventsCollectors.get(spIdA).stream().mapToInt(cil -> cil.getEvents().size()).sum() == 3) {
 					eventsCollectors.get(spIdA).forEach(cil -> {
-						Assert.assertNotNull(cil);
-						Assert.assertNotNull(cil.getServer());
-						Assert.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
-						Assert.assertEquals("custom", cil.getServer().getType());
-						Assert.assertEquals("1.1.1", cil.getServer().getVersion());
-						Assert.assertEquals("http://localhost:9999", cil.getServer().getUrl());
+						Assertions.assertNotNull(cil);
+						Assertions.assertNotNull(cil.getServer());
+						Assertions.assertEquals(clientAInstanceId, cil.getServer().getInstanceId());
+						Assertions.assertEquals("custom", cil.getServer().getType());
+						Assertions.assertEquals("1.1.1", cil.getServer().getVersion());
+						Assertions.assertEquals("http://localhost:9999", cil.getServer().getUrl());
 					});
 					//  TODO: add deeper verification
 					return true;
@@ -507,73 +508,75 @@ public class OctaneSDKBasicFunctionalityTest {
 			OctaneSPEndpointSimulator simulator = OctaneSPEndpointSimulator.addInstance(spID);
 			simulator.setOctaneVersion("15.1.8");//for octane roots
 			//  events API
-			simulator.installApiHandler(HttpMethod.PUT, "^.*events$", request -> {
+			simulator.installApiHandler(HttpMethod.PUT, "^.*events$", (request, response) -> {
 				try {
-					String rawEventsBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawEventsBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					CIEventsList eventsList = dtoFactory.dtoFromJson(rawEventsBody, CIEventsList.class);
 					eventsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(eventsList);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
+					response.setStatus(HttpStatus.SC_OK);
+				} catch (Exception ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
 
 			//  test results preflight API
-			simulator.installApiHandler(HttpMethod.GET, "^.*tests-result-preflight$", request -> {
+			simulator.installApiHandler(HttpMethod.GET, "^.*tests-result-preflight$", (request, response) -> {
 				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("true");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_OK);
+					response.getHeaders().put("Content-Type", "text/plain");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "true");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
 			//  test results push API
-			simulator.installApiHandler(HttpMethod.POST, "^.*test-results$", request -> {
+			simulator.installApiHandler(HttpMethod.POST, "^.*test-results$", (request, response) -> {
 				try {
-					String rawTestResultBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawTestResultBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					TestsResult testsResult = dtoFactory.dtoFromXml(rawTestResultBody, TestsResult.class);
 					//  [YG] below validations are done to ensure NEW API (via query params) aligned with an OLD API (data within XML)
 					//  [YG] in the future we'll remove OLD API and this validation should be done differently
-					request.mergeQueryParameters("", request.getQueryString());
-					Assert.assertEquals(request.getQueryParameters().getString("instance-id"), testsResult.getBuildContext().getServerId());
-					Assert.assertTrue(request.getQueryParameters().getString("job-ci-id").equals(CIPluginSDKUtils.urlEncodeBase64(testsResult.getBuildContext().getJobId())) ||
-									  request.getQueryParameters().getString("job-ci-id").equals(testsResult.getBuildContext().getJobId()));
-					Assert.assertEquals(request.getQueryParameters().getString("build-ci-id"), testsResult.getBuildContext().getBuildId());
+					String instanceId = Request.getParameters(request).getValue("instance-id");
+					String jobCiId = Request.getParameters(request).getValue("job-ci-id");
+					String buildCiId = Request.getParameters(request).getValue("build-ci-id");
+					Assertions.assertEquals(instanceId, testsResult.getBuildContext().getServerId());
+					Assertions.assertTrue(jobCiId.equals(CIPluginSDKUtils.urlEncodeBase64(testsResult.getBuildContext().getJobId())) ||
+									  jobCiId.equals(testsResult.getBuildContext().getJobId()));
+					Assertions.assertEquals(buildCiId, testsResult.getBuildContext().getBuildId());
 					testResultsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(testsResult);
-					request.getResponse().setStatus(HttpStatus.SC_ACCEPTED);
-					request.getResponse().getWriter().write("{\"status\": \"queued\"}");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_ACCEPTED);
+					response.getHeaders().put("Content-Type", "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "{\"status\": \"queued\"}");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
 			//  logs/coverage preflight API
-			simulator.installApiHandler(HttpMethod.GET, "^.*workspaceId$", request -> {
+			simulator.installApiHandler(HttpMethod.GET, "^.*workspaceId$", (request, response) -> {
 				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("[\"1001\"]");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_OK);
+					response.getHeaders().put("Content-Type", "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "[\"1001\"]");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
 			//  logs push API
-			simulator.installApiHandler(HttpMethod.POST, "^.*logs$", request -> {
+			simulator.installApiHandler(HttpMethod.POST, "^.*logs$", (request, response) -> {
 				try {
-					String rawLogBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawLogBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					logsCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(rawLogBody);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
+					response.setStatus(HttpStatus.SC_OK);
+				} catch (Exception ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
@@ -582,26 +585,26 @@ public class OctaneSDKBasicFunctionalityTest {
 			//  no need to configure, since it's the same API as for logs, see above
 
 			//  coverage push API
-			simulator.installApiHandler(HttpMethod.PUT, "^.*coverage$", request -> {
+			simulator.installApiHandler(HttpMethod.PUT, "^.*coverage$", (request, response) -> {
 				try {
-					String rawCoverageBody = CIPluginSDKUtils.inputStreamToUTF8String(new GZIPInputStream(request.getInputStream()));
+					String rawCoverageBody = OctaneSPEndpointSimulator.readRequestBody(request);
 					coverageCollectors
 							.computeIfAbsent(spID, sp -> new LinkedList<>())
 							.add(rawCoverageBody);
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-				} catch (IOException ioe) {
+					response.setStatus(HttpStatus.SC_OK);
+				} catch (Exception ioe) {
 					throw new RuntimeException(ioe);
 				}
 			});
 
 			//  get roots
-			simulator.installApiHandler(HttpMethod.GET, "^.*pipeline-roots$", request -> {
+			simulator.installApiHandler(HttpMethod.GET, "^.*pipeline-roots$", (request, response) -> {
 				try {
-					request.getResponse().setStatus(HttpStatus.SC_OK);
-					request.getResponse().getWriter().write("[]");
-					request.getResponse().getWriter().flush();
-				} catch (IOException ioe) {
-					throw new RuntimeException(ioe);
+					response.setStatus(HttpStatus.SC_OK);
+					response.getHeaders().put("Content-Type", "application/json");
+					OctaneSPEndpointSimulator.writeResponseBody(response, "[]");
+				} catch (Exception e) {
+					throw new RuntimeException(e);
 				}
 			});
 
@@ -671,3 +674,4 @@ public class OctaneSDKBasicFunctionalityTest {
 		}
 	}
 }
+

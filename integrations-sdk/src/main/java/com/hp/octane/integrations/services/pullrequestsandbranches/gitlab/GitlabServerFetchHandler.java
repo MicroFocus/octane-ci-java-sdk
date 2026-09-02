@@ -122,7 +122,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
 
             //remove exceeding items
             while (mergeRequests.size() > parameters.getMaxPRsToFetch()) {
-                mergeRequests.remove(0);
+                mergeRequests.removeFirst();
             }
 
             List<Pattern> sourcePatterns = FetchUtils.buildPatterns(parameters.getSourceBranchFilter());
@@ -161,7 +161,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
                                 .setTime(commit.getTimestamp() != null ? commit.getTimestamp().getTime() : new Date().getTime())
                                 .setParentRevId(Objects.isNull(commit.getParentIds())
                                                 ? null
-                                                : (commit.getParentIds().isEmpty() ? null : commit.getParentIds().get(0)));
+                                                : (commit.getParentIds().isEmpty() ? null : commit.getParentIds().getFirst()));
                         dtoCommits.add(dtoCommit);
                     });
 
@@ -294,7 +294,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
                 int i = rest.indexOf('/');
                 String encoded = rest.substring(i + 1).replace("/", "%2F");
                 StringBuffer sb = new StringBuffer();
-                sb.append(list.get(0)).append("//").append(rest, 0, i).append("/api/v4/projects/").append(encoded);
+                sb.append(list.getFirst()).append("//").append(rest, 0, i).append("/api/v4/projects/").append(encoded);
                 return sb.toString();
             } else {
                 throw new Exception();
