@@ -62,6 +62,7 @@ import java.util.regex.Pattern;
 public class CIPluginSDKUtils {
 	private static final Logger logger = LogManager.getLogger(CIPluginSDKUtils.class);
 	private static final ObjectMapper objectMapper = new ObjectMapper();
+	private static final int BUFFER_SIZE = 4096;
 
 	public static ObjectMapper getObjectMapper() {
 		return objectMapper;
@@ -231,19 +232,24 @@ public class CIPluginSDKUtils {
 	}
 
 	public static String inputStreamToString(InputStream is, Charset charset) throws IOException {
-		if (is == null) {
-			throw new IllegalArgumentException("input stream MUST NOT be null");
-		}
 		if (charset == null) {
 			throw new IllegalArgumentException("charset MUST NOT be null");
 		}
 
+		return new String(inputStreamToByteArray(is), charset);
+	}
+
+	public static byte[] inputStreamToByteArray(InputStream is) throws IOException {
+		if (is == null) {
+			throw new IllegalArgumentException("input stream MUST NOT be null");
+		}
+
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
 		int readLen;
-		byte[] buffer = new byte[4096];
+		byte[] buffer = new byte[BUFFER_SIZE];
 		while ((readLen = is.read(buffer)) != -1) result.write(buffer, 0, readLen);
 		result.flush();
-		return result.toString(charset.name());
+		return result.toByteArray();
 	}
 
 
