@@ -42,6 +42,7 @@ import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.utils.CIPluginSDKUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -63,8 +64,8 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -76,6 +77,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import javax.net.ssl.*;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -230,10 +232,10 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 					loginResponse = login(configuration);
 					if (loginResponse.getStatus() != 200) {
 						logger.error(configurer.octaneConfiguration.getLocationForLog() + "failed to RE-LOGIN with status " + loginResponse.getStatus() + ", won't attempt the original request anymore");
-						return loginResponse;
-					} else {
-						logger.info(configurer.octaneConfiguration.getLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
-					}
+							return loginResponse;
+						} else {
+							logger.info(configurer.octaneConfiguration.getLocationForLog() + "re-attempting the original request (" + request.getUrl() + ") having successful RE-LOGIN");
+						}
 				} else {
 					refreshSecurityToken(context, false);
 					break;
@@ -265,7 +267,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 	 * @param octaneRequest Request data as it is maintained in Octane related flavor
 	 * @return pre-configured HttpUriRequest
 	 */
-	private HttpUriRequest createHttpRequest(OctaneRequest octaneRequest) {
+	private HttpUriRequest createHttpRequest(OctaneRequest octaneRequest) throws IOException {
 		HttpUriRequest request;
 		RequestBuilder requestBuilder;
 
@@ -277,14 +279,16 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 		} else if (octaneRequest.getMethod().equals(HttpMethod.POST)) {
 			requestBuilder = RequestBuilder.post(octaneRequest.getUrl());
 			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
-			if(octaneRequest.getBody()!=null){
-				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			HttpEntity bodyEntity = createRepeatableBodyEntity(octaneRequest);
+			if (bodyEntity != null) {
+				requestBuilder.setEntity(bodyEntity);
 			}
 		} else if (octaneRequest.getMethod().equals(HttpMethod.PUT)) {
 			requestBuilder = RequestBuilder.put(octaneRequest.getUrl());
 			requestBuilder.addHeader(new BasicHeader(RestService.CONTENT_ENCODING_HEADER, RestService.GZIP_ENCODING));
-			if(octaneRequest.getBody()!=null){
-				requestBuilder.setEntity(new GzipCompressingEntity(new InputStreamEntity(octaneRequest.getBody(), ContentType.APPLICATION_JSON)));
+			HttpEntity bodyEntity = createRepeatableBodyEntity(octaneRequest);
+			if (bodyEntity != null) {
+				requestBuilder.setEntity(bodyEntity);
 			}
 		} else {
 			throw new RuntimeException("HTTP method " + octaneRequest.getMethod() + " not supported");
@@ -302,6 +306,26 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 
 		request = requestBuilder.build();
 		return request;
+	}
+
+	/**
+	 * Builds a repeatable request body entity from the given request.
+	 * The request body is an {@link java.io.InputStream} that can be consumed only once, while a request may be
+	 * executed more than once (e.g. a re-attempt after a successful RE-LOGIN). To keep the body available across such
+	 * retries, its content is buffered into a byte array, the request body stream is reset to a fresh stream over the
+	 * same bytes, and a repeatable entity is returned.
+	 *
+	 * @param octaneRequest Request data as it is maintained in Octane related flavor
+	 * @return a repeatable {@link HttpEntity} representing the body, or {@code null} when there is no body
+	 */
+	private HttpEntity createRepeatableBodyEntity(OctaneRequest octaneRequest) throws IOException {
+		if (octaneRequest.getBody() == null) {
+			return null;
+		}
+		byte[] bodyBytes = CIPluginSDKUtils.inputStreamToByteArray(octaneRequest.getBody());
+		//  reset the body stream so it can be read again on a subsequent execution of the same request
+		octaneRequest.setBody(new ByteArrayInputStream(bodyBytes));
+		return new GzipCompressingEntity(new ByteArrayEntity(bodyBytes, ContentType.APPLICATION_JSON));
 	}
 
 	private HttpClientContext createHttpContext(String requestUrl, int requestTimeoutSec, boolean isLoginRequest) {

@@ -211,6 +211,31 @@
 								<goal>enforce</goal>
 							</goals>
 						</execution>
+						<execution>
+							<id>enforce-pinned-versions</id>
+							<phase>validate</phase>
+							<goals>
+								<goal>enforce</goal>
+							</goals>
+							<configuration>
+								<rules>
+									<banDynamicVersions>
+										<allowSnapshots>false</allowSnapshots>
+										<ignores>
+											<ignore>com.hpe.adm.octane.ciplugins:integrations-dto</ignore>
+										</ignores>
+									</banDynamicVersions>
+									<requireReleaseDeps>
+										<message>No SNAPSHOT dependencies are allowed. All dependencies must use pinned release versions.</message>
+										<failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
+										<excludes>
+											<exclude>com.hpe.adm.octane.ciplugins:integrations-dto</exclude>
+										</excludes>
+									</requireReleaseDeps>
+								</rules>
+								<fail>true</fail>
+							</configuration>
+						</execution>
 					</executions>
 				</plugin>
 				<plugin>
