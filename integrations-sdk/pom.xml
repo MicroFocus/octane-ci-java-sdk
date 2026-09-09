@@ -56,7 +56,7 @@
         <httpclient.version>4.5.14</httpclient.version>
         <squareup-tape.version>1.2.3</squareup-tape.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
-		<jetty-server.version>12.1.10</jetty-server.version>
+		<jetty-server.version>12.1.12</jetty-server.version>
 		<poi.version>5.5.1</poi.version>
         <commons-csv.version>1.14.1</commons-csv.version>
         <gitlab4j-api.version>6.3.0</gitlab4j-api.version>
