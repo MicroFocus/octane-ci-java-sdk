@@ -33,13 +33,6 @@ package com.hp.octane.integrations.dto.tests;
 
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.KeyDeserializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-
-import java.io.IOException;
 
 public enum TestRunResult {
     PASSED("Passed"),

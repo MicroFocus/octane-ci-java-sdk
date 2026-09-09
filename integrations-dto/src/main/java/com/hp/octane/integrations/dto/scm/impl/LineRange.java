@@ -31,18 +31,16 @@
  */
 package com.hp.octane.integrations.dto.scm.impl;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.deser.std.StdDeserializer;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.ser.std.StdSerializer;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 @JsonSerialize(using = LineRange.RangeSerializer.class)
@@ -83,7 +81,7 @@ public class LineRange implements Serializable {
     public static class RangeDeserializer extends StdDeserializer<LineRange> {
 
         public RangeDeserializer() {
-            this(null);
+            this(LineRange.class);
         }
 
         public RangeDeserializer(Class<?> vc) {
@@ -91,10 +89,9 @@ public class LineRange implements Serializable {
         }
 
         @Override
-        public LineRange deserialize(JsonParser jp, DeserializationContext ctxt)
-                throws IOException, JsonProcessingException {
+        public LineRange deserialize(JsonParser jp, DeserializationContext ctxt) {
 
-            ArrayNode node = jp.getCodec().readTree(jp);
+            ArrayNode node = (ArrayNode) ctxt.readTree(jp);
             int start = node.get(0).intValue();
             int end = node.get(1).intValue();
             return new LineRange(start,end);
@@ -104,7 +101,7 @@ public class LineRange implements Serializable {
     public static class  RangeSerializer extends StdSerializer<LineRange> {
 
         public RangeSerializer() {
-            this(null);
+            this(LineRange.class);
         }
 
         public RangeSerializer(Class<LineRange> range) {
@@ -113,8 +110,7 @@ public class LineRange implements Serializable {
 
         @Override
         public void serialize(
-                LineRange lineRange, JsonGenerator jgen, SerializerProvider provider)
-                throws IOException, JsonProcessingException {
+                LineRange lineRange, JsonGenerator jgen, SerializationContext provider) {
 
             jgen.writeStartArray(2);
             jgen.writeNumber(lineRange.getStart());

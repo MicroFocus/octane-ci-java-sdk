@@ -50,6 +50,7 @@ import com.squareup.tape.ObjectQueue;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -279,7 +280,7 @@ final class LogsServiceImpl implements LogsService {
 		if (response.getBody() != null && !response.getBody().isEmpty()) {
 			try {
 				result = CIPluginSDKUtils.getObjectMapper().readValue(response.getBody(), String[].class);
-			} catch (IOException ioe) {
+			} catch (JacksonException ioe) {
 				if (CIPluginSDKUtils.isServiceTemporaryUnavailable(response.getBody())) {
 					throw new TemporaryException("Saas service is temporary unavailable.");
 				} else {

@@ -32,10 +32,12 @@
 package com.hp.octane.integrations.services.pullrequestsandbranches;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -89,7 +91,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
     private final EntitiesService entitiesService;
     private final File persistenceFile;
     private Map<String, PRItem> prItems;
-    private static final ObjectMapper objectMapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper objectMapper = JsonMapper.builder().enable(SerializationFeature.INDENT_OUTPUT).build();
     private static final String REMOVE_PREFIX = "origin/";
 
 
@@ -122,7 +124,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
                     JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, PRItem.class);
                     List<PRItem> list = objectMapper.readValue(persistenceFile, type);
                     prItems = list.stream().collect(Collectors.toMap(PRItem::getKey, Function.identity()));
-                } catch (IOException e) {
+                } catch (JacksonException e) {
                     logger.info(configurer.octaneConfiguration.getLocationForLog() + "failed to read PR persisted file");
                 }
             } else {
@@ -556,7 +558,7 @@ final class PullRequestAndBranchServiceImpl implements PullRequestAndBranchServi
         if (persistenceFile != null) {
             try {
                 objectMapper.writeValue(persistenceFile, prItems.values());
-            } catch (IOException e) {
+            } catch (JacksonException e) {
                 logger.info(configurer.octaneConfiguration.getLocationForLog() + "failed to save PR persisted file");
             }
         }

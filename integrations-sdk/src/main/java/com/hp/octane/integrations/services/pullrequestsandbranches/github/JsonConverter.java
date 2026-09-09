@@ -31,9 +31,9 @@
  */
 package com.hp.octane.integrations.services.pullrequestsandbranches.github;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.github.pojo.RequestError;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,12 +44,12 @@ public class JsonConverter {
     private static final Logger logger = LogManager.getLogger(JsonConverter.class);
     private static ObjectMapper objectMapper = new ObjectMapper();
 
-    public static <T> List<T> convertCollection(String str, Class<T> entityType) throws JsonProcessingException {
+    public static <T> List<T> convertCollection(String str, Class<T> entityType) throws JacksonException {
         JavaType type = objectMapper.getTypeFactory().constructCollectionType(List.class, entityType);
         return objectMapper.readValue(str, type);
     }
 
-    public static <T> T convert(String str, Class<T> entityType) throws JsonProcessingException {
+    public static <T> T convert(String str, Class<T> entityType) throws JacksonException {
         return objectMapper.readValue(str, entityType);
     }
 
@@ -58,7 +58,7 @@ public class JsonConverter {
             RequestError requestError = objectMapper.readValue(jsonString, RequestError.class);
             return requestError.getMessage() + (requestError.getDocumentation_url() != null ? ", See documentation " + requestError.getDocumentation_url() : "");
 
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.error(e.getMessage(), e);
         }
         return jsonString;

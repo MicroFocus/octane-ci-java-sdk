@@ -32,7 +32,7 @@
 package com.hp.octane.integrations.uft.ufttestresults.schema;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 public class ReportResults {
 

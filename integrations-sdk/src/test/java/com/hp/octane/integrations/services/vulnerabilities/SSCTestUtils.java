@@ -31,7 +31,7 @@
  */
 package com.hp.octane.integrations.services.vulnerabilities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Artifacts;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.ProjectVersions;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Projects;

@@ -32,7 +32,7 @@
 package com.hp.octane.integrations.services.rest;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import com.hp.octane.integrations.OctaneConfiguration;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
@@ -422,7 +422,7 @@ final class OctaneRestClientImpl implements OctaneRestClient {
 					.setEntity(loginApiJson);
 			loginRequest = requestBuilder.build();
 			return loginRequest;
-		} catch (JsonProcessingException jpe) {
+		} catch (JacksonException jpe) {
 			throw new IOException("failed to serialize login content", jpe);
 		}
 	}

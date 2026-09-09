@@ -32,7 +32,8 @@
 package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.exceptions.OctaneSDKGeneralException;
 import com.hp.octane.integrations.exceptions.PermanentException;
@@ -52,8 +53,9 @@ public class IssuesFileSerializer {
         try {
             Map<String, List<OctaneIssue>> dataFormat = new HashMap<>();
             dataFormat.put("data", octaneIssues);
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            ObjectMapper mapper = JsonMapper.builder()
+                    .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                    .build();
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             mapper.writeValue(baos, dataFormat);
@@ -101,8 +103,9 @@ public class IssuesFileSerializer {
                 validateFolderExists(targetDir);
                 Map<String, List<OctaneIssue>> dataFormat = new HashMap<>();
                 dataFormat.put("data", octaneIssues);
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+                ObjectMapper mapper = JsonMapper.builder()
+                        .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                        .build();
                 //send to cache
 
                 String vulnerabilitiesScanFilePath = targetDir + File.separator + SSCHandler.SCAN_RESULT_FILE;

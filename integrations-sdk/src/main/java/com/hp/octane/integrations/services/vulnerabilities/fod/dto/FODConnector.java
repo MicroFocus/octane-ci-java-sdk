@@ -31,8 +31,9 @@
  */
 package com.hp.octane.integrations.services.vulnerabilities.fod.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.TypeFactory;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.configuration.CIProxyConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
@@ -114,7 +115,7 @@ public class FODConnector implements FODSource {
 					String rawResponse = getRawResponseFromFOD(indexedURL);
 					//Deserialize.
 					T entityCollection = new ObjectMapper().readValue(rawResponse,
-							TypeFactory.defaultInstance().constructType((fetchedEnts).getClass()));
+							TypeFactory.createDefaultInstance().constructType((fetchedEnts).getClass()));
 
 					if (whenToStopFetch != null) {
 						shouldStopFetching = whenToStopFetch.test(entityCollection);
@@ -123,10 +124,10 @@ public class FODConnector implements FODSource {
 					fetchedEnts.items.addAll(entityCollection.items);
 					fetchedEnts.totalCount = fetchedEnts.items.size();
 					allIsFetched = (fetchedEnts.totalCount == entityCollection.totalCount) || shouldStopFetching;
-				} catch (IOException e) {
-					e.printStackTrace();
-					break;
-				} catch (PermanentException e){
+			} catch (JacksonException e) {
+				e.printStackTrace();
+				break;
+			} catch (PermanentException e){
 					logger.error(e.getMessage());
 				}
 			}
@@ -148,7 +149,7 @@ public class FODConnector implements FODSource {
 			String rawResponse = getRawResponseFromFOD(rawURL);
 			//Deserialize.
 			T entityFetched = new ObjectMapper().readValue(rawResponse,
-					TypeFactory.defaultInstance().constructType((fetchedEntityInstance).getClass()));
+					TypeFactory.createDefaultInstance().constructType((fetchedEntityInstance).getClass()));
 
 			return entityFetched;
 		} catch (PermanentException e){
@@ -157,7 +158,7 @@ public class FODConnector implements FODSource {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (JacksonException e) {
 			e.printStackTrace();
 		} catch (Exception e) {
 			e.printStackTrace();

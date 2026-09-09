@@ -31,7 +31,7 @@
  */
 package com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
@@ -318,7 +318,7 @@ public class BitbucketServerFetchHandler extends FetchHandler {
     }
 
     @Override
-    public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException {
+    public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JacksonException {
         Repository repo = JsonConverter.convert(responseBody, Repository.class);
 
         SCMRepositoryLinks links = dtoFactory.newDTO(SCMRepositoryLinks.class);

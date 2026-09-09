@@ -50,21 +50,27 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
-		<jackson.version>2.22.0</jackson.version>
+		<jackson.version>3.2.2</jackson.version>
+		<jackson.version.annotations>2.22</jackson.version.annotations>
         <junit-jupiter.version>6.1.0</junit-jupiter.version>
 	</properties>
 
 	<dependencies>
 
 		<dependency>
-			<groupId>com.fasterxml.jackson.core</groupId>
+			<groupId>tools.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<groupId>tools.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
 			<version>${jackson.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>${jackson.version.annotations}</version>
 		</dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

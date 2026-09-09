@@ -31,18 +31,15 @@
  */
 package com.hp.octane.integrations.services.vulnerabilities.sonar;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.OctaneSDK;
-import com.hp.octane.integrations.dto.connectivity.HttpMethod;
-import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
-import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.entities.Entity;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.dto.securityscans.impl.OctaneIssueImpl;
 import com.hp.octane.integrations.exceptions.PermanentException;
-import com.hp.octane.integrations.services.queueing.QueueingService;
 import com.hp.octane.integrations.services.rest.RestService;
 import com.hp.octane.integrations.services.sonar.SonarUtils;
 import com.hp.octane.integrations.services.vulnerabilities.*;
@@ -210,7 +207,7 @@ public class SonarVulnerabilitiesServiceImpl implements SonarVulnerabilitiesServ
             } while (SonarUtils.sonarReportHasAnotherPage(pageIndex, jsonReport));
             return sonarIssues;
 
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.error(errorMessage, e);
             throw new PermanentException(e);
         }
@@ -244,7 +241,7 @@ public class SonarVulnerabilitiesServiceImpl implements SonarVulnerabilitiesServ
 
         try {
             sonarRule = mapper.treeToValue(rule, SonarRule.class);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
         return sonarRule;
@@ -259,7 +256,7 @@ public class SonarVulnerabilitiesServiceImpl implements SonarVulnerabilitiesServ
         try {
             sonarIssues = mapper.readValue(issues.toString(), new TypeReference<List<SonarIssue>>() {
             });
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException(e);
         }
         return sonarIssues;

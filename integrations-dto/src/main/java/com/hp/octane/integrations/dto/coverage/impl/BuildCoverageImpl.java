@@ -32,8 +32,8 @@
 package com.hp.octane.integrations.dto.coverage.impl;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
 import com.hp.octane.integrations.dto.coverage.BuildCoverage;
 import com.hp.octane.integrations.dto.coverage.FileCoverage;
 

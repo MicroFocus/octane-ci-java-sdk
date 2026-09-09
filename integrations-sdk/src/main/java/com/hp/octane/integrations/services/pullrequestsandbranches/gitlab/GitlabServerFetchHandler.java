@@ -31,7 +31,7 @@
  */
 package com.hp.octane.integrations.services.pullrequestsandbranches.gitlab;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.OctaneResponse;
 import com.hp.octane.integrations.dto.scm.Branch;
@@ -313,7 +313,7 @@ public class GitlabServerFetchHandler extends FetchHandler {
     }
 
     @Override
-    public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException {
+    public SCMRepositoryLinks parseSCMRepositoryLinks(String responseBody) throws JacksonException {
         Repository repo = JsonConverter.convert(responseBody, Repository.class);
         SCMRepositoryLinks links = dtoFactory.newDTO(SCMRepositoryLinks.class).setHttpUrl(repo.getHttp_url_to_repo()).setSshUrl(repo.getSsh_url_to_repo());
         return links;

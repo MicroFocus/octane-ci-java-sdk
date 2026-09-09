@@ -32,8 +32,9 @@
 package com.hp.octane.integrations.dto.tests.impl;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.hp.octane.integrations.dto.tests.BuildContext;
 
 /**
@@ -42,6 +43,7 @@ import com.hp.octane.integrations.dto.tests.BuildContext;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "build")
+@JsonPropertyOrder({"serverId", "jobId", "jobName", "buildId", "buildName", "subType"})
 public class BuildContextImpl implements BuildContext {
 
     @JacksonXmlProperty(isAttribute = true, localName = "server_id")
