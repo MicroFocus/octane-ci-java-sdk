@@ -31,12 +31,12 @@
  */
 package com.hp.octane.integrations.executor.converters;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.executor.TestToRunData;
 import com.hp.octane.integrations.executor.TestsToRunConverter;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -292,7 +292,7 @@ public class CustomConverter extends TestsToRunConverter {
         try {
             T value = mapper.readValue(content, valueType);
             return value;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new RuntimeException("Failed to parse :" + e.getMessage(), e);
         }
     }

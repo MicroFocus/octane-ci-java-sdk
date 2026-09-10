@@ -273,7 +273,7 @@ public class GherkinUtils {
             if (dtoFactory == null) {
                 dtoFactory = DTOFactory.getInstance();
             }
-            XMLStreamWriter writer = dtoFactory.getXMLMapper().getFactory().getXMLOutputFactory().createXMLStreamWriter(outputStream, "UTF-8");
+            XMLStreamWriter writer = dtoFactory.getXMLMapper().tokenStreamFactory().getXMLOutputFactory().createXMLStreamWriter(outputStream, "UTF-8");
             if (!gherkinXmlWritableTestResults.isEmpty()) {
                 writer.writeStartDocument("UTF-8", "1.0");
                 writer.writeStartElement("test_result");

@@ -31,12 +31,14 @@
  */
 package com.hp.octane.integrations.dto;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleAbstractTypeResolver;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleAbstractTypeResolver;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.dataformat.xml.XmlFactory;
+import tools.jackson.dataformat.xml.XmlMapper;
 import com.hp.octane.integrations.dto.causes.impl.DTOCausesProvider;
 import com.hp.octane.integrations.dto.configuration.impl.DTOConfigsProvider;
 import com.hp.octane.integrations.dto.connectivity.impl.DTOConnectivityProvider;
@@ -56,7 +58,6 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLOutputFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -113,7 +114,7 @@ public final class DTOFactory {
 
 		try {
 			return new ByteArrayInputStream(objectMapper.writeValueAsBytes(dto));
-		} catch (JsonProcessingException jpe) {
+		} catch (JacksonException jpe) {
 			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
@@ -134,7 +135,7 @@ public final class DTOFactory {
 
 		try {
 			return objectMapper.writeValueAsString(dto);
-		} catch (JsonProcessingException jpe) {
+		} catch (JacksonException jpe) {
 			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
@@ -146,7 +147,7 @@ public final class DTOFactory {
 
 		try {
 			return new ByteArrayInputStream(configuration.objectMapper.writeValueAsBytes(dto));
-		} catch (JsonProcessingException jpe) {
+		} catch (JacksonException jpe) {
 			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
@@ -158,7 +159,7 @@ public final class DTOFactory {
 
 		try {
 			return configuration.objectMapper.writeValueAsString(dto);
-		} catch (JsonProcessingException jpe) {
+		} catch (JacksonException jpe) {
 			throw new RuntimeException("failed to serialize " + dto + " to JSON", jpe);
 		}
 	}
@@ -181,8 +182,8 @@ public final class DTOFactory {
 
 		try {
 			return objectMapper.readValue(string, targetType);
-		} catch (IOException ioe) {
-			throw new RuntimeException("failed to deserialize " + string + " into " + targetType, ioe);
+		} catch (JacksonException jae) {
+			throw new RuntimeException("failed to deserialize " + string + " into " + targetType, jae);
 		}
 	}
 
@@ -196,8 +197,8 @@ public final class DTOFactory {
 
 		try {
 			return configuration.objectMapper.readValue(json, targetType);
-		} catch (IOException ioe) {
-			throw new RuntimeException("failed to deserialize " + json + " into " + targetType, ioe);
+		} catch (JacksonException jae) {
+			throw new RuntimeException("failed to deserialize " + json + " into " + targetType, jae);
 		}
 	}
 
@@ -211,8 +212,8 @@ public final class DTOFactory {
 
 		try {
 			return configuration.objectMapper.readValue(jsonFile, targetType);
-		} catch (IOException ioe) {
-			throw new RuntimeException("failed to deserialize " + jsonFile.getName() + " into " + targetType, ioe);
+		} catch (JacksonException jae) {
+			throw new RuntimeException("failed to deserialize " + jsonFile.getName() + " into " + targetType, jae);
 		}
 	}
 
@@ -226,8 +227,8 @@ public final class DTOFactory {
 
 		try {
 			return configuration.getXmlMapper().readValue(xml, targetType);
-		} catch (IOException ioe) {
-			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType, ioe);
+		} catch (JacksonException jae) {
+			throw new RuntimeException("failed to deserialize " + xml.getName() + " into " + targetType, jae);
 		}
 	}
 
@@ -246,7 +247,7 @@ public final class DTOFactory {
 
 	public static class DTOConfiguration {
 		private final Map<Class<? extends DTOBase>, DTOInternalProviderBase> registry = new HashMap<>();
-		private final ObjectMapper objectMapper = new ObjectMapper();
+		private final ObjectMapper objectMapper;
 		private XmlMapper xmlMapper = null;
 		private SimpleModule module;
 
@@ -279,24 +280,26 @@ public final class DTOFactory {
 			}
 			module = new SimpleModule();
 			module.setAbstractTypes(resolver);
-			objectMapper.registerModule(module);
-
+			objectMapper = JsonMapper.builder()
+					.addModule(module)
+					.build();
 		}
 
-		private void initXmlMapper(XmlMapper mapper) {
-			xmlMapper = mapper;
-			xmlMapper.registerModule(module);
-			xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		private void initXmlMapper(XmlFactory xmlFactory) {
+			xmlMapper = XmlMapper.builder(xmlFactory)
+					.addModule(module)
+					.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+					.build();
 			//xmlMapper.getFactory().getXMLOutputFactory().setProperty("javax.xml.stream.isRepairingNamespaces", false);
 		}
 
 		public void initXmlMapper(XMLInputFactory xmlInputFactory, XMLOutputFactory xmlOutputFactory) {
-			initXmlMapper(new XmlMapper(xmlInputFactory, xmlOutputFactory));
+			initXmlMapper(new XmlFactory(xmlInputFactory, xmlOutputFactory));
 		}
 
 		public XmlMapper getXmlMapper() {
 			if (xmlMapper == null) {
-				initXmlMapper(new XmlMapper());
+				initXmlMapper(new XmlFactory());
 			}
 			return xmlMapper;
 		}

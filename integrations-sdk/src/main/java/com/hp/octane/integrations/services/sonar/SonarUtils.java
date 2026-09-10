@@ -31,7 +31,7 @@
  */
 package com.hp.octane.integrations.services.sonar;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import com.hp.octane.integrations.exceptions.PermanentException;
 import com.hp.octane.integrations.exceptions.TemporaryException;
 import org.apache.http.HttpRequest;

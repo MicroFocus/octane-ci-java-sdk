@@ -32,8 +32,9 @@
 package com.hp.octane.integrations.services.testexecution;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
@@ -303,7 +304,7 @@ final class TestExecutionServiceImpl implements TestExecutionService {
         return filteredEntities;
     }
 
-    private String convertLinksToJson(List<Entity> links) throws JsonProcessingException {
+    private String convertLinksToJson(List<Entity> links) throws JacksonException {
         TestToRunDataCollection collection = new TestToRunDataCollection();
 
         for (Entity link : links) {
@@ -340,8 +341,9 @@ final class TestExecutionServiceImpl implements TestExecutionService {
             collection.getTestsToRun().add(data);
         }
 
-        final ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        final ObjectMapper objectMapper = JsonMapper.builder()
+                .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                .build();
         return objectMapper.writeValueAsString(collection);
 
     }

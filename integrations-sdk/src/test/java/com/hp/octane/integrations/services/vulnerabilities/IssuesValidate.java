@@ -33,7 +33,7 @@ package com.hp.octane.integrations.services.vulnerabilities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.securityscans.OctaneIssue;
 import com.hp.octane.integrations.services.vulnerabilities.ssc.dto.Issues;
@@ -78,22 +78,16 @@ public class IssuesValidate {
     }
 
     private OctaneIssuesPushed getOctaneIssuesPushed(String output) throws IOException {
-        OctaneIssuesPushed octaneIssuesPushed = null;
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            RawPushedIssues rawPushedIssues = objectMapper.readValue(output, RawPushedIssues.class);
-            StringWriter stringWriter = new StringWriter();
-            objectMapper.writeValue(stringWriter,rawPushedIssues.data);
-            stringWriter.flush();
-            String issuesArrayAsString = stringWriter.toString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        RawPushedIssues rawPushedIssues = objectMapper.readValue(output, RawPushedIssues.class);
+        StringWriter stringWriter = new StringWriter();
+        objectMapper.writeValue(stringWriter, rawPushedIssues.data);
+        stringWriter.flush();
+        String issuesArrayAsString = stringWriter.toString();
 
-            OctaneIssue[] octaneIssuesArray = DTOFactory.getInstance().dtoCollectionFromJson(issuesArrayAsString, OctaneIssue[].class);
-            octaneIssuesPushed = new OctaneIssuesPushed();
-            octaneIssuesPushed.octaneIssues = Arrays.asList(octaneIssuesArray);
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        }
+        OctaneIssue[] octaneIssuesArray = DTOFactory.getInstance().dtoCollectionFromJson(issuesArrayAsString, OctaneIssue[].class);
+        OctaneIssuesPushed octaneIssuesPushed = new OctaneIssuesPushed();
+        octaneIssuesPushed.octaneIssues = Arrays.asList(octaneIssuesArray);
         return octaneIssuesPushed;
     }
 

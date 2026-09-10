@@ -31,8 +31,8 @@
  */
 package com.hp.octane.integrations.uft.ufttestresults;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.dataformat.xml.XmlMapper;
 import com.hp.octane.integrations.dto.tests.TestRunResult;
 import com.hp.octane.integrations.uft.ufttestresults.schema.*;
 
@@ -150,8 +150,9 @@ public class UftTestResultsUtils {
 
     public static <T> T fromXml(File xml, Class<T> clazz) {
         try {
-            XmlMapper xmlMapper = new XmlMapper();
-            xmlMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+            XmlMapper xmlMapper = XmlMapper.builder()
+                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                    .build();
             T obj = xmlMapper.readValue(xml, clazz);
 
             return obj;

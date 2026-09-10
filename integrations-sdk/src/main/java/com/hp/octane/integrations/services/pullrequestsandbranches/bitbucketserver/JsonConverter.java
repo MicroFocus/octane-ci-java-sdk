@@ -31,9 +31,9 @@
  */
 package com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.Entity;
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.EntityCollection;
 import com.hp.octane.integrations.services.pullrequestsandbranches.bitbucketserver.pojo.ErrorDetails;
@@ -47,13 +47,13 @@ public class JsonConverter {
     private static final Logger logger = LogManager.getLogger(JsonConverter.class);
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public static <T extends Entity> EntityCollection<T> convertCollection(String str, Class<T> entityType) throws JsonProcessingException {
+    public static <T extends Entity> EntityCollection<T> convertCollection(String str, Class<T> entityType) throws JacksonException {
         JavaType type = objectMapper.getTypeFactory().constructParametricType(EntityCollection.class, entityType);
 
         return objectMapper.readValue(str, type);
     }
 
-    public static <T extends Entity> T convert(String str, Class<T> entityType) throws JsonProcessingException {
+    public static <T extends Entity> T convert(String str, Class<T> entityType) throws JacksonException {
         return objectMapper.readValue(str, entityType);
     }
 
@@ -63,7 +63,7 @@ public class JsonConverter {
             if (!requestErrors.getErrors().isEmpty()) {
                 return requestErrors.getErrors().stream().map(ErrorDetails::getMessage).collect(Collectors.joining("; "));
             }
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             logger.error(e.getMessage(), e);
         }
         return jsonString;

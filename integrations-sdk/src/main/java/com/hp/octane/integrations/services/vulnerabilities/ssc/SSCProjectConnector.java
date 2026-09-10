@@ -31,8 +31,9 @@
  */
 package com.hp.octane.integrations.services.vulnerabilities.ssc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.TypeFactory;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.services.rest.SSCRestClient;
 import com.hp.octane.integrations.exceptions.PermanentException;
@@ -110,8 +111,8 @@ public class SSCProjectConnector {
         }
         try {
             return new ObjectMapper().readValue(response,
-                    TypeFactory.defaultInstance().constructType(type));
-        } catch (IOException e) {
+                    TypeFactory.createDefaultInstance().constructType(type));
+        } catch (JacksonException e) {
             throw new PermanentException(e);
         }
     }

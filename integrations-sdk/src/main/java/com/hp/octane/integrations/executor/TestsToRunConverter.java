@@ -31,11 +31,12 @@
  */
 package com.hp.octane.integrations.executor;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.hp.octane.integrations.utils.SdkStringUtils;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -102,10 +103,12 @@ public abstract class TestsToRunConverter {
 
     private static List<TestToRunData> parseJson(String rawTestsJson) {
         try {
-            final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            final ObjectMapper objectMapper = JsonMapper.builder()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    .build();
             TestToRunDataCollection result = objectMapper.readValue(rawTestsJson, TestToRunDataCollection.class);
             return result.getTestsToRun();
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new IllegalArgumentException("Invalid tests format: " + e.getMessage(), e);
         }
     }

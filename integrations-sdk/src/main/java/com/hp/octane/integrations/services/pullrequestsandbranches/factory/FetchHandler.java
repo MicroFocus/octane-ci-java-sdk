@@ -31,7 +31,7 @@
  */
 package com.hp.octane.integrations.services.pullrequestsandbranches.factory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import com.hp.octane.integrations.dto.DTOFactory;
 import com.hp.octane.integrations.dto.connectivity.HttpMethod;
 import com.hp.octane.integrations.dto.connectivity.OctaneRequest;
@@ -89,7 +89,7 @@ public abstract class FetchHandler {
         }
     }
 
-    public abstract SCMRepositoryLinks  parseSCMRepositoryLinks(String responseBody) throws JsonProcessingException;
+    public abstract SCMRepositoryLinks  parseSCMRepositoryLinks(String responseBody) throws JacksonException;
 
     protected void validateHttpCloneUrl(String clonePath) {
         if (clonePath == null || clonePath.isEmpty()) {

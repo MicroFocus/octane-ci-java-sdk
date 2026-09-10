@@ -32,9 +32,10 @@
 package com.hp.octane.integrations.dto.tests.impl;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import tools.jackson.dataformat.xml.annotation.JacksonXmlText;
 import com.hp.octane.integrations.dto.tests.TestRunError;
 
 /**
@@ -42,6 +43,7 @@ import com.hp.octane.integrations.dto.tests.TestRunError;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "error")
+@JsonPropertyOrder({"errorType", "errorMessage", "stackTrace"})
 public class TestRunErrorImpl implements TestRunError {
 
     @JacksonXmlProperty(isAttribute = true, localName = "type")

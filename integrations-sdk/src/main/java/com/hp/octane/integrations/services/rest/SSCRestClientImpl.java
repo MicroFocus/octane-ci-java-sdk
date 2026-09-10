@@ -31,8 +31,8 @@
  */
 package com.hp.octane.integrations.services.rest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.type.TypeFactory;
 import com.hp.octane.integrations.OctaneSDK;
 import com.hp.octane.integrations.dto.securityscans.SSCProjectConfiguration;
 import com.hp.octane.integrations.exceptions.PermanentException;
@@ -144,7 +144,7 @@ class SSCRestClientImpl implements SSCRestClient {
             response = httpClient.execute(request);
             if (succeeded(response.getStatusLine().getStatusCode())) {
                 String toString = CIPluginSDKUtils.inputStreamToUTF8String(response.getEntity().getContent());
-                AuthToken authToken = new ObjectMapper().readValue(toString, TypeFactory.defaultInstance().constructType(AuthToken.class));
+                AuthToken authToken = new ObjectMapper().readValue(toString, TypeFactory.createDefaultInstance().constructType(AuthToken.class));
                 return authToken.getData();
             } else {
                 throw new PermanentException("Couldn't Authenticate SSC user, need to check SSC configuration in Octane plugin");

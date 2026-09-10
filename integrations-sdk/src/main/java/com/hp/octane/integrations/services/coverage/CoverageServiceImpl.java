@@ -51,6 +51,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -182,7 +183,7 @@ class CoverageServiceImpl implements CoverageService {
 				} else {
 					logger.info(configurer.octaneConfiguration.getLocationForLog() + "coverage of " + jobId + ", found no interested workspace in Octane");
 				}
-			} catch (IOException ioe) {
+			} catch (JacksonException ioe) {
 				throw new PermanentException("failed to parse preflight response '" + response.getBody() + "' for '" + jobId + "'");
 			}
 		}
