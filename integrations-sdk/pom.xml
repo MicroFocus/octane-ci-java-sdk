@@ -52,7 +52,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
 
-		<log4j.version>2.26.0</log4j.version>
+		<log4j.version>2.26.1</log4j.version>
         <httpclient.version>4.5.14</httpclient.version>
         <squareup-tape.version>1.2.3</squareup-tape.version>
         <commons-lang3.version>3.20.0</commons-lang3.version>
