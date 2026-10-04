@@ -50,7 +50,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <maven.compiler.release>21</maven.compiler.release>
-		<jackson.version>3.2.2</jackson.version>
+		<jackson.version>3.2.3</jackson.version>
 		<jackson.version.annotations>2.22</jackson.version.annotations>
         <junit-jupiter.version>6.1.0</junit-jupiter.version>
 	</properties>
